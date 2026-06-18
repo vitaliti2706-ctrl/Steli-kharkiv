@@ -3,81 +3,103 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Стелі Харків</title>
+<title>Стелі Харків — натяжні стелі у Харкові</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:Arial,sans-serif;background:#f4f7fb;color:#0f172a}
+html{scroll-behavior:smooth}
+body{font-family:Arial,Helvetica,sans-serif;background:#f4f7fb;color:#0f172a}
 a{text-decoration:none;color:inherit}
 .wrap{max-width:1180px;margin:auto;padding:0 10px}
 
-.header{height:42px;background:#fff;border-bottom:1px solid #e5e7eb;display:flex;align-items:center;position:sticky;top:0;z-index:10}
+.header{height:44px;background:#fff;border-bottom:1px solid #e5e7eb;display:flex;align-items:center;position:sticky;top:0;z-index:20}
 .nav{display:flex;align-items:center;justify-content:space-between;width:100%;gap:8px}
-.logo{font-size:17px;font-weight:900}
+.logo{font-size:18px;font-weight:950;letter-spacing:-1px;white-space:nowrap}
 .logo span{color:#075bff}
-.menu{display:flex;gap:10px;font-size:8px;font-weight:700}
-.phone{font-size:10px;font-weight:900;white-space:nowrap}
-.tg-top{background:#075bff;color:white;padding:6px 8px;border-radius:5px;font-size:8px;font-weight:900}
+.menu{display:none}
+.phone{font-size:11px;font-weight:900;white-space:nowrap}
+.tg-top{display:none}
 
 .hero{background:#fff}
-.hero-box{display:grid;grid-template-columns:44% 56%;align-items:center;gap:8px;padding:10px 0}
+.hero-box{display:grid;grid-template-columns:43% 57%;align-items:center;gap:8px;padding:10px 0}
 .badge{display:inline-block;font-size:8px;color:#075bff;background:#eef5ff;border:1px solid #dbeafe;border-radius:20px;padding:3px 6px;margin-bottom:5px;font-weight:900}
-h1{font-size:25px;line-height:.9;letter-spacing:-1px;margin-bottom:5px}
-.subtitle{font-size:12px;font-weight:900;color:#075bff;margin-bottom:4px}
-.desc{font-size:8px;color:#475569;margin-bottom:6px}
+h1{font-size:24px;line-height:.9;letter-spacing:-1px;margin-bottom:5px}
+.subtitle{font-size:11px;font-weight:900;color:#075bff;margin-bottom:4px}
+.desc{font-size:8px;color:#475569;margin-bottom:6px;line-height:1.3}
 .price-label{font-size:8px;color:#64748b}
 .price{font-size:21px;font-weight:950;line-height:1}
 .min{font-size:7px;color:#64748b;margin:2px 0 7px}
-.btn-row{display:flex;gap:5px}
-.btn{display:inline-flex;align-items:center;justify-content:center;border-radius:5px;font-size:8px;font-weight:900;padding:7px 9px;min-height:25px}
-.blue{background:#075bff;color:#fff}
-.green{background:#14a85a;color:#fff}
+
+.btn-row{display:flex;gap:5px;flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;justify-content:center;border-radius:7px;font-size:8px;font-weight:900;padding:7px 9px;min-height:26px}
+.blue{background:#075bff;color:#fff;box-shadow:0 10px 22px rgba(7,91,255,.22)}
+.green{background:#fff;color:#075bff;border:1px solid #d6e3ff}
 .outline{background:#fff;color:#075bff;border:1px solid #075bff}
-.hero-img img{width:100%;height:185px;object-fit:cover;border-radius:0}
+
+.hero-img img{width:100%;height:195px;object-fit:cover;border-radius:0;display:block}
 
 .benefits{margin-top:-4px;position:relative;z-index:2}
-.benefits-box{background:#fff;border:1px solid #e5e7eb;border-radius:10px;box-shadow:0 8px 22px rgba(15,23,42,.10);display:grid;grid-template-columns:repeat(4,1fr);overflow:hidden}
-.benefit{padding:9px 4px;text-align:center;border-right:1px solid #e5e7eb}
+.benefits-box{background:#fff;border:1px solid #e5e7eb;border-radius:12px;box-shadow:0 10px 28px rgba(15,23,42,.11);display:grid;grid-template-columns:repeat(4,1fr);overflow:hidden}
+.benefit{padding:10px 4px;text-align:center;border-right:1px solid #e5e7eb}
 .benefit:last-child{border-right:0}
-.benefit b{font-size:10px;display:block}
+.benefit b{font-size:10px;display:block;line-height:1.15}
 .benefit span{font-size:7px;color:#64748b}
 
 section{padding:12px 0}
 .section-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
-h2{font-size:16px}
+h2{font-size:17px;letter-spacing:-.4px}
 .more{font-size:8px;color:#075bff;font-weight:900}
 
-.works{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
-.card{background:#fff;border:1px solid #e5e7eb;border-radius:7px;overflow:hidden;box-shadow:0 5px 12px rgba(15,23,42,.07)}
-.card img{width:100%;height:64px;object-fit:cover;display:block}
-.info{padding:5px}
-.info h3{font-size:8px;margin-bottom:1px}
+.works{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.card{background:#fff;border:1px solid #e5e7eb;border-radius:10px;overflow:hidden;box-shadow:0 8px 20px rgba(15,23,42,.08);transition:.25s}
+.card img{width:100%;height:72px;object-fit:cover;display:block}
+.info{padding:6px}
+.info h3{font-size:8.5px;margin-bottom:2px;line-height:1.15}
 .info p{font-size:7px;color:#64748b;line-height:1.2}
 
-.calc{margin-top:10px;background:#fff;border:1px solid #e5e7eb;border-radius:8px;padding:8px;display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center}
+.calc{margin-top:10px;background:#fff;border:1px solid #e5e7eb;border-radius:11px;padding:9px;display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;box-shadow:0 8px 20px rgba(15,23,42,.07)}
 .calc b{font-size:12px}
 .calc p{font-size:8px;color:#64748b}
 .calc .blue{font-size:8px;padding:7px 12px}
 
+.solutions{background:#fff}
+.solution-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.solution{background:#f8fafc;border:1px solid #e5e7eb;border-radius:11px;padding:10px;box-shadow:0 6px 16px rgba(15,23,42,.05)}
+.solution b{display:block;font-size:10px;margin-bottom:4px}
+.solution p{font-size:8px;color:#64748b;line-height:1.3}
+
 .footer{padding:15px;text-align:center;color:#64748b;font-size:9px}
 
-@media(max-width:480px){
-.wrap{padding:0 8px}
-.menu{display:none}
-.header{height:46px}
-.logo{font-size:20px}
-.phone{font-size:12px}
-.tg-top{display:none}
-.hero-box{grid-template-columns:46% 54%;gap:6px;padding:9px 0}
-h1{font-size:24px}
-.subtitle{font-size:11px}
-.desc{font-size:8px}
-.price{font-size:20px}
-.btn{font-size:7px;padding:7px 6px}
-.hero-img img{height:165px}
-.benefit b{font-size:9px}
-.benefit span{font-size:6px}
-.works{grid-template-columns:repeat(3,1fr);gap:6px}
-.card img{height:58px}
+@media(min-width:760px){
+.wrap{padding:0 22px}
+.header{height:52px}
+.logo{font-size:24px}
+.menu{display:flex;gap:20px;font-size:12px;font-weight:800;color:#334155}
+.phone{font-size:14px}
+.tg-top{display:inline-flex;background:#075bff;color:#fff;padding:8px 12px;border-radius:7px;font-size:11px;font-weight:900}
+
+.hero-box{grid-template-columns:40% 60%;gap:14px;padding:14px 0}
+.badge{font-size:10px}
+h1{font-size:43px}
+.subtitle{font-size:17px}
+.desc{font-size:12px}
+.price{font-size:32px}
+.min{font-size:10px}
+.btn{font-size:11px;padding:10px 14px}
+.hero-img img{height:330px;border-radius:0}
+
+.benefit{padding:14px}
+.benefit b{font-size:14px}
+.benefit span{font-size:10px}
+
+section{padding:18px 0}
+h2{font-size:24px}
+.more{font-size:11px}
+.works{grid-template-columns:repeat(6,1fr);gap:10px}
+.card img{height:105px}
+.info h3{font-size:11px}
+.info p{font-size:9px}
+.solution b{font-size:13px}
+.solution p{font-size:11px}
 }
 </style>
 </head>
@@ -87,6 +109,7 @@ h1{font-size:24px}
 <header class="header">
 <div class="wrap nav">
 <div class="logo">Стелі<span>.kharkiv</span></div>
+
 <div class="menu">
 <a href="#home">Головна</a>
 <a href="#solutions">Наші рішення</a>
@@ -94,8 +117,9 @@ h1{font-size:24px}
 <a href="#calc">Калькулятор</a>
 <a href="#contacts">Контакти</a>
 </div>
+
 <a class="phone" href="tel:+380974546713">097 454 67 13</a>
-<a class="tg-top" href="tg://resolve?phone=380974546713">Надіслати фото в TG</a>
+<a class="tg-top" href="tg://resolve?phone=380974546713">Фото в TG</a>
 </div>
 </header>
 
@@ -107,9 +131,11 @@ h1{font-size:24px}
 <h1>НАТЯЖНІ СТЕЛІ<br>У ХАРКОВІ</h1>
 <div class="subtitle">Стелі, які виглядають дорого</div>
 <p class="desc">Тіньові стелі • Світлові лінії • Магнітні треки • Приховані карнизи</p>
+
 <div class="price-label">від</div>
 <div class="price">500 грн/м²</div>
 <div class="min">Мінімальне замовлення — 5000 грн</div>
+
 <div class="btn-row">
 <a class="btn blue" href="tel:+380974546713">Розрахувати</a>
 <a class="btn green" href="tg://resolve?phone=380974546713">Фото в TG</a>
@@ -117,7 +143,7 @@ h1{font-size:24px}
 </div>
 
 <div class="hero-img">
-<img src="Screenshot_20260618_174314_Gallery.jpg">
+<img src="Screenshot_20260618_174314_Gallery.jpg" alt="Стелі Харків">
 </div>
 
 </div>
@@ -146,15 +172,13 @@ h1{font-size:24px}
 <div class="card"><img src="20260614_225124(2)(1).jpg"><div class="info"><h3>Кільцеві світильники</h3><p>Стильне освітлення</p></div></div>
 <div class="card"><img src="IMG_20260618_122616_028(1).jpg"><div class="info"><h3>Тіньовий профіль</h3><p>Чорний контур стелі</p></div></div>
 <div class="card"><img src="Screenshot_20260618_174314_Gallery.jpg"><div class="info"><h3>Санвузол</h3><p>Вологостійке рішення</p></div></div>
-</div>
 
-<div class="works" style="margin-top:7px">
 <div class="card"><img src="20260611_205550(8)(1).jpg"><div class="info"><h3>Передпокій</h3><p>Тіньова стеля + спот</p></div></div>
 <div class="card"><img src="IMG_20260618_122616_028(1).jpg"><div class="info"><h3>Коридор</h3><p>Тіньовий профіль</p></div></div>
-<div class="card"><img src="20260614_225124(2)(1).jpg"><div class="info"><h3>Класична стеля</h3><p>LED-підсвітка по периметру</p></div></div>
+<div class="card"><img src="20260614_225124(2)(1).jpg"><div class="info"><h3>Класична стеля</h3><p>LED-підсвітка</p></div></div>
 <div class="card"><img src="2026-02-23-205547199(1).jpg"><div class="info"><h3>Декоративна зона</h3><p>Геометрія світла</p></div></div>
 <div class="card"><img src="Screenshot_20260618_174314_Gallery.jpg"><div class="info"><h3>Велика кімната</h3><p>Сучасне освітлення</p></div></div>
-<div class="card"><img src="20260611_205550(8)(1).jpg"><div class="info"><h3>Мінімалізм</h3><p>Білий мат + тіньовий профіль</p></div></div>
+<div class="card"><img src="20260611_205550(8)(1).jpg"><div class="info"><h3>Мінімалізм</h3><p>Білий мат + профіль</p></div></div>
 </div>
 
 <div class="calc" id="calc">
@@ -168,16 +192,17 @@ h1{font-size:24px}
 </div>
 </section>
 
-<section id="solutions">
+<section class="solutions" id="solutions">
 <div class="wrap">
 <div class="section-head">
 <h2>Наші рішення</h2>
 </div>
 
-<div class="works">
-<div class="card"><div class="info"><h3>Тіньовий профіль</h3><p>Преміальний чорний контур</p></div></div>
-<div class="card"><div class="info"><h3>Світлові лінії</h3><p>LED-рішення під інтер’єр</p></div></div>
-<div class="card"><div class="info"><h3>Магнітні треки</h3><p>Сучасне освітлення</p></div></div>
+<div class="solution-grid">
+<div class="solution"><b>Тіньовий профіль</b><p>Преміальний чорний контур</p></div>
+<div class="solution"><b>Світлові лінії</b><p>LED-рішення під інтер’єр</p></div>
+<div class="solution"><b>Магнітні треки</b><p>Сучасне освітлення</p></div>
+<div class="solution"><b>Класична стеля</b><p>Білий мат, сатин, глянець</p></div>
 </div>
 </div>
 </section>
