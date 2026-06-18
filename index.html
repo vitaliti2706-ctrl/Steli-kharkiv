@@ -3,69 +3,81 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Стелі Харків — натяжні стелі у Харкові</title>
+<title>Стелі Харків</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:Arial,sans-serif;background:#f4f6f8;color:#111827}
+body{font-family:Arial,sans-serif;background:#f6f8fb;color:#111827}
 a{text-decoration:none;color:inherit}
 .wrap{max-width:1180px;margin:auto;padding:0 18px}
 
-.header{background:#fff;border-bottom:1px solid #e5e7eb;position:sticky;top:0;z-index:10}
-.nav{height:64px;display:flex;align-items:center;justify-content:space-between}
-.logo{font-size:25px;font-weight:900}
-.logo span{color:#0057ff}
-.phone{font-weight:900}
+.header{background:#fff;border-bottom:1px solid #e5e7eb;position:sticky;top:0;z-index:20}
+.nav{height:70px;display:flex;align-items:center;justify-content:space-between}
+.logo{font-size:28px;font-weight:900}
+.logo span{color:#075bff}
+.menu{display:flex;gap:24px;font-weight:700;color:#334155}
+.phone{font-weight:900;font-size:18px}
 
-.hero{background:#0b1220;color:#fff}
-.hero-grid{display:grid;grid-template-columns:1fr 1.1fr;gap:30px;align-items:center;min-height:560px;padding:55px 0}
-.badge{color:#60a5fa;font-weight:900;margin-bottom:15px}
-h1{font-size:58px;line-height:.95;margin-bottom:20px}
-.hero p{font-size:20px;color:#cbd5e1;margin-bottom:24px}
-.price{font-size:38px;font-weight:900;margin-bottom:22px}
+.hero{background:#fff}
+.hero-grid{display:grid;grid-template-columns:1fr 1.05fr;gap:34px;align-items:center;padding:55px 0}
+.badge{display:inline-block;color:#075bff;font-weight:900;margin-bottom:18px}
+h1{font-size:64px;line-height:.92;letter-spacing:-3px;margin-bottom:18px}
+.subtitle{font-size:22px;color:#075bff;font-weight:900;margin-bottom:10px}
+.text{font-size:18px;color:#475569;margin-bottom:22px}
+.price{font-size:44px;font-weight:950;margin-bottom:6px}
+.min{color:#64748b;margin-bottom:24px}
+
 .btns{display:flex;gap:12px;flex-wrap:wrap}
-.btn{display:inline-block;padding:16px 24px;border-radius:10px;font-weight:900}
-.blue{background:#0057ff;color:#fff}
-.green{background:#16a34a;color:#fff}
-.hero-img img{width:100%;height:420px;object-fit:cover;border-radius:18px;box-shadow:0 25px 70px rgba(0,0,0,.4)}
+.btn{display:inline-block;padding:16px 24px;border-radius:12px;font-weight:900}
+.btn-main{background:#075bff;color:white;box-shadow:0 12px 28px rgba(7,91,255,.25)}
+.btn-second{background:white;color:#075bff;border:2px solid #075bff}
 
-.stats{background:#07101f;color:#fff}
-.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1px}
-.stat{padding:22px;text-align:center;border-left:1px solid #1e293b}
-.stat b{font-size:24px;display:block}
-.stat span{color:#94a3b8}
+.hero-photo img{width:100%;height:500px;object-fit:cover;border-radius:24px;box-shadow:0 24px 60px rgba(15,23,42,.18)}
 
-section{padding:45px 0}
-.section-title{font-size:36px;margin-bottom:24px}
-.gallery{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
-.card{background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 12px 35px rgba(0,0,0,.09)}
-.card img{width:100%;height:240px;object-fit:cover;display:block}
+.benefits{margin-top:-18px;position:relative;z-index:2}
+.benefits-grid{background:#fff;border:1px solid #e5e7eb;border-radius:20px;box-shadow:0 18px 45px rgba(15,23,42,.12);display:grid;grid-template-columns:repeat(4,1fr);overflow:hidden}
+.benefit{padding:24px;text-align:center;border-right:1px solid #e5e7eb}
+.benefit:last-child{border-right:0}
+.benefit b{font-size:24px;display:block}
+.benefit span{color:#64748b}
+
+section{padding:55px 0}
+.section-head{display:flex;justify-content:space-between;align-items:end;margin-bottom:26px}
+h2{font-size:40px;letter-spacing:-1px}
+.small{color:#64748b;font-size:18px;margin-top:6px}
+
+.gallery{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.card{background:#fff;border-radius:22px;overflow:hidden;box-shadow:0 14px 35px rgba(15,23,42,.10);border:1px solid #e5e7eb}
+.card img{width:100%;height:255px;object-fit:cover;display:block}
 .card-body{padding:18px}
-.card-body h3{font-size:22px;margin-bottom:6px}
-.card-body p{color:#667085;font-size:16px}
+.card-body h3{font-size:21px;margin-bottom:6px}
+.card-body p{color:#64748b}
 
-.why{background:#fff}
-.why-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
-.why-card{background:#f8fafc;border:1px solid #e5e7eb;border-radius:14px;padding:22px}
-.why-card h3{margin-bottom:8px}
-.why-card p{color:#667085}
+.services{background:#fff}
+.service-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.service{background:#f8fafc;border:1px solid #e5e7eb;border-radius:18px;padding:22px}
+.service h3{margin-bottom:8px}
+.service p{color:#64748b}
 
-.contact{background:#0b1220;color:#fff;border-radius:22px;padding:35px;display:grid;grid-template-columns:1.2fr 1fr;gap:25px;align-items:center}
-.contact h2{font-size:34px;margin-bottom:10px}
-.contact p{color:#cbd5e1;font-size:18px}
-.contact .big-phone{font-size:40px;font-weight:900;margin:18px 0}
+.cta{background:#0b1220;color:white;border-radius:28px;padding:38px;display:grid;grid-template-columns:1.2fr .8fr;gap:24px;align-items:center}
+.cta h2{color:white}
+.cta p{color:#cbd5e1;font-size:18px;margin-top:10px}
+.big-phone{font-size:36px;font-weight:950;margin-bottom:18px}
 
-footer{text-align:center;padding:25px;color:#667085}
+footer{text-align:center;padding:28px;color:#64748b}
 
 @media(max-width:850px){
-.hero-grid{grid-template-columns:1fr;min-height:auto;padding:40px 0}
-h1{font-size:44px}
-.hero-img img{height:300px}
-.stats-grid{grid-template-columns:1fr 1fr}
+.menu{display:none}
+.hero-grid{grid-template-columns:1fr;padding:34px 0}
+h1{font-size:46px}
+.hero-photo img{height:320px}
+.benefits{margin-top:0;padding-top:18px}
+.benefits-grid{grid-template-columns:1fr 1fr}
+.benefit{border-right:0;border-bottom:1px solid #e5e7eb}
 .gallery{grid-template-columns:1fr}
-.card img{height:260px}
-.why-grid{grid-template-columns:1fr}
-.contact{grid-template-columns:1fr}
-.contact .big-phone{font-size:34px}
+.card img{height:280px}
+.service-grid{grid-template-columns:1fr}
+.cta{grid-template-columns:1fr;padding:26px}
+.phone{font-size:15px}
 }
 </style>
 </head>
@@ -74,7 +86,12 @@ h1{font-size:44px}
 
 <header class="header">
 <div class="wrap nav">
-<div class="logo">Steli<span>.kharkiv</span></div>
+<div class="logo">Стелі<span> Харків</span></div>
+<nav class="menu">
+<a href="#works">Роботи</a>
+<a href="#services">Послуги</a>
+<a href="#contacts">Контакти</a>
+</nav>
 <a class="phone" href="tel:+380974546713">097 454 67 13</a>
 </div>
 </header>
@@ -84,84 +101,95 @@ h1{font-size:44px}
 <div>
 <div class="badge">Харків та область</div>
 <h1>НАТЯЖНІ СТЕЛІ<br>У ХАРКОВІ</h1>
-<p>Сучасні натяжні стелі: світлові лінії, тіньовий профіль, магнітні треки, приховані карнизи.</p>
+<div class="subtitle">Стелі, які виглядають дорого</div>
+<p class="text">Світлові лінії, тіньовий профіль, магнітні треки, приховані карнизи та сучасне освітлення.</p>
 <div class="price">від 500 грн/м²</div>
+<div class="min">Мінімальне замовлення — 5000 грн</div>
 <div class="btns">
-<a class="btn blue" href="tel:+380974546713">Подзвонити</a>
-<a class="btn green" href="#works">Дивитись роботи</a>
+<a class="btn btn-main" href="tel:+380974546713">Розрахувати вартість</a>
+<a class="btn btn-second" href="#works">Дивитись роботи</a>
 </div>
 </div>
-<div class="hero-img">
-<img src="Screenshot_20260618_174314_Gallery.jpg" alt="Натяжна стеля у Харкові">
+
+<div class="hero-photo">
+<img src="Screenshot_20260618_174314_Gallery.jpg" alt="Натяжні стелі Харків">
 </div>
 </div>
 </section>
 
-<div class="stats">
-<div class="wrap stats-grid">
-<div class="stat"><b>10 років</b><span>гарантії</span></div>
-<div class="stat"><b>1000+</b><span>об'єктів</span></div>
-<div class="stat"><b>1 день</b><span>монтаж</span></div>
-<div class="stat"><b>0 грн</b><span>замір</span></div>
+<div class="benefits">
+<div class="wrap benefits-grid">
+<div class="benefit"><b>1000+</b><span>об'єктів</span></div>
+<div class="benefit"><b>10 років</b><span>гарантії</span></div>
+<div class="benefit"><b>0 грн</b><span>замір</span></div>
+<div class="benefit"><b>1 день</b><span>монтаж</span></div>
 </div>
 </div>
 
 <section id="works">
 <div class="wrap">
-<h2 class="section-title">Наші роботи</h2>
+<div class="section-head">
+<div>
+<h2>Наші роботи</h2>
+<p class="small">Реальні фото об’єктів у Харкові</p>
+</div>
+</div>
 
 <div class="gallery">
 <div class="card">
-<img src="Screenshot_20260618_174314_Gallery.jpg" alt="">
-<div class="card-body"><h3>Паряща стеля з LED</h3><p>Підсвітка по контуру та сучасне освітлення.</p></div>
+<img src="Screenshot_20260618_174314_Gallery.jpg">
+<div class="card-body"><h3>Світлова лінія</h3><p>LED-підсвітка та сучасний контур.</p></div>
 </div>
 
 <div class="card">
-<img src="20260614_225124(2)(1).jpg" alt="">
-<div class="card-body"><h3>Кільцеві світильники</h3><p>Стильне рішення для вітальні або спальні.</p></div>
+<img src="20260614_225124(2)(1).jpg">
+<div class="card-body"><h3>Кільцеві світильники</h3><p>Преміальне рішення для кімнати.</p></div>
 </div>
 
 <div class="card">
-<img src="IMG_20260618_122616_028(1).jpg" alt="">
-<div class="card-body"><h3>Світлове кільце</h3><p>Акцентне освітлення та чистий контур.</p></div>
+<img src="IMG_20260618_122616_028(1).jpg">
+<div class="card-body"><h3>Світлове кільце</h3><p>Акцентне освітлення та чистий монтаж.</p></div>
 </div>
 
 <div class="card">
-<img src="20260611_205550(8)(1).jpg" alt="">
-<div class="card-body"><h3>Світлова лінія</h3><p>Акуратне світло по периметру кімнати.</p></div>
+<img src="20260611_205550(8)(1).jpg">
+<div class="card-body"><h3>Тіньовий профіль</h3><p>Рівний контур без зайвих вставок.</p></div>
 </div>
 
 <div class="card">
-<img src="2026-02-23-205547199(1).jpg" alt="">
-<div class="card-body"><h3>Геометрія LED</h3><p>Світлові лінії в сучасному інтер'єрі.</p></div>
+<img src="2026-02-23-205547199(1).jpg">
+<div class="card-body"><h3>Геометрія LED</h3><p>Сучасні світлові лінії.</p></div>
 </div>
 </div>
 </div>
 </section>
 
-<section class="why">
+<section id="services" class="services">
 <div class="wrap">
-<h2 class="section-title">Чому обирають нас</h2>
-<div class="why-grid">
-<div class="why-card"><h3>Власний монтаж</h3><p>Працюємо без посередників.</p></div>
-<div class="why-card"><h3>Безкоштовний замір</h3><p>Приїдемо, порахуємо, підкажемо рішення.</p></div>
-<div class="why-card"><h3>Сучасні рішення</h3><p>Треки, світлові лінії, тіньові профілі.</p></div>
-<div class="why-card"><h3>Гарантія</h3><p>Даємо гарантію на роботи та матеріали.</p></div>
+<h2>Послуги</h2>
+<br>
+<div class="service-grid">
+<div class="service"><h3>Класичні стелі</h3><p>Білий мат, сатин, глянець, споти.</p></div>
+<div class="service"><h3>Світлові лінії</h3><p>LED-рішення для сучасного інтер’єру.</p></div>
+<div class="service"><h3>Магнітні треки</h3><p>Трекове освітлення для кухні та залу.</p></div>
+<div class="service"><h3>Тіньовий профіль</h3><p>Чорний контур преміального вигляду.</p></div>
 </div>
 </div>
 </section>
 
-<section>
+<section id="contacts">
 <div class="wrap">
-<div class="contact">
+<div class="cta">
 <div>
 <h2>Отримати розрахунок</h2>
 <p>Надішліть фото кімнати або подзвоніть — зробимо попередній розрахунок.</p>
-<div class="big-phone">097 454 67 13</div>
 </div>
+<div>
+<div class="big-phone">097 454 67 13</div>
 <div class="btns">
-<a class="btn green" href="tel:+380974546713">Подзвонити зараз</a>
-<a class="btn blue" href="#">Telegram</a>
+<a class="btn btn-main" href="tel:+380974546713">Подзвонити</a>
+<a class="btn btn-second" href="#">Telegram</a>
+</div>
 </div>
 </div>
 </div>
