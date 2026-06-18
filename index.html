@@ -1,12 +1,47 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="uk">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Стелі Харків</title>
+<style>
+body{margin:0;font-family:Arial,sans-serif;background:#f6f9ff;color:#111827}
+.wrap{max-width:1100px;margin:auto;padding:22px}
+.hero{background:linear-gradient(120deg,#fff,#eaf3ff);min-height:88vh;display:flex;align-items:center}
+h1{font-size:56px;line-height:.95;margin:0 0 14px}
+.blue{color:#075bff}
+.btn{display:inline-block;background:#075bff;color:white;padding:15px 22px;border-radius:12px;text-decoration:none;font-weight:900;margin:8px 8px 8px 0}
+.green{background:#16b95f}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;margin-top:24px}
+.card{background:white;border-radius:16px;padding:20px;box-shadow:0 10px 30px #0001}
+.phone{font-size:26px;font-weight:900}
+footer{text-align:center;padding:25px;color:#667085}
+@media(max-width:600px){h1{font-size:42px}.hero{min-height:75vh}}
+</style>
 </head>
 <body>
-<h1>Стелі Харків</h1>
-<p>Новий сайт у розробці.</p>
+<section class="hero">
+<div class="wrap">
+<p class="blue"><b>Харків та область</b></p>
+<h1>НАТЯЖНІ СТЕЛІ<br>У ХАРКОВІ</h1>
+<h2>Стелі, які виглядають дорого</h2>
+<p>Світлові лінії • Магнітні треки • Тіньовий профіль • Приховані карнизи</p>
+<p class="phone">097 454 67 13</p>
+<a class="btn" href="tel:+380974546713">Подзвонити зараз</a>
+<a class="btn green" href="#works">Наші роботи</a>
+</div>
+</section>
+
+<main class="wrap" id="works">
+<h2>Наші рішення</h2>
+<div class="cards">
+<div class="card"><h3>Світлові лінії</h3><p>Сучасне LED-освітлення для квартири.</p></div>
+<div class="card"><h3>Магнітні треки</h3><p>Чорний профіль і стильні світильники.</p></div>
+<div class="card"><h3>Тіньовий профіль</h3><p>Акуратний преміальний контур стелі.</p></div>
+<div class="card"><h3>Класична стеля</h3><p>Білий мат, точкові світильники, люстри.</p></div>
+</div>
+</main>
+
+<footer>© 2026 Стелі Харків</footer>
 </body>
 </html>
