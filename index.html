@@ -292,12 +292,25 @@ function sendCalcToTelegram(){
   const perimeter = document.getElementById('perimeter').value;
   const total = document.getElementById('totalPrice').innerText;
 
-  const msg = encodeURIComponent(
-    'Добрий день! Хочу розрахунок стелі.\n' +
-    'Площа: ' + area + ' м²\n' +
-    'Периметр: ' + perimeter + ' м.п.\n' +
-    'Попередня сума: ' + total
-  );
+  const pack = document.getElementById('package');
+const profile = document.getElementById('profile');
+const lights = document.getElementById('lights').value;
+const chandeliers = document.getElementById('chandeliers').value;
+const corners = document.getElementById('corners').value;
+const pipes = document.getElementById('pipes').value;
+
+const msg = encodeURIComponent(
+  'Добрий день! Хочу розрахунок стелі.\n\n' +
+  'Площа: ' + area + ' м²\n' +
+  'Периметр: ' + perimeter + ' м.п.\n' +
+  'Пакет: ' + pack.options[pack.selectedIndex].text + '\n' +
+  'Профіль: ' + profile.options[profile.selectedIndex].text + '\n' +
+  'Світильники: ' + lights + ' шт\n' +
+  'Люстри: ' + chandeliers + ' шт\n' +
+  'Кути: ' + corners + ' шт\n' +
+  'Труби: ' + pipes + ' шт\n\n' +
+  'Попередня сума: ' + total
+);
 
   window.location.href = 'https://t.me/Potolok_in_ua?url=&text=' + msg;
 }
