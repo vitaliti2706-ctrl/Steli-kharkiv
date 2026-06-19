@@ -256,7 +256,7 @@ h2{font-size:25px}
 
 <div class="btn-row" style="margin-top:12px">
 <button class="btn blue" onclick="calculateCeiling()">Розрахувати</button>
-<a id="telegramCalc" class="btn outline" href="https://t.me/Potolok_in_ua">Надіслати в Telegram</a>
+<button id="telegramCalc" class="btn outline" onclick="sendCalcToTelegram()">Надіслати в Telegram</button>
 </div>
 </div>
 </div>
@@ -296,8 +296,27 @@ function calculateCeiling(){
 
   document.getElementById('telegramCalc').href = 'https://t.me/Potolok_in_ua';
 }
+}
+
+function sendCalcToTelegram(){
+  calculateCeiling();
+
+  const area = document.getElementById('area').value;
+  const perimeter = document.getElementById('perimeter').value;
+  const total = document.getElementById('totalPrice').innerText;
+
+  const msg =
+  'Добрий день! Хочу розрахунок стелі.%0A' +
+  'Площа: ' + area + ' м²%0A' +
+  'Периметр: ' + perimeter + ' м.п.%0A' +
+  'Попередня сума: ' + total;
+
+  window.location.href =
+  'https://t.me/share/url?url=&text=' + msg;
+}
 
 calculateCeiling();
+
 </script>
 </section>
 
