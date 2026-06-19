@@ -196,20 +196,109 @@ h2{font-size:25px}
 <div class="wrap">
 <div class="calc-box">
 <h2>Калькулятор вартості</h2>
-<p class="calc-note">Заповніть параметри — ми швидко порахуємо попередню ціну.</p>
+<p class="calc-note">Попередній розрахунок натяжної стелі у Харкові.</p>
+
 <div class="calc-grid">
-<div class="field"><label>Площа, м²</label><input type="number" placeholder="Напр. 18"></div>
-<div class="field"><label>Тип стелі</label><select><option>Матова</option><option>Сатин</option><option>Глянець</option></select></div>
-<div class="field"><label>Освітлення</label><select><option>Без освітлення</option><option>Світлові лінії</option><option>Магнітний трек</option><option>Точкові світильники</option></select></div>
-<div class="field"><label>Профіль</label><select><option>Звичайний</option><option>Тіньовий</option><option>Парящий</option></select></div>
+<div class="field">
+<label>Площа, м²</label>
+<input id="area" type="number" value="10">
 </div>
-<p class="calc-note">Для точного розрахунку потрібен замір або фото кімнати.</p>
-<div class="btn-row" style="margin-top:10px">
-<a class="btn blue" href="tel:+380974546713">Отримати розрахунок</a>
-<a class="btn outline" href="tg://resolve?phone=380974546713">Надіслати фото</a>
+
+<div class="field">
+<label>Периметр, м.п.</label>
+<input id="perimeter" type="number" value="14">
+</div>
+
+<div class="field">
+<label>Пакет</label>
+<select id="package">
+<option value="500">Стандарт — 500 грн/м²</option>
+<option value="600">Преміум — 600 грн/м²</option>
+<option value="700">Еліт — 700 грн/м²</option>
+</select>
+</div>
+
+<div class="field">
+<label>Профіль</label>
+<select id="profile">
+<option value="0">Звичайний</option>
+<option value="150">Тіньовий +150 грн/м.п.</option>
+<option value="550">Парящий +550 грн/м.п.</option>
+</select>
+</div>
+
+<div class="field">
+<label>Світильники, шт</label>
+<input id="lights" type="number" value="0">
+</div>
+
+<div class="field">
+<label>Люстри, шт</label>
+<input id="chandeliers" type="number" value="0">
+</div>
+
+<div class="field">
+<label>Кути, шт</label>
+<input id="corners" type="number" value="4">
+</div>
+
+<div class="field">
+<label>Труби, шт</label>
+<input id="pipes" type="number" value="0">
+</div>
+</div>
+
+<div style="margin-top:14px;background:#f8fafc;border:1px solid #dbe3ef;border-radius:14px;padding:14px">
+<div style="font-size:13px;color:#64748b">Попередня вартість:</div>
+<div id="totalPrice" style="font-size:30px;font-weight:950;color:#075bff;margin-top:4px">0 грн</div>
+<div id="calcDetails" style="font-size:12px;color:#64748b;margin-top:6px"></div>
+</div>
+
+<div class="btn-row" style="margin-top:12px">
+<button class="btn blue" onclick="calculateCeiling()">Розрахувати</button>
+<a id="telegramCalc" class="btn outline" href="https://t.me/Potolok_in_ua">Надіслати в Telegram</a>
 </div>
 </div>
 </div>
+
+<script>
+function calculateCeiling(){
+  const area = Number(document.getElementById('area').value) || 0;
+  const perimeter = Number(document.getElementById('perimeter').value) || 0;
+  const pack = Number(document.getElementById('package').value) || 0;
+  const profile = Number(document.getElementById('profile').value) || 0;
+  const lights = Number(document.getElementById('lights').value) || 0;
+  const chandeliers = Number(document.getElementById('chandeliers').value) || 0;
+  const corners = Number(document.getElementById('corners').value) || 0;
+  const pipes = Number(document.getElementById('pipes').value) || 0;
+
+  let total = area * pack;
+  total += perimeter * profile;
+  total += lights * 150;
+  total += chandeliers * 400;
+  total += corners * 50;
+  total += pipes * 300;
+
+  if(total < 5000) total = 5000;
+
+  document.getElementById('totalPrice').innerText = total.toLocaleString('uk-UA') + ' грн';
+  document.getElementById('calcDetails').innerText =
+    'Площа: ' + area + ' м² • Периметр: ' + perimeter + ' м.п. • Мінімальне замовлення: 5000 грн';
+
+  const text = 'Добрий день! Хочу розрахунок стелі.%0A' +
+  'Площа: ' + area + ' м²%0A' +
+  'Периметр: ' + perimeter + ' м.п.%0A' +
+  'Світильники: ' + lights + ' шт%0A' +
+  'Люстри: ' + chandeliers + ' шт%0A' +
+  'Кути: ' + corners + ' шт%0A' +
+  'Труби: ' + pipes + ' шт%0A' +
+  'Попередня сума: ' + total + ' грн';
+
+  document.getElementById('telegramCalc').href = 'https://t.me/Potolok_in_ua';
+}
+
+calculateCeiling();
+</script>
 </section>
 
 <section class="solutions" id="solutions">
