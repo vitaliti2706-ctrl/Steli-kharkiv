@@ -198,7 +198,15 @@ h2{font-size:25px}
 <h2>Калькулятор вартості</h2>
 <p class="calc-note">Попередній розрахунок натяжної стелі у Харкові.</p>
 
-<div class="calc-grid">
+<div class="calc-grid"><div class="field">
+<label>Ім'я</label>
+<input id="clientName" type="text" placeholder="Ваше ім'я">
+</div>
+
+<div class="field">
+<label>Телефон</label>
+<input id="clientPhone" type="tel" placeholder="Ваш телефон">
+</div>
 <div class="field">
 <label>Площа, м²</label>
 <input id="area" type="number" value="10">
@@ -291,6 +299,8 @@ function sendCalcToTelegram(){
   const area = document.getElementById('area').value;
   const perimeter = document.getElementById('perimeter').value;
   const total = document.getElementById('totalPrice').innerText;
+  const name = document.getElementById('clientName').value;
+const phone = document.getElementById('clientPhone').value;
 
   const pack = document.getElementById('package');
 const profile = document.getElementById('profile');
@@ -301,6 +311,8 @@ const pipes = document.getElementById('pipes').value;
 
 const msg = encodeURIComponent(
   'Добрий день! Хочу розрахунок стелі.\n\n' +
+  'Імʼя: ' + name + '\n' +
+'Телефон: ' + phone + '\n\n' +
   'Площа: ' + area + ' м²\n' +
   'Периметр: ' + perimeter + ' м.п.\n' +
   'Пакет: ' + pack.options[pack.selectedIndex].text + '\n' +
