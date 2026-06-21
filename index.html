@@ -116,9 +116,30 @@ h2{font-size:25px}
 .solution b{font-size:13px}
 .solution p{font-size:11px}
 }
+.lightbox{display:none;position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:999;align-items:center;justify-content:center;padding:18px}
+.lightbox img{max-width:100%;max-height:86vh;border-radius:12px;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+.lightbox.active{display:flex}
+.lightbox-close{position:absolute;top:14px;right:18px;color:#fff;font-size:34px;font-weight:900;cursor:pointer}
+.card img{cursor:pointer}
 </style>
 </head>
+<div id="lightbox" class="lightbox" onclick="closePhoto()">
+<span class="lightbox-close">×</span>
+<img id="lightboxImg" src="">
+</div>
 
+<script>
+document.querySelectorAll('.works .card img').forEach(function(img){
+  img.addEventListener('click', function(){
+    document.getElementById('lightboxImg').src = this.src;
+    document.getElementById('lightbox').classList.add('active');
+  });
+});
+
+function closePhoto(){
+  document.getElementById('lightbox').classList.remove('active');
+}
+</script>
 <body>
 
 <header class="header">
