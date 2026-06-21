@@ -123,23 +123,7 @@ h2{font-size:25px}
 .card img{cursor:pointer}
 </style>
 </head>
-<div id="lightbox" class="lightbox" onclick="closePhoto()">
-<span class="lightbox-close">×</span>
-<img id="lightboxImg" src="">
-</div>
 
-<script>
-document.querySelectorAll('.works .card img').forEach(function(img){
-  img.addEventListener('click', function(){
-    document.getElementById('lightboxImg').src = this.src;
-    document.getElementById('lightbox').classList.add('active');
-  });
-});
-
-function closePhoto(){
-  document.getElementById('lightbox').classList.remove('active');
-}
-</script>
 <body>
 
 <header class="header">
@@ -455,6 +439,22 @@ calculateCeiling();
 <footer class="footer">
 © 2026 Steli.kharkiv.ua • 097 454 67 13
 </footer>
+<div id="lightbox" class="lightbox" onclick="closePhoto()">
+<span class="lightbox-close">×</span>
+<img id="lightboxImg" src="">
+</div>
 
+<script>
+document.querySelectorAll('#works .card img').forEach(function(img){
+  img.addEventListener('click', function(){
+    document.getElementById('lightboxImg').src = this.src;
+    document.getElementById('lightbox').classList.add('active');
+  });
+});
+
+function closePhoto(){
+  document.getElementById('lightbox').classList.remove('active');
+}
+</script>
 </body>
 </html>
