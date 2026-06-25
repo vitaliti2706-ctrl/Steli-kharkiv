@@ -9,30 +9,35 @@
 body{font-family:Arial,Helvetica,sans-serif;background:#f4f7fb;color:#0f172a}
 a{text-decoration:none;color:inherit}
 .header{background:#fff;border-bottom:1px solid #e5e7eb;position:sticky;top:0;z-index:20}
-.nav{max-width:1180px;margin:auto;padding:14px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.nav{max-width:1180px;margin:auto;padding:14px;display:flex;align-items:center;justify-content:space-between}
 .logo{font-size:25px;font-weight:950;letter-spacing:-1px}
 .logo span{color:#075bff}
-.contacts{display:flex;gap:14px;font-size:14px;font-weight:900;white-space:nowrap}
-.hero{max-width:1180px;margin:auto;padding:24px 14px 10px}
-.hero h1{font-size:34px;line-height:1.05;margin-bottom:8px}
-.hero p{font-size:14px;color:#64748b;line-height:1.45;max-width:720px}
-.buttons{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+.contacts{display:flex;gap:14px;font-size:14px;font-weight:900}
+
+.gallery-hero{max-width:1180px;height:420px;margin:20px auto;border-radius:22px;overflow:hidden;background:url("file_00000000e3e8720a9866b77c2a8715e9.png") center/cover no-repeat;box-shadow:0 20px 50px rgba(0,0,0,.18)}
+.hero-overlay{height:100%;display:flex;flex-direction:column;justify-content:flex-end;padding:35px;background:linear-gradient(to top,rgba(0,0,0,.72),rgba(0,0,0,.15));color:#fff}
+.hero-overlay h1{font-size:44px;margin-bottom:10px;font-weight:950}
+.hero-overlay p{font-size:16px;max-width:650px;line-height:1.45;color:#f1f5f9}
+.buttons{display:flex;gap:10px;margin-top:18px;flex-wrap:wrap}
 .btn{background:#075bff;color:#fff;padding:11px 14px;border-radius:11px;font-weight:900;font-size:13px}
-.btn.light{background:#fff;color:#075bff;border:1px solid #dbeafe}
+.btn.light{background:#fff;color:#075bff}
+
 .gallery{max-width:1180px;margin:auto;padding:14px;display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
 .card{background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 8px 22px rgba(15,23,42,.10)}
 .card img{width:100%;height:210px;object-fit:cover;display:block;cursor:pointer}
 .card-body{padding:12px}
-.card h3{font-size:15px;line-height:1.2;margin-bottom:4px}
+.card h3{font-size:15px;margin-bottom:4px}
 .card p{font-size:12px;color:#64748b;line-height:1.35}
 .footer{text-align:center;color:#64748b;font-size:12px;padding:24px}
+
 .lightbox{display:none;position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:999;align-items:center;justify-content:center;padding:16px}
 .lightbox.active{display:flex}
 .lightbox img{max-width:100%;max-height:86vh;border-radius:14px}
 .close{position:absolute;top:14px;right:22px;color:#fff;font-size:38px;font-weight:900;cursor:pointer}
+
 @media(min-width:760px){
 .logo{font-size:30px}
-.hero h1{font-size:46px}
+.hero-overlay h1{font-size:56px}
 .gallery{grid-template-columns:repeat(4,1fr);gap:16px}
 .card img{height:240px}
 }
@@ -50,13 +55,15 @@ a{text-decoration:none;color:inherit}
 </div>
 </header>
 
-<section class="hero">
+<section class="gallery-hero">
+<div class="hero-overlay">
 <h1>Галерея робіт</h1>
-<p>Реальні приклади натяжних стель у Харкові та області: тіньові профілі, світлові лінії, магнітні треки, приховані карнизи та класичні рішення.</p>
+<p>Реальні натяжні стелі, світлові лінії, тіньові профілі, магнітні треки та приховані карнизи у Харкові та області.</p>
 <div class="buttons">
 <a class="btn" href="tel:+380974546713">📞 Подзвонити</a>
-<a class="btn light" href="index.html">← На головну</a>
+<a class="btn light" href="index.html">🏠 На головну</a>
 <a class="btn light" href="https://t.me/Potolok_in_ua">Telegram</a>
+</div>
 </div>
 </section>
 
@@ -67,34 +74,20 @@ a{text-decoration:none;color:inherit}
 <div class="card"><img src="IMG_20250916_154311.jpg"><div class="card-body"><h3>Магнітний трек</h3><p>Тіньовий профіль та сучасний дизайн.</p></div></div>
 <div class="card"><img src="1758027449029.jpg"><div class="card-body"><h3>Світлова лінія</h3><p>Накладний трек та LED-рішення.</p></div></div>
 
-<div class="card"><img src="1758027449069.jpg"><div class="card-body"><h3>Біла матова стеля</h3><p>Накладний трек та декоративні підвіси.</p></div></div>
 <div class="card"><img src="2026-02-23-205547199(1).jpg"><div class="card-body"><h3>Світлові лінії квадратом</h3><p>Сучасне LED-освітлення.</p></div></div>
 <div class="card"><img src="20260611_205550(8)(1).jpg"><div class="card-body"><h3>Карниз з підсвіткою</h3><p>Біла матова стеля та люстра на підвісах.</p></div></div>
-<div class="card"><img src="IMG_20250916_154446.jpg"><div class="card-body"><h3>Біла матова стеля</h3><p>Вбудовані світильники та біла вставка.</p></div></div>
-
-<div class="card"><img src="IMG_20250916_155016.jpg"><div class="card-body"><h3>Сучасна люстра</h3><p>Біла матова стеля та акуратне примикання.</p></div></div>
 <div class="card"><img src="IMG_20260618_122616_028(1).jpg"><div class="card-body"><h3>Чорна вставка</h3><p>Карниз з підсвіткою та сучасне рішення.</p></div></div>
-<div class="card"><img src="img22.jpg"><div class="card-body"><h3>Стеля у ванній</h3><p>Біла матова стеля з тіньовим профілем.</p></div></div>
 <div class="card"><img src="img27.jpg"><div class="card-body"><h3>Коридор</h3><p>Світлові лінії та сучасне освітлення.</p></div></div>
 
-<div class="card"><img src="photo_03.jpg"><div class="card-body"><h3>Лінія з переходом на стіну</h3><p>LED-підсвітка та точкові світильники.</p></div></div>
-<div class="card"><img src="20260121_210130.jpg"><div class="card-body"><h3>Біла глянцева стеля</h3><p>Точкові світильники та дзеркальний ефект.</p></div></div>
-<div class="card"><img src="20260121_210215.jpg"><div class="card-body"><h3>Глянцева стеля</h3><p>Сучасна люстра та дзеркальний ефект.</p></div></div>
 <div class="card"><img src="20260623_143240.jpg"><div class="card-body"><h3>Тіньове примикання</h3><p>Точкові світильники та рівні лінії.</p></div></div>
-
 <div class="card"><img src="20260623_143257.jpg"><div class="card-body"><h3>Тіньова стеля у ванній</h3><p>Біле матове полотно та точкове освітлення.</p></div></div>
 <div class="card"><img src="20260623_143839.jpg"><div class="card-body"><h3>Сучасна ванна</h3><p>Бездоганне примикання до плитки.</p></div></div>
 <div class="card"><img src="20260623_143331.jpg"><div class="card-body"><h3>Паряща стеля</h3><p>Ефект легкості та тіньовий профіль.</p></div></div>
+
 <div class="card"><img src="20260623_143548.jpg"><div class="card-body"><h3>Стеля у спальні</h3><p>Тіньове примикання по периметру.</p></div></div>
-
-<div class="card"><img src="20260623_143416.jpg"><div class="card-body"><h3>Класична матова стеля</h3><p>Мінімалістичний дизайн.</p></div></div>
 <div class="card"><img src="20260623_143726.jpg"><div class="card-body"><h3>Хол другого поверху</h3><p>Тіньовий профіль та точкове освітлення.</p></div></div>
-<div class="card"><img src="20260623_143701.jpg"><div class="card-body"><h3>Коридор</h3><p>Рівні лінії по периметру.</p></div></div>
 <div class="card"><img src="20260623_143707.jpg"><div class="card-body"><h3>Зовнішній кут</h3><p>Чіткі лінії тіньового профілю.</p></div></div>
-
-<div class="card"><img src="20260623_143856.jpg"><div class="card-body"><h3>Преміальне примикання</h3><p>Поєднання стелі та керамограніту.</p></div></div>
 <div class="card"><img src="20260623_143539.jpg"><div class="card-body"><h3>Прихований карниз</h3><p>Карниз інтегрований у натяжну стелю.</p></div></div>
-<div class="card"><img src="20260623_143755.jpg"><div class="card-body"><h3>Ідеальна геометрія</h3><p>Рівна поверхня та якісний монтаж.</p></div></div>
 
 </main>
 
