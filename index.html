@@ -462,8 +462,11 @@ calculateCeiling();
 </div>
 </div>
 <div class="btn-row" style="margin-top:12px">
-<a class="btn blue" href="tel:+380974546713">Подзвонити</a>
-<a class="btn outline" href="https://t.me/Potolok_in_ua">Telegram</a>
+<button class="btn blue" style="width:100%;background:#22c55e;border:0" onclick="sendLeadToTelegram()">📨 Надіслати заявку</button>
+
+<a class="btn blue" style="flex:1" href="tel:+380974546713">📞 Подзвонити</a>
+
+<a class="btn outline" style="flex:1" href="https://t.me/Potolok_in_ua">Telegram</a>
 </div>
 </div>
 </div>
@@ -489,5 +492,21 @@ function closePhoto(){
   document.getElementById('lightbox').classList.remove('active');
 }
 </script>
+<script>
+function sendLeadToTelegram(){
+  const name = document.getElementById('leadName').value;
+  const phone = document.getElementById('leadPhone').value;
+  const comment = document.getElementById('leadComment').value;
+
+  const msg = encodeURIComponent(
+    'Добрий день! Хочу залишити заявку.\n\n' +
+    'Імʼя: ' + name + '\n' +
+    'Телефон: ' + phone + '\n\n' +
+    'Коментар: ' + comment
+  );
+
+  window.location.href = 'https://t.me/Potolok_in_ua?url=&text=' + msg;
+}
+</script>  
 </body>
 </html>
