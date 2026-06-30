@@ -1,1 +1,151 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Potolok Studio — візуалізатор стелі</title>
 
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Arial,Helvetica,sans-serif;background:#f4f7fb;color:#0f172a}
+a{text-decoration:none;color:inherit}
+.wrap{max-width:1180px;margin:auto;padding:14px}
+
+.header{background:#fff;border-bottom:1px solid #e5e7eb;position:sticky;top:0;z-index:10}
+.nav{display:flex;align-items:center;justify-content:space-between}
+.logo{font-size:24px;font-weight:950}
+.logo span{color:#075bff}
+.back{font-size:13px;font-weight:900;color:#075bff}
+
+.hero{text-align:center;padding:28px 14px}
+.hero h1{font-size:34px;line-height:1.05;margin-bottom:10px}
+.hero h1 span{color:#075bff}
+.hero p{font-size:14px;color:#64748b;max-width:720px;margin:auto;line-height:1.5}
+
+.studio{display:grid;grid-template-columns:1fr;gap:16px}
+.preview{background:#fff;border-radius:22px;overflow:hidden;box-shadow:0 14px 35px rgba(15,23,42,.12);border:1px solid #e5e7eb}
+.preview img{width:100%;display:block}
+
+.panel{background:#fff;border-radius:22px;padding:16px;box-shadow:0 14px 35px rgba(15,23,42,.10);border:1px solid #e5e7eb}
+.panel h2{font-size:22px;margin-bottom:12px}
+.group{margin-bottom:18px}
+.group-title{font-size:13px;font-weight:950;margin-bottom:9px;color:#334155}
+.tabs{display:flex;gap:8px;flex-wrap:wrap}
+.tab{padding:10px 13px;border-radius:12px;border:1px solid #dbe3ef;background:#f8fafc;font-size:12px;font-weight:900}
+.tab.active{background:#075bff;color:#fff;border-color:#075bff}
+
+.colors{display:grid;grid-template-columns:repeat(4,1fr);gap:9px}
+.color{height:58px;border-radius:14px;border:2px solid #e5e7eb;display:flex;align-items:end;justify-content:center;padding:5px;font-size:9px;font-weight:900;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.45)}
+.white{background:#f8fafc;color:#0f172a;text-shadow:none}
+.black{background:#111827}
+.beige{background:#c9ad86}
+.gray{background:#8b95a1}
+.blue{background:#2563eb}
+.green{background:#16a34a}
+.red{background:#dc2626}
+.brown{background:#7c4a2d}
+
+.materials{display:grid;grid-template-columns:repeat(2,1fr);gap:9px}
+.material{background:#f8fafc;border:1px solid #e5e7eb;border-radius:14px;padding:12px}
+.material b{font-size:13px}
+.material p{font-size:10px;color:#64748b;margin-top:4px}
+
+.actions{display:grid;grid-template-columns:1fr;gap:9px;margin-top:12px}
+.btn{border:0;border-radius:14px;padding:13px;font-size:13px;font-weight:950;text-align:center}
+.primary{background:#075bff;color:#fff}
+.green-btn{background:#22c55e;color:#fff}
+.outline{background:#fff;color:#075bff;border:1px solid #075bff}
+
+.footer{text-align:center;color:#64748b;font-size:11px;padding:22px}
+
+@media(min-width:850px){
+.hero h1{font-size:48px}
+.studio{grid-template-columns:60% 40%;align-items:start}
+.colors{grid-template-columns:repeat(4,1fr)}
+.actions{grid-template-columns:1fr 1fr}
+}
+</style>
+</head>
+
+<body>
+
+<header class="header">
+<div class="wrap nav">
+<a class="logo" href="index.html">Potolok<span>.in.ua</span></a>
+<a class="back" href="index.html">← На головну</a>
+</div>
+</header>
+
+<section class="hero">
+<h1>🎨 <span>Potolok Studio</span><br>онлайн-візуалізатор інтер’єру</h1>
+<p>Підберіть колір стелі, стін та підлоги. Оберіть матову, сатинову або глянцеву фактуру та збережіть свій варіант для розрахунку.</p>
+</section>
+
+<main class="wrap studio">
+
+<div class="preview">
+<img src="20260623_143548.jpg" alt="Візуалізатор кімнати">
+</div>
+
+<div class="panel">
+<h2>Налаштування дизайну</h2>
+
+<div class="group">
+<div class="group-title">Що змінюємо</div>
+<div class="tabs">
+<button class="tab active">Стеля</button>
+<button class="tab">Стіни</button>
+<button class="tab">Підлога</button>
+</div>
+</div>
+
+<div class="group">
+<div class="group-title">Фактура стелі</div>
+<div class="tabs">
+<button class="tab active">Мат</button>
+<button class="tab">Сатин</button>
+<button class="tab">Глянець</button>
+</div>
+</div>
+
+<div class="group">
+<div class="group-title">Популярні кольори</div>
+<div class="colors">
+<button class="color white">White 303</button>
+<button class="color black">Black 700</button>
+<button class="color beige">Beige 210</button>
+<button class="color gray">Gray 514</button>
+<button class="color blue">Blue 420</button>
+<button class="color green">Green 330</button>
+<button class="color red">Red 120</button>
+<button class="color brown">Brown 610</button>
+</div>
+</div>
+
+<div class="group">
+<div class="group-title">Покриття підлоги</div>
+<div class="materials">
+<div class="material"><b>Дуб натуральний</b><p>теплий світлий відтінок</p></div>
+<div class="material"><b>Сірий дуб</b><p>сучасний холодний тон</p></div>
+<div class="material"><b>Горіх</b><p>класичний темний колір</p></div>
+<div class="material"><b>Венге</b><p>контрастний преміальний вигляд</p></div>
+</div>
+</div>
+
+<div class="actions">
+<a class="btn green-btn" href="https://t.me/Potolok_in_ua">💾 Зберегти проєкт</a>
+<a class="btn primary" href="tel:+380974546713">📞 Отримати розрахунок</a>
+<a class="btn outline" href="gallery.html">📸 Галерея робіт</a>
+<a class="btn outline" href="index.html#calc">💰 Калькулятор</a>
+</div>
+
+</div>
+
+</main>
+
+<footer class="footer">
+© 2026 Potolok.in.ua • Potolok Studio
+</footer>
+
+</body>
+</html>
