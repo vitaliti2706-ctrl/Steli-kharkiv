@@ -101,6 +101,14 @@ a{text-decoration:none;color:inherit}
 
 <div class="group">
 <div class="group-title">Каталог кольорів</div>
+<div class="tabs" style="margin-bottom:12px">
+  <button class="tab active" onclick="setFilter('all', this)">Всі</button>
+  <button class="tab" onclick="setFilter('White', this)">Білі</button>
+  <button class="tab" onclick="setFilter('Gray', this)">Сірі</button>
+  <button class="tab" onclick="setFilter('Beige', this)">Бежеві</button>
+  <button class="tab" onclick="setFilter('Black', this)">Темні</button>
+  <button class="tab" onclick="setFilter('color', this)">Кольорові</button>
+</div>  
 <input class="search" id="colorSearch" placeholder="Пошук кольору або номера..." oninput="renderColors()">
 <div class="palette" id="palette"></div>
 </div>
@@ -118,7 +126,7 @@ a{text-decoration:none;color:inherit}
 <script>
 let currentSurface = 'ceiling';
 let currentMaterial = 'matte';
-
+let currentFilter = 'all';
 const colors = [];
 
 function addGroup(prefix, start, hues, sat, lightStart, lightStep){
@@ -156,7 +164,16 @@ function renderColors(){
     box.appendChild(b);
   });
 }
+function setFilter(filter, btn){
+  currentFilter = filter;
 
+  btn.parentElement.querySelectorAll('.tab').forEach(x=>{
+    x.classList.remove('active');
+  });
+
+  btn.classList.add('active');
+  renderColors();
+}
 function setSurface(surface, btn){
   currentSurface = surface;
   document.querySelectorAll('.group:first-of-type .tab').forEach(x=>x.classList.remove('active'));
