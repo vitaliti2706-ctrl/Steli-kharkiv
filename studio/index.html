@@ -23,7 +23,7 @@ a{text-decoration:none;color:inherit}
 .studio{display:grid;grid-template-columns:1fr;gap:16px}
 .preview{position:relative;background:#fff;border-radius:22px;overflow:hidden;box-shadow:0 14px 35px rgba(15,23,42,.12)}
 .preview img{width:100%;display:block}
-.layer{display:none}
+.layer{position:absolute;inset:0;pointer-events:none;mix-blend-mode:multiply;opacity:.35;transition:.35s}
 .layer.ceiling{
   clip-path:polygon(0 0,100% 0,94% 23%,74% 39%,26% 39%,6% 23%);
 }
