@@ -1,1 +1,190 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Potolok Studio 2.0</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Arial,Helvetica,sans-serif;background:#f4f7fb;color:#0f172a}
+a{text-decoration:none;color:inherit}
+.wrap{max-width:1200px;margin:auto;padding:14px}
+.header{background:#fff;border-bottom:1px solid #e5e7eb;position:sticky;top:0;z-index:10}
+.nav{display:flex;justify-content:space-between;align-items:center}
+.logo{font-size:24px;font-weight:950}
+.logo span{color:#075bff}
+.back{color:#075bff;font-weight:900;font-size:13px}
 
+.hero{text-align:center;padding:24px 14px}
+.hero h1{font-size:34px;margin-bottom:10px}
+.hero span{color:#075bff}
+.hero p{color:#64748b;font-size:14px;line-height:1.5}
+
+.studio{display:grid;grid-template-columns:1fr;gap:16px}
+.preview{position:relative;background:#fff;border-radius:22px;overflow:hidden;box-shadow:0 14px 35px rgba(15,23,42,.12)}
+.preview img{width:100%;display:block}
+.layer{position:absolute;inset:0;pointer-events:none;mix-blend-mode:multiply;opacity:.35;transition:.35s}
+.layer.ceiling{clip-path:polygon(0 0,100% 0,82% 29%,18% 29%)}
+.layer.walls{clip-path:polygon(0 24%,18% 29%,82% 29%,100% 24%,100% 78%,0 78%)}
+.layer.floor{clip-path:polygon(0 78%,100% 78%,100% 100%,0 100%)}
+
+.panel{background:#fff;border-radius:22px;padding:16px;box-shadow:0 14px 35px rgba(15,23,42,.10)}
+.panel h2{font-size:22px;margin-bottom:12px}
+.group{margin-bottom:18px}
+.group-title{font-weight:950;font-size:13px;margin-bottom:8px;color:#334155}
+.tabs{display:flex;gap:8px;flex-wrap:wrap}
+.tab{border:1px solid #dbe3ef;background:#f8fafc;border-radius:12px;padding:10px 12px;font-weight:900;font-size:12px}
+.tab.active{background:#075bff;color:#fff}
+
+.palette{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;max-height:260px;overflow:auto;padding-right:4px}
+.color{height:48px;border:2px solid #e5e7eb;border-radius:12px;font-size:8px;font-weight:900;color:#fff;text-shadow:0 1px 2px #000;display:flex;align-items:end;justify-content:center;padding:4px}
+.color.active{border:3px solid #075bff}
+.search{width:100%;padding:11px;border:1px solid #dbe3ef;border-radius:12px;margin-bottom:10px}
+
+.actions{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.btn{border:0;border-radius:14px;padding:13px;text-align:center;font-weight:950;font-size:13px}
+.primary{background:#075bff;color:#fff}
+.green{background:#22c55e;color:#fff}
+.outline{background:#fff;color:#075bff;border:1px solid #075bff}
+
+@media(min-width:900px){
+.hero h1{font-size:46px}
+.studio{grid-template-columns:60% 40%}
+.palette{grid-template-columns:repeat(6,1fr)}
+}
+</style>
+</head>
+
+<body>
+
+<header class="header">
+<div class="wrap nav">
+<a class="logo" href="../index.html">Potolok<span>.in.ua</span></a>
+<a class="back" href="../index.html">← На головну</a>
+</div>
+</header>
+
+<section class="hero">
+<h1>🎨 <span>Potolok Studio 2.0</span></h1>
+<p>Конфігуратор натяжної стелі: кольори, фактури, стіни, підлога, освітлення та майбутнє збереження проєктів.</p>
+</section>
+
+<main class="wrap studio">
+
+<div class="preview">
+<img src="../studio-room.png" alt="Potolok Studio">
+<div id="ceilingLayer" class="layer ceiling"></div>
+<div id="wallsLayer" class="layer walls"></div>
+<div id="floorLayer" class="layer floor"></div>
+</div>
+
+<div class="panel">
+<h2>Налаштування</h2>
+
+<div class="group">
+<div class="group-title">Що змінюємо</div>
+<div class="tabs">
+<button class="tab active" onclick="setSurface('ceiling', this)">Стеля</button>
+<button class="tab" onclick="setSurface('walls', this)">Стіни</button>
+<button class="tab" onclick="setSurface('floor', this)">Підлога</button>
+</div>
+</div>
+
+<div class="group">
+<div class="group-title">Фактура</div>
+<div class="tabs">
+<button class="tab active" onclick="setMaterial('matte', this)">Мат</button>
+<button class="tab" onclick="setMaterial('satin', this)">Сатин</button>
+<button class="tab" onclick="setMaterial('gloss', this)">Глянець</button>
+</div>
+</div>
+
+<div class="group">
+<div class="group-title">Каталог кольорів</div>
+<input class="search" id="colorSearch" placeholder="Пошук кольору або номера..." oninput="renderColors()">
+<div class="palette" id="palette"></div>
+</div>
+
+<div class="actions">
+<button class="btn green" onclick="saveProject()">💾 Зберегти</button>
+<a class="btn primary" href="https://t.me/Potolok_in_ua">📲 Розрахунок</a>
+<a class="btn outline" href="../gallery.html">📸 Галерея</a>
+<a class="btn outline" href="../index.html#calc">💰 Калькулятор</a>
+</div>
+</div>
+
+</main>
+
+<script>
+let currentSurface = 'ceiling';
+let currentMaterial = 'matte';
+
+const colors = [
+{name:'White 303',hex:'#f8fafc'},{name:'White 305',hex:'#f1f5f9'},{name:'Cream 210',hex:'#ead8bd'},
+{name:'Beige 215',hex:'#c9ad86'},{name:'Sand 220',hex:'#bfa27a'},{name:'Gray 514',hex:'#8b95a1'},
+{name:'Light Gray 510',hex:'#cbd5e1'},{name:'Graphite 700',hex:'#374151'},{name:'Black 900',hex:'#111827'},
+{name:'Blue 420',hex:'#2563eb'},{name:'Sky 430',hex:'#38bdf8'},{name:'Navy 440',hex:'#1e3a8a'},
+{name:'Green 330',hex:'#16a34a'},{name:'Olive 340',hex:'#6b7c32'},{name:'Mint 350',hex:'#86efac'},
+{name:'Red 120',hex:'#dc2626'},{name:'Bordo 130',hex:'#7f1d1d'},{name:'Pink 140',hex:'#f472b6'},
+{name:'Brown 610',hex:'#7c4a2d'},{name:'Walnut 620',hex:'#5b341f'},{name:'Gold 720',hex:'#d4af37'},
+{name:'Violet 810',hex:'#7c3aed'},{name:'Lavender 820',hex:'#c4b5fd'},{name:'Orange 230',hex:'#f97316'}
+];
+
+function renderColors(){
+  const q = document.getElementById('colorSearch').value.toLowerCase();
+  const box = document.getElementById('palette');
+  box.innerHTML = '';
+  colors.filter(c => c.name.toLowerCase().includes(q)).forEach(c=>{
+    const b = document.createElement('button');
+    b.className = 'color';
+    b.style.background = c.hex;
+    b.textContent = c.name;
+    b.onclick = () => applyColor(c.hex);
+    box.appendChild(b);
+  });
+}
+
+function setSurface(surface, btn){
+  currentSurface = surface;
+  document.querySelectorAll('.group:first-of-type .tab').forEach(x=>x.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+function setMaterial(material, btn){
+  currentMaterial = material;
+  document.querySelectorAll('.group:nth-of-type(2) .tab').forEach(x=>x.classList.remove('active'));
+  btn.classList.add('active');
+  updateMaterial();
+}
+
+function applyColor(hex){
+  document.getElementById(currentSurface + 'Layer').style.background = hex;
+}
+
+function updateMaterial(){
+  const layers = document.querySelectorAll('.layer');
+  layers.forEach(l=>{
+    if(currentMaterial === 'matte'){
+      l.style.opacity = '.32';
+      l.style.filter = 'none';
+    }
+    if(currentMaterial === 'satin'){
+      l.style.opacity = '.38';
+      l.style.filter = 'brightness(1.08)';
+    }
+    if(currentMaterial === 'gloss'){
+      l.style.opacity = '.45';
+      l.style.filter = 'brightness(1.22) contrast(1.1)';
+    }
+  });
+}
+
+function saveProject(){
+  alert('Проєкт збережемо на наступному етапі. Фундамент уже готовий.');
+}
+
+renderColors();
+</script>
+
+</body>
+</html>
