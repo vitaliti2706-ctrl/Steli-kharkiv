@@ -1,250 +1,1012 @@
 <!DOCTYPE html>
 <html lang="uk">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Potolok Studio 2.0</title>
-<style>
-*{box-sizing:border-box;margin:0;padding:0}
-body{font-family:Arial,Helvetica,sans-serif;background:#f4f7fb;color:#0f172a}
-a{text-decoration:none;color:inherit}
-.wrap{max-width:1200px;margin:auto;padding:14px}
-.header{background:#fff;border-bottom:1px solid #e5e7eb;position:sticky;top:0;z-index:10}
-.nav{display:flex;justify-content:space-between;align-items:center}
-.logo{font-size:24px;font-weight:950}
-.logo span{color:#075bff}
-.back{color:#075bff;font-weight:900;font-size:13px}
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Potolok Studio</title>
 
-.hero{text-align:center;padding:24px 14px}
-.hero h1{font-size:34px;margin-bottom:10px}
-.hero span{color:#075bff}
-.hero p{color:#64748b;font-size:14px;line-height:1.5}
+  <style>
+    /* =========================================================
+       Potolok Studio
+       Полноценная чистая версия под структуру:
+       /studio/index.html
+       /studio/studio-room.png
+       ========================================================= */
 
-.studio{display:grid;grid-template-columns:1fr;gap:16px}
-.preview{position:relative;background:#fff;border-radius:22px;overflow:hidden;box-shadow:0 14px 35px rgba(15,23,42,.12)}
-.preview img{width:100%;display:block}
-.layer{position:absolute;inset:0;pointer-events:none;mix-blend-mode:multiply;opacity:.35;transition:.35s}
-.layer.ceiling{
-clip-path:polygon(0 0,100% 0,94% 23%,74% 39%,26% 39%,6% 23%);
-}
+    :root {
+      --blue: #075bff;
+      --blue-dark: #0047d8;
+      --green: #16a34a;
+      --dark: #0f172a;
+      --text: #334155;
+      --muted: #64748b;
+      --line: #dbe3ef;
+      --soft-line: #edf2f7;
+      --bg: #f4f7fb;
+      --card: #ffffff;
+      --panel: #ffffff;
+      --warning: #eff6ff;
+      --warning-border: #bfdbfe;
+      --shadow: 0 18px 50px rgba(15, 23, 42, 0.10);
+      --radius-xl: 22px;
+      --radius-lg: 16px;
+      --radius-md: 10px;
+      --radius-sm: 8px;
+    }
 
-.layer.walls{
-clip-path:polygon(0 23%,6% 23%,26% 39%,74% 39%,94% 23%,100% 23%,100% 78%,0 78%);
-}
-.layer.floor{clip-path:polygon(0 78%,100% 78%,100% 100%,0 100%)}
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
 
-.panel{background:#fff;border-radius:22px;padding:16px;box-shadow:0 14px 35px rgba(15,23,42,.10)}
-.panel h2{font-size:22px;margin-bottom:12px}
-.group{margin-bottom:18px}
-.group-title{font-weight:950;font-size:13px;margin-bottom:8px;color:#334155}
-.tabs{display:flex;gap:8px;flex-wrap:wrap}
-.tab{border:1px solid #dbe3ef;background:#f8fafc;border-radius:12px;padding:10px 12px;font-weight:900;font-size:12px}
-.tab.active{background:#075bff;color:#fff}
+    html {
+      scroll-behavior: smooth;
+    }
 
-.palette{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;max-height:260px;overflow:auto;padding-right:4px}
-.color{height:48px;border:2px solid #e5e7eb;border-radius:12px;font-size:8px;font-weight:900;color:#fff;text-shadow:0 1px 2px #000;display:flex;align-items:end;justify-content:center;padding:4px}
-.color.active{border:3px solid #075bff}
-.search{width:100%;padding:11px;border:1px solid #dbe3ef;border-radius:12px;margin-bottom:10px}
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+      background: var(--bg);
+      color: var(--dark);
+      min-height: 100vh;
+    }
 
-.actions{display:grid;grid-template-columns:1fr 1fr;gap:9px}
-.btn{border:0;border-radius:14px;padding:13px;text-align:center;font-weight:950;font-size:13px}
-.primary{background:#075bff;color:#fff}
-.green{background:#22c55e;color:#fff}
-.outline{background:#fff;color:#075bff;border:1px solid #075bff}
+    a {
+      text-decoration: none;
+      color: inherit;
+    }
 
-@media(min-width:900px){
-.hero h1{font-size:46px}
-.studio{grid-template-columns:60% 40%}
-.palette{grid-template-columns:repeat(6,1fr)}
-}
-</style>
+    button,
+    input,
+    select {
+      font: inherit;
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    img {
+      max-width: 100%;
+    }
+
+    .page {
+      min-height: 100vh;
+    }
+
+    .wrap {
+      max-width: 1480px;
+      margin: 0 auto;
+      padding: 14px;
+    }
+
+    /* =========================
+       Header
+       ========================= */
+
+    .site-header {
+      background: #ffffff;
+      border-bottom: 1px solid var(--line);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .site-nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      min-height: 62px;
+    }
+
+    .logo {
+      font-size: 28px;
+      font-weight: 950;
+      letter-spacing: -0.9px;
+      white-space: nowrap;
+      color: var(--dark);
+    }
+
+    .logo span {
+      color: var(--blue);
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      color: var(--text);
+      font-size: 14px;
+      font-weight: 850;
+      white-space: nowrap;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+
+    .nav-links::-webkit-scrollbar {
+      display: none;
+    }
+
+    .nav-links a:first-child {
+      color: var(--blue);
+    }
+
+    /* =========================
+       Main layout
+       ========================= */
+
+    .studio-shell {
+      display: grid;
+      grid-template-columns: 380px minmax(0, 1fr);
+      gap: 18px;
+      align-items: start;
+      padding-top: 18px;
+    }
+
+    .control-panel,
+    .viewer-panel {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .control-panel {
+      padding: 24px;
+      position: sticky;
+      top: 82px;
+      height: calc(100vh - 104px);
+      overflow-y: auto;
+    }
+
+    .control-panel::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .control-panel::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 99px;
+    }
+
+    .studio-title {
+      margin-bottom: 22px;
+    }
+
+    .studio-title h1 {
+      font-size: 31px;
+      line-height: 1.07;
+      letter-spacing: -1px;
+      margin-bottom: 12px;
+    }
+
+    .studio-title h1 span {
+      color: var(--blue);
+    }
+
+    .studio-title p {
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.55;
+    }
+
+    /* =========================
+       Form groups
+       ========================= */
+
+    .section {
+      margin-bottom: 24px;
+    }
+
+    .section-title {
+      font-size: 15px;
+      font-weight: 950;
+      color: var(--dark);
+      margin-bottom: 11px;
+    }
+
+    .segmented {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .seg-btn {
+      height: 46px;
+      border: 1px solid var(--line);
+      background: #ffffff;
+      color: #111827;
+      border-radius: var(--radius-md);
+      font-weight: 900;
+      font-size: 14px;
+      transition: 0.16s ease;
+    }
+
+    .seg-btn:hover {
+      border-color: #9db7e8;
+    }
+
+    .seg-btn.active {
+      background: var(--blue);
+      border-color: var(--blue);
+      color: #ffffff;
+      box-shadow: 0 10px 18px rgba(7, 91, 255, 0.20);
+    }
+
+    .select-control,
+    .search-control {
+      width: 100%;
+      height: 46px;
+      border: 1px solid var(--line);
+      background: #ffffff;
+      color: #111827;
+      border-radius: var(--radius-md);
+      padding: 0 13px;
+      outline: none;
+      font-size: 14px;
+      font-weight: 750;
+    }
+
+    .search-control {
+      margin-bottom: 12px;
+      font-weight: 600;
+    }
+
+    .select-control:focus,
+    .search-control:focus {
+      border-color: var(--blue);
+      box-shadow: 0 0 0 3px rgba(7, 91, 255, 0.12);
+    }
+
+    /* =========================
+       Palette
+       ========================= */
+
+    .palette-grid {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 8px;
+      max-height: 280px;
+      overflow-y: auto;
+      padding: 2px 2px 4px;
+    }
+
+    .palette-grid::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .palette-grid::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 99px;
+    }
+
+    .swatch {
+      height: 42px;
+      border-radius: var(--radius-sm);
+      border: 1px solid rgba(15, 23, 42, 0.16);
+      background: #ffffff;
+      position: relative;
+      overflow: hidden;
+      transition: 0.14s ease;
+    }
+
+    .swatch:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 8px 16px rgba(15, 23, 42, 0.12);
+    }
+
+    .swatch.active {
+      outline: 3px solid var(--blue);
+      outline-offset: 2px;
+    }
+
+    .swatch::after {
+      content: attr(data-name);
+      position: absolute;
+      left: 4px;
+      right: 4px;
+      bottom: 3px;
+      color: #ffffff;
+      font-size: 8px;
+      font-weight: 900;
+      text-align: center;
+      text-shadow: 0 1px 3px rgba(0,0,0,0.6);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* =========================
+       Current selection
+       ========================= */
+
+    .choice-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-top: 20px;
+    }
+
+    .choice-card {
+      border: 1px solid var(--line);
+      background: #f8fafc;
+      border-radius: var(--radius-md);
+      padding: 10px;
+      min-width: 0;
+    }
+
+    .choice-card b {
+      display: block;
+      font-size: 13px;
+      margin-bottom: 7px;
+      color: var(--dark);
+    }
+
+    .choice-card span {
+      display: block;
+      font-size: 11px;
+      color: var(--muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-bottom: 8px;
+    }
+
+    .choice-color {
+      height: 38px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--line);
+      background: #ffffff;
+    }
+
+    /* =========================
+       Actions
+       ========================= */
+
+    .actions {
+      display: grid;
+      gap: 9px;
+      margin-top: 22px;
+    }
+
+    .action-btn {
+      height: 47px;
+      border-radius: var(--radius-md);
+      border: 1px solid transparent;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 14px;
+      font-weight: 950;
+      transition: 0.16s ease;
+    }
+
+    .action-btn.primary {
+      background: var(--blue);
+      color: #ffffff;
+      box-shadow: 0 10px 20px rgba(7, 91, 255, 0.20);
+    }
+
+    .action-btn.primary:hover {
+      background: var(--blue-dark);
+    }
+
+    .action-btn.green {
+      background: var(--green);
+      color: #ffffff;
+    }
+
+    .action-btn.outline {
+      background: #ffffff;
+      color: var(--blue);
+      border-color: var(--blue);
+    }
+
+    .tip {
+      margin-top: 18px;
+      background: var(--warning);
+      border: 1px solid var(--warning-border);
+      color: #1d4ed8;
+      border-radius: var(--radius-md);
+      padding: 13px;
+      font-size: 13px;
+      line-height: 1.45;
+      font-weight: 750;
+    }
+
+    /* =========================
+       Viewer
+       ========================= */
+
+    .viewer-panel {
+      min-width: 0;
+    }
+
+    .viewer-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      min-height: 66px;
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--line);
+      background: #ffffff;
+    }
+
+    .toolbar-left,
+    .toolbar-right {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      flex-wrap: wrap;
+    }
+
+    .tool-btn {
+      height: 40px;
+      padding: 0 14px;
+      border: 1px solid var(--line);
+      background: #ffffff;
+      color: var(--text);
+      border-radius: var(--radius-md);
+      font-size: 13px;
+      font-weight: 900;
+      transition: 0.16s ease;
+    }
+
+    .tool-btn:hover {
+      border-color: var(--blue);
+      color: var(--blue);
+    }
+
+    .room-stage {
+      position: relative;
+      background: #e5e7eb;
+      overflow: hidden;
+    }
+
+    .room-stage img {
+      display: block;
+      width: 100%;
+      height: auto;
+    }
+
+    .photo-error {
+      display: none;
+      min-height: 540px;
+      background: #eef2f7;
+      color: #64748b;
+      font-weight: 900;
+      text-align: center;
+      align-items: center;
+      justify-content: center;
+      padding: 30px;
+      line-height: 1.45;
+    }
+
+    .photo-error.show {
+      display: flex;
+    }
+
+    .hide {
+      display: none !important;
+    }
+
+    /* =========================
+       Color masks
+       Сейчас маски сделаны clip-path.
+       После первого теста координаты можно точно подогнать.
+       ========================= */
+
+    .mask {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      display: none;
+      mix-blend-mode: multiply;
+      opacity: 0.36;
+      transition: opacity 0.18s ease, filter 0.18s ease;
+    }
+
+    .mask.active {
+      display: block;
+    }
+
+    .mask-ceiling {
+      clip-path: polygon(
+        0 0,
+        100% 0,
+        94% 24%,
+        74% 38%,
+        26% 38%,
+        6% 24%
+      );
+    }
+
+    .mask-walls {
+      clip-path: polygon(
+        0 24%,
+        6% 24%,
+        26% 38%,
+        74% 38%,
+        94% 24%,
+        100% 24%,
+        100% 78%,
+        0 78%
+      );
+    }
+
+    .mask-floor {
+      clip-path: polygon(
+        0 78%,
+        100% 78%,
+        100% 100%,
+        0 100%
+      );
+    }
+
+    .show-masks .mask-ceiling {
+      display: block;
+      background: rgba(7, 91, 255, 0.25);
+    }
+
+    .show-masks .mask-walls {
+      display: block;
+      background: rgba(34, 197, 94, 0.18);
+    }
+
+    .show-masks .mask-floor {
+      display: block;
+      background: rgba(245, 158, 11, 0.20);
+    }
+
+    .viewer-footer {
+      padding: 12px 16px;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 13px;
+      background: #ffffff;
+    }
+
+    /* =========================
+       Mobile
+       ========================= */
+
+    @media (max-width: 980px) {
+      .wrap {
+        padding: 10px;
+      }
+
+      .logo {
+        font-size: 24px;
+      }
+
+      .nav-links {
+        max-width: 50vw;
+      }
+
+      .studio-shell {
+        grid-template-columns: 1fr;
+      }
+
+      .viewer-panel {
+        order: 1;
+      }
+
+      .control-panel {
+        order: 2;
+        position: static;
+        height: auto;
+      }
+
+      .viewer-toolbar {
+        align-items: flex-start;
+      }
+
+      .palette-grid {
+        grid-template-columns: repeat(5, 1fr);
+      }
+    }
+
+    @media (max-width: 520px) {
+      .wrap {
+        padding: 8px;
+      }
+
+      .site-nav {
+        min-height: 58px;
+      }
+
+      .logo {
+        font-size: 23px;
+      }
+
+      .studio-shell {
+        gap: 12px;
+        padding-top: 12px;
+      }
+
+      .control-panel {
+        padding: 18px;
+      }
+
+      .studio-title h1 {
+        font-size: 29px;
+      }
+
+      .segmented {
+        gap: 7px;
+      }
+
+      .seg-btn {
+        height: 44px;
+        font-size: 13px;
+      }
+
+      .palette-grid {
+        grid-template-columns: repeat(4, 1fr);
+      }
+
+      .choice-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .viewer-toolbar {
+        padding: 10px;
+      }
+
+      .tool-btn {
+        height: 38px;
+        padding: 0 11px;
+      }
+    }
+  </style>
 </head>
 
 <body>
+  <div class="page">
+    <header class="site-header">
+      <div class="wrap site-nav">
+        <a class="logo" href="../index.html">Potolok<span>.in.ua</span></a>
 
-<header class="header">
-<div class="wrap nav">
-<a class="logo" href="../index.html">Potolok<span>.in.ua</span></a>
-<a class="back" href="../index.html">← На головну</a>
-</div>
-</header>
+        <nav class="nav-links">
+          <a href="../index.html">← На головну</a>
+          <a href="../gallery.html">Галерея</a>
+          <a href="../index.html#calc">Калькулятор</a>
+        </nav>
+      </div>
+    </header>
 
-<section class="hero">
-<h1>🎨 <span>Potolok Studio 2.0</span></h1>
-<p>Конфігуратор натяжної стелі: кольори, фактури, стіни, підлога, освітлення та майбутнє збереження проєктів.</p>
-</section>
+    <main class="wrap studio-shell">
+      <aside class="control-panel">
+        <div class="studio-title">
+          <h1>Potolok <span>Studio</span></h1>
+          <p>
+            Підбір кольору стелі, стін та підлоги на реальному фото кімнати.
+            Виберіть поверхню, фактуру і колір.
+          </p>
+        </div>
 
-<main class="wrap studio">
+        <section class="section">
+          <div class="section-title">Поверхня</div>
+          <div class="segmented" id="surfaceTabs">
+            <button class="seg-btn active" type="button" onclick="setSurface('ceiling', this)">Стеля</button>
+            <button class="seg-btn" type="button" onclick="setSurface('walls', this)">Стіни</button>
+            <button class="seg-btn" type="button" onclick="setSurface('floor', this)">Підлога</button>
+          </div>
+        </section>
 
-<div class="preview">
-<img src="studio-room.png" alt="Potolok Studio">
-<div id="ceilingLayer" class="layer ceiling"></div>
-<div id="wallsLayer" class="layer walls"></div>
-<div id="floorLayer" class="layer floor"></div>
-</div>
+        <section class="section">
+          <div class="section-title">Фактура</div>
+          <div class="segmented" id="materialTabs">
+            <button class="seg-btn active" type="button" onclick="setMaterial('matte', this)">Мат</button>
+            <button class="seg-btn" type="button" onclick="setMaterial('satin', this)">Сатин</button>
+            <button class="seg-btn" type="button" onclick="setMaterial('gloss', this)">Глянець</button>
+          </div>
+        </section>
 
-<div class="panel">
-<h2>Налаштування</h2>
+        <section class="section">
+          <div class="section-title">Категорія кольорів</div>
+          <select class="select-control" id="categorySelect" onchange="renderPalette()">
+            <option value="all">Всі кольори</option>
+            <option value="white">Білі</option>
+            <option value="gray">Сірі</option>
+            <option value="beige">Бежеві</option>
+            <option value="dark">Темні</option>
+            <option value="color">Кольорові</option>
+          </select>
+        </section>
 
-<div class="group">
-<div class="group-title">Що змінюємо</div>
-<div class="tabs">
-<button class="tab active" onclick="setSurface('ceiling', this)">Стеля</button>
-<button class="tab" onclick="setSurface('walls', this)">Стіни</button>
-<button class="tab" onclick="setSurface('floor', this)">Підлога</button>
-</div>
-</div>
+        <section class="section">
+          <div class="section-title">Кольори</div>
+          <input
+            class="search-control"
+            id="colorSearch"
+            type="text"
+            placeholder="Пошук кольору або номера"
+            oninput="renderPalette()"
+          />
+          <div class="palette-grid" id="paletteGrid"></div>
+        </section>
 
-<div class="group">
-<div class="group-title">Фактура</div>
-<div class="tabs">
-<button class="tab active" onclick="setMaterial('matte', this)">Мат</button>
-<button class="tab" onclick="setMaterial('satin', this)">Сатин</button>
-<button class="tab" onclick="setMaterial('gloss', this)">Глянець</button>
-</div>
-</div>
+        <section class="choice-grid">
+          <div class="choice-card">
+            <b>Стеля</b>
+            <span id="ceilingName">не вибрано</span>
+            <div class="choice-color" id="ceilingChoice"></div>
+          </div>
 
-<div class="group">
-<div class="group-title">Каталог кольорів</div>
-<div class="tabs" style="margin-bottom:12px">
-  <button class="tab active" onclick="setFilter('all', this)">Всі</button>
-  <button class="tab" onclick="setFilter('White', this)">Білі</button>
-  <button class="tab" onclick="setFilter('Gray', this)">Сірі</button>
-  <button class="tab" onclick="setFilter('Beige', this)">Бежеві</button>
-  <button class="tab" onclick="setFilter('Black', this)">Темні</button>
-  <button class="tab" onclick="setFilter('color', this)">Кольорові</button>
-</div>  
-<input class="search" id="colorSearch" placeholder="Пошук кольору або номера..." oninput="renderColors()">
-<div class="palette" id="palette"></div>
-</div>
+          <div class="choice-card">
+            <b>Стіни</b>
+            <span id="wallsName">не вибрано</span>
+            <div class="choice-color" id="wallsChoice"></div>
+          </div>
 
-<div class="actions">
-<button class="btn green" onclick="saveProject()">💾 Зберегти</button>
-<a class="btn primary" href="https://t.me/Potolok_in_ua">📲 Розрахунок</a>
-<a class="btn outline" href="../gallery.html">📸 Галерея</a>
-<a class="btn outline" href="../index.html#calc">💰 Калькулятор</a>
-</div>
-</div>
+          <div class="choice-card">
+            <b>Підлога</b>
+            <span id="floorName">не вибрано</span>
+            <div class="choice-color" id="floorChoice"></div>
+          </div>
+        </section>
 
-</main>
+        <section class="actions">
+          <button class="action-btn primary" type="button" onclick="saveProject()">Зберегти проект</button>
+          <a class="action-btn green" href="https://t.me/Potolok_in_ua">Отримати розрахунок</a>
+          <button class="action-btn outline" type="button" onclick="resetAll()">Скинути все</button>
+        </section>
 
-<script>
-let currentSurface = 'ceiling';
-let currentMaterial = 'matte';
-let currentFilter = 'all';
-const colors = [
-{name:'White 303',hex:'#f8fafc'},
-{name:'White 305',hex:'#f1f5f9'},
-{name:'Cream 210',hex:'#ead8bd'},
-{name:'Beige 215',hex:'#c9ad86'},
-{name:'Sand 220',hex:'#bfa27a'},
-{name:'Gray 514',hex:'#8b95a1'},
-{name:'Light Gray 510',hex:'#cbd5e1'},
-{name:'Graphite 700',hex:'#374151'},
-{name:'Black 900',hex:'#111827'},
-{name:'Blue 420',hex:'#2563eb'},
-{name:'Sky 430',hex:'#38bdf8'},
-{name:'Navy 440',hex:'#1e3a8a'},
-{name:'Green 330',hex:'#16a34a'},
-{name:'Olive 340',hex:'#6b7c32'},
-{name:'Mint 350',hex:'#86efac'},
-{name:'Red 120',hex:'#dc2626'},
-{name:'Bordo 130',hex:'#7f1d1d'},
-{name:'Pink 140',hex:'#f472b6'},
-{name:'Brown 610',hex:'#7c4a2d'},
-{name:'Walnut 620',hex:'#5b341f'},
-{name:'Gold 720',hex:'#d4af37'},
-{name:'Violet 810',hex:'#7c3aed'},
-{name:'Lavender 820',hex:'#c4b5fd'},
-{name:'Orange 230',hex:'#f97316'}
-];
+        <div class="tip">
+          Натисни «Показати маски», щоб побачити зони фарбування.
+          Після першого тесту підженемо контури точніше під фото.
+        </div>
+      </aside>
 
-function addGroup(prefix, start, hues, sat, lightStart, lightStep){
-  hues.forEach((hue, i)=>{
-    colors.push({
-      name: `${prefix} ${start + i}`,
-      hex: `hsl(${hue}, ${sat}%, ${lightStart - i * lightStep}%)`
-    });
-  });
-}
+      <section class="viewer-panel">
+        <div class="viewer-toolbar">
+          <div class="toolbar-left">
+            <button class="tool-btn" type="button" onclick="toggleMasks()">Показати маски</button>
+            <button class="tool-btn" type="button" onclick="resetAll()">Скинути</button>
+          </div>
 
-addGroup('White', 301, Array.from({length:30},(_,i)=>40+i), 12, 98, 0.25);
-addGroup('Gray', 501, Array.from({length:35},(_,i)=>210+i), 8, 88, 1.1);
-addGroup('Beige', 210, Array.from({length:40},(_,i)=>30+i), 35, 88, 0.9);
-addGroup('Cream', 260, Array.from({length:25},(_,i)=>38+i), 45, 92, 0.8);
-addGroup('Black', 700, Array.from({length:20},(_,i)=>220+i), 10, 28, 0.7);
-addGroup('Brown', 610, Array.from({length:30},(_,i)=>20+i), 45, 55, 0.9);
-addGroup('Blue', 420, Array.from({length:35},(_,i)=>195+i*2), 70, 65, 0.8);
-addGroup('Green', 330, Array.from({length:35},(_,i)=>105+i*2), 55, 65, 0.75);
-addGroup('Red', 120, Array.from({length:30},(_,i)=>350+i), 70, 62, 0.8);
-addGroup('Violet', 810, Array.from({length:25},(_,i)=>260+i*2), 60, 68, 0.8);
-addGroup('Yellow', 720, Array.from({length:25},(_,i)=>45+i), 80, 72, 0.65);
-addGroup('Orange', 230, Array.from({length:25},(_,i)=>15+i), 80, 65, 0.7);
+          <div class="toolbar-right">
+            <button class="tool-btn" type="button" onclick="saveProject()">Зберегти</button>
+          </div>
+        </div>
 
-function renderColors(){
-  const q = document.getElementById('colorSearch').value.toLowerCase();
-  const box = document.getElementById('palette');
-  box.innerHTML = '';
-  colors.filter(c => c.name.toLowerCase().includes(q)).forEach(c=>{
-    const b = document.createElement('button');
-    b.className = 'color';
-    b.style.background = c.hex;
-    b.textContent = c.name;
-    b.onclick = () => applyColor(c.hex);
-    box.appendChild(b);
-  });
-}
-function setFilter(filter, btn){
-  currentFilter = filter;
+        <div class="room-stage" id="roomStage">
+          <img
+            id="roomImage"
+            src="studio-room.png"
+            alt="Кімната"
+            onerror="showPhotoError()"
+          />
 
-  btn.parentElement.querySelectorAll('.tab').forEach(x=>{
-    x.classList.remove('active');
-  });
+          <div class="photo-error" id="photoError">
+            Фото не знайдено. Перевір, що файл studio-room.png лежить поруч з index.html у папці studio.
+          </div>
 
-  btn.classList.add('active');
-  renderColors();
-}
-function setSurface(surface, btn){
-  currentSurface = surface;
-  document.querySelectorAll('.group:first-of-type .tab').forEach(x=>x.classList.remove('active'));
-  btn.classList.add('active');
-}
+          <div class="mask mask-ceiling" id="ceilingLayer"></div>
+          <div class="mask mask-walls" id="wallsLayer"></div>
+          <div class="mask mask-floor" id="floorLayer"></div>
+        </div>
 
-function setMaterial(material, btn){
-  currentMaterial = material;
-  document.querySelectorAll('.group:nth-of-type(2) .tab').forEach(x=>x.classList.remove('active'));
-  btn.classList.add('active');
-  updateMaterial();
-}
+        <div class="viewer-footer">
+          Колір може відрізнятися залежно від освітлення та налаштувань екрана.
+        </div>
+      </section>
+    </main>
+  </div>
 
-function applyColor(hex){
-  document.getElementById(currentSurface + 'Layer').style.background = hex;
-}
+  <script>
+    /* =========================================================
+       State
+       ========================================================= */
 
-function updateMaterial(){
-  const layers = document.querySelectorAll('.layer');
-  layers.forEach(l=>{
-    if(currentMaterial === 'matte'){
-      l.style.opacity = '.32';
-      l.style.filter = 'none';
+    let currentSurface = 'ceiling';
+    let currentMaterial = 'matte';
+
+    const selection = {
+      ceiling: null,
+      walls: null,
+      floor: null
+    };
+
+    /* =========================================================
+       Palette
+       ========================================================= */
+
+    const colors = [
+      { name: 'White 301', hex: '#ffffff', cat: 'white' },
+      { name: 'White 303', hex: '#f8fafc', cat: 'white' },
+      { name: 'White 305', hex: '#f1f5f9', cat: 'white' },
+      { name: 'White 307', hex: '#e8edf4', cat: 'white' },
+
+      { name: 'Cream 210', hex: '#ead8bd', cat: 'beige' },
+      { name: 'Beige 215', hex: '#c9ad86', cat: 'beige' },
+      { name: 'Sand 220', hex: '#bfa27a', cat: 'beige' },
+      { name: 'Warm Beige 225', hex: '#d7c0a1', cat: 'beige' },
+
+      { name: 'Gray 510', hex: '#cbd5e1', cat: 'gray' },
+      { name: 'Gray 514', hex: '#8b95a1', cat: 'gray' },
+      { name: 'Silver 520', hex: '#aeb7c4', cat: 'gray' },
+      { name: 'Concrete 530', hex: '#9ca3af', cat: 'gray' },
+
+      { name: 'Graphite 700', hex: '#374151', cat: 'dark' },
+      { name: 'Black 900', hex: '#111827', cat: 'dark' },
+      { name: 'Brown 610', hex: '#7c4a2d', cat: 'dark' },
+      { name: 'Walnut 620', hex: '#5b341f', cat: 'dark' },
+
+      { name: 'Blue 420', hex: '#2563eb', cat: 'color' },
+      { name: 'Sky 430', hex: '#38bdf8', cat: 'color' },
+      { name: 'Navy 440', hex: '#1e3a8a', cat: 'color' },
+      { name: 'Green 330', hex: '#16a34a', cat: 'color' },
+
+      { name: 'Mint 350', hex: '#86efac', cat: 'color' },
+      { name: 'Olive 340', hex: '#6b7c32', cat: 'color' },
+      { name: 'Red 120', hex: '#dc2626', cat: 'color' },
+      { name: 'Bordo 130', hex: '#7f1d1d', cat: 'color' },
+
+      { name: 'Pink 140', hex: '#f472b6', cat: 'color' },
+      { name: 'Violet 810', hex: '#7c3aed', cat: 'color' },
+      { name: 'Lavender 820', hex: '#c4b5fd', cat: 'color' },
+      { name: 'Gold 720', hex: '#d4af37', cat: 'color' },
+
+      { name: 'Orange 230', hex: '#f97316', cat: 'color' }
+    ];
+
+    /* =========================================================
+       Render palette
+       ========================================================= */
+
+    function renderPalette() {
+      const category = document.getElementById('categorySelect').value;
+      const query = document.getElementById('colorSearch').value.toLowerCase().trim();
+      const grid = document.getElementById('paletteGrid');
+
+      grid.innerHTML = '';
+
+      const filtered = colors.filter((color) => {
+        const matchCategory = category === 'all' || color.cat === category;
+        const matchSearch = color.name.toLowerCase().includes(query);
+        return matchCategory && matchSearch;
+      });
+
+      filtered.forEach((color) => {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'swatch';
+        button.dataset.name = color.name;
+        button.title = color.name;
+        button.style.background = color.hex;
+        button.onclick = () => applyColor(color);
+        grid.appendChild(button);
+      });
     }
-    if(currentMaterial === 'satin'){
-      l.style.opacity = '.38';
-      l.style.filter = 'brightness(1.08)';
+
+    /* =========================================================
+       Surface
+       ========================================================= */
+
+    function setSurface(surface, button) {
+      currentSurface = surface;
+
+      document.querySelectorAll('#surfaceTabs .seg-btn').forEach((btn) => {
+        btn.classList.remove('active');
+      });
+
+      button.classList.add('active');
     }
-    if(currentMaterial === 'gloss'){
-      l.style.opacity = '.45';
-      l.style.filter = 'brightness(1.22) contrast(1.1)';
+
+    /* =========================================================
+       Material
+       ========================================================= */
+
+    function setMaterial(material, button) {
+      currentMaterial = material;
+
+      document.querySelectorAll('#materialTabs .seg-btn').forEach((btn) => {
+        btn.classList.remove('active');
+      });
+
+      button.classList.add('active');
+
+      updateMaterial();
     }
-  });
-}
 
-function saveProject(){
-  alert('Проєкт збережемо на наступному етапі. Фундамент уже готовий.');
-}
+    /* =========================================================
+       Apply color
+       ========================================================= */
 
-renderColors();
-</script>
+    function applyColor(color) {
+      selection[currentSurface] = color;
 
+      const layer = document.getElementById(currentSurface + 'Layer');
+      const choice = document.getElementById(currentSurface + 'Choice');
+      const name = document.getElementById(currentSurface + 'Name');
+
+      layer.style.background = color.hex;
+      layer.classList.add('active');
+
+      choice.style.background = color.hex;
+      name.textContent = color.name;
+
+      updateMaterial();
+    }
+
+    /* =========================================================
+       Material visual mode
+       ========================================================= */
+
+    function updateMaterial() {
+      let opacity = 0.34;
+      let filter = 'none';
+
+      if (currentMaterial === 'satin') {
+        opacity = 0.40;
+        filter = 'brightness(1.06)';
+      }
+
+      if (currentMaterial === 'gloss') {
+        opacity = 0.47;
+        filter = 'brightness(1.16) contrast(1.08)';
+      }
+
+      document.querySelectorAll('.mask').forEach((mask) => {
+        mask.style.opacity = opacity;
+        mask.style.filter = filter;
+      });
+    }
+
+    /* =========================================================
+       Reset
+       ========================================================= */
+
+    function resetAll() {
+      ['ceiling', 'walls', 'floor'].forEach((surface) => {
+        selection[surface] = null;
+
+        const layer = document.getElementById(surface + 'Layer');
+        const choice = document.getElementById(surface + 'Choice');
+        const name = document.getElementById(surface + 'Name');
+
+        layer.classList.remove('active');
+        layer.style.background = 'transparent';
+
+        choice.style.background = '#ffffff';
+        name.textContent = 'не вибрано';
+      });
+    }
+
+    /* =========================================================
+       Masks debug
+       ========================================================= */
+
+    function toggleMasks() {
+      document.getElementById('roomStage').classList.toggle('show-masks');
+    }
+
+    /* =========================================================
+       Save placeholder
+       ========================================================= */
+
+    function saveProject() {
+      alert('Збереження проекту підключимо наступним етапом.');
+    }
+
+    /* =========================================================
+       Photo error
+       ========================================================= */
+
+    function showPhotoError() {
+      document.getElementById('roomImage').classList.add('hide');
+      document.getElementById('photoError').classList.add('show');
+    }
+
+    /* =========================================================
+       Init
+       ========================================================= */
+
+    renderPalette();
+  </script>
 </body>
 </html>
