@@ -58,9 +58,36 @@ a{text-decoration:none;color:inherit}button,input,select{font:inherit}button{cur
 .canvas-wrap{padding:16px;background:#edf2f8}
 .stage{position:relative;border-radius:20px;overflow:hidden;background:#cfd8e5;box-shadow:0 16px 42px rgba(15,23,42,.13)}
 .room{width:100%;display:block}
-.mask-layer{position:absolute;inset:0;display:none;pointer-events:none;opacity:.48;mix-blend-mode:multiply;-webkit-mask-size:100% 100%;mask-size:100% 100%;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;-webkit-mask-position:center;mask-position:center}
+.mask-layer{
+  position:absolute;
+  inset:0;
+  display:none;
+  pointer-events:none;
+  opacity:.42;
+  background:transparent;
+  mix-blend-mode:multiply;
+  -webkit-mask-size:100% 100%;
+  mask-size:100% 100%;
+  -webkit-mask-repeat:no-repeat;
+  mask-repeat:no-repeat;
+  -webkit-mask-position:center;
+  mask-position:center;
+}
 .mask-layer.active{display:block}
-#ceilingLayer{-webkit-mask-image:url('mask-ceiling.png');mask-image:url('mask-ceiling.png')}
+#ceilingLayer{
+  -webkit-mask-image:url('/studio/mask-ceiling.png');
+  mask-image:url('/studio/mask-ceiling.png');
+}
+
+#wallsLayer{
+  -webkit-mask-image:url('/studio/mask-walls.png');
+  mask-image:url('/studio/mask-walls.png');
+}
+
+#floorLayer{
+  -webkit-mask-image:url('/studio/mask-floor.png');
+  mask-image:url('/studio/mask-floor.png');
+}
 #wallsLayer{-webkit-mask-image:url('mask-walls.png');mask-image:url('mask-walls.png')}
 #floorLayer{-webkit-mask-image:url('mask-floor.png');mask-image:url('mask-floor.png')}
 .light-overlay{position:absolute;inset:0;display:none;pointer-events:none;background:radial-gradient(circle at 50% 8%,rgba(255,255,255,.72),transparent 22%);mix-blend-mode:screen}
