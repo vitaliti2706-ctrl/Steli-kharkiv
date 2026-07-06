@@ -82,10 +82,13 @@ ${extras}
     const data = await openaiRes.json();
 
     if (!openaiRes.ok) {
-      return res.status(openaiRes.status).json({
-        error: "OpenAI error",
-        details: data,
-      });
+  console.log("OPENAI RESPONSE:");
+  console.log(JSON.stringify(data, null, 2));
+
+  return res.status(openaiRes.status).json({
+    error: "OpenAI error",
+    details: data,
+  });
     }
 
     const generatedBase64 = data?.data?.[0]?.b64_json;
