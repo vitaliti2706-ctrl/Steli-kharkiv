@@ -804,8 +804,8 @@ function loadPhoto(event){
   reader.onload = function(e){
     uploadedImageBase64 = e.target.result;
 
-    const img = document.getElementById('previewImage');
-    const empty = document.getElementById('emptyPreview');
+    const img = document.getElementById('previewImg');
+const empty = document.getElementById('emptyText');
 
     if(img){
       img.src = uploadedImageBase64;
