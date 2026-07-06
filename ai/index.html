@@ -790,84 +790,96 @@ document.querySelectorAll('.mat').forEach(function(btn){
       btn.textContent.trim();
   });
 });
+let uploadedImageBase64 = '';
 
 function loadPhoto(event){
   const file = event.target.files[0];
-
   if(!file){
+    uploadedImageBase64 = '';
     return;
   }
 
-  const img = document.getElementById('previewImg');
-  const empty = document.getElementById('emptyText');
+  const reader = new FileReader();
 
-  img.src = URL.createObjectURL(file);
-  img.style.display = 'block';
-  empty.style.display = 'none';
+  reader.onload = function(e){
+    uploadedImageBase64 = e.target.result;
+
+    const img = document.getElementById('previewImage');
+    const empty = document.getElementById('emptyPreview');
+
+    if(img){
+      img.src = uploadedImageBase64;
+      img.style.display = 'block';
+    }
+
+    if(empty){
+      empty.style.display = 'none';
+    }
+  };
+
+  reader.readAsDataURL(file);
 }
+async function prepareAI(){
+  if(!uploadedImageBase64){
+    alert('Спочатку завантажте фото кімнати.');
+    return;
+  }
 
-function prepareAI(){
   const loader = document.getElementById('loader');
   const resultBox = document.getElementById('resultBox');
+  const promptText = document.getElementById('promptText');
+  const img = document.getElementById('previewImg');
 
   loader.style.display = 'block';
   resultBox.style.display = 'none';
+  promptText.textContent = '';
 
-  setTimeout(function(){
-    const keepLight = document.getElementById('keepLight').checked;
-    const shadowProfile = document.getElementById('shadowProfile').checked;
-    const ledLine = document.getElementById('ledLine').checked;
+  try{
+    const response = await fetch('/api/ai-ceiling', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        imageBase64: uploadedImageBase64,
+        color: selectedColorEn,
+        material: selectedMaterialEn,
+        keepLight: document.getElementById('keepLight').checked,
+        shadowProfile: document.getElementById('shadowProfile').checked,
+        ledLine: document.getElementById('ledLine').checked
+      })
+    });
 
-    let extras = '';
+    const data = await response.json();
 
-    if(keepLight){
-      extras += 'Keep existing chandelier, lamps and lighting fixtures unchanged.\\n';
+    if(!response.ok){
+      throw new Error(data.error || 'Помилка генерації');
     }
 
-    if(shadowProfile){
-      extras += 'Add a clean black shadow profile around the ceiling perimeter.\\n';
+    if(!data.image){
+      throw new Error('AI не повернув зображення');
     }
 
-    if(ledLine){
-      extras += 'Add soft warm LED ambient lighting around the ceiling perimeter.\\n';
-    }
+    img.src = data.image;
+    img.style.display = 'block';
 
-    lastPrompt =
-`Replace ONLY the ceiling with a ${selectedColorEn} ${selectedMaterialEn} stretch ceiling.
-Keep walls, floor, doors, windows, furniture and room geometry exactly the same.
-Do not redesign the room.
-Do not change the perspective.
-Do not change wall color.
-Do not change floor color.
-Do not remove or add furniture.
-Make the result photorealistic, clean and natural.
-${extras}
-Selected ceiling color: ${selectedColorName}
-Selected texture: ${selectedMaterialName}`;
-
-    document.getElementById('promptText').textContent = lastPrompt;
-
-    const tgText = encodeURIComponent(
-      'Добрий день! Хочу AI-візуалізацію натяжної стелі.\\n\\n' +
-      'Колір: ' + selectedColorName + '\\n' +
-      'Фактура: ' + selectedMaterialName + '\\n\\n' +
-      'Побажання:\\n' + lastPrompt
-    );
-
-    document.getElementById('telegramBtn').href =
-      'https://t.me/Potolok_in_ua?text=' + tgText;
-
-    loader.style.display = 'none';
+    lastPrompt = 'AI-візуалізація готова';
+    promptText.textContent = 'Готово ✅ Зображення оновлено прямо на сайті.';
     resultBox.style.display = 'block';
-  }, 900);
+
+  }catch(error){
+    resultBox.style.display = 'block';
+    promptText.textContent = 'Помилка: ' + error.message;
+  }
+
+  loader.style.display = 'none';
 }
 
+
+
+
 function copyPrompt(){
-  if(!lastPrompt){
-    prepareAI();
-    setTimeout(copyPrompt, 1000);
-    return;
-  }
+  
 
   navigator.clipboard.writeText(lastPrompt).then(function(){
     alert('AI-запит скопійовано.');
