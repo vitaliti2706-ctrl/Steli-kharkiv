@@ -859,6 +859,7 @@ async function prepareAI(){
       },
       body: JSON.stringify({
         imageBase64: uploadedImageBase64,
+        phone: document.getElementById('clientPhoneAI')?.value || '',
         color: selectedColorEn,
         material: selectedMaterialEn,
         keepLight: document.getElementById('keepLight').checked,
