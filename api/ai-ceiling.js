@@ -6,13 +6,97 @@ export const config = {
   },
 };
 
+const limits = globalThis.__potolokAiLimits || {
+  phone: new Map(),
+  ip: new Map(),
+  noPhone: new Map(),
+  cooldown: new Map(),
+};
+
+globalThis.__potolokAiLimits = limits;
+
+const PHONE_LIMIT = 5;
+const IP_LIMIT = 10;
+const NO_PHONE_LIMIT = 1;
+const COOLDOWN_MS = 30 * 1000;
+
+function todayKey() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function getClientIp(req) {
+  return (
+    req.headers["x-forwarded-for"]?.split(",")[0]?.trim() ||
+    req.headers["x-real-ip"] ||
+    "unknown"
+  );
+}
+
+function normalizePhone(phone) {
+  return String(phone || "").replace(/\D/g, "");
+}
+
+function getCount(map, key) {
+  return map.get(key) || 0;
+}
+
+function inc(map, key) {
+  map.set(key, getCount(map, key) + 1);
+}
+
 export default async function handler(req, res) {
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Only POST allowed" });
   }
 
   try {
-    const { imageBase64, color, material, keepLight, shadowProfile, ledLine } = req.body || {};
+    const {
+      imageBase64,
+      phone,
+      color,
+      material,
+      keepLight,
+      shadowProfile,
+      ledLine,
+    } = req.body || {};
+
+    const ip = getClientIp(req);
+    const day = todayKey();
+    const cleanPhone = normalizePhone(phone);
+
+    const ipKey = `${ip}:${day}`;
+    const noPhoneKey = `${ip}:${day}:no-phone`;
+    const phoneKey = `${cleanPhone}:${day}`;
+    const cooldownKey = cleanPhone || ip;
+
+    const now = Date.now();
+    const lastTime = limits.cooldown.get(cooldownKey) || 0;
+
+    if (now - lastTime < COOLDOWN_MS) {
+      return res.status(429).json({
+        error: "Зачекайте 30 секунд перед наступною генерацією.",
+      });
+    }
+
+    if (getCount(limits.ip, ipKey) >= IP_LIMIT) {
+      return res.status(429).json({
+        error: "Ліміт AI-візуалізацій з цього пристрою на сьогодні вичерпано. Напишіть нам у Telegram.",
+      });
+    }
+
+    if (!cleanPhone) {
+      if (getCount(limits.noPhone, noPhoneKey) >= NO_PHONE_LIMIT) {
+        return res.status(429).json({
+          error: "Для додаткових AI-візуалізацій введіть номер телефону.",
+        });
+      }
+    } else {
+      if (getCount(limits.phone, phoneKey) >= PHONE_LIMIT) {
+        return res.status(429).json({
+          error: "Ви використали безкоштовний ліміт AI-візуалізацій. Напишіть нам у Telegram для консультації.",
+        });
+      }
+    }
 
     if (!imageBase64) {
       return res.status(400).json({ error: "Фото не отримано" });
@@ -23,8 +107,18 @@ export default async function handler(req, res) {
     }
 
     const match = imageBase64.match(/^data:(image\/\w+);base64,(.+)$/);
+
     if (!match) {
       return res.status(400).json({ error: "Невірний формат фото" });
+    }
+
+    limits.cooldown.set(cooldownKey, now);
+    inc(limits.ip, ipKey);
+
+    if (cleanPhone) {
+      inc(limits.phone, phoneKey);
+    } else {
+      inc(limits.noPhone, noPhoneKey);
     }
 
     const mimeType = match[1];
@@ -63,7 +157,7 @@ ${extras}
     formData.append(
       "image",
       new Blob([imageBuffer], { type: mimeType }),
-      "room.png"
+      mimeType === "image/png" ? "room.png" : "room.jpg"
     );
 
     formData.append("model", "gpt-image-1");
@@ -82,13 +176,10 @@ ${extras}
     const data = await openaiRes.json();
 
     if (!openaiRes.ok) {
-  console.log("OPENAI RESPONSE:");
-  console.log(JSON.stringify(data, null, 2));
-
-  return res.status(openaiRes.status).json({
-    error: "OpenAI error",
-    details: data,
-  });
+      return res.status(openaiRes.status).json({
+        error: data?.error?.message || "OpenAI error",
+        details: data,
+      });
     }
 
     const generatedBase64 = data?.data?.[0]?.b64_json;
@@ -103,6 +194,9 @@ ${extras}
     return res.status(200).json({
       ok: true,
       image: `data:image/png;base64,${generatedBase64}`,
+      remaining: cleanPhone
+        ? Math.max(0, PHONE_LIMIT - getCount(limits.phone, phoneKey))
+        : 0,
     });
 
   } catch (error) {
