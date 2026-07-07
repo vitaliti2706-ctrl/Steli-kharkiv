@@ -857,7 +857,9 @@ async function prepareAI(){
   const resultBox = document.getElementById('resultBox');
   const promptText = document.getElementById('promptText');
   const img = document.getElementById('previewImg');
-
+const galleryBlock = document.getElementById('aiGalleryBlock');
+const gallery = document.getElementById('aiGallery');
+const galleryCount = document.getElementById('aiGalleryCount');
   loader.style.display = 'block';
   resultBox.style.display = 'none';
   promptText.textContent = '';
