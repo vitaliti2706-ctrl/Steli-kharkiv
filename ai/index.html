@@ -893,7 +893,42 @@ const galleryCount = document.getElementById('aiGalleryCount');
 
     img.src = data.image;
     img.style.display = 'block';
+const variantNumber = gallery.children.length + 1;
+const colorText = selectedColorEn || '-';
+const materialText = selectedMaterialEn || '-';
+const phoneText = document.getElementById('clientPhoneAI')?.value || 'без телефону';
 
+const card = document.createElement('div');
+card.style.cssText = 'border:1px solid #dbe5f2;border-radius:20px;padding:14px;background:#fff;box-shadow:0 10px 30px rgba(15,23,42,.08);margin-bottom:16px;';
+
+card.innerHTML = `
+  <div style="font-weight:900;font-size:18px;margin-bottom:10px;">
+    Варіант №${variantNumber}
+  </div>
+
+  <img src="${data.image}" style="width:100%;border-radius:16px;border:1px solid #e5e7eb;margin-bottom:12px;">
+
+  <div style="font-size:14px;line-height:1.6;color:#334155;margin-bottom:12px;">
+    <b>Колір:</b> ${colorText}<br>
+    <b>Фактура:</b> ${materialText}<br>
+    <b>Люстра:</b> ${document.getElementById('keepLight')?.checked ? 'залишити без змін' : 'ні'}<br>
+    <b>Тіньовий профіль:</b> ${document.getElementById('shadowProfile')?.checked ? 'так' : 'ні'}<br>
+    <b>LED-підсвітка:</b> ${document.getElementById('ledLine')?.checked ? 'так' : 'ні'}<br>
+    <b>Телефон:</b> ${phoneText}
+  </div>
+
+  <a class="btn green" target="_blank" href="https://t.me/potolok_kharkiv">
+    📤 Надіслати цей варіант в Telegram
+  </a>
+
+  <a class="btn dark" href="${data.image}" download="potolok-ai-variant-${variantNumber}.png">
+    💾 Завантажити варіант
+  </a>
+`;
+
+gallery.prepend(card);
+galleryBlock.style.display = 'block';
+galleryCount.textContent = gallery.children.length + ' варіантів';
     lastPrompt = 'AI-візуалізація готова';
     promptText.textContent = 'Готово ✅ Зображення оновлено прямо на сайті.';
     resultBox.style.display = 'block';
