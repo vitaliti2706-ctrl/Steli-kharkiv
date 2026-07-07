@@ -98,11 +98,156 @@ button,input,select{font:inherit}
 .loader{display:none;margin-top:12px;color:#0b5cff;font-weight:900}
 
 @media(max-width:900px){
-  .top{height:auto;padding:14px;gap:12px;flex-wrap:wrap}
-  .top-title{font-size:15px}
-  .layout{display:block;padding:0 14px}
-  .sidebar{position:static;margin-bottom:18px}
-  .specs,.actions,.bottom-grid{grid-template-columns:1fr}
+  body{
+    background:#f6f9ff;
+    font-size:15px;
+  }
+
+  .top{
+    position:static;
+    padding:14px 16px;
+    gap:10px;
+  }
+
+  .logo{
+    font-size:20px;
+  }
+
+  .logo-box{
+    width:44px;
+    height:44px;
+  }
+
+  .top-title{
+    width:100%;
+    font-size:16px;
+  }
+
+  .top-actions{
+    width:100%;
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px;
+  }
+
+  .top-btn{
+    padding:12px;
+    font-size:16px;
+    border-radius:14px;
+  }
+
+  .layout{
+    display:block;
+    padding:0 12px;
+    margin:14px auto;
+  }
+
+  .sidebar,
+  .card,
+  .mini-card,
+  .price-card{
+    border-radius:18px;
+    padding:16px;
+    box-shadow:0 8px 22px rgba(15,23,42,.06);
+  }
+
+  .sidebar{
+    position:static;
+    margin-bottom:16px;
+  }
+
+  .section{
+    margin-bottom:20px;
+  }
+
+  .section h3{
+    font-size:18px;
+    margin-bottom:10px;
+  }
+
+  .upload-preview{
+    min-height:210px;
+    border-radius:16px;
+  }
+
+  .btn{
+    min-height:50px;
+    font-size:16px;
+    border-radius:14px;
+  }
+
+  .select-box,
+  .phone-input{
+    padding:13px;
+    font-size:16px;
+  }
+
+  .check{
+    font-size:16px;
+    margin:10px 0;
+  }
+
+  .main-title{
+    margin:18px 0 12px;
+  }
+
+  .main-title h1{
+    font-size:22px;
+  }
+
+  .current-card{
+    padding:16px;
+  }
+
+  .card-head h2{
+    font-size:22px;
+  }
+
+  .main-image{
+    max-height:none;
+    border-radius:18px;
+  }
+
+  .specs{
+    grid-template-columns:1fr;
+    gap:10px;
+    margin:14px 0;
+  }
+
+  .spec{
+    font-size:15px;
+  }
+
+  .actions{
+    grid-template-columns:1fr;
+    gap:10px;
+  }
+
+  .gallery-head h2{
+    font-size:22px;
+  }
+
+  .gallery{
+    gap:12px;
+  }
+
+  .variant{
+    min-width:150px;
+  }
+
+  .variant img{
+    height:90px;
+  }
+
+  .bottom-grid{
+    grid-template-columns:1fr;
+    gap:14px;
+    margin-top:16px;
+  }
+
+  .price{
+    font-size:28px;
+  }
 }
 </style>
 </head>
