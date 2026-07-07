@@ -715,7 +715,18 @@ input[type=file]{
           <b>Готуємо AI-запит...</b>
           <div class="hint">Це демо-версія. Далі підключимо справжній AI API.</div>
         </div>
+<div class="step" id="aiGalleryBlock" style="display:none;">
+  <div class="step-title">
+    <h3>🖼️ Мої AI-візуалізації</h3>
+    <span id="aiGalleryCount">0 варіантів</span>
+  </div>
 
+  <div id="aiGallery" style="
+    display:flex;
+    flex-direction:column;
+    gap:18px;
+  "></div>
+</div>
         <div class="status" id="resultBox">
           <b>AI-запит готовий.</b>
           <br>
