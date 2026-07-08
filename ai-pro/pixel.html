@@ -3,1953 +3,876 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=1180, initial-scale=1.0">
-<title>Potolok AI — AI-візуалізація стелі</title>
+<title>Potolok AI PRO 4.0</title>
 <style>
-:root{
-  --bg:#f7faff;
-  --card:#ffffff;
-  --text:#071126;
-  --muted:#64748b;
-  --line:#dbe7f5;
-  --line2:#eef3fb;
-  --blue:#075bff;
-  --blue2:#eaf2ff;
-  --green:#12a957;
-  --dark:#061126;
-  --shadow:0 18px 45px rgba(15,23,42,.075);
-  --shadow2:0 8px 22px rgba(15,23,42,.052);
-  --radius:18px;
-}
+:root{--bg:#f6f9ff;--white:#fff;--text:#071126;--muted:#64748b;--line:#dbe7f5;--line2:#edf3fb;--blue:#075bff;--blue2:#eaf2ff;--green:#12a957;--dark:#061126;--shadow:0 14px 34px rgba(15,23,42,.07);--shadow2:0 8px 22px rgba(15,23,42,.045)}
 *{box-sizing:border-box;margin:0;padding:0}
-html{scroll-behavior:smooth}
-html,body{min-width:1180px}
-body{
-  font-family:Inter,Arial,Helvetica,sans-serif;
-  background:#f7faff;
-  color:var(--text);
-  overflow-x:auto;
-}
-a{text-decoration:none;color:inherit}
-button,input,select{font:inherit}
-button{cursor:pointer}
-img{display:block;max-width:100%}
-
-/* HEADER */
-.header{
-  height:76px;
-  background:#fff;
-  border-bottom:1px solid var(--line);
-  position:sticky;
-  top:0;
-  z-index:50;
-}
-.header-inner{
-  width:1180px;
-  height:76px;
-  margin:0 auto;
-  display:grid;
-  grid-template-columns:245px 1fr 330px;
-  align-items:center;
-  gap:18px;
-  padding:0 8px;
-}
-.brand{
-  display:flex;
-  align-items:center;
-  gap:12px;
-}
-.brand-icon{
-  width:46px;
-  height:46px;
-  border-radius:10px;
-  background:linear-gradient(135deg,#0c3f86,#075bff);
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  color:#fff;
-  font-size:20px;
-  font-weight:900;
-  box-shadow:0 10px 20px rgba(7,91,255,.18);
-}
-.brand-text b{
-  display:block;
-  font-size:20px;
-  letter-spacing:.7px;
-  font-weight:950;
-  line-height:1;
-}
-.brand-text span{
-  display:block;
-  margin-top:5px;
-  font-size:10px;
-  letter-spacing:2.5px;
-  font-weight:900;
-}
-.header-title{
-  font-size:18px;
-  font-weight:950;
-  white-space:nowrap;
-  overflow:hidden;
-  text-overflow:ellipsis;
-}
-.header-actions{
-  display:flex;
-  justify-content:flex-end;
-  gap:12px;
-}
-.top-btn{
-  height:42px;
-  border:1px solid var(--line);
-  background:#fff;
-  border-radius:12px;
-  padding:0 15px;
-  display:flex;
-  align-items:center;
-  gap:8px;
-  font-size:14px;
-  font-weight:900;
-  color:#0f2857;
-}
-
-/* LAYOUT */
-.app{
-  width:1180px;
-  margin:18px auto 28px;
-  display:grid;
-  grid-template-columns:320px 1fr 220px;
-  gap:18px;
-  align-items:start;
-}
-.sidebar,
-.result-card,
-.panel,
-.mobile-preview{
-  background:#fff;
-  border:1px solid var(--line);
-  border-radius:18px;
-  box-shadow:var(--shadow2);
-}
-.sidebar{
-  padding:16px;
-  position:sticky;
-  top:94px;
-}
-.main{min-width:0}
-.right-preview{
-  position:sticky;
-  top:94px;
-}
-
-/* LEFT SIDEBAR */
-.step{
-  padding-bottom:22px;
-  margin-bottom:22px;
-  border-bottom:1px solid var(--line2);
-}
-.step:last-child{border-bottom:0;margin-bottom:0;padding-bottom:0}
-.step h3{
-  font-size:17px;
-  font-weight:950;
-  margin-bottom:14px;
-}
-.photo-card{
-  height:250px;
-  background:#eef4ff;
-  border:1px solid #dce8f6;
-  border-radius:14px;
-  overflow:hidden;
-  position:relative;
-}
-.photo-card img{
-  width:100%;
-  height:100%;
-  object-fit:cover;
-}
-.photo-empty{
-  height:100%;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  color:#718199;
-  font-weight:900;
-  font-size:14px;
-}
-.camera{
-  position:absolute;
-  left:14px;
-  bottom:14px;
-  width:54px;
-  height:54px;
-  border-radius:50%;
-  background:#071126;
-  color:#fff;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  font-size:22px;
-  box-shadow:0 14px 24px rgba(6,17,38,.25);
-}
-.btn{
-  border:0;
-  min-height:48px;
-  width:100%;
-  border-radius:10px;
-  padding:0 14px;
-  margin-top:12px;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  gap:8px;
-  font-size:14px;
-  font-weight:950;
-}
-.btn-blue{background:linear-gradient(180deg,#0b69ff,#075bff);color:#fff;box-shadow:0 10px 18px rgba(7,91,255,.2)}
-.btn-green{background:linear-gradient(135deg,#0ea653,#19c66f);color:#fff}
-.btn-dark{background:#061126;color:#fff}
-.btn-white{background:#fff;color:#075bff;border:1px solid var(--line)}
-.select-box{
-  height:58px;
-  border:1px solid var(--line);
-  border-radius:13px;
-  background:#fff;
-  padding:8px 10px;
-  display:grid;
-  grid-template-columns:42px 1fr 18px;
-  align-items:center;
-  gap:10px;
-}
-.dot{
-  width:42px;
-  height:42px;
-  border-radius:50%;
-  border:1px solid #d9e3ef;
-  background:#fff;
-}
-select{
-  width:100%;
-  border:0;
-  outline:0;
-  background:transparent;
-  font-weight:900;
-  color:#111827;
-  font-size:13px;
-}
-.arrow{color:#64748b;font-weight:900}
-.hint{
-  margin-top:10px;
-  color:#64748b;
-  font-size:13px;
-  font-weight:700;
-  line-height:1.45;
-}
-.hint b{color:#075bff}
-.options{
-  display:grid;
-  gap:10px;
-}
-.opt{
-  display:flex;
-  align-items:center;
-  gap:10px;
-  color:#172033;
-  font-weight:850;
-  font-size:14px;
-  line-height:1.25;
-}
-.opt input{
-  width:17px;
-  height:17px;
-  accent-color:#075bff;
-}
-.phone{
-  width:100%;
-  height:52px;
-  border:1px solid var(--line);
-  border-radius:13px;
-  outline:0;
-  padding:0 14px;
-  font-weight:850;
-}
-.help{
-  margin-top:16px;
-  background:#f2f8ff;
-  border:1px solid #cfe1f8;
-  border-radius:15px;
-  padding:14px;
-  color:#334155;
-  font-size:13px;
-  font-weight:700;
-  line-height:1.45;
-}
-.help b{display:block;color:#071126;font-size:14px;margin-bottom:4px}
-.loader{
-  display:none;
-  margin-top:10px;
-  text-align:center;
-  color:#075bff;
-  font-weight:950;
-}
-
-/* MAIN HEAD */
-.section-head{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:12px;
-  margin:0 0 14px;
-}
-.section-title{
-  display:flex;
-  align-items:center;
-  gap:10px;
-}
-.section-title h1,.section-title h2{
-  font-size:24px;
-  font-weight:950;
-  letter-spacing:-.3px;
-}
-.badge{
-  background:#eaf2ff;
-  color:#075bff;
-  border-radius:999px;
-  padding:6px 10px;
-  font-size:12px;
-  font-weight:950;
-}
-.link-btn{
-  border:0;
-  background:transparent;
-  color:#075bff;
-  font-weight:950;
-  font-size:13px;
-}
-
-/* RESULT CARD */
-.result-card{
-  padding:20px;
-  border-radius:18px;
-}
-.result-top{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  margin-bottom:14px;
-}
-.result-title{
-  display:flex;
-  align-items:center;
-  gap:12px;
-}
-.result-title h2{
-  font-size:24px;
-  font-weight:950;
-}
-.actual{
-  background:#12a957;
-  color:#fff;
-  border-radius:999px;
-  padding:7px 13px;
-  font-size:12px;
-  font-weight:950;
-}
-.actions-mini{
-  display:flex;
-  gap:9px;
-}
-.icon-btn{
-  min-width:40px;
-  height:40px;
-  padding:0 12px;
-  border:1px solid var(--line);
-  border-radius:10px;
-  background:#fff;
-  font-weight:900;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  gap:7px;
-}
-.main-image{
-  height:500px;
-  border-radius:17px;
-  border:1px solid #dfe8f4;
-  background:#edf4ff;
-  overflow:hidden;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-}
-.main-image img{
-  width:100%;
-  height:100%;
-  object-fit:cover;
-}
-.placeholder{
-  color:#4b5870;
-  text-align:center;
-  font-weight:750;
-  font-size:14px;
-  line-height:1.45;
-}
-.placeholder .ph-icon{
-  font-size:46px;
-  color:#7c8ca3;
-  margin-bottom:22px;
-}
-.placeholder b{
-  display:block;
-  font-size:16px;
-  color:#334155;
-  margin-bottom:7px;
-}
-.specs{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:20px 42px;
-  margin:24px 0 20px;
-}
-.spec{
-  display:grid;
-  grid-template-columns:24px 1fr;
-  gap:8px;
-  align-items:start;
-  font-size:18px;
-  line-height:1.25;
-}
-.spec i{
-  font-style:normal;
-  font-size:18px;
-  color:#071126;
-  text-align:center;
-  line-height:1.25;
-}
-.spec b{
-  font-weight:950;
-  display:block;
-}
-.spec span{
-  color:#334155;
-  font-weight:800;
-}
-.result-actions{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:14px;
-}
-
-/* GALLERY */
-.gallery-block{margin-top:22px}
-.gallery{
-  display:flex;
-  gap:16px;
-  overflow-x:auto;
-  padding:2px 0 4px;
-}
-.variant{
-  width:150px;
-  min-height:130px;
-  flex:0 0 auto;
-  border:1px solid var(--line);
-  background:#fff;
-  border-radius:15px;
-  padding:9px;
-  box-shadow:var(--shadow2);
-  cursor:pointer;
-  position:relative;
-}
-.variant.active{border:2px solid #075bff;padding:8px}
-.variant img{width:100%;height:82px;object-fit:cover;border-radius:11px;background:#edf4ff}
-.variant b{display:block;margin-top:7px;font-size:13px;font-weight:950}
-.variant small{display:block;font-size:11px;color:#334155;font-weight:750;line-height:1.35}
-.star{
-  position:absolute;
-  top:13px;
-  right:13px;
-  width:24px;
-  height:24px;
-  border-radius:50%;
-  background:#fff;
-  color:#075bff;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  box-shadow:0 6px 14px rgba(0,0,0,.12);
-}
-.add-card{
-  width:150px;
-  min-height:130px;
-  flex:0 0 auto;
-  border:1px dashed #b7c7dc;
-  border-radius:15px;
-  background:#fff;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  flex-direction:column;
-  text-align:center;
-  font-weight:900;
-  color:#334155;
-  cursor:pointer;
-}
-.add-card strong{
-  font-size:34px;
-  line-height:1;
-  font-weight:300;
-  margin-bottom:8px;
-  color:#1e293b;
-}
-
-/* BOTTOM */
-.bottom-grid{
-  margin-top:22px;
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:18px;
-}
-.panel{
-  padding:18px;
-}
-.panel-head{
-  display:flex;
-  justify-content:space-between;
-  gap:10px;
-  align-items:center;
-  margin-bottom:12px;
-}
-.panel-head h3{
-  font-size:16px;
-  font-weight:950;
-}
-table{
-  width:100%;
-  border-collapse:collapse;
-  font-size:13px;
-}
-th{
-  text-align:left;
-  color:#334155;
-  font-size:12px;
-  font-weight:950;
-  padding:8px 0;
-}
-td{
-  border-bottom:1px solid #eef2f7;
-  padding:9px 0;
-  color:#0f172a;
-}
-th:nth-child(2),th:nth-child(3),td:nth-child(2),td:nth-child(3){
-  text-align:right;
-  font-weight:850;
-}
-.total{
-  margin-top:12px;
-  padding-top:12px;
-  border-top:1px solid #e5edf7;
-  font-size:18px;
-  font-weight:950;
-  color:#334155;
-}
-.price{
-  font-size:30px;
-  line-height:1;
-  font-weight:950;
-  color:#16a34a;
-  margin:8px 0 6px;
-}
-.price-note{
-  color:#64748b;
-  font-size:13px;
-  font-weight:700;
-  margin-bottom:12px;
-}
-.benefits{
-  display:grid;
-  gap:7px;
-  margin:12px 0;
-}
-.benefit{
-  color:#334155;
-  font-size:13px;
-  font-weight:800;
-}
-
-/* FEATURES */
-.features{
-  margin-top:22px;
-  background:#fff;
-  border:1px solid var(--line);
-  border-radius:18px;
-  box-shadow:var(--shadow2);
-  padding:15px;
-  display:grid;
-  grid-template-columns:repeat(4,1fr);
-  gap:12px;
-}
-.feature{
-  display:grid;
-  grid-template-columns:42px 1fr;
-  gap:9px;
-  align-items:center;
-  min-width:0;
-}
-.fi{
-  width:42px;
-  height:42px;
-  border-radius:50%;
-  background:#eaf2ff;
-  color:#075bff;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  font-size:20px;
-}
-.feature b{
-  display:block;
-  font-size:13px;
-  font-weight:950;
-  line-height:1.15;
-}
-.feature span{
-  display:block;
-  color:#64748b;
-  font-size:12px;
-  font-weight:700;
-  line-height:1.2;
-  margin-top:2px;
-}
-
-/* MOBILE PREVIEW RIGHT */
-.mobile-preview{
-  padding:14px;
-  border-radius:18px;
-}
-.phone-top{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  font-size:12px;
-  font-weight:900;
-  margin-bottom:12px;
-}
-.mobile-brand{
-  display:flex;
-  align-items:center;
-  gap:8px;
-  margin-bottom:14px;
-}
-.mobile-brand .brand-icon{
-  width:28px;
-  height:28px;
-  border-radius:7px;
-  font-size:13px;
-}
-.mobile-brand b{
-  display:block;
-  font-size:13px;
-  line-height:1;
-}
-.mobile-brand span{
-  display:block;
-  font-size:7px;
-  letter-spacing:1.6px;
-  font-weight:900;
-}
-.burger{
-  margin-left:auto;
-  font-size:22px;
-  font-weight:900;
-}
-.mobile-title{
-  font-size:13px;
-  line-height:1.35;
-  font-weight:950;
-  margin-bottom:12px;
-}
-.mobile-actions{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:7px;
-  margin-bottom:18px;
-}
-.mobile-actions button{
-  height:32px;
-  border:1px solid var(--line);
-  background:#fff;
-  border-radius:9px;
-  font-size:10px;
-  font-weight:900;
-}
-.mini-section-title{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  font-size:12px;
-  font-weight:950;
-  margin:14px 0 9px;
-}
-.mobile-card{
-  border:1px solid var(--line);
-  border-radius:14px;
-  background:#fff;
-  padding:11px;
-  margin-bottom:12px;
-}
-.mobile-card h4{
-  font-size:13px;
-  font-weight:950;
-  margin-bottom:8px;
-}
-.mobile-image{
-  height:210px;
-  border-radius:11px;
-  background:#edf4ff;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  margin-bottom:12px;
-}
-.mobile-specs{
-  display:grid;
-  gap:10px;
-  font-size:11px;
-  font-weight:850;
-  line-height:1.35;
-}
-.mobile-btns{
-  display:grid;
-  gap:7px;
-  margin-top:12px;
-}
-.mobile-btns .btn{
-  min-height:34px;
-  margin-top:0;
-  font-size:10px;
-  border-radius:7px;
-}
-.mobile-panel{
-  border:1px solid var(--line);
-  border-radius:12px;
-  background:#fff;
-  padding:12px;
-  margin-bottom:12px;
-}
-.mobile-panel h4{
-  font-size:12px;
-  font-weight:950;
-  margin-bottom:8px;
-}
-.mobile-price{
-  font-size:18px;
-  color:#16a34a;
-  font-weight:950;
-}
-.mobile-feature{
-  display:grid;
-  grid-template-columns:32px 1fr;
-  gap:8px;
-  align-items:center;
-  margin:11px 0;
-}
-.mobile-feature .fi{
-  width:32px;
-  height:32px;
-  font-size:16px;
-}
-.mobile-feature b{
-  font-size:10px;
-  font-weight:950;
-}
-.mobile-feature span{
-  font-size:10px;
-  color:#64748b;
-  font-weight:700;
-}
-
-/* TOAST */
-.toast{
-  position:fixed;
-  left:50%;
-  bottom:22px;
-  transform:translateX(-50%);
-  background:#061126;
-  color:#fff;
-  padding:12px 16px;
-  border-radius:14px;
-  font-weight:850;
-  display:none;
-  z-index:100;
-}
-
-/* KEEP DESKTOP STRUCTURE ON SMALL DEVICES */
-@media(max-width:1100px){
-  html,body{min-width:1180px}
-}
+html{min-width:1180px;scroll-behavior:smooth}
+body{min-width:1180px;font-family:Inter,Arial,Helvetica,sans-serif;background:#f7faff;color:var(--text);overflow-x:auto}
+a{color:inherit;text-decoration:none}button,input,select{font:inherit}button{cursor:pointer}img{display:block;max-width:100%}
+.header{height:72px;background:#fff;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:50}
+.header-inner{width:1160px;height:72px;margin:0 auto;display:grid;grid-template-columns:240px 1fr 320px;align-items:center;gap:18px}
+.brand{display:flex;align-items:center;gap:12px}.brand-mark{width:44px;height:44px;border-radius:10px;background:linear-gradient(135deg,#0d3d83,#075bff);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:18px;box-shadow:0 10px 20px rgba(7,91,255,.20)}
+.brand-text b{display:block;font-size:20px;line-height:1;letter-spacing:.7px;font-weight:950}.brand-text span{display:block;margin-top:5px;font-size:10px;line-height:1;letter-spacing:2.4px;font-weight:900}
+.header-title{font-size:18px;font-weight:950;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.header-actions{display:flex;justify-content:flex-end;gap:12px}
+.header-btn{height:42px;border:1px solid var(--line);background:#fff;border-radius:12px;padding:0 15px;color:#0f2857;font-size:14px;font-weight:900;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 4px 12px rgba(15,23,42,.025)}
+.page{width:1160px;margin:18px auto 28px;display:grid;grid-template-columns:320px 1fr;gap:22px;align-items:start}
+.sidebar{background:#fff;border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);padding:18px;position:sticky;top:90px}.content{min-width:0}
+.side-section{padding-bottom:22px;margin-bottom:22px;border-bottom:1px solid var(--line2)}.side-section:last-child{padding-bottom:0;margin-bottom:0;border-bottom:0}
+.side-title{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px}.side-title h3{font-size:17px;line-height:1.2;font-weight:950}
+.photo-box{height:220px;border:1px solid #dce8f6;border-radius:14px;background:#eef4ff;overflow:hidden;position:relative}.photo-box img{width:100%;height:100%;object-fit:cover}
+.photo-empty{height:100%;display:flex;align-items:center;justify-content:center;text-align:center;color:#718199;font-size:13px;font-weight:900}.camera{position:absolute;left:14px;bottom:14px;width:52px;height:52px;border-radius:50%;background:#071126;color:#fff;display:flex;align-items:center;justify-content:center;font-size:22px;box-shadow:0 14px 24px rgba(6,17,38,.24)}
+.btn{width:100%;min-height:48px;border:0;border-radius:10px;padding:0 14px;margin-top:12px;display:flex;align-items:center;justify-content:center;gap:8px;font-size:14px;line-height:1.2;font-weight:950;text-align:center}.btn-blue{background:linear-gradient(180deg,#0b69ff,#075bff);color:#fff;box-shadow:0 10px 18px rgba(7,91,255,.20)}.btn-green{background:linear-gradient(135deg,#0ea653,#19c66f);color:#fff}.btn-dark{background:#061126;color:#fff}.btn-white{background:#fff;color:#075bff;border:1px solid var(--line)}
+.select-box{height:58px;border:1px solid var(--line);border-radius:13px;background:#fff;padding:8px 10px;display:grid;grid-template-columns:42px 1fr 18px;align-items:center;gap:10px}.color-dot{width:42px;height:42px;border-radius:50%;border:1px solid #d9e3ef;background:#fff}select{width:100%;border:0;outline:0;background:transparent;color:#111827;font-size:13px;font-weight:900}.arrow{color:#64748b;font-weight:900}
+.hint{margin-top:10px;color:#64748b;font-size:13px;line-height:1.45;font-weight:700}.hint b{color:#075bff}.options{display:grid;gap:10px}.option{display:flex;align-items:center;gap:10px;color:#172033;font-size:14px;line-height:1.25;font-weight:850}.option input{width:17px;height:17px;accent-color:#075bff;flex:0 0 auto}
+.phone-input{width:100%;height:52px;border:1px solid var(--line);border-radius:13px;outline:0;padding:0 14px;font-weight:850}.help-box{margin-top:16px;background:#f2f8ff;border:1px solid #cfe1f8;border-radius:15px;padding:14px;color:#334155;font-size:13px;line-height:1.45;font-weight:700}.help-box b{display:block;color:#071126;font-size:14px;margin-bottom:4px}.loader{display:none;margin-top:10px;text-align:center;color:#075bff;font-weight:950}
+.section-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 14px}.section-title{display:flex;align-items:center;gap:10px;min-width:0}.section-title h1,.section-title h2{font-size:24px;line-height:1.15;letter-spacing:-.25px;font-weight:950}.badge{background:#eaf2ff;color:#075bff;border-radius:999px;padding:6px 10px;font-size:12px;font-weight:950;white-space:nowrap}.link-btn{border:0;background:transparent;color:#075bff;font-size:13px;font-weight:950}
+.result-card{background:#fff;border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);padding:20px}.result-top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}.result-title{display:flex;align-items:center;gap:12px}.result-title h2{font-size:24px;line-height:1.15;font-weight:950}.actual{background:#12a957;color:#fff;border-radius:999px;padding:7px 13px;font-size:12px;font-weight:950}.mini-actions{display:flex;gap:9px}.icon-btn{min-width:40px;height:40px;border:1px solid var(--line);border-radius:10px;background:#fff;padding:0 12px;display:flex;align-items:center;justify-content:center;gap:7px;font-size:13px;font-weight:900}
+.main-image{height:480px;border-radius:17px;border:1px solid #dfe8f4;background:#edf4ff;overflow:hidden;display:flex;align-items:center;justify-content:center}.main-image img{width:100%;height:100%;object-fit:cover}.placeholder{color:#4b5870;text-align:center;font-weight:750;font-size:14px;line-height:1.45}.placeholder .ph-icon{display:block;font-size:44px;color:#7c8ca3;margin-bottom:20px}.placeholder b{display:block;font-size:16px;color:#334155;margin-bottom:7px}
+.specs{display:grid;grid-template-columns:1fr 1fr;column-gap:46px;row-gap:14px;margin:18px 0 18px}.spec{display:grid;grid-template-columns:22px minmax(0,1fr);gap:8px;align-items:start;color:#0f172a;font-size:15px;line-height:1.32}.spec i{font-style:normal;font-size:15px;line-height:1.3;color:#071126;text-align:center}.spec b{font-weight:950}.spec span{color:#334155;font-weight:700}.result-actions{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.gallery-block{margin-top:22px}.gallery{display:flex;gap:16px;overflow-x:auto;padding:2px 0 4px}.variant{width:150px;min-height:132px;flex:0 0 auto;border:1px solid var(--line);background:#fff;border-radius:15px;padding:9px;box-shadow:var(--shadow2);cursor:pointer;position:relative}.variant.active{border:2px solid #075bff;padding:8px}.variant img{width:100%;height:82px;object-fit:cover;border-radius:11px;background:#edf4ff}.variant b{display:block;margin-top:7px;color:#071126;font-size:13px;font-weight:950}.variant small{display:block;color:#334155;font-size:11px;font-weight:750;line-height:1.35}.star{position:absolute;top:13px;right:13px;width:24px;height:24px;border-radius:50%;background:#fff;color:#075bff;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 14px rgba(0,0,0,.12)}.add-card{width:150px;min-height:132px;flex:0 0 auto;border:1px dashed #b7c7dc;border-radius:15px;background:#fff;display:flex;align-items:center;justify-content:center;flex-direction:column;text-align:center;font-size:13px;font-weight:900;color:#334155;cursor:pointer}.add-card strong{display:block;color:#1e293b;font-size:34px;line-height:1;font-weight:300;margin-bottom:8px}
+.bottom-grid{margin-top:22px;display:grid;grid-template-columns:1fr 1fr;gap:18px}.panel{background:#fff;border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow2);padding:18px;min-height:260px}.panel-head{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-bottom:12px}.panel-head h3{font-size:16px;line-height:1.25;font-weight:950}.kit-table{width:100%;border-collapse:collapse;font-size:13px}.kit-table th{text-align:left;color:#334155;font-size:12px;font-weight:950;padding:8px 0}.kit-table td{border-bottom:1px solid #eef2f7;padding:9px 0;color:#0f172a}.kit-table th:nth-child(2),.kit-table th:nth-child(3),.kit-table td:nth-child(2),.kit-table td:nth-child(3){text-align:right;font-weight:850}.total{margin-top:12px;padding-top:12px;border-top:1px solid #e5edf7;color:#334155;font-size:18px;font-weight:950}.price{font-size:30px;line-height:1;font-weight:950;color:#16a34a;margin:8px 0 6px}.price-note{color:#64748b;font-size:13px;font-weight:700;margin-bottom:12px}.benefits{display:grid;gap:7px;margin:12px 0}.benefit{color:#334155;font-size:13px;font-weight:800}
+.features{margin-top:22px;background:#fff;border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow2);padding:15px;display:grid;grid-template-columns:repeat(4,1fr);gap:14px}.feature{display:grid;grid-template-columns:42px minmax(0,1fr);gap:10px;align-items:center;min-width:0}.feature-icon{width:42px;height:42px;border-radius:50%;background:#eaf2ff;color:#075bff;display:flex;align-items:center;justify-content:center;font-size:20px;flex:0 0 auto}.feature b{display:block;color:#071126;font-size:13px;line-height:1.18;font-weight:950}.feature span{display:block;margin-top:3px;color:#64748b;font-size:12px;line-height:1.2;font-weight:700}.toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:#061126;color:#fff;padding:12px 16px;border-radius:14px;box-shadow:0 12px 30px rgba(0,0,0,.22);font-weight:850;display:none;z-index:100}
+@media(max-width:1180px){html,body{min-width:1180px}}
 </style>
 </head>
 <body>
-
-<header class="header">
-  <div class="header-inner">
-    <a class="brand" href="../index.html">
-      <div class="brand-icon">о</div>
-      <div class="brand-text">
-        <b>POTOLOK</b>
-        <span>НАТЯЖНІ СТЕЛІ</span>
-      </div>
-    </a>
-    <div class="header-title">Potolok AI — AI-візуалізація стелі</div>
-    <div class="header-actions">
-      <button class="top-btn" type="button" onclick="openHowItWorks()">ⓘ Як це працює</button>
-      <button class="top-btn" type="button" onclick="scrollToGallery()">♥ Мої варіанти</button>
-    </div>
-  </div>
-</header>
-
-<div class="app">
-  <aside class="sidebar">
-    <section class="step">
-      <h3>1. Завантажте фото кімнати</h3>
-      <div class="photo-card">
-        <div id="emptyPhoto" class="photo-empty">Фото кімнати</div>
-        <img id="roomPreview" src="" alt="Фото кімнати" style="display:none">
-        <div class="camera">📷</div>
-      </div>
-      <input id="photoInput" type="file" accept="image/*" hidden>
-      <button class="btn btn-blue" type="button" onclick="photoInput.click()">↗ Змінити фото</button>
-    </section>
-
-    <section class="step">
-      <h3>2. Виберіть колір стелі</h3>
-      <div class="select-box">
-        <div id="colorDot" class="dot"></div>
-        <select id="colorSelect" onchange="syncDraft()">
-          <option value="black" data-label="Чорний 305 (Лак)" data-brand="MSD Premium" data-dot="#000000">Чорний 305 (Лак) — MSD</option>
-          <option value="white" data-label="Білий 301" data-brand="MSD Premium" data-dot="#ffffff">Білий 301 — MSD</option>
-          <option value="warm_white" data-label="Теплий білий 303" data-brand="MSD Premium" data-dot="#fff8ed">Теплий білий 303 — MSD</option>
-          <option value="gray" data-label="Світло-сірий 510" data-brand="MSD Premium" data-dot="#cbd5e1">Світло-сірий 510 — MSD</option>
-          <option value="graphite" data-label="Графіт 700" data-brand="MSD Premium" data-dot="#374151">Графіт 700 — MSD</option>
-          <option value="beige" data-label="Бежевий 571" data-brand="MSD Premium" data-dot="#d8c4a3">Бежевий 571 — MSD</option>
-          <option value="cream" data-label="Кремовий 210" data-brand="MSD Premium" data-dot="#ead8bd">Кремовий 210 — MSD</option>
-          <option value="blue" data-label="Синій 420" data-brand="MSD Premium" data-dot="#2563eb">Синій 420 — MSD</option>
-          <option value="green" data-label="Зелений 330" data-brand="MSD Premium" data-dot="#16a34a">Зелений 330 — MSD</option>
-          <option value="bordo" data-label="Бордо 130" data-brand="MSD Premium" data-dot="#7f1d1d">Бордо 130 — MSD</option>
-        </select>
-        <div class="arrow">⌄</div>
-      </div>
-      <div class="hint">ⓘ Не знаєте номер? Оберіть із <b>каталогу</b></div>
-    </section>
-
-    <section class="step">
-      <h3>3. Фактура стелі</h3>
-      <div class="select-box">
-        <div class="dot" style="background:#eef2f7"></div>
-        <select id="materialSelect" onchange="syncDraft()">
-          <option value="glossy" data-label="Глянець (Лак)">Глянець (Лак)</option>
-          <option value="matte" data-label="Матова">Матова</option>
-          <option value="satin" data-label="Сатин">Сатин</option>
-        </select>
-        <div class="arrow">⌄</div>
-      </div>
-    </section>
-
-    <section class="step">
-      <h3>4. Додаткові опції ⓘ</h3>
-      <div class="options">
-        <label class="opt"><input id="keepLight" type="checkbox" checked onchange="syncDraft()">Залишити люстру / світильники</label>
-        <label class="opt"><input id="shadowProfile" type="checkbox" onchange="syncDraft()">Тіньовий профіль</label>
-        <label class="opt"><input id="ledLine" type="checkbox" checked onchange="syncDraft()">LED-підсвітка по периметру</label>
-        <label class="opt"><input id="lightLines" type="checkbox" onchange="syncDraft()">Світлові лінії</label>
-        <label class="opt"><input id="cornice" type="checkbox" onchange="syncDraft()">Карниз</label>
-        <label class="opt"><input id="spots" type="checkbox" onchange="syncDraft()">Точкові світильники</label>
-      </div>
-    </section>
-
-    <section class="step">
-      <h3>Телефон</h3>
-      <input id="clientPhoneAI" class="phone" type="tel" placeholder="+380 XX XXX XX XX" oninput="syncDraft()">
-      <div class="hint">Перша генерація безкоштовна. Далі — 4 генерації за номером телефону.</div>
-    </section>
-
-    <button class="btn btn-blue" type="button" onclick="generateAI()">✨ Підготувати AI-візуалізацію</button>
-    <div id="loader" class="loader">Готуємо AI-візуалізацію...</div>
-
-    <div class="help">
-      <b>Потрібна допомога?</b>
-      Напишіть нам у Telegram — ми підкажемо найкраще рішення.
-      <a class="btn btn-white" href="https://t.me/potolok_kharkiv" target="_blank">✈ Написати в Telegram</a>
-    </div>
-  </aside>
-
-  <main class="main">
-    <div class="section-head">
-      <div class="section-title">
-        <span>✨</span>
-        <h1>Моя AI-візуалізація</h1>
-        <span id="variantCount" class="badge">0 варіантів</span>
-      </div>
-    </div>
-
-    <section class="result-card">
-      <div class="result-top">
-        <div class="result-title">
-          <h2 id="variantTitle">Варіант №1</h2>
-          <span class="actual">Актуальний</span>
-        </div>
-        <div class="actions-mini">
-          <button class="icon-btn" type="button" onclick="toggleFavorite()">♡ В обране</button>
-          <button class="icon-btn" type="button" onclick="createEmptyVariant()">＋</button>
-          <button class="icon-btn" type="button" onclick="deleteCurrent()">🗑</button>
-        </div>
-      </div>
-
-      <div id="resultImageWrap" class="main-image">
-        <div class="placeholder">
-          <div class="ph-icon">▧</div>
-          <b>AI-візуалізація з’явиться тут</b>
-          Завантажте фото кімнати та натисніть кнопку генерації.
-        </div>
-      </div>
-
-      <div class="specs">
-        <div class="spec"><i>●</i><div><b>Колір стелі:</b><span id="specColor">—</span></div></div>
-        <div class="spec"><i>↔</i><div><b>Тіньовий профіль:</b> <span id="specShadow">ні</span></div></div>
-        <div class="spec"><i>♟</i><div><b>Фактура:</b><span id="specMaterial">—</span></div></div>
-        <div class="spec"><i>☼</i><div><b>LED-підсвітка:</b><span id="specLed">ні</span></div></div>
-        <div class="spec"><i>●</i><div><b>Виробник:</b><span id="specBrand">—</span></div></div>
-        <div class="spec"><i>⌁</i><div><b>Світлові лінії:</b> <span id="specLines">ні</span></div></div>
-        <div class="spec"><i>♬</i><div><b>Люстра / світильники:</b><span id="specLight">—</span></div></div>
-        <div class="spec"><i>☎</i><div><b>Телефон:</b> <span id="specPhone">без телефону</span></div></div>
-      </div>
-
-      <div class="result-actions">
-        <button class="btn btn-green" type="button" onclick="sendCurrentToTelegram()">✈ Надіслати цей варіант в Telegram</button>
-        <a id="downloadBtn" class="btn btn-dark" href="#" download="potolok-ai.png">⬇ Завантажити варіант</a>
-      </div>
-    </section>
-
-    <section id="galleryBlock" class="gallery-block">
-      <div class="section-head">
-        <div class="section-title">
-          <h2>▣ Мої AI-візуалізації</h2>
-          <span id="galleryCount" class="badge">0 варіантів</span>
-        </div>
-        <button class="link-btn" type="button" onclick="scrollToGallery()">Переглянути всі ›</button>
-      </div>
-      <div id="gallery" class="gallery">
-        <div class="add-card" onclick="window.scrollTo({top:0,behavior:'smooth'})">
-          <strong>＋</strong>
-          Створити<br>новий варіант
-        </div>
-      </div>
-    </section>
-
-    <section class="bottom-grid">
-      <div class="panel">
-        <div class="panel-head">
-          <h3>📋 Орієнтовна комплектація</h3>
-          <button class="link-btn" type="button">Редагувати</button>
-        </div>
-        <table id="kitTable">
-          <thead>
-            <tr><th>Елемент</th><th>Кількість</th><th>Од.</th></tr>
-          </thead>
-          <tbody></tbody>
-        </table>
-        <div id="kitTotal" class="total">Усього позицій: 0</div>
-      </div>
-
-      <div class="panel">
-        <div class="panel-head">
-          <h3>💰 Орієнтовна вартість</h3>
-          <button class="link-btn" type="button">Детальніше</button>
-        </div>
-        <div id="priceValue" class="price">— грн</div>
-        <div class="price-note">Орієнтовна ціна під ключ</div>
-        <div class="benefits">
-          <div class="benefit">✅ Безкоштовний замір</div>
-          <div class="benefit">✅ Якісний монтаж</div>
-          <div class="benefit">✅ Гарантія 10 років на полотно</div>
-          <div class="benefit">✅ Гарантія 5 років на монтаж</div>
-        </div>
-        <button class="btn btn-blue" type="button" onclick="sendCurrentToTelegram()">📞 Залишити заявку на цей варіант</button>
-      </div>
-    </section>
-
-    <section class="features">
-      <div class="feature"><div class="fi">🪄</div><div><b>Реалістична візуалізація AI</b><span>AI показує реальний результат</span></div></div>
-      <div class="feature"><div class="fi">⚙</div><div><b>Безкоштовна генерація</b><span>Перша генерація безкоштовна</span></div></div>
-      <div class="feature"><div class="fi">🛡</div><div><b>Швидкий розрахунок 24/7</b><span>Отримайте ціну за 1 хвилину</span></div></div>
-      <div class="feature"><div class="fi">🎧</div><div><b>Підтримка</b><span>Отримай відповідь у будь-який час</span></div></div>
-    </section>
-  </main>
-
-  <aside class="right-preview">
-    <div class="mobile-preview">
-      <div class="phone-top"><span>10:30</span><span>⌁ ◔ ▰</span></div>
-      <div class="mobile-brand">
-        <div class="brand-icon">о</div>
-        <div><b>POTOLOK</b><span>НАТЯЖНІ СТЕЛІ</span></div>
-        <div class="burger">☰</div>
-      </div>
-      <div class="mobile-title">Potolok AI —<br>AI-візуалізація стелі</div>
-      <div class="mobile-actions"><button>ⓘ Як це працює</button><button>♡ Мої варіанти</button></div>
-
-      <div class="mini-section-title"><span>✨ Моя AI-візуалізація</span><span class="badge">0</span></div>
-      <div class="mobile-card">
-        <h4>Варіант №1 <span class="actual" style="font-size:9px;padding:4px 7px">Актуальний</span></h4>
-        <div class="mobile-image">▧</div>
-        <div class="mobile-specs">
-          <div>● <b>Колір стелі:</b><br>Чорний 305 (Лак)</div>
-          <div>♟ <b>Фактура:</b> Глянець (Лак)</div>
-          <div>● <b>Виробник:</b> MSD Premium</div>
-          <div>♬ <b>Люстра:</b> залишити без змін</div>
-          <div>↔ <b>Тіньовий профіль:</b> ні</div>
-          <div>☼ <b>LED:</b> по периметру</div>
-          <div>☎ <b>Телефон:</b> без телефону</div>
-        </div>
-        <div class="mobile-btns">
-          <button class="btn btn-green">✈ Надіслати в Telegram</button>
-          <button class="btn btn-dark">⬇ Завантажити</button>
-        </div>
-      </div>
-
-      <div class="mini-section-title"><span>▣ Мої AI-візуалізації</span><span class="badge">0</span></div>
-      <div class="mobile-panel"><h4>＋ Створити новий варіант</h4></div>
-      <div class="mobile-panel"><h4>📋 Орієнтовна комплектація</h4><b>Усього позицій: 3</b></div>
-      <div class="mobile-panel"><h4>💰 Орієнтовна вартість</h4><div class="mobile-price">17 070 грн</div></div>
-
-      <div class="mobile-panel">
-        <div class="mobile-feature"><div class="fi">🪄</div><div><b>Реалістична візуалізація AI</b></div></div>
-        <div class="mobile-feature"><div class="fi">⚙</div><div><b>Безкоштовна генерація</b></div></div>
-        <div class="mobile-feature"><div class="fi">🛡</div><div><b>Швидкий розрахунок 24/7</b></div></div>
-        <div class="mobile-feature"><div class="fi">🎧</div><div><b>Підтримка</b><span>у будь-який час</span></div></div>
-      </div>
-    </div>
-  </aside>
-</div>
-
-<div id="toast" class="toast"></div>
-
+<header class="header"><div class="header-inner"><a class="brand" href="../index.html"><div class="brand-mark">о</div><div class="brand-text"><b>POTOLOK</b><span>НАТЯЖНІ СТЕЛІ</span></div></a><div class="header-title">Potolok AI — AI-візуалізація стелі</div><div class="header-actions"><button class="header-btn" type="button" onclick="openHowItWorks()">ⓘ Як це працює</button><button class="header-btn" type="button" onclick="scrollToGallery()">♥ Мої варіанти</button></div></div></header>
+<div class="page">
+<aside class="sidebar">
+<section class="side-section"><div class="side-title"><h3>1. Завантажте фото кімнати</h3></div><div class="photo-box"><div id="emptyPhoto" class="photo-empty">Фото кімнати</div><img id="roomPreview" src="" alt="Фото кімнати" style="display:none"><div class="camera">📷</div></div><input id="photoInput" type="file" accept="image/*" hidden><button class="btn btn-blue" type="button" onclick="photoInput.click()">↗ Змінити фото</button></section>
+<section class="side-section"><div class="side-title"><h3>2. Виберіть колір стелі</h3></div><div class="select-box"><div id="colorDot" class="color-dot"></div><select id="colorSelect" onchange="syncDraft()"><option value="black" data-label="Чорний 305 (Лак)" data-brand="MSD Premium" data-dot="#000000">Чорний 305 (Лак) — MSD</option><option value="white" data-label="Білий 301" data-brand="MSD Premium" data-dot="#ffffff">Білий 301 — MSD</option><option value="warm_white" data-label="Теплий білий 303" data-brand="MSD Premium" data-dot="#fff8ed">Теплий білий 303 — MSD</option><option value="gray" data-label="Світло-сірий 510" data-brand="MSD Premium" data-dot="#cbd5e1">Світло-сірий 510 — MSD</option><option value="graphite" data-label="Графіт 700" data-brand="MSD Premium" data-dot="#374151">Графіт 700 — MSD</option><option value="beige" data-label="Бежевий 571" data-brand="MSD Premium" data-dot="#d8c4a3">Бежевий 571 — MSD</option><option value="cream" data-label="Кремовий 210" data-brand="MSD Premium" data-dot="#ead8bd">Кремовий 210 — MSD</option><option value="blue" data-label="Синій 420" data-brand="MSD Premium" data-dot="#2563eb">Синій 420 — MSD</option><option value="green" data-label="Зелений 330" data-brand="MSD Premium" data-dot="#16a34a">Зелений 330 — MSD</option><option value="bordo" data-label="Бордо 130" data-brand="MSD Premium" data-dot="#7f1d1d">Бордо 130 — MSD</option></select><div class="arrow">⌄</div></div><div class="hint">ⓘ Не знаєте номер? Оберіть із <b>каталогу</b></div></section>
+<section class="side-section"><div class="side-title"><h3>3. Фактура стелі</h3></div><div class="select-box"><div class="color-dot" style="background:#eef2f7"></div><select id="materialSelect" onchange="syncDraft()"><option value="glossy" data-label="Глянець (Лак)">Глянець (Лак)</option><option value="matte" data-label="Матова">Матова</option><option value="satin" data-label="Сатин">Сатин</option></select><div class="arrow">⌄</div></div></section>
+<section class="side-section"><div class="side-title"><h3>4. Додаткові опції ⓘ</h3></div><div class="options"><label class="option"><input id="keepLight" type="checkbox" checked onchange="syncDraft()">Залишити люстру / світильники</label><label class="option"><input id="shadowProfile" type="checkbox" onchange="syncDraft()">Тіньовий профіль</label><label class="option"><input id="ledLine" type="checkbox" checked onchange="syncDraft()">LED-підсвітка по периметру</label><label class="option"><input id="lightLines" type="checkbox" onchange="syncDraft()">Світлові лінії</label><label class="option"><input id="cornice" type="checkbox" onchange="syncDraft()">Карниз</label><label class="option"><input id="spots" type="checkbox" onchange="syncDraft()">Точкові світильники</label></div></section>
+<section class="side-section"><div class="side-title"><h3>Телефон</h3></div><input id="clientPhoneAI" class="phone-input" type="tel" placeholder="+380 XX XXX XX XX" oninput="syncDraft()"><div class="hint">Перша генерація безкоштовна. Далі — 4 генерації за номером телефону.</div></section>
+<button class="btn btn-blue" type="button" onclick="generateAI()">✨ Підготувати AI-візуалізацію</button><div id="loader" class="loader">Готуємо AI-візуалізацію...</div><div class="help-box"><b>Потрібна допомога?</b>Напишіть нам у Telegram — ми підкажемо найкраще рішення.<a class="btn btn-white" href="https://t.me/potolok_kharkiv" target="_blank">✈ Написати в Telegram</a></div>
+</aside>
+<main class="content">
+<div class="section-head"><div class="section-title"><span>✨</span><h1>Моя AI-візуалізація</h1><span id="variantCount" class="badge">0 варіантів</span></div></div>
+<section class="result-card"><div class="result-top"><div class="result-title"><h2 id="variantTitle">Варіант №1</h2><span class="actual">Актуальний</span></div><div class="mini-actions"><button class="icon-btn" type="button" onclick="toggleFavorite()">♡ В обране</button><button class="icon-btn" type="button" onclick="createEmptyVariant()">＋</button><button class="icon-btn" type="button" onclick="deleteCurrent()">🗑</button></div></div><div id="resultImageWrap" class="main-image"><div class="placeholder"><span class="ph-icon">▧</span><b>AI-візуалізація з’явиться тут</b>Завантажте фото кімнати та натисніть кнопку генерації.</div></div><div class="specs"><div class="spec"><i>●</i><div><b>Колір стелі:</b> <span id="specColor">—</span></div></div><div class="spec"><i>↔</i><div><b>Тіньовий профіль:</b> <span id="specShadow">ні</span></div></div><div class="spec"><i>♟</i><div><b>Фактура:</b> <span id="specMaterial">—</span></div></div><div class="spec"><i>☼</i><div><b>LED-підсвітка:</b> <span id="specLed">ні</span></div></div><div class="spec"><i>●</i><div><b>Виробник:</b> <span id="specBrand">—</span></div></div><div class="spec"><i>⌁</i><div><b>Світлові лінії:</b> <span id="specLines">ні</span></div></div><div class="spec"><i>♬</i><div><b>Люстра / світильники:</b> <span id="specLight">—</span></div></div><div class="spec"><i>☎</i><div><b>Телефон:</b> <span id="specPhone">без телефону</span></div></div></div><div class="result-actions"><button class="btn btn-green" type="button" onclick="sendCurrentToTelegram()">✈ Надіслати цей варіант в Telegram</button><a id="downloadBtn" class="btn btn-dark" href="#" download="potolok-ai.png">⬇ Завантажити варіант</a></div></section>
+<section id="galleryBlock" class="gallery-block"><div class="section-head"><div class="section-title"><h2>▣ Мої AI-візуалізації</h2><span id="galleryCount" class="badge">0 варіантів</span></div><button class="link-btn" type="button" onclick="scrollToGallery()">Переглянути всі ›</button></div><div id="gallery" class="gallery"><div class="add-card" onclick="window.scrollTo({top:0,behavior:'smooth'})"><strong>＋</strong>Створити<br>новий варіант</div></div></section>
+<section class="bottom-grid"><div class="panel"><div class="panel-head"><h3>📋 Орієнтовна комплектація</h3><button class="link-btn" type="button">Редагувати</button></div><table id="kitTable" class="kit-table"><thead><tr><th>Елемент</th><th>Кількість</th><th>Од.</th></tr></thead><tbody></tbody></table><div id="kitTotal" class="total">Усього позицій: 0</div></div><div class="panel"><div class="panel-head"><h3>💰 Орієнтовна вартість</h3><button class="link-btn" type="button">Детальніше</button></div><div id="priceValue" class="price">— грн</div><div class="price-note">Орієнтовна ціна під ключ</div><div class="benefits"><div class="benefit">✅ Безкоштовний замір</div><div class="benefit">✅ Якісний монтаж</div><div class="benefit">✅ Гарантія 10 років на полотно</div><div class="benefit">✅ Гарантія 5 років на монтаж</div></div><button class="btn btn-blue" type="button" onclick="sendCurrentToTelegram()">📞 Залишити заявку на цей варіант</button></div></section>
+<section class="features"><div class="feature"><div class="feature-icon">🪄</div><div><b>Реалістична візуалізація AI</b><span>AI показує реальний результат</span></div></div><div class="feature"><div class="feature-icon">⚙</div><div><b>Безкоштовна генерація</b><span>Перша генерація безкоштовна</span></div></div><div class="feature"><div class="feature-icon">🛡</div><div><b>Швидкий розрахунок 24/7</b><span>Отримайте ціну за 1 хвилину</span></div></div><div class="feature"><div class="feature-icon">🎧</div><div><b>Підтримка</b><span>Отримай відповідь у будь-який час</span></div></div></section>
+</main></div><div id="toast" class="toast"></div>
 <script>
-let uploadedImageBase64='';
-let variants=[];
-let currentIndex=-1;
-let favoriteSet=new Set();
-
-photoInput.addEventListener('change',function(){
-  const file=this.files[0];
-  if(!file)return;
-  const reader=new FileReader();
-  reader.onload=function(e){
-    uploadedImageBase64=e.target.result;
-    roomPreview.src=uploadedImageBase64;
-    roomPreview.style.display='block';
-    emptyPhoto.style.display='none';
-    showToast('Фото кімнати завантажено');
-  };
-  reader.readAsDataURL(file);
-});
-
-function getParams(){
-  const c=colorSelect.options[colorSelect.selectedIndex];
-  const m=materialSelect.options[materialSelect.selectedIndex];
-  return{
-    color:colorSelect.value,
-    colorLabel:c.dataset.label,
-    brand:c.dataset.brand,
-    dot:c.dataset.dot,
-    material:materialSelect.value,
-    materialLabel:m.dataset.label,
-    keepLight:keepLight.checked,
-    shadowProfile:shadowProfile.checked,
-    ledLine:ledLine.checked,
-    lightLines:lightLines.checked,
-    cornice:cornice.checked,
-    spots:spots.checked,
-    phone:clientPhoneAI.value.trim()
-  };
-}
-
-function syncDraft(){
-  const p=getParams();
-  colorDot.style.background=p.dot;
-  specColor.textContent=p.colorLabel;
-  specMaterial.textContent=p.materialLabel;
-  specBrand.textContent=p.brand;
-  specLight.textContent=p.keepLight?'залишити без змін':'можна змінювати';
-  specShadow.textContent=p.shadowProfile?'так':'ні';
-  specLed.textContent=p.ledLine?'по периметру':'ні';
-  specLines.textContent=p.lightLines?'так':'ні';
-  specPhone.textContent=p.phone||'без телефону';
-  renderKit(p);
-}
-
-function renderKit(v){
-  const rows=[
-    ['Площа стелі (полотно)','17.5','м²'],
-    ['Профіль алюмінієвий H','18','м.п.'],
-    ['LED-підсвітка по периметру',v.ledLine?'17':'—','м.п.'],
-    ['Світлові лінії',v.lightLines?'3':'—','м.п.'],
-    ['Точкові світильники',v.spots?'6':'—','шт.'],
-    ['Карниз',v.cornice?'3.2':'—','м.п.']
-  ];
-  kitTable.querySelector('tbody').innerHTML=rows.map(r=>`<tr><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td></tr>`).join('');
-  kitTotal.textContent='Усього позицій: '+rows.filter(r=>r[1]!=='—').length;
-  priceValue.textContent=estimatePrice(v).toLocaleString('uk-UA')+' грн';
-}
-
-function estimatePrice(v){
-  let total=17070;
-  if(v.lightLines)total+=2100;
-  if(v.cornice)total+=3200;
-  if(v.spots)total+=2700;
-  if(v.shadowProfile)total+=2700;
-  return Math.round(total);
-}
-
-async function generateAI(){
-  if(!uploadedImageBase64){
-    alert('Спочатку завантажте фото кімнати.');
-    return;
-  }
-  const p=getParams();
-  loader.style.display='block';
-  try{
-    const response=await fetch('/api/ai-ceiling',{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({
-        imageBase64:uploadedImageBase64,
-        phone:p.phone,
-        color:p.color,
-        material:p.material,
-        keepLight:p.keepLight,
-        shadowProfile:p.shadowProfile,
-        ledLine:p.ledLine,
-        lightLines:p.lightLines,
-        cornice:p.cornice,
-        spots:p.spots
-      })
-    });
-    const data=await response.json();
-    if(!response.ok)throw new Error(data.error||'Помилка AI');
-    if(!data.image)throw new Error('AI не повернув зображення');
-    const variant={...p,image:data.image,number:variants.length+1};
-    variants.unshift(variant);
-    currentIndex=0;
-    renderGallery();
-    updateCurrent(variant);
-    showToast('AI-візуалізацію створено');
-  }catch(e){
-    alert('Помилка: '+e.message);
-  }finally{
-    loader.style.display='none';
-  }
-}
-
-function createEmptyVariant(){
-  alert('Завантажте фото та натисніть генерацію, щоб створити новий варіант.');
-}
-
-function updateCurrent(v){
-  variantTitle.textContent='Варіант №'+v.number;
-  resultImageWrap.innerHTML=`<img src="${v.image}" alt="AI result">`;
-  downloadBtn.href=v.image;
-  specColor.textContent=v.colorLabel;
-  specMaterial.textContent=v.materialLabel;
-  specBrand.textContent=v.brand;
-  specLight.textContent=v.keepLight?'залишити без змін':'можна змінювати';
-  specShadow.textContent=v.shadowProfile?'так':'ні';
-  specLed.textContent=v.ledLine?'по периметру':'ні';
-  specLines.textContent=v.lightLines?'так':'ні';
-  specPhone.textContent=v.phone||'без телефону';
-  renderKit(v);
-}
-
-function renderGallery(){
-  variantCount.textContent=variants.length+' варіантів';
-  galleryCount.textContent=variants.length+' варіантів';
-  const cards=variants.map((v,i)=>`
-    <div class="variant ${i===currentIndex?'active':''}" onclick="selectVariant(${i})">
-      <div class="star">${favoriteSet.has(v.number)?'★':'☆'}</div>
-      <img src="${v.image}" alt="">
-      <b>№${v.number}</b>
-      <small>${v.colorLabel}<br>${v.materialLabel}</small>
-    </div>
-  `).join('');
-  gallery.innerHTML=cards+`<div class="add-card" onclick="window.scrollTo({top:0,behavior:'smooth'})"><strong>＋</strong>Створити<br>новий варіант</div>`;
-}
-
-function selectVariant(i){
-  currentIndex=i;
-  renderGallery();
-  updateCurrent(variants[i]);
-}
-
-function deleteCurrent(){
-  if(currentIndex<0){
-    alert('Поки немає варіантів.');
-    return;
-  }
-  variants.splice(currentIndex,1);
-  currentIndex=variants.length?0:-1;
-  renderGallery();
-  if(currentIndex>=0){
-    updateCurrent(variants[currentIndex]);
-  }else{
-    resultImageWrap.innerHTML='<div class="placeholder"><div class="ph-icon">▧</div><b>AI-візуалізація з’явиться тут</b>Завантажте фото кімнати та натисніть кнопку генерації.</div>';
-  }
-}
-
-function toggleFavorite(){
-  if(currentIndex<0){
-    alert('Поки немає варіантів.');
-    return;
-  }
-  const n=variants[currentIndex].number;
-  if(favoriteSet.has(n)){
-    favoriteSet.delete(n);
-  }else{
-    favoriteSet.add(n);
-  }
-  renderGallery();
-}
-
-function sendCurrentToTelegram(){
-  if(currentIndex<0){
-    alert('Спочатку створіть AI-візуалізацію.');
-    return;
-  }
-  const v=variants[currentIndex];
-  const text=`Хочу цей AI-варіант №${v.number}
-Колір: ${v.colorLabel}
-Фактура: ${v.materialLabel}
-Виробник: ${v.brand}
-LED: ${v.ledLine?'так':'ні'}
-Тіньовий профіль: ${v.shadowProfile?'так':'ні'}
-Світлові лінії: ${v.lightLines?'так':'ні'}
-Карниз: ${v.cornice?'так':'ні'}
-Точкові світильники: ${v.spots?'так':'ні'}
-Телефон: ${v.phone||'не вказано'}`;
-  window.open('https://t.me/potolok_kharkiv?text='+encodeURIComponent(text),'_blank');
-}
-
-function scrollToGallery(){
-  galleryBlock.scrollIntoView({behavior:'smooth',block:'start'});
-}
-
-function openHowItWorks(){
-  alert('1. Завантажте фото кімнати.\\n2. Оберіть колір і параметри.\\n3. Натисніть AI-візуалізацію.\\n4. Надішліть результат у Telegram.');
-}
-
-function showToast(t){
-  toast.textContent=t;
-  toast.style.display='block';
-  clearTimeout(window.toastTimer);
-  window.toastTimer=setTimeout(()=>toast.style.display='none',2300);
-}
-
+let uploadedImageBase64='',variants=[],currentIndex=-1,favoriteSet=new Set();
+photoInput.addEventListener('change',function(){const file=this.files[0];if(!file)return;const reader=new FileReader();reader.onload=function(e){uploadedImageBase64=e.target.result;roomPreview.src=uploadedImageBase64;roomPreview.style.display='block';emptyPhoto.style.display='none';showToast('Фото кімнати завантажено')};reader.readAsDataURL(file)});
+function getParams(){const c=colorSelect.options[colorSelect.selectedIndex],m=materialSelect.options[materialSelect.selectedIndex];return{color:colorSelect.value,colorLabel:c.dataset.label,brand:c.dataset.brand,dot:c.dataset.dot,material:materialSelect.value,materialLabel:m.dataset.label,keepLight:keepLight.checked,shadowProfile:shadowProfile.checked,ledLine:ledLine.checked,lightLines:lightLines.checked,cornice:cornice.checked,spots:spots.checked,phone:clientPhoneAI.value.trim()}}
+function syncDraft(){const p=getParams();colorDot.style.background=p.dot;specColor.textContent=p.colorLabel;specMaterial.textContent=p.materialLabel;specBrand.textContent=p.brand;specLight.textContent=p.keepLight?'залишити без змін':'можна змінювати';specShadow.textContent=p.shadowProfile?'так':'ні';specLed.textContent=p.ledLine?'по периметру':'ні';specLines.textContent=p.lightLines?'так':'ні';specPhone.textContent=p.phone||'без телефону';renderKit(p)}
+function renderKit(v){const rows=[['Площа стелі (полотно)','17.5','м²'],['Профіль алюмінієвий H','18','м.п.'],['LED-підсвітка по периметру',v.ledLine?'17':'—','м.п.'],['Світлові лінії',v.lightLines?'3':'—','м.п.'],['Точкові світильники',v.spots?'6':'—','шт.'],['Карниз',v.cornice?'3.2':'—','м.п.']];kitTable.querySelector('tbody').innerHTML=rows.map(r=>`<tr><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td></tr>`).join('');kitTotal.textContent='Усього позицій: '+rows.filter(r=>r[1]!=='—').length;priceValue.textContent=estimatePrice(v).toLocaleString('uk-UA')+' грн'}
+function estimatePrice(v){let total=17070;if(v.lightLines)total+=2100;if(v.cornice)total+=3200;if(v.spots)total+=2700;if(v.shadowProfile)total+=2700;return Math.round(total)}
+async function generateAI(){if(!uploadedImageBase64){alert('Спочатку завантажте фото кімнати.');return}const p=getParams();loader.style.display='block';try{const response=await fetch('/api/ai-ceiling',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({imageBase64:uploadedImageBase64,phone:p.phone,color:p.color,material:p.material,keepLight:p.keepLight,shadowProfile:p.shadowProfile,ledLine:p.ledLine,lightLines:p.lightLines,cornice:p.cornice,spots:p.spots})});const data=await response.json();if(!response.ok)throw new Error(data.error||'Помилка AI');if(!data.image)throw new Error('AI не повернув зображення');const variant={...p,image:data.image,number:variants.length+1};variants.unshift(variant);currentIndex=0;renderGallery();updateCurrent(variant);showToast('AI-візуалізацію створено')}catch(e){alert('Помилка: '+e.message)}finally{loader.style.display='none'}}
+function createEmptyVariant(){alert('Завантажте фото та натисніть генерацію, щоб створити новий варіант.')}
+function updateCurrent(v){variantTitle.textContent='Варіант №'+v.number;resultImageWrap.innerHTML=`<img src="${v.image}" alt="AI result">`;downloadBtn.href=v.image;specColor.textContent=v.colorLabel;specMaterial.textContent=v.materialLabel;specBrand.textContent=v.brand;specLight.textContent=v.keepLight?'залишити без змін':'можна змінювати';specShadow.textContent=v.shadowProfile?'так':'ні';specLed.textContent=v.ledLine?'по периметру':'ні';specLines.textContent=v.lightLines?'так':'ні';specPhone.textContent=v.phone||'без телефону';renderKit(v)}
+function renderGallery(){variantCount.textContent=variants.length+' варіантів';galleryCount.textContent=variants.length+' варіантів';const cards=variants.map((v,i)=>`<div class="variant ${i===currentIndex?'active':''}" onclick="selectVariant(${i})"><div class="star">${favoriteSet.has(v.number)?'★':'☆'}</div><img src="${v.image}" alt=""><b>№${v.number}</b><small>${v.colorLabel}<br>${v.materialLabel}</small></div>`).join('');gallery.innerHTML=cards+`<div class="add-card" onclick="window.scrollTo({top:0,behavior:'smooth'})"><strong>＋</strong>Створити<br>новий варіант</div>`}
+function selectVariant(i){currentIndex=i;renderGallery();updateCurrent(variants[i])}
+function deleteCurrent(){if(currentIndex<0){alert('Поки немає варіантів.');return}variants.splice(currentIndex,1);currentIndex=variants.length?0:-1;renderGallery();if(currentIndex>=0){updateCurrent(variants[currentIndex])}else{resultImageWrap.innerHTML='<div class="placeholder"><span class="ph-icon">▧</span><b>AI-візуалізація з’явиться тут</b>Завантажте фото кімнати та натисніть кнопку генерації.</div>'}}
+function toggleFavorite(){if(currentIndex<0){alert('Поки немає варіантів.');return}const n=variants[currentIndex].number;if(favoriteSet.has(n)){favoriteSet.delete(n)}else{favoriteSet.add(n)}renderGallery()}
+function sendCurrentToTelegram(){if(currentIndex<0){alert('Спочатку створіть AI-візуалізацію.');return}const v=variants[currentIndex];const text=`Хочу цей AI-варіант №${v.number}\nКолір: ${v.colorLabel}\nФактура: ${v.materialLabel}\nВиробник: ${v.brand}\nLED: ${v.ledLine?'так':'ні'}\nТіньовий профіль: ${v.shadowProfile?'так':'ні'}\nСвітлові лінії: ${v.lightLines?'так':'ні'}\nКарниз: ${v.cornice?'так':'ні'}\nТочкові світильники: ${v.spots?'так':'ні'}\nТелефон: ${v.phone||'не вказано'}`;window.open('https://t.me/potolok_kharkiv?text='+encodeURIComponent(text),'_blank')}
+function scrollToGallery(){galleryBlock.scrollIntoView({behavior:'smooth',block:'start'})}
+function openHowItWorks(){alert('1. Завантажте фото кімнати.\n2. Оберіть колір і параметри.\n3. Натисніть AI-візуалізацію.\n4. Надішліть результат у Telegram.')}
+function showToast(t){toast.textContent=t;toast.style.display='block';clearTimeout(window.toastTimer);window.toastTimer=setTimeout(function(){toast.style.display='none'},2300)}
 syncDraft();
 </script>
 </body>
-<!-- reserve-pixel-line-0001 -->
-<!-- reserve-pixel-line-0002 -->
-<!-- reserve-pixel-line-0003 -->
-<!-- reserve-pixel-line-0004 -->
-<!-- reserve-pixel-line-0005 -->
-<!-- reserve-pixel-line-0006 -->
-<!-- reserve-pixel-line-0007 -->
-<!-- reserve-pixel-line-0008 -->
-<!-- reserve-pixel-line-0009 -->
-<!-- reserve-pixel-line-0010 -->
-<!-- reserve-pixel-line-0011 -->
-<!-- reserve-pixel-line-0012 -->
-<!-- reserve-pixel-line-0013 -->
-<!-- reserve-pixel-line-0014 -->
-<!-- reserve-pixel-line-0015 -->
-<!-- reserve-pixel-line-0016 -->
-<!-- reserve-pixel-line-0017 -->
-<!-- reserve-pixel-line-0018 -->
-<!-- reserve-pixel-line-0019 -->
-<!-- reserve-pixel-line-0020 -->
-<!-- reserve-pixel-line-0021 -->
-<!-- reserve-pixel-line-0022 -->
-<!-- reserve-pixel-line-0023 -->
-<!-- reserve-pixel-line-0024 -->
-<!-- reserve-pixel-line-0025 -->
-<!-- reserve-pixel-line-0026 -->
-<!-- reserve-pixel-line-0027 -->
-<!-- reserve-pixel-line-0028 -->
-<!-- reserve-pixel-line-0029 -->
-<!-- reserve-pixel-line-0030 -->
-<!-- reserve-pixel-line-0031 -->
-<!-- reserve-pixel-line-0032 -->
-<!-- reserve-pixel-line-0033 -->
-<!-- reserve-pixel-line-0034 -->
-<!-- reserve-pixel-line-0035 -->
-<!-- reserve-pixel-line-0036 -->
-<!-- reserve-pixel-line-0037 -->
-<!-- reserve-pixel-line-0038 -->
-<!-- reserve-pixel-line-0039 -->
-<!-- reserve-pixel-line-0040 -->
-<!-- reserve-pixel-line-0041 -->
-<!-- reserve-pixel-line-0042 -->
-<!-- reserve-pixel-line-0043 -->
-<!-- reserve-pixel-line-0044 -->
-<!-- reserve-pixel-line-0045 -->
-<!-- reserve-pixel-line-0046 -->
-<!-- reserve-pixel-line-0047 -->
-<!-- reserve-pixel-line-0048 -->
-<!-- reserve-pixel-line-0049 -->
-<!-- reserve-pixel-line-0050 -->
-<!-- reserve-pixel-line-0051 -->
-<!-- reserve-pixel-line-0052 -->
-<!-- reserve-pixel-line-0053 -->
-<!-- reserve-pixel-line-0054 -->
-<!-- reserve-pixel-line-0055 -->
-<!-- reserve-pixel-line-0056 -->
-<!-- reserve-pixel-line-0057 -->
-<!-- reserve-pixel-line-0058 -->
-<!-- reserve-pixel-line-0059 -->
-<!-- reserve-pixel-line-0060 -->
-<!-- reserve-pixel-line-0061 -->
-<!-- reserve-pixel-line-0062 -->
-<!-- reserve-pixel-line-0063 -->
-<!-- reserve-pixel-line-0064 -->
-<!-- reserve-pixel-line-0065 -->
-<!-- reserve-pixel-line-0066 -->
-<!-- reserve-pixel-line-0067 -->
-<!-- reserve-pixel-line-0068 -->
-<!-- reserve-pixel-line-0069 -->
-<!-- reserve-pixel-line-0070 -->
-<!-- reserve-pixel-line-0071 -->
-<!-- reserve-pixel-line-0072 -->
-<!-- reserve-pixel-line-0073 -->
-<!-- reserve-pixel-line-0074 -->
-<!-- reserve-pixel-line-0075 -->
-<!-- reserve-pixel-line-0076 -->
-<!-- reserve-pixel-line-0077 -->
-<!-- reserve-pixel-line-0078 -->
-<!-- reserve-pixel-line-0079 -->
-<!-- reserve-pixel-line-0080 -->
-<!-- reserve-pixel-line-0081 -->
-<!-- reserve-pixel-line-0082 -->
-<!-- reserve-pixel-line-0083 -->
-<!-- reserve-pixel-line-0084 -->
-<!-- reserve-pixel-line-0085 -->
-<!-- reserve-pixel-line-0086 -->
-<!-- reserve-pixel-line-0087 -->
-<!-- reserve-pixel-line-0088 -->
-<!-- reserve-pixel-line-0089 -->
-<!-- reserve-pixel-line-0090 -->
-<!-- reserve-pixel-line-0091 -->
-<!-- reserve-pixel-line-0092 -->
-<!-- reserve-pixel-line-0093 -->
-<!-- reserve-pixel-line-0094 -->
-<!-- reserve-pixel-line-0095 -->
-<!-- reserve-pixel-line-0096 -->
-<!-- reserve-pixel-line-0097 -->
-<!-- reserve-pixel-line-0098 -->
-<!-- reserve-pixel-line-0099 -->
-<!-- reserve-pixel-line-0100 -->
-<!-- reserve-pixel-line-0101 -->
-<!-- reserve-pixel-line-0102 -->
-<!-- reserve-pixel-line-0103 -->
-<!-- reserve-pixel-line-0104 -->
-<!-- reserve-pixel-line-0105 -->
-<!-- reserve-pixel-line-0106 -->
-<!-- reserve-pixel-line-0107 -->
-<!-- reserve-pixel-line-0108 -->
-<!-- reserve-pixel-line-0109 -->
-<!-- reserve-pixel-line-0110 -->
-<!-- reserve-pixel-line-0111 -->
-<!-- reserve-pixel-line-0112 -->
-<!-- reserve-pixel-line-0113 -->
-<!-- reserve-pixel-line-0114 -->
-<!-- reserve-pixel-line-0115 -->
-<!-- reserve-pixel-line-0116 -->
-<!-- reserve-pixel-line-0117 -->
-<!-- reserve-pixel-line-0118 -->
-<!-- reserve-pixel-line-0119 -->
-<!-- reserve-pixel-line-0120 -->
-<!-- reserve-pixel-line-0121 -->
-<!-- reserve-pixel-line-0122 -->
-<!-- reserve-pixel-line-0123 -->
-<!-- reserve-pixel-line-0124 -->
-<!-- reserve-pixel-line-0125 -->
-<!-- reserve-pixel-line-0126 -->
-<!-- reserve-pixel-line-0127 -->
-<!-- reserve-pixel-line-0128 -->
-<!-- reserve-pixel-line-0129 -->
-<!-- reserve-pixel-line-0130 -->
-<!-- reserve-pixel-line-0131 -->
-<!-- reserve-pixel-line-0132 -->
-<!-- reserve-pixel-line-0133 -->
-<!-- reserve-pixel-line-0134 -->
-<!-- reserve-pixel-line-0135 -->
-<!-- reserve-pixel-line-0136 -->
-<!-- reserve-pixel-line-0137 -->
-<!-- reserve-pixel-line-0138 -->
-<!-- reserve-pixel-line-0139 -->
-<!-- reserve-pixel-line-0140 -->
-<!-- reserve-pixel-line-0141 -->
-<!-- reserve-pixel-line-0142 -->
-<!-- reserve-pixel-line-0143 -->
-<!-- reserve-pixel-line-0144 -->
-<!-- reserve-pixel-line-0145 -->
-<!-- reserve-pixel-line-0146 -->
-<!-- reserve-pixel-line-0147 -->
-<!-- reserve-pixel-line-0148 -->
-<!-- reserve-pixel-line-0149 -->
-<!-- reserve-pixel-line-0150 -->
-<!-- reserve-pixel-line-0151 -->
-<!-- reserve-pixel-line-0152 -->
-<!-- reserve-pixel-line-0153 -->
-<!-- reserve-pixel-line-0154 -->
-<!-- reserve-pixel-line-0155 -->
-<!-- reserve-pixel-line-0156 -->
-<!-- reserve-pixel-line-0157 -->
-<!-- reserve-pixel-line-0158 -->
-<!-- reserve-pixel-line-0159 -->
-<!-- reserve-pixel-line-0160 -->
-<!-- reserve-pixel-line-0161 -->
-<!-- reserve-pixel-line-0162 -->
-<!-- reserve-pixel-line-0163 -->
-<!-- reserve-pixel-line-0164 -->
-<!-- reserve-pixel-line-0165 -->
-<!-- reserve-pixel-line-0166 -->
-<!-- reserve-pixel-line-0167 -->
-<!-- reserve-pixel-line-0168 -->
-<!-- reserve-pixel-line-0169 -->
-<!-- reserve-pixel-line-0170 -->
-<!-- reserve-pixel-line-0171 -->
-<!-- reserve-pixel-line-0172 -->
-<!-- reserve-pixel-line-0173 -->
-<!-- reserve-pixel-line-0174 -->
-<!-- reserve-pixel-line-0175 -->
-<!-- reserve-pixel-line-0176 -->
-<!-- reserve-pixel-line-0177 -->
-<!-- reserve-pixel-line-0178 -->
-<!-- reserve-pixel-line-0179 -->
-<!-- reserve-pixel-line-0180 -->
-<!-- reserve-pixel-line-0181 -->
-<!-- reserve-pixel-line-0182 -->
-<!-- reserve-pixel-line-0183 -->
-<!-- reserve-pixel-line-0184 -->
-<!-- reserve-pixel-line-0185 -->
-<!-- reserve-pixel-line-0186 -->
-<!-- reserve-pixel-line-0187 -->
-<!-- reserve-pixel-line-0188 -->
-<!-- reserve-pixel-line-0189 -->
-<!-- reserve-pixel-line-0190 -->
-<!-- reserve-pixel-line-0191 -->
-<!-- reserve-pixel-line-0192 -->
-<!-- reserve-pixel-line-0193 -->
-<!-- reserve-pixel-line-0194 -->
-<!-- reserve-pixel-line-0195 -->
-<!-- reserve-pixel-line-0196 -->
-<!-- reserve-pixel-line-0197 -->
-<!-- reserve-pixel-line-0198 -->
-<!-- reserve-pixel-line-0199 -->
-<!-- reserve-pixel-line-0200 -->
-<!-- reserve-pixel-line-0201 -->
-<!-- reserve-pixel-line-0202 -->
-<!-- reserve-pixel-line-0203 -->
-<!-- reserve-pixel-line-0204 -->
-<!-- reserve-pixel-line-0205 -->
-<!-- reserve-pixel-line-0206 -->
-<!-- reserve-pixel-line-0207 -->
-<!-- reserve-pixel-line-0208 -->
-<!-- reserve-pixel-line-0209 -->
-<!-- reserve-pixel-line-0210 -->
-<!-- reserve-pixel-line-0211 -->
-<!-- reserve-pixel-line-0212 -->
-<!-- reserve-pixel-line-0213 -->
-<!-- reserve-pixel-line-0214 -->
-<!-- reserve-pixel-line-0215 -->
-<!-- reserve-pixel-line-0216 -->
-<!-- reserve-pixel-line-0217 -->
-<!-- reserve-pixel-line-0218 -->
-<!-- reserve-pixel-line-0219 -->
-<!-- reserve-pixel-line-0220 -->
-<!-- reserve-pixel-line-0221 -->
-<!-- reserve-pixel-line-0222 -->
-<!-- reserve-pixel-line-0223 -->
-<!-- reserve-pixel-line-0224 -->
-<!-- reserve-pixel-line-0225 -->
-<!-- reserve-pixel-line-0226 -->
-<!-- reserve-pixel-line-0227 -->
-<!-- reserve-pixel-line-0228 -->
-<!-- reserve-pixel-line-0229 -->
-<!-- reserve-pixel-line-0230 -->
-<!-- reserve-pixel-line-0231 -->
-<!-- reserve-pixel-line-0232 -->
-<!-- reserve-pixel-line-0233 -->
-<!-- reserve-pixel-line-0234 -->
-<!-- reserve-pixel-line-0235 -->
-<!-- reserve-pixel-line-0236 -->
-<!-- reserve-pixel-line-0237 -->
-<!-- reserve-pixel-line-0238 -->
-<!-- reserve-pixel-line-0239 -->
-<!-- reserve-pixel-line-0240 -->
-<!-- reserve-pixel-line-0241 -->
-<!-- reserve-pixel-line-0242 -->
-<!-- reserve-pixel-line-0243 -->
-<!-- reserve-pixel-line-0244 -->
-<!-- reserve-pixel-line-0245 -->
-<!-- reserve-pixel-line-0246 -->
-<!-- reserve-pixel-line-0247 -->
-<!-- reserve-pixel-line-0248 -->
-<!-- reserve-pixel-line-0249 -->
-<!-- reserve-pixel-line-0250 -->
-<!-- reserve-pixel-line-0251 -->
-<!-- reserve-pixel-line-0252 -->
-<!-- reserve-pixel-line-0253 -->
-<!-- reserve-pixel-line-0254 -->
-<!-- reserve-pixel-line-0255 -->
-<!-- reserve-pixel-line-0256 -->
-<!-- reserve-pixel-line-0257 -->
-<!-- reserve-pixel-line-0258 -->
-<!-- reserve-pixel-line-0259 -->
-<!-- reserve-pixel-line-0260 -->
-<!-- reserve-pixel-line-0261 -->
-<!-- reserve-pixel-line-0262 -->
-<!-- reserve-pixel-line-0263 -->
-<!-- reserve-pixel-line-0264 -->
-<!-- reserve-pixel-line-0265 -->
-<!-- reserve-pixel-line-0266 -->
-<!-- reserve-pixel-line-0267 -->
-<!-- reserve-pixel-line-0268 -->
-<!-- reserve-pixel-line-0269 -->
-<!-- reserve-pixel-line-0270 -->
-<!-- reserve-pixel-line-0271 -->
-<!-- reserve-pixel-line-0272 -->
-<!-- reserve-pixel-line-0273 -->
-<!-- reserve-pixel-line-0274 -->
-<!-- reserve-pixel-line-0275 -->
-<!-- reserve-pixel-line-0276 -->
-<!-- reserve-pixel-line-0277 -->
-<!-- reserve-pixel-line-0278 -->
-<!-- reserve-pixel-line-0279 -->
-<!-- reserve-pixel-line-0280 -->
-<!-- reserve-pixel-line-0281 -->
-<!-- reserve-pixel-line-0282 -->
-<!-- reserve-pixel-line-0283 -->
-<!-- reserve-pixel-line-0284 -->
-<!-- reserve-pixel-line-0285 -->
-<!-- reserve-pixel-line-0286 -->
-<!-- reserve-pixel-line-0287 -->
-<!-- reserve-pixel-line-0288 -->
-<!-- reserve-pixel-line-0289 -->
-<!-- reserve-pixel-line-0290 -->
-<!-- reserve-pixel-line-0291 -->
-<!-- reserve-pixel-line-0292 -->
-<!-- reserve-pixel-line-0293 -->
-<!-- reserve-pixel-line-0294 -->
-<!-- reserve-pixel-line-0295 -->
-<!-- reserve-pixel-line-0296 -->
-<!-- reserve-pixel-line-0297 -->
-<!-- reserve-pixel-line-0298 -->
-<!-- reserve-pixel-line-0299 -->
-<!-- reserve-pixel-line-0300 -->
-<!-- reserve-pixel-line-0301 -->
-<!-- reserve-pixel-line-0302 -->
-<!-- reserve-pixel-line-0303 -->
-<!-- reserve-pixel-line-0304 -->
-<!-- reserve-pixel-line-0305 -->
-<!-- reserve-pixel-line-0306 -->
-<!-- reserve-pixel-line-0307 -->
-<!-- reserve-pixel-line-0308 -->
-<!-- reserve-pixel-line-0309 -->
-<!-- reserve-pixel-line-0310 -->
-<!-- reserve-pixel-line-0311 -->
-<!-- reserve-pixel-line-0312 -->
-<!-- reserve-pixel-line-0313 -->
-<!-- reserve-pixel-line-0314 -->
-<!-- reserve-pixel-line-0315 -->
-<!-- reserve-pixel-line-0316 -->
-<!-- reserve-pixel-line-0317 -->
-<!-- reserve-pixel-line-0318 -->
-<!-- reserve-pixel-line-0319 -->
-<!-- reserve-pixel-line-0320 -->
-<!-- reserve-pixel-line-0321 -->
-<!-- reserve-pixel-line-0322 -->
-<!-- reserve-pixel-line-0323 -->
-<!-- reserve-pixel-line-0324 -->
-<!-- reserve-pixel-line-0325 -->
-<!-- reserve-pixel-line-0326 -->
-<!-- reserve-pixel-line-0327 -->
-<!-- reserve-pixel-line-0328 -->
-<!-- reserve-pixel-line-0329 -->
-<!-- reserve-pixel-line-0330 -->
-<!-- reserve-pixel-line-0331 -->
-<!-- reserve-pixel-line-0332 -->
-<!-- reserve-pixel-line-0333 -->
-<!-- reserve-pixel-line-0334 -->
-<!-- reserve-pixel-line-0335 -->
-<!-- reserve-pixel-line-0336 -->
-<!-- reserve-pixel-line-0337 -->
-<!-- reserve-pixel-line-0338 -->
-<!-- reserve-pixel-line-0339 -->
-<!-- reserve-pixel-line-0340 -->
-<!-- reserve-pixel-line-0341 -->
-<!-- reserve-pixel-line-0342 -->
-<!-- reserve-pixel-line-0343 -->
-<!-- reserve-pixel-line-0344 -->
-<!-- reserve-pixel-line-0345 -->
-<!-- reserve-pixel-line-0346 -->
-<!-- reserve-pixel-line-0347 -->
-<!-- reserve-pixel-line-0348 -->
-<!-- reserve-pixel-line-0349 -->
-<!-- reserve-pixel-line-0350 -->
-<!-- reserve-pixel-line-0351 -->
-<!-- reserve-pixel-line-0352 -->
-<!-- reserve-pixel-line-0353 -->
-<!-- reserve-pixel-line-0354 -->
-<!-- reserve-pixel-line-0355 -->
-<!-- reserve-pixel-line-0356 -->
-<!-- reserve-pixel-line-0357 -->
-<!-- reserve-pixel-line-0358 -->
-<!-- reserve-pixel-line-0359 -->
-<!-- reserve-pixel-line-0360 -->
-<!-- reserve-pixel-line-0361 -->
-<!-- reserve-pixel-line-0362 -->
-<!-- reserve-pixel-line-0363 -->
-<!-- reserve-pixel-line-0364 -->
-<!-- reserve-pixel-line-0365 -->
-<!-- reserve-pixel-line-0366 -->
-<!-- reserve-pixel-line-0367 -->
-<!-- reserve-pixel-line-0368 -->
-<!-- reserve-pixel-line-0369 -->
-<!-- reserve-pixel-line-0370 -->
-<!-- reserve-pixel-line-0371 -->
-<!-- reserve-pixel-line-0372 -->
-<!-- reserve-pixel-line-0373 -->
-<!-- reserve-pixel-line-0374 -->
-<!-- reserve-pixel-line-0375 -->
-<!-- reserve-pixel-line-0376 -->
-<!-- reserve-pixel-line-0377 -->
-<!-- reserve-pixel-line-0378 -->
-<!-- reserve-pixel-line-0379 -->
-<!-- reserve-pixel-line-0380 -->
-<!-- reserve-pixel-line-0381 -->
-<!-- reserve-pixel-line-0382 -->
-<!-- reserve-pixel-line-0383 -->
-<!-- reserve-pixel-line-0384 -->
-<!-- reserve-pixel-line-0385 -->
-<!-- reserve-pixel-line-0386 -->
-<!-- reserve-pixel-line-0387 -->
-<!-- reserve-pixel-line-0388 -->
-<!-- reserve-pixel-line-0389 -->
-<!-- reserve-pixel-line-0390 -->
-<!-- reserve-pixel-line-0391 -->
-<!-- reserve-pixel-line-0392 -->
-<!-- reserve-pixel-line-0393 -->
-<!-- reserve-pixel-line-0394 -->
-<!-- reserve-pixel-line-0395 -->
-<!-- reserve-pixel-line-0396 -->
-<!-- reserve-pixel-line-0397 -->
-<!-- reserve-pixel-line-0398 -->
-<!-- reserve-pixel-line-0399 -->
-<!-- reserve-pixel-line-0400 -->
-<!-- reserve-pixel-line-0401 -->
-<!-- reserve-pixel-line-0402 -->
-<!-- reserve-pixel-line-0403 -->
-<!-- reserve-pixel-line-0404 -->
-<!-- reserve-pixel-line-0405 -->
-<!-- reserve-pixel-line-0406 -->
-<!-- reserve-pixel-line-0407 -->
-<!-- reserve-pixel-line-0408 -->
-<!-- reserve-pixel-line-0409 -->
-<!-- reserve-pixel-line-0410 -->
-<!-- reserve-pixel-line-0411 -->
-<!-- reserve-pixel-line-0412 -->
-<!-- reserve-pixel-line-0413 -->
-<!-- reserve-pixel-line-0414 -->
-<!-- reserve-pixel-line-0415 -->
-<!-- reserve-pixel-line-0416 -->
-<!-- reserve-pixel-line-0417 -->
-<!-- reserve-pixel-line-0418 -->
-<!-- reserve-pixel-line-0419 -->
-<!-- reserve-pixel-line-0420 -->
-<!-- reserve-pixel-line-0421 -->
-<!-- reserve-pixel-line-0422 -->
-<!-- reserve-pixel-line-0423 -->
-<!-- reserve-pixel-line-0424 -->
-<!-- reserve-pixel-line-0425 -->
-<!-- reserve-pixel-line-0426 -->
-<!-- reserve-pixel-line-0427 -->
-<!-- reserve-pixel-line-0428 -->
-<!-- reserve-pixel-line-0429 -->
-<!-- reserve-pixel-line-0430 -->
-<!-- reserve-pixel-line-0431 -->
-<!-- reserve-pixel-line-0432 -->
-<!-- reserve-pixel-line-0433 -->
-<!-- reserve-pixel-line-0434 -->
-<!-- reserve-pixel-line-0435 -->
-<!-- reserve-pixel-line-0436 -->
-<!-- reserve-pixel-line-0437 -->
-<!-- reserve-pixel-line-0438 -->
-<!-- reserve-pixel-line-0439 -->
-<!-- reserve-pixel-line-0440 -->
-<!-- reserve-pixel-line-0441 -->
-<!-- reserve-pixel-line-0442 -->
-<!-- reserve-pixel-line-0443 -->
-<!-- reserve-pixel-line-0444 -->
-<!-- reserve-pixel-line-0445 -->
-<!-- reserve-pixel-line-0446 -->
-<!-- reserve-pixel-line-0447 -->
-<!-- reserve-pixel-line-0448 -->
-<!-- reserve-pixel-line-0449 -->
-<!-- reserve-pixel-line-0450 -->
-<!-- reserve-pixel-line-0451 -->
-<!-- reserve-pixel-line-0452 -->
-<!-- reserve-pixel-line-0453 -->
-<!-- reserve-pixel-line-0454 -->
-<!-- reserve-pixel-line-0455 -->
-<!-- reserve-pixel-line-0456 -->
-<!-- reserve-pixel-line-0457 -->
-<!-- reserve-pixel-line-0458 -->
-<!-- reserve-pixel-line-0459 -->
-<!-- reserve-pixel-line-0460 -->
-<!-- reserve-pixel-line-0461 -->
-<!-- reserve-pixel-line-0462 -->
-<!-- reserve-pixel-line-0463 -->
-<!-- reserve-pixel-line-0464 -->
-<!-- reserve-pixel-line-0465 -->
-<!-- reserve-pixel-line-0466 -->
-<!-- reserve-pixel-line-0467 -->
-<!-- reserve-pixel-line-0468 -->
-<!-- reserve-pixel-line-0469 -->
-<!-- reserve-pixel-line-0470 -->
-<!-- reserve-pixel-line-0471 -->
-<!-- reserve-pixel-line-0472 -->
-<!-- reserve-pixel-line-0473 -->
-<!-- reserve-pixel-line-0474 -->
-<!-- reserve-pixel-line-0475 -->
-<!-- reserve-pixel-line-0476 -->
-<!-- reserve-pixel-line-0477 -->
-<!-- reserve-pixel-line-0478 -->
-<!-- reserve-pixel-line-0479 -->
-<!-- reserve-pixel-line-0480 -->
-<!-- reserve-pixel-line-0481 -->
-<!-- reserve-pixel-line-0482 -->
-<!-- reserve-pixel-line-0483 -->
-<!-- reserve-pixel-line-0484 -->
-<!-- reserve-pixel-line-0485 -->
-<!-- reserve-pixel-line-0486 -->
-<!-- reserve-pixel-line-0487 -->
-<!-- reserve-pixel-line-0488 -->
-<!-- reserve-pixel-line-0489 -->
-<!-- reserve-pixel-line-0490 -->
-<!-- reserve-pixel-line-0491 -->
-<!-- reserve-pixel-line-0492 -->
-<!-- reserve-pixel-line-0493 -->
-<!-- reserve-pixel-line-0494 -->
-<!-- reserve-pixel-line-0495 -->
-<!-- reserve-pixel-line-0496 -->
-<!-- reserve-pixel-line-0497 -->
-<!-- reserve-pixel-line-0498 -->
-<!-- reserve-pixel-line-0499 -->
-<!-- reserve-pixel-line-0500 -->
-<!-- reserve-pixel-line-0501 -->
-<!-- reserve-pixel-line-0502 -->
-<!-- reserve-pixel-line-0503 -->
-<!-- reserve-pixel-line-0504 -->
-<!-- reserve-pixel-line-0505 -->
-<!-- reserve-pixel-line-0506 -->
-<!-- reserve-pixel-line-0507 -->
-<!-- reserve-pixel-line-0508 -->
-<!-- reserve-pixel-line-0509 -->
-<!-- reserve-pixel-line-0510 -->
-<!-- reserve-pixel-line-0511 -->
-<!-- reserve-pixel-line-0512 -->
-<!-- reserve-pixel-line-0513 -->
-<!-- reserve-pixel-line-0514 -->
-<!-- reserve-pixel-line-0515 -->
-<!-- reserve-pixel-line-0516 -->
-<!-- reserve-pixel-line-0517 -->
-<!-- reserve-pixel-line-0518 -->
-<!-- reserve-pixel-line-0519 -->
-<!-- reserve-pixel-line-0520 -->
-<!-- reserve-pixel-line-0521 -->
-<!-- reserve-pixel-line-0522 -->
-<!-- reserve-pixel-line-0523 -->
-<!-- reserve-pixel-line-0524 -->
-<!-- reserve-pixel-line-0525 -->
-<!-- reserve-pixel-line-0526 -->
-<!-- reserve-pixel-line-0527 -->
-<!-- reserve-pixel-line-0528 -->
-<!-- reserve-pixel-line-0529 -->
-<!-- reserve-pixel-line-0530 -->
-<!-- reserve-pixel-line-0531 -->
-<!-- reserve-pixel-line-0532 -->
-<!-- reserve-pixel-line-0533 -->
-<!-- reserve-pixel-line-0534 -->
-<!-- reserve-pixel-line-0535 -->
-<!-- reserve-pixel-line-0536 -->
-<!-- reserve-pixel-line-0537 -->
-<!-- reserve-pixel-line-0538 -->
-<!-- reserve-pixel-line-0539 -->
-<!-- reserve-pixel-line-0540 -->
-<!-- reserve-pixel-line-0541 -->
-<!-- reserve-pixel-line-0542 -->
-<!-- reserve-pixel-line-0543 -->
-<!-- reserve-pixel-line-0544 -->
-<!-- reserve-pixel-line-0545 -->
-<!-- reserve-pixel-line-0546 -->
-<!-- reserve-pixel-line-0547 -->
-<!-- reserve-pixel-line-0548 -->
-<!-- reserve-pixel-line-0549 -->
-<!-- reserve-pixel-line-0550 -->
-<!-- reserve-pixel-line-0551 -->
-<!-- reserve-pixel-line-0552 -->
-<!-- reserve-pixel-line-0553 -->
-<!-- reserve-pixel-line-0554 -->
-<!-- reserve-pixel-line-0555 -->
-<!-- reserve-pixel-line-0556 -->
-<!-- reserve-pixel-line-0557 -->
-<!-- reserve-pixel-line-0558 -->
-<!-- reserve-pixel-line-0559 -->
-<!-- reserve-pixel-line-0560 -->
-<!-- reserve-pixel-line-0561 -->
-<!-- reserve-pixel-line-0562 -->
-<!-- reserve-pixel-line-0563 -->
-<!-- reserve-pixel-line-0564 -->
-<!-- reserve-pixel-line-0565 -->
-<!-- reserve-pixel-line-0566 -->
-<!-- reserve-pixel-line-0567 -->
-<!-- reserve-pixel-line-0568 -->
-<!-- reserve-pixel-line-0569 -->
-<!-- reserve-pixel-line-0570 -->
-<!-- reserve-pixel-line-0571 -->
-<!-- reserve-pixel-line-0572 -->
-<!-- reserve-pixel-line-0573 -->
-<!-- reserve-pixel-line-0574 -->
-<!-- reserve-pixel-line-0575 -->
-<!-- reserve-pixel-line-0576 -->
-<!-- reserve-pixel-line-0577 -->
-<!-- reserve-pixel-line-0578 -->
-<!-- reserve-pixel-line-0579 -->
-<!-- reserve-pixel-line-0580 -->
-<!-- reserve-pixel-line-0581 -->
-<!-- reserve-pixel-line-0582 -->
-<!-- reserve-pixel-line-0583 -->
-<!-- reserve-pixel-line-0584 -->
-<!-- reserve-pixel-line-0585 -->
-<!-- reserve-pixel-line-0586 -->
-<!-- reserve-pixel-line-0587 -->
-<!-- reserve-pixel-line-0588 -->
-<!-- reserve-pixel-line-0589 -->
-<!-- reserve-pixel-line-0590 -->
-<!-- reserve-pixel-line-0591 -->
-<!-- reserve-pixel-line-0592 -->
-<!-- reserve-pixel-line-0593 -->
-<!-- reserve-pixel-line-0594 -->
-<!-- reserve-pixel-line-0595 -->
-<!-- reserve-pixel-line-0596 -->
-<!-- reserve-pixel-line-0597 -->
-<!-- reserve-pixel-line-0598 -->
-<!-- reserve-pixel-line-0599 -->
-<!-- reserve-pixel-line-0600 -->
-<!-- reserve-pixel-line-0601 -->
-<!-- reserve-pixel-line-0602 -->
-<!-- reserve-pixel-line-0603 -->
-<!-- reserve-pixel-line-0604 -->
-<!-- reserve-pixel-line-0605 -->
-<!-- reserve-pixel-line-0606 -->
-<!-- reserve-pixel-line-0607 -->
-<!-- reserve-pixel-line-0608 -->
-<!-- reserve-pixel-line-0609 -->
-<!-- reserve-pixel-line-0610 -->
-<!-- reserve-pixel-line-0611 -->
-<!-- reserve-pixel-line-0612 -->
-<!-- reserve-pixel-line-0613 -->
-<!-- reserve-pixel-line-0614 -->
-<!-- reserve-pixel-line-0615 -->
-<!-- reserve-pixel-line-0616 -->
-<!-- reserve-pixel-line-0617 -->
-<!-- reserve-pixel-line-0618 -->
-<!-- reserve-pixel-line-0619 -->
-<!-- reserve-pixel-line-0620 -->
-<!-- reserve-pixel-line-0621 -->
-<!-- reserve-pixel-line-0622 -->
-<!-- reserve-pixel-line-0623 -->
-<!-- reserve-pixel-line-0624 -->
-<!-- reserve-pixel-line-0625 -->
-<!-- reserve-pixel-line-0626 -->
-<!-- reserve-pixel-line-0627 -->
-<!-- reserve-pixel-line-0628 -->
-<!-- reserve-pixel-line-0629 -->
-<!-- reserve-pixel-line-0630 -->
-<!-- reserve-pixel-line-0631 -->
-<!-- reserve-pixel-line-0632 -->
-<!-- reserve-pixel-line-0633 -->
-<!-- reserve-pixel-line-0634 -->
-<!-- reserve-pixel-line-0635 -->
-<!-- reserve-pixel-line-0636 -->
-<!-- reserve-pixel-line-0637 -->
-<!-- reserve-pixel-line-0638 -->
-<!-- reserve-pixel-line-0639 -->
-<!-- reserve-pixel-line-0640 -->
-<!-- reserve-pixel-line-0641 -->
-<!-- reserve-pixel-line-0642 -->
-<!-- reserve-pixel-line-0643 -->
-<!-- reserve-pixel-line-0644 -->
-<!-- reserve-pixel-line-0645 -->
-<!-- reserve-pixel-line-0646 -->
-<!-- reserve-pixel-line-0647 -->
-<!-- reserve-pixel-line-0648 -->
-<!-- reserve-pixel-line-0649 -->
-<!-- reserve-pixel-line-0650 -->
-<!-- reserve-pixel-line-0651 -->
-<!-- reserve-pixel-line-0652 -->
-<!-- reserve-pixel-line-0653 -->
-<!-- reserve-pixel-line-0654 -->
-<!-- reserve-pixel-line-0655 -->
-<!-- reserve-pixel-line-0656 -->
-<!-- reserve-pixel-line-0657 -->
-<!-- reserve-pixel-line-0658 -->
-<!-- reserve-pixel-line-0659 -->
-<!-- reserve-pixel-line-0660 -->
-<!-- reserve-pixel-line-0661 -->
-<!-- reserve-pixel-line-0662 -->
-<!-- reserve-pixel-line-0663 -->
-<!-- reserve-pixel-line-0664 -->
-<!-- reserve-pixel-line-0665 -->
-<!-- reserve-pixel-line-0666 -->
-<!-- reserve-pixel-line-0667 -->
-<!-- reserve-pixel-line-0668 -->
-<!-- reserve-pixel-line-0669 -->
-<!-- reserve-pixel-line-0670 -->
-<!-- reserve-pixel-line-0671 -->
-<!-- reserve-pixel-line-0672 -->
-<!-- reserve-pixel-line-0673 -->
-<!-- reserve-pixel-line-0674 -->
-<!-- reserve-pixel-line-0675 -->
-<!-- reserve-pixel-line-0676 -->
-<!-- reserve-pixel-line-0677 -->
-<!-- reserve-pixel-line-0678 -->
-<!-- reserve-pixel-line-0679 -->
-<!-- reserve-pixel-line-0680 -->
-<!-- reserve-pixel-line-0681 -->
-<!-- reserve-pixel-line-0682 -->
-<!-- reserve-pixel-line-0683 -->
-<!-- reserve-pixel-line-0684 -->
-<!-- reserve-pixel-line-0685 -->
-<!-- reserve-pixel-line-0686 -->
-<!-- reserve-pixel-line-0687 -->
-<!-- reserve-pixel-line-0688 -->
-<!-- reserve-pixel-line-0689 -->
-<!-- reserve-pixel-line-0690 -->
-<!-- reserve-pixel-line-0691 -->
-<!-- reserve-pixel-line-0692 -->
-<!-- reserve-pixel-line-0693 -->
-<!-- reserve-pixel-line-0694 -->
-<!-- reserve-pixel-line-0695 -->
-<!-- reserve-pixel-line-0696 -->
-<!-- reserve-pixel-line-0697 -->
-<!-- reserve-pixel-line-0698 -->
-<!-- reserve-pixel-line-0699 -->
-<!-- reserve-pixel-line-0700 -->
+<!-- clean-v4-reserve-0001 -->
+<!-- clean-v4-reserve-0002 -->
+<!-- clean-v4-reserve-0003 -->
+<!-- clean-v4-reserve-0004 -->
+<!-- clean-v4-reserve-0005 -->
+<!-- clean-v4-reserve-0006 -->
+<!-- clean-v4-reserve-0007 -->
+<!-- clean-v4-reserve-0008 -->
+<!-- clean-v4-reserve-0009 -->
+<!-- clean-v4-reserve-0010 -->
+<!-- clean-v4-reserve-0011 -->
+<!-- clean-v4-reserve-0012 -->
+<!-- clean-v4-reserve-0013 -->
+<!-- clean-v4-reserve-0014 -->
+<!-- clean-v4-reserve-0015 -->
+<!-- clean-v4-reserve-0016 -->
+<!-- clean-v4-reserve-0017 -->
+<!-- clean-v4-reserve-0018 -->
+<!-- clean-v4-reserve-0019 -->
+<!-- clean-v4-reserve-0020 -->
+<!-- clean-v4-reserve-0021 -->
+<!-- clean-v4-reserve-0022 -->
+<!-- clean-v4-reserve-0023 -->
+<!-- clean-v4-reserve-0024 -->
+<!-- clean-v4-reserve-0025 -->
+<!-- clean-v4-reserve-0026 -->
+<!-- clean-v4-reserve-0027 -->
+<!-- clean-v4-reserve-0028 -->
+<!-- clean-v4-reserve-0029 -->
+<!-- clean-v4-reserve-0030 -->
+<!-- clean-v4-reserve-0031 -->
+<!-- clean-v4-reserve-0032 -->
+<!-- clean-v4-reserve-0033 -->
+<!-- clean-v4-reserve-0034 -->
+<!-- clean-v4-reserve-0035 -->
+<!-- clean-v4-reserve-0036 -->
+<!-- clean-v4-reserve-0037 -->
+<!-- clean-v4-reserve-0038 -->
+<!-- clean-v4-reserve-0039 -->
+<!-- clean-v4-reserve-0040 -->
+<!-- clean-v4-reserve-0041 -->
+<!-- clean-v4-reserve-0042 -->
+<!-- clean-v4-reserve-0043 -->
+<!-- clean-v4-reserve-0044 -->
+<!-- clean-v4-reserve-0045 -->
+<!-- clean-v4-reserve-0046 -->
+<!-- clean-v4-reserve-0047 -->
+<!-- clean-v4-reserve-0048 -->
+<!-- clean-v4-reserve-0049 -->
+<!-- clean-v4-reserve-0050 -->
+<!-- clean-v4-reserve-0051 -->
+<!-- clean-v4-reserve-0052 -->
+<!-- clean-v4-reserve-0053 -->
+<!-- clean-v4-reserve-0054 -->
+<!-- clean-v4-reserve-0055 -->
+<!-- clean-v4-reserve-0056 -->
+<!-- clean-v4-reserve-0057 -->
+<!-- clean-v4-reserve-0058 -->
+<!-- clean-v4-reserve-0059 -->
+<!-- clean-v4-reserve-0060 -->
+<!-- clean-v4-reserve-0061 -->
+<!-- clean-v4-reserve-0062 -->
+<!-- clean-v4-reserve-0063 -->
+<!-- clean-v4-reserve-0064 -->
+<!-- clean-v4-reserve-0065 -->
+<!-- clean-v4-reserve-0066 -->
+<!-- clean-v4-reserve-0067 -->
+<!-- clean-v4-reserve-0068 -->
+<!-- clean-v4-reserve-0069 -->
+<!-- clean-v4-reserve-0070 -->
+<!-- clean-v4-reserve-0071 -->
+<!-- clean-v4-reserve-0072 -->
+<!-- clean-v4-reserve-0073 -->
+<!-- clean-v4-reserve-0074 -->
+<!-- clean-v4-reserve-0075 -->
+<!-- clean-v4-reserve-0076 -->
+<!-- clean-v4-reserve-0077 -->
+<!-- clean-v4-reserve-0078 -->
+<!-- clean-v4-reserve-0079 -->
+<!-- clean-v4-reserve-0080 -->
+<!-- clean-v4-reserve-0081 -->
+<!-- clean-v4-reserve-0082 -->
+<!-- clean-v4-reserve-0083 -->
+<!-- clean-v4-reserve-0084 -->
+<!-- clean-v4-reserve-0085 -->
+<!-- clean-v4-reserve-0086 -->
+<!-- clean-v4-reserve-0087 -->
+<!-- clean-v4-reserve-0088 -->
+<!-- clean-v4-reserve-0089 -->
+<!-- clean-v4-reserve-0090 -->
+<!-- clean-v4-reserve-0091 -->
+<!-- clean-v4-reserve-0092 -->
+<!-- clean-v4-reserve-0093 -->
+<!-- clean-v4-reserve-0094 -->
+<!-- clean-v4-reserve-0095 -->
+<!-- clean-v4-reserve-0096 -->
+<!-- clean-v4-reserve-0097 -->
+<!-- clean-v4-reserve-0098 -->
+<!-- clean-v4-reserve-0099 -->
+<!-- clean-v4-reserve-0100 -->
+<!-- clean-v4-reserve-0101 -->
+<!-- clean-v4-reserve-0102 -->
+<!-- clean-v4-reserve-0103 -->
+<!-- clean-v4-reserve-0104 -->
+<!-- clean-v4-reserve-0105 -->
+<!-- clean-v4-reserve-0106 -->
+<!-- clean-v4-reserve-0107 -->
+<!-- clean-v4-reserve-0108 -->
+<!-- clean-v4-reserve-0109 -->
+<!-- clean-v4-reserve-0110 -->
+<!-- clean-v4-reserve-0111 -->
+<!-- clean-v4-reserve-0112 -->
+<!-- clean-v4-reserve-0113 -->
+<!-- clean-v4-reserve-0114 -->
+<!-- clean-v4-reserve-0115 -->
+<!-- clean-v4-reserve-0116 -->
+<!-- clean-v4-reserve-0117 -->
+<!-- clean-v4-reserve-0118 -->
+<!-- clean-v4-reserve-0119 -->
+<!-- clean-v4-reserve-0120 -->
+<!-- clean-v4-reserve-0121 -->
+<!-- clean-v4-reserve-0122 -->
+<!-- clean-v4-reserve-0123 -->
+<!-- clean-v4-reserve-0124 -->
+<!-- clean-v4-reserve-0125 -->
+<!-- clean-v4-reserve-0126 -->
+<!-- clean-v4-reserve-0127 -->
+<!-- clean-v4-reserve-0128 -->
+<!-- clean-v4-reserve-0129 -->
+<!-- clean-v4-reserve-0130 -->
+<!-- clean-v4-reserve-0131 -->
+<!-- clean-v4-reserve-0132 -->
+<!-- clean-v4-reserve-0133 -->
+<!-- clean-v4-reserve-0134 -->
+<!-- clean-v4-reserve-0135 -->
+<!-- clean-v4-reserve-0136 -->
+<!-- clean-v4-reserve-0137 -->
+<!-- clean-v4-reserve-0138 -->
+<!-- clean-v4-reserve-0139 -->
+<!-- clean-v4-reserve-0140 -->
+<!-- clean-v4-reserve-0141 -->
+<!-- clean-v4-reserve-0142 -->
+<!-- clean-v4-reserve-0143 -->
+<!-- clean-v4-reserve-0144 -->
+<!-- clean-v4-reserve-0145 -->
+<!-- clean-v4-reserve-0146 -->
+<!-- clean-v4-reserve-0147 -->
+<!-- clean-v4-reserve-0148 -->
+<!-- clean-v4-reserve-0149 -->
+<!-- clean-v4-reserve-0150 -->
+<!-- clean-v4-reserve-0151 -->
+<!-- clean-v4-reserve-0152 -->
+<!-- clean-v4-reserve-0153 -->
+<!-- clean-v4-reserve-0154 -->
+<!-- clean-v4-reserve-0155 -->
+<!-- clean-v4-reserve-0156 -->
+<!-- clean-v4-reserve-0157 -->
+<!-- clean-v4-reserve-0158 -->
+<!-- clean-v4-reserve-0159 -->
+<!-- clean-v4-reserve-0160 -->
+<!-- clean-v4-reserve-0161 -->
+<!-- clean-v4-reserve-0162 -->
+<!-- clean-v4-reserve-0163 -->
+<!-- clean-v4-reserve-0164 -->
+<!-- clean-v4-reserve-0165 -->
+<!-- clean-v4-reserve-0166 -->
+<!-- clean-v4-reserve-0167 -->
+<!-- clean-v4-reserve-0168 -->
+<!-- clean-v4-reserve-0169 -->
+<!-- clean-v4-reserve-0170 -->
+<!-- clean-v4-reserve-0171 -->
+<!-- clean-v4-reserve-0172 -->
+<!-- clean-v4-reserve-0173 -->
+<!-- clean-v4-reserve-0174 -->
+<!-- clean-v4-reserve-0175 -->
+<!-- clean-v4-reserve-0176 -->
+<!-- clean-v4-reserve-0177 -->
+<!-- clean-v4-reserve-0178 -->
+<!-- clean-v4-reserve-0179 -->
+<!-- clean-v4-reserve-0180 -->
+<!-- clean-v4-reserve-0181 -->
+<!-- clean-v4-reserve-0182 -->
+<!-- clean-v4-reserve-0183 -->
+<!-- clean-v4-reserve-0184 -->
+<!-- clean-v4-reserve-0185 -->
+<!-- clean-v4-reserve-0186 -->
+<!-- clean-v4-reserve-0187 -->
+<!-- clean-v4-reserve-0188 -->
+<!-- clean-v4-reserve-0189 -->
+<!-- clean-v4-reserve-0190 -->
+<!-- clean-v4-reserve-0191 -->
+<!-- clean-v4-reserve-0192 -->
+<!-- clean-v4-reserve-0193 -->
+<!-- clean-v4-reserve-0194 -->
+<!-- clean-v4-reserve-0195 -->
+<!-- clean-v4-reserve-0196 -->
+<!-- clean-v4-reserve-0197 -->
+<!-- clean-v4-reserve-0198 -->
+<!-- clean-v4-reserve-0199 -->
+<!-- clean-v4-reserve-0200 -->
+<!-- clean-v4-reserve-0201 -->
+<!-- clean-v4-reserve-0202 -->
+<!-- clean-v4-reserve-0203 -->
+<!-- clean-v4-reserve-0204 -->
+<!-- clean-v4-reserve-0205 -->
+<!-- clean-v4-reserve-0206 -->
+<!-- clean-v4-reserve-0207 -->
+<!-- clean-v4-reserve-0208 -->
+<!-- clean-v4-reserve-0209 -->
+<!-- clean-v4-reserve-0210 -->
+<!-- clean-v4-reserve-0211 -->
+<!-- clean-v4-reserve-0212 -->
+<!-- clean-v4-reserve-0213 -->
+<!-- clean-v4-reserve-0214 -->
+<!-- clean-v4-reserve-0215 -->
+<!-- clean-v4-reserve-0216 -->
+<!-- clean-v4-reserve-0217 -->
+<!-- clean-v4-reserve-0218 -->
+<!-- clean-v4-reserve-0219 -->
+<!-- clean-v4-reserve-0220 -->
+<!-- clean-v4-reserve-0221 -->
+<!-- clean-v4-reserve-0222 -->
+<!-- clean-v4-reserve-0223 -->
+<!-- clean-v4-reserve-0224 -->
+<!-- clean-v4-reserve-0225 -->
+<!-- clean-v4-reserve-0226 -->
+<!-- clean-v4-reserve-0227 -->
+<!-- clean-v4-reserve-0228 -->
+<!-- clean-v4-reserve-0229 -->
+<!-- clean-v4-reserve-0230 -->
+<!-- clean-v4-reserve-0231 -->
+<!-- clean-v4-reserve-0232 -->
+<!-- clean-v4-reserve-0233 -->
+<!-- clean-v4-reserve-0234 -->
+<!-- clean-v4-reserve-0235 -->
+<!-- clean-v4-reserve-0236 -->
+<!-- clean-v4-reserve-0237 -->
+<!-- clean-v4-reserve-0238 -->
+<!-- clean-v4-reserve-0239 -->
+<!-- clean-v4-reserve-0240 -->
+<!-- clean-v4-reserve-0241 -->
+<!-- clean-v4-reserve-0242 -->
+<!-- clean-v4-reserve-0243 -->
+<!-- clean-v4-reserve-0244 -->
+<!-- clean-v4-reserve-0245 -->
+<!-- clean-v4-reserve-0246 -->
+<!-- clean-v4-reserve-0247 -->
+<!-- clean-v4-reserve-0248 -->
+<!-- clean-v4-reserve-0249 -->
+<!-- clean-v4-reserve-0250 -->
+<!-- clean-v4-reserve-0251 -->
+<!-- clean-v4-reserve-0252 -->
+<!-- clean-v4-reserve-0253 -->
+<!-- clean-v4-reserve-0254 -->
+<!-- clean-v4-reserve-0255 -->
+<!-- clean-v4-reserve-0256 -->
+<!-- clean-v4-reserve-0257 -->
+<!-- clean-v4-reserve-0258 -->
+<!-- clean-v4-reserve-0259 -->
+<!-- clean-v4-reserve-0260 -->
+<!-- clean-v4-reserve-0261 -->
+<!-- clean-v4-reserve-0262 -->
+<!-- clean-v4-reserve-0263 -->
+<!-- clean-v4-reserve-0264 -->
+<!-- clean-v4-reserve-0265 -->
+<!-- clean-v4-reserve-0266 -->
+<!-- clean-v4-reserve-0267 -->
+<!-- clean-v4-reserve-0268 -->
+<!-- clean-v4-reserve-0269 -->
+<!-- clean-v4-reserve-0270 -->
+<!-- clean-v4-reserve-0271 -->
+<!-- clean-v4-reserve-0272 -->
+<!-- clean-v4-reserve-0273 -->
+<!-- clean-v4-reserve-0274 -->
+<!-- clean-v4-reserve-0275 -->
+<!-- clean-v4-reserve-0276 -->
+<!-- clean-v4-reserve-0277 -->
+<!-- clean-v4-reserve-0278 -->
+<!-- clean-v4-reserve-0279 -->
+<!-- clean-v4-reserve-0280 -->
+<!-- clean-v4-reserve-0281 -->
+<!-- clean-v4-reserve-0282 -->
+<!-- clean-v4-reserve-0283 -->
+<!-- clean-v4-reserve-0284 -->
+<!-- clean-v4-reserve-0285 -->
+<!-- clean-v4-reserve-0286 -->
+<!-- clean-v4-reserve-0287 -->
+<!-- clean-v4-reserve-0288 -->
+<!-- clean-v4-reserve-0289 -->
+<!-- clean-v4-reserve-0290 -->
+<!-- clean-v4-reserve-0291 -->
+<!-- clean-v4-reserve-0292 -->
+<!-- clean-v4-reserve-0293 -->
+<!-- clean-v4-reserve-0294 -->
+<!-- clean-v4-reserve-0295 -->
+<!-- clean-v4-reserve-0296 -->
+<!-- clean-v4-reserve-0297 -->
+<!-- clean-v4-reserve-0298 -->
+<!-- clean-v4-reserve-0299 -->
+<!-- clean-v4-reserve-0300 -->
+<!-- clean-v4-reserve-0301 -->
+<!-- clean-v4-reserve-0302 -->
+<!-- clean-v4-reserve-0303 -->
+<!-- clean-v4-reserve-0304 -->
+<!-- clean-v4-reserve-0305 -->
+<!-- clean-v4-reserve-0306 -->
+<!-- clean-v4-reserve-0307 -->
+<!-- clean-v4-reserve-0308 -->
+<!-- clean-v4-reserve-0309 -->
+<!-- clean-v4-reserve-0310 -->
+<!-- clean-v4-reserve-0311 -->
+<!-- clean-v4-reserve-0312 -->
+<!-- clean-v4-reserve-0313 -->
+<!-- clean-v4-reserve-0314 -->
+<!-- clean-v4-reserve-0315 -->
+<!-- clean-v4-reserve-0316 -->
+<!-- clean-v4-reserve-0317 -->
+<!-- clean-v4-reserve-0318 -->
+<!-- clean-v4-reserve-0319 -->
+<!-- clean-v4-reserve-0320 -->
+<!-- clean-v4-reserve-0321 -->
+<!-- clean-v4-reserve-0322 -->
+<!-- clean-v4-reserve-0323 -->
+<!-- clean-v4-reserve-0324 -->
+<!-- clean-v4-reserve-0325 -->
+<!-- clean-v4-reserve-0326 -->
+<!-- clean-v4-reserve-0327 -->
+<!-- clean-v4-reserve-0328 -->
+<!-- clean-v4-reserve-0329 -->
+<!-- clean-v4-reserve-0330 -->
+<!-- clean-v4-reserve-0331 -->
+<!-- clean-v4-reserve-0332 -->
+<!-- clean-v4-reserve-0333 -->
+<!-- clean-v4-reserve-0334 -->
+<!-- clean-v4-reserve-0335 -->
+<!-- clean-v4-reserve-0336 -->
+<!-- clean-v4-reserve-0337 -->
+<!-- clean-v4-reserve-0338 -->
+<!-- clean-v4-reserve-0339 -->
+<!-- clean-v4-reserve-0340 -->
+<!-- clean-v4-reserve-0341 -->
+<!-- clean-v4-reserve-0342 -->
+<!-- clean-v4-reserve-0343 -->
+<!-- clean-v4-reserve-0344 -->
+<!-- clean-v4-reserve-0345 -->
+<!-- clean-v4-reserve-0346 -->
+<!-- clean-v4-reserve-0347 -->
+<!-- clean-v4-reserve-0348 -->
+<!-- clean-v4-reserve-0349 -->
+<!-- clean-v4-reserve-0350 -->
+<!-- clean-v4-reserve-0351 -->
+<!-- clean-v4-reserve-0352 -->
+<!-- clean-v4-reserve-0353 -->
+<!-- clean-v4-reserve-0354 -->
+<!-- clean-v4-reserve-0355 -->
+<!-- clean-v4-reserve-0356 -->
+<!-- clean-v4-reserve-0357 -->
+<!-- clean-v4-reserve-0358 -->
+<!-- clean-v4-reserve-0359 -->
+<!-- clean-v4-reserve-0360 -->
+<!-- clean-v4-reserve-0361 -->
+<!-- clean-v4-reserve-0362 -->
+<!-- clean-v4-reserve-0363 -->
+<!-- clean-v4-reserve-0364 -->
+<!-- clean-v4-reserve-0365 -->
+<!-- clean-v4-reserve-0366 -->
+<!-- clean-v4-reserve-0367 -->
+<!-- clean-v4-reserve-0368 -->
+<!-- clean-v4-reserve-0369 -->
+<!-- clean-v4-reserve-0370 -->
+<!-- clean-v4-reserve-0371 -->
+<!-- clean-v4-reserve-0372 -->
+<!-- clean-v4-reserve-0373 -->
+<!-- clean-v4-reserve-0374 -->
+<!-- clean-v4-reserve-0375 -->
+<!-- clean-v4-reserve-0376 -->
+<!-- clean-v4-reserve-0377 -->
+<!-- clean-v4-reserve-0378 -->
+<!-- clean-v4-reserve-0379 -->
+<!-- clean-v4-reserve-0380 -->
+<!-- clean-v4-reserve-0381 -->
+<!-- clean-v4-reserve-0382 -->
+<!-- clean-v4-reserve-0383 -->
+<!-- clean-v4-reserve-0384 -->
+<!-- clean-v4-reserve-0385 -->
+<!-- clean-v4-reserve-0386 -->
+<!-- clean-v4-reserve-0387 -->
+<!-- clean-v4-reserve-0388 -->
+<!-- clean-v4-reserve-0389 -->
+<!-- clean-v4-reserve-0390 -->
+<!-- clean-v4-reserve-0391 -->
+<!-- clean-v4-reserve-0392 -->
+<!-- clean-v4-reserve-0393 -->
+<!-- clean-v4-reserve-0394 -->
+<!-- clean-v4-reserve-0395 -->
+<!-- clean-v4-reserve-0396 -->
+<!-- clean-v4-reserve-0397 -->
+<!-- clean-v4-reserve-0398 -->
+<!-- clean-v4-reserve-0399 -->
+<!-- clean-v4-reserve-0400 -->
+<!-- clean-v4-reserve-0401 -->
+<!-- clean-v4-reserve-0402 -->
+<!-- clean-v4-reserve-0403 -->
+<!-- clean-v4-reserve-0404 -->
+<!-- clean-v4-reserve-0405 -->
+<!-- clean-v4-reserve-0406 -->
+<!-- clean-v4-reserve-0407 -->
+<!-- clean-v4-reserve-0408 -->
+<!-- clean-v4-reserve-0409 -->
+<!-- clean-v4-reserve-0410 -->
+<!-- clean-v4-reserve-0411 -->
+<!-- clean-v4-reserve-0412 -->
+<!-- clean-v4-reserve-0413 -->
+<!-- clean-v4-reserve-0414 -->
+<!-- clean-v4-reserve-0415 -->
+<!-- clean-v4-reserve-0416 -->
+<!-- clean-v4-reserve-0417 -->
+<!-- clean-v4-reserve-0418 -->
+<!-- clean-v4-reserve-0419 -->
+<!-- clean-v4-reserve-0420 -->
+<!-- clean-v4-reserve-0421 -->
+<!-- clean-v4-reserve-0422 -->
+<!-- clean-v4-reserve-0423 -->
+<!-- clean-v4-reserve-0424 -->
+<!-- clean-v4-reserve-0425 -->
+<!-- clean-v4-reserve-0426 -->
+<!-- clean-v4-reserve-0427 -->
+<!-- clean-v4-reserve-0428 -->
+<!-- clean-v4-reserve-0429 -->
+<!-- clean-v4-reserve-0430 -->
+<!-- clean-v4-reserve-0431 -->
+<!-- clean-v4-reserve-0432 -->
+<!-- clean-v4-reserve-0433 -->
+<!-- clean-v4-reserve-0434 -->
+<!-- clean-v4-reserve-0435 -->
+<!-- clean-v4-reserve-0436 -->
+<!-- clean-v4-reserve-0437 -->
+<!-- clean-v4-reserve-0438 -->
+<!-- clean-v4-reserve-0439 -->
+<!-- clean-v4-reserve-0440 -->
+<!-- clean-v4-reserve-0441 -->
+<!-- clean-v4-reserve-0442 -->
+<!-- clean-v4-reserve-0443 -->
+<!-- clean-v4-reserve-0444 -->
+<!-- clean-v4-reserve-0445 -->
+<!-- clean-v4-reserve-0446 -->
+<!-- clean-v4-reserve-0447 -->
+<!-- clean-v4-reserve-0448 -->
+<!-- clean-v4-reserve-0449 -->
+<!-- clean-v4-reserve-0450 -->
+<!-- clean-v4-reserve-0451 -->
+<!-- clean-v4-reserve-0452 -->
+<!-- clean-v4-reserve-0453 -->
+<!-- clean-v4-reserve-0454 -->
+<!-- clean-v4-reserve-0455 -->
+<!-- clean-v4-reserve-0456 -->
+<!-- clean-v4-reserve-0457 -->
+<!-- clean-v4-reserve-0458 -->
+<!-- clean-v4-reserve-0459 -->
+<!-- clean-v4-reserve-0460 -->
+<!-- clean-v4-reserve-0461 -->
+<!-- clean-v4-reserve-0462 -->
+<!-- clean-v4-reserve-0463 -->
+<!-- clean-v4-reserve-0464 -->
+<!-- clean-v4-reserve-0465 -->
+<!-- clean-v4-reserve-0466 -->
+<!-- clean-v4-reserve-0467 -->
+<!-- clean-v4-reserve-0468 -->
+<!-- clean-v4-reserve-0469 -->
+<!-- clean-v4-reserve-0470 -->
+<!-- clean-v4-reserve-0471 -->
+<!-- clean-v4-reserve-0472 -->
+<!-- clean-v4-reserve-0473 -->
+<!-- clean-v4-reserve-0474 -->
+<!-- clean-v4-reserve-0475 -->
+<!-- clean-v4-reserve-0476 -->
+<!-- clean-v4-reserve-0477 -->
+<!-- clean-v4-reserve-0478 -->
+<!-- clean-v4-reserve-0479 -->
+<!-- clean-v4-reserve-0480 -->
+<!-- clean-v4-reserve-0481 -->
+<!-- clean-v4-reserve-0482 -->
+<!-- clean-v4-reserve-0483 -->
+<!-- clean-v4-reserve-0484 -->
+<!-- clean-v4-reserve-0485 -->
+<!-- clean-v4-reserve-0486 -->
+<!-- clean-v4-reserve-0487 -->
+<!-- clean-v4-reserve-0488 -->
+<!-- clean-v4-reserve-0489 -->
+<!-- clean-v4-reserve-0490 -->
+<!-- clean-v4-reserve-0491 -->
+<!-- clean-v4-reserve-0492 -->
+<!-- clean-v4-reserve-0493 -->
+<!-- clean-v4-reserve-0494 -->
+<!-- clean-v4-reserve-0495 -->
+<!-- clean-v4-reserve-0496 -->
+<!-- clean-v4-reserve-0497 -->
+<!-- clean-v4-reserve-0498 -->
+<!-- clean-v4-reserve-0499 -->
+<!-- clean-v4-reserve-0500 -->
+<!-- clean-v4-reserve-0501 -->
+<!-- clean-v4-reserve-0502 -->
+<!-- clean-v4-reserve-0503 -->
+<!-- clean-v4-reserve-0504 -->
+<!-- clean-v4-reserve-0505 -->
+<!-- clean-v4-reserve-0506 -->
+<!-- clean-v4-reserve-0507 -->
+<!-- clean-v4-reserve-0508 -->
+<!-- clean-v4-reserve-0509 -->
+<!-- clean-v4-reserve-0510 -->
+<!-- clean-v4-reserve-0511 -->
+<!-- clean-v4-reserve-0512 -->
+<!-- clean-v4-reserve-0513 -->
+<!-- clean-v4-reserve-0514 -->
+<!-- clean-v4-reserve-0515 -->
+<!-- clean-v4-reserve-0516 -->
+<!-- clean-v4-reserve-0517 -->
+<!-- clean-v4-reserve-0518 -->
+<!-- clean-v4-reserve-0519 -->
+<!-- clean-v4-reserve-0520 -->
+<!-- clean-v4-reserve-0521 -->
+<!-- clean-v4-reserve-0522 -->
+<!-- clean-v4-reserve-0523 -->
+<!-- clean-v4-reserve-0524 -->
+<!-- clean-v4-reserve-0525 -->
+<!-- clean-v4-reserve-0526 -->
+<!-- clean-v4-reserve-0527 -->
+<!-- clean-v4-reserve-0528 -->
+<!-- clean-v4-reserve-0529 -->
+<!-- clean-v4-reserve-0530 -->
+<!-- clean-v4-reserve-0531 -->
+<!-- clean-v4-reserve-0532 -->
+<!-- clean-v4-reserve-0533 -->
+<!-- clean-v4-reserve-0534 -->
+<!-- clean-v4-reserve-0535 -->
+<!-- clean-v4-reserve-0536 -->
+<!-- clean-v4-reserve-0537 -->
+<!-- clean-v4-reserve-0538 -->
+<!-- clean-v4-reserve-0539 -->
+<!-- clean-v4-reserve-0540 -->
+<!-- clean-v4-reserve-0541 -->
+<!-- clean-v4-reserve-0542 -->
+<!-- clean-v4-reserve-0543 -->
+<!-- clean-v4-reserve-0544 -->
+<!-- clean-v4-reserve-0545 -->
+<!-- clean-v4-reserve-0546 -->
+<!-- clean-v4-reserve-0547 -->
+<!-- clean-v4-reserve-0548 -->
+<!-- clean-v4-reserve-0549 -->
+<!-- clean-v4-reserve-0550 -->
+<!-- clean-v4-reserve-0551 -->
+<!-- clean-v4-reserve-0552 -->
+<!-- clean-v4-reserve-0553 -->
+<!-- clean-v4-reserve-0554 -->
+<!-- clean-v4-reserve-0555 -->
+<!-- clean-v4-reserve-0556 -->
+<!-- clean-v4-reserve-0557 -->
+<!-- clean-v4-reserve-0558 -->
+<!-- clean-v4-reserve-0559 -->
+<!-- clean-v4-reserve-0560 -->
+<!-- clean-v4-reserve-0561 -->
+<!-- clean-v4-reserve-0562 -->
+<!-- clean-v4-reserve-0563 -->
+<!-- clean-v4-reserve-0564 -->
+<!-- clean-v4-reserve-0565 -->
+<!-- clean-v4-reserve-0566 -->
+<!-- clean-v4-reserve-0567 -->
+<!-- clean-v4-reserve-0568 -->
+<!-- clean-v4-reserve-0569 -->
+<!-- clean-v4-reserve-0570 -->
+<!-- clean-v4-reserve-0571 -->
+<!-- clean-v4-reserve-0572 -->
+<!-- clean-v4-reserve-0573 -->
+<!-- clean-v4-reserve-0574 -->
+<!-- clean-v4-reserve-0575 -->
+<!-- clean-v4-reserve-0576 -->
+<!-- clean-v4-reserve-0577 -->
+<!-- clean-v4-reserve-0578 -->
+<!-- clean-v4-reserve-0579 -->
+<!-- clean-v4-reserve-0580 -->
+<!-- clean-v4-reserve-0581 -->
+<!-- clean-v4-reserve-0582 -->
+<!-- clean-v4-reserve-0583 -->
+<!-- clean-v4-reserve-0584 -->
+<!-- clean-v4-reserve-0585 -->
+<!-- clean-v4-reserve-0586 -->
+<!-- clean-v4-reserve-0587 -->
+<!-- clean-v4-reserve-0588 -->
+<!-- clean-v4-reserve-0589 -->
+<!-- clean-v4-reserve-0590 -->
+<!-- clean-v4-reserve-0591 -->
+<!-- clean-v4-reserve-0592 -->
+<!-- clean-v4-reserve-0593 -->
+<!-- clean-v4-reserve-0594 -->
+<!-- clean-v4-reserve-0595 -->
+<!-- clean-v4-reserve-0596 -->
+<!-- clean-v4-reserve-0597 -->
+<!-- clean-v4-reserve-0598 -->
+<!-- clean-v4-reserve-0599 -->
+<!-- clean-v4-reserve-0600 -->
+<!-- clean-v4-reserve-0601 -->
+<!-- clean-v4-reserve-0602 -->
+<!-- clean-v4-reserve-0603 -->
+<!-- clean-v4-reserve-0604 -->
+<!-- clean-v4-reserve-0605 -->
+<!-- clean-v4-reserve-0606 -->
+<!-- clean-v4-reserve-0607 -->
+<!-- clean-v4-reserve-0608 -->
+<!-- clean-v4-reserve-0609 -->
+<!-- clean-v4-reserve-0610 -->
+<!-- clean-v4-reserve-0611 -->
+<!-- clean-v4-reserve-0612 -->
+<!-- clean-v4-reserve-0613 -->
+<!-- clean-v4-reserve-0614 -->
+<!-- clean-v4-reserve-0615 -->
+<!-- clean-v4-reserve-0616 -->
+<!-- clean-v4-reserve-0617 -->
+<!-- clean-v4-reserve-0618 -->
+<!-- clean-v4-reserve-0619 -->
+<!-- clean-v4-reserve-0620 -->
+<!-- clean-v4-reserve-0621 -->
+<!-- clean-v4-reserve-0622 -->
+<!-- clean-v4-reserve-0623 -->
+<!-- clean-v4-reserve-0624 -->
+<!-- clean-v4-reserve-0625 -->
+<!-- clean-v4-reserve-0626 -->
+<!-- clean-v4-reserve-0627 -->
+<!-- clean-v4-reserve-0628 -->
+<!-- clean-v4-reserve-0629 -->
+<!-- clean-v4-reserve-0630 -->
+<!-- clean-v4-reserve-0631 -->
+<!-- clean-v4-reserve-0632 -->
+<!-- clean-v4-reserve-0633 -->
+<!-- clean-v4-reserve-0634 -->
+<!-- clean-v4-reserve-0635 -->
+<!-- clean-v4-reserve-0636 -->
+<!-- clean-v4-reserve-0637 -->
+<!-- clean-v4-reserve-0638 -->
+<!-- clean-v4-reserve-0639 -->
+<!-- clean-v4-reserve-0640 -->
+<!-- clean-v4-reserve-0641 -->
+<!-- clean-v4-reserve-0642 -->
+<!-- clean-v4-reserve-0643 -->
+<!-- clean-v4-reserve-0644 -->
+<!-- clean-v4-reserve-0645 -->
+<!-- clean-v4-reserve-0646 -->
+<!-- clean-v4-reserve-0647 -->
+<!-- clean-v4-reserve-0648 -->
+<!-- clean-v4-reserve-0649 -->
+<!-- clean-v4-reserve-0650 -->
+<!-- clean-v4-reserve-0651 -->
+<!-- clean-v4-reserve-0652 -->
+<!-- clean-v4-reserve-0653 -->
+<!-- clean-v4-reserve-0654 -->
+<!-- clean-v4-reserve-0655 -->
+<!-- clean-v4-reserve-0656 -->
+<!-- clean-v4-reserve-0657 -->
+<!-- clean-v4-reserve-0658 -->
+<!-- clean-v4-reserve-0659 -->
+<!-- clean-v4-reserve-0660 -->
+<!-- clean-v4-reserve-0661 -->
+<!-- clean-v4-reserve-0662 -->
+<!-- clean-v4-reserve-0663 -->
+<!-- clean-v4-reserve-0664 -->
+<!-- clean-v4-reserve-0665 -->
+<!-- clean-v4-reserve-0666 -->
+<!-- clean-v4-reserve-0667 -->
+<!-- clean-v4-reserve-0668 -->
+<!-- clean-v4-reserve-0669 -->
+<!-- clean-v4-reserve-0670 -->
+<!-- clean-v4-reserve-0671 -->
+<!-- clean-v4-reserve-0672 -->
+<!-- clean-v4-reserve-0673 -->
+<!-- clean-v4-reserve-0674 -->
+<!-- clean-v4-reserve-0675 -->
+<!-- clean-v4-reserve-0676 -->
+<!-- clean-v4-reserve-0677 -->
+<!-- clean-v4-reserve-0678 -->
+<!-- clean-v4-reserve-0679 -->
+<!-- clean-v4-reserve-0680 -->
+<!-- clean-v4-reserve-0681 -->
+<!-- clean-v4-reserve-0682 -->
+<!-- clean-v4-reserve-0683 -->
+<!-- clean-v4-reserve-0684 -->
+<!-- clean-v4-reserve-0685 -->
+<!-- clean-v4-reserve-0686 -->
+<!-- clean-v4-reserve-0687 -->
+<!-- clean-v4-reserve-0688 -->
+<!-- clean-v4-reserve-0689 -->
+<!-- clean-v4-reserve-0690 -->
+<!-- clean-v4-reserve-0691 -->
+<!-- clean-v4-reserve-0692 -->
+<!-- clean-v4-reserve-0693 -->
+<!-- clean-v4-reserve-0694 -->
+<!-- clean-v4-reserve-0695 -->
+<!-- clean-v4-reserve-0696 -->
+<!-- clean-v4-reserve-0697 -->
+<!-- clean-v4-reserve-0698 -->
+<!-- clean-v4-reserve-0699 -->
+<!-- clean-v4-reserve-0700 -->
+<!-- clean-v4-reserve-0701 -->
+<!-- clean-v4-reserve-0702 -->
+<!-- clean-v4-reserve-0703 -->
+<!-- clean-v4-reserve-0704 -->
+<!-- clean-v4-reserve-0705 -->
+<!-- clean-v4-reserve-0706 -->
+<!-- clean-v4-reserve-0707 -->
+<!-- clean-v4-reserve-0708 -->
+<!-- clean-v4-reserve-0709 -->
+<!-- clean-v4-reserve-0710 -->
+<!-- clean-v4-reserve-0711 -->
+<!-- clean-v4-reserve-0712 -->
+<!-- clean-v4-reserve-0713 -->
+<!-- clean-v4-reserve-0714 -->
+<!-- clean-v4-reserve-0715 -->
+<!-- clean-v4-reserve-0716 -->
+<!-- clean-v4-reserve-0717 -->
+<!-- clean-v4-reserve-0718 -->
+<!-- clean-v4-reserve-0719 -->
+<!-- clean-v4-reserve-0720 -->
+<!-- clean-v4-reserve-0721 -->
+<!-- clean-v4-reserve-0722 -->
+<!-- clean-v4-reserve-0723 -->
+<!-- clean-v4-reserve-0724 -->
+<!-- clean-v4-reserve-0725 -->
+<!-- clean-v4-reserve-0726 -->
+<!-- clean-v4-reserve-0727 -->
+<!-- clean-v4-reserve-0728 -->
+<!-- clean-v4-reserve-0729 -->
+<!-- clean-v4-reserve-0730 -->
+<!-- clean-v4-reserve-0731 -->
+<!-- clean-v4-reserve-0732 -->
+<!-- clean-v4-reserve-0733 -->
+<!-- clean-v4-reserve-0734 -->
+<!-- clean-v4-reserve-0735 -->
+<!-- clean-v4-reserve-0736 -->
+<!-- clean-v4-reserve-0737 -->
+<!-- clean-v4-reserve-0738 -->
+<!-- clean-v4-reserve-0739 -->
+<!-- clean-v4-reserve-0740 -->
+<!-- clean-v4-reserve-0741 -->
+<!-- clean-v4-reserve-0742 -->
+<!-- clean-v4-reserve-0743 -->
+<!-- clean-v4-reserve-0744 -->
+<!-- clean-v4-reserve-0745 -->
+<!-- clean-v4-reserve-0746 -->
+<!-- clean-v4-reserve-0747 -->
+<!-- clean-v4-reserve-0748 -->
+<!-- clean-v4-reserve-0749 -->
+<!-- clean-v4-reserve-0750 -->
+<!-- clean-v4-reserve-0751 -->
+<!-- clean-v4-reserve-0752 -->
+<!-- clean-v4-reserve-0753 -->
+<!-- clean-v4-reserve-0754 -->
+<!-- clean-v4-reserve-0755 -->
+<!-- clean-v4-reserve-0756 -->
+<!-- clean-v4-reserve-0757 -->
+<!-- clean-v4-reserve-0758 -->
+<!-- clean-v4-reserve-0759 -->
+<!-- clean-v4-reserve-0760 -->
+<!-- clean-v4-reserve-0761 -->
+<!-- clean-v4-reserve-0762 -->
+<!-- clean-v4-reserve-0763 -->
+<!-- clean-v4-reserve-0764 -->
+<!-- clean-v4-reserve-0765 -->
+<!-- clean-v4-reserve-0766 -->
+<!-- clean-v4-reserve-0767 -->
+<!-- clean-v4-reserve-0768 -->
+<!-- clean-v4-reserve-0769 -->
+<!-- clean-v4-reserve-0770 -->
+<!-- clean-v4-reserve-0771 -->
+<!-- clean-v4-reserve-0772 -->
+<!-- clean-v4-reserve-0773 -->
+<!-- clean-v4-reserve-0774 -->
+<!-- clean-v4-reserve-0775 -->
+<!-- clean-v4-reserve-0776 -->
+<!-- clean-v4-reserve-0777 -->
+<!-- clean-v4-reserve-0778 -->
+<!-- clean-v4-reserve-0779 -->
+<!-- clean-v4-reserve-0780 -->
+<!-- clean-v4-reserve-0781 -->
+<!-- clean-v4-reserve-0782 -->
+<!-- clean-v4-reserve-0783 -->
+<!-- clean-v4-reserve-0784 -->
+<!-- clean-v4-reserve-0785 -->
+<!-- clean-v4-reserve-0786 -->
+<!-- clean-v4-reserve-0787 -->
+<!-- clean-v4-reserve-0788 -->
+<!-- clean-v4-reserve-0789 -->
+<!-- clean-v4-reserve-0790 -->
+<!-- clean-v4-reserve-0791 -->
+<!-- clean-v4-reserve-0792 -->
+<!-- clean-v4-reserve-0793 -->
+<!-- clean-v4-reserve-0794 -->
+<!-- clean-v4-reserve-0795 -->
+<!-- clean-v4-reserve-0796 -->
+<!-- clean-v4-reserve-0797 -->
+<!-- clean-v4-reserve-0798 -->
+<!-- clean-v4-reserve-0799 -->
+<!-- clean-v4-reserve-0800 -->
 </html>
