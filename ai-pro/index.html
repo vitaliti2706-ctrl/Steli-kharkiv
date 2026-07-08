@@ -1,48 +1,1499 @@
 <!DOCTYPE html>
 <html lang="uk">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Potolok Studio — візуалізатор</title>
-<style>
-:root{--blue:#075BFF;--green:#16a34a;--bg:#eef3f9;--dark:#0f172a;--muted:#64748b;--line:#dbe5f2;--shadow:0 18px 55px rgba(15,23,42,.12);--radius:24px;--ceiling:#fff;--walls:#ead8bd;--floor:#c9ad86;--light:rgba(255,255,255,.72)}
-*{box-sizing:border-box;margin:0;padding:0}body{font-family:Arial,Helvetica,sans-serif;background:radial-gradient(circle at 20% 0,#fff 0,#edf3fb 45%,#e8eef7 100%);color:var(--dark);overflow-x:hidden}a{text-decoration:none;color:inherit}button,input,select{font:inherit}button{cursor:pointer;border:0;background:none}.header{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.94);backdrop-filter:blur(16px);border-bottom:1px solid var(--line)}.header-inner{max-width:1500px;margin:auto;height:72px;padding:0 18px;display:flex;align-items:center;justify-content:space-between;gap:14px}.logo{font-size:30px;font-weight:950;letter-spacing:-1.2px;white-space:nowrap}.logo span{color:var(--blue)}.top{display:flex;gap:8px;overflow:auto}.top a,.top button{height:42px;border-radius:14px;border:1px solid var(--line);background:#fff;padding:0 14px;font-weight:950;font-size:13px;white-space:nowrap;display:flex;align-items:center}.top .primary{background:var(--blue);color:#fff;border-color:var(--blue)}.shell{max-width:1500px;margin:auto;padding:18px 16px 28px}.layout{display:grid;grid-template-columns:410px minmax(0,1fr);gap:18px;align-items:start}.panel{background:#fff;border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden}.sidebar{position:sticky;top:90px;max-height:calc(100vh - 108px);overflow:auto}.head{padding:22px;background:linear-gradient(135deg,#fff,#f4f8ff);border-bottom:1px solid var(--line)}.head h1{font-size:26px;line-height:1.08;margin-bottom:9px;letter-spacing:-.6px}.head p{font-size:13px;line-height:1.45;color:var(--muted);font-weight:750}.body{padding:18px 20px}.step{margin-bottom:22px}.step-title{display:flex;justify-content:space-between;align-items:center;margin-bottom:11px}.step-title b{font-size:15px}.step-title span{font-size:11px;color:var(--muted);font-weight:950;background:#f1f5f9;border:1px solid var(--line);border-radius:999px;padding:5px 9px}.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}.surface,.light-btn{min-height:78px;border:1px solid var(--line);background:#fff;border-radius:18px;font-size:13px;font-weight:950;color:#172033;transition:.16s}.surface.active,.light-btn.active{border-color:var(--blue);color:var(--blue);background:#f3f8ff;box-shadow:inset 0 0 0 1px rgba(7,91,255,.13)}.materials{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;background:#f1f5f9;border:1px solid var(--line);padding:5px;border-radius:16px}.materials button{height:44px;border-radius:12px;font-size:12px;font-weight:950;color:#172033}.materials button.active{background:#fff;color:var(--blue);box-shadow:0 8px 18px rgba(15,23,42,.08)}.search-row{display:grid;grid-template-columns:1fr 118px;gap:8px;margin-bottom:12px}.search-row input,.search-row select{height:44px;border:1px solid var(--line);border-radius:14px;padding:0 12px;background:#fff;outline:none;font-size:13px;font-weight:850}.palette{display:grid;grid-template-columns:repeat(5,1fr);gap:9px;max-height:304px;overflow:auto;padding:3px}.swatch{height:54px;border:1px solid rgba(15,23,42,.14);border-radius:15px;position:relative;overflow:hidden;background:#fff;box-shadow:inset 0 0 0 1px rgba(255,255,255,.32)}.swatch:after{content:attr(data-code);position:absolute;left:5px;right:5px;bottom:5px;font-size:8px;font-weight:950;color:#fff;text-align:center;text-shadow:0 1px 4px #000;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.choice{display:grid;gap:9px}.choice-card{display:grid;grid-template-columns:46px 1fr auto;gap:10px;align-items:center;background:#f8fbff;border:1px solid var(--line);border-radius:16px;padding:9px}.choice-color{width:46px;height:38px;border-radius:12px;border:1px solid var(--line);background:#fff}.choice-card b{font-size:13px}.choice-card span{font-size:11px;color:var(--muted);font-weight:850;display:block}.choice-card button{height:32px;padding:0 10px;border:1px solid var(--line);background:#fff;border-radius:10px;font-size:11px;font-weight:950}.notice{margin-top:12px;border:1px solid #bfdbfe;background:#eff6ff;color:#1d4ed8;border-radius:15px;padding:12px;font-size:12px;line-height:1.36;font-weight:850}.actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}.action{height:48px;border:1px solid var(--line);border-radius:14px;background:#fff;font-size:13px;font-weight:950;display:flex;align-items:center;justify-content:center;text-align:center}.action.blue{grid-column:1/-1;background:var(--blue);border-color:var(--blue);color:#fff}.action.green{grid-column:1/-1;background:var(--green);border-color:var(--green);color:#fff}.viewer-bar{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 16px;border-bottom:1px solid var(--line);background:linear-gradient(135deg,#fff,#f7faff)}.project b{font-size:15px}.project span{display:block;font-size:11px;color:var(--muted);font-weight:850;margin-top:2px}.tools{display:flex;gap:8px;flex-wrap:wrap}.tools button{height:40px;padding:0 13px;border:1px solid var(--line);background:#fff;border-radius:12px;font-size:12px;font-weight:950}.canvas-wrap{padding:18px;background:#edf2f8}.studio-scene{position:relative;min-height:620px;border-radius:24px;overflow:hidden;background:#dbe5f2;box-shadow:0 18px 45px rgba(15,23,42,.14)}.room-3d{position:absolute;inset:0;background:linear-gradient(180deg,#eaf1fb,#d9e4f1)}.back-wall{position:absolute;left:28%;right:28%;top:29%;height:45%;background:var(--walls);filter:brightness(1.01);box-shadow:inset 0 0 35px rgba(0,0,0,.05)}.left-wall{position:absolute;left:0;top:26%;width:34%;height:54%;background:var(--walls);clip-path:polygon(0 0,100% 10%,100% 94%,0 100%);filter:brightness(.93)}.right-wall{position:absolute;right:0;top:26%;width:34%;height:54%;background:var(--walls);clip-path:polygon(0 10%,100% 0,100% 100%,0 94%);filter:brightness(1.06)}.ceiling{position:absolute;left:0;right:0;top:0;height:34%;background:var(--ceiling);clip-path:polygon(0 0,100% 0,100% 74%,72% 100%,28% 100%,0 74%);filter:brightness(1.02)}.floor{position:absolute;left:0;right:0;bottom:0;height:34%;background:var(--floor);clip-path:polygon(28% 0,72% 0,100% 42%,100% 100%,0 100%,0 42%);filter:brightness(.96)}.floor:after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(90deg,rgba(255,255,255,.18) 0 2px,transparent 2px 170px),repeating-linear-gradient(0deg,rgba(0,0,0,.12) 0 1px,transparent 1px 72px),linear-gradient(180deg,rgba(255,255,255,.18),rgba(0,0,0,.08));opacity:.45}.corner-lines:before{content:"";position:absolute;left:28%;right:28%;top:29%;height:1px;background:rgba(15,23,42,.35)}.line{position:absolute;height:2px;background:rgba(15,23,42,.36);transform-origin:left center}.l1{left:0;top:26%;width:35%;transform:rotate(10deg)}.l2{right:-1%;top:26%;width:35%;transform:rotate(-10deg)}.plinth{position:absolute;left:0;right:0;top:74%;height:9px;background:#263142}.left-plinth{position:absolute;left:0;top:73.7%;width:31%;height:10px;background:#263142;transform:rotate(-12deg);transform-origin:left center}.right-plinth{position:absolute;right:0;top:73.7%;width:31%;height:10px;background:#263142;transform:rotate(12deg);transform-origin:right center}.door{position:absolute;left:52%;top:42%;width:13%;height:33%;background:#f8fafc;border:8px solid rgba(255,255,255,.72);box-shadow:0 10px 20px rgba(15,23,42,.14)}.door:after{content:"";position:absolute;right:9px;top:45%;width:5px;height:5px;border-radius:50%;background:#111827}.lamp{position:absolute;left:50%;top:22%;width:148px;height:148px;transform:translate(-50%,-50%);pointer-events:none}.lamp:before{content:"";position:absolute;left:50%;top:0;width:52px;height:24px;border-radius:50%;background:#16191f;transform:translateX(-50%);box-shadow:0 9px 22px rgba(0,0,0,.22)}.lamp:after{content:"";position:absolute;left:50%;top:55px;width:130px;height:54px;border:10px solid #23252b;border-radius:50%;transform:translateX(-50%);box-shadow:0 0 26px rgba(255,255,255,.95),inset 0 0 22px rgba(255,255,255,.9);background:rgba(255,255,255,.36)}.light-effect{position:absolute;inset:0;pointer-events:none;background:radial-gradient(circle at 50% 25%,var(--light),transparent 42%);mix-blend-mode:screen;display:none}.light-effect.active{display:block}.led-effect{position:absolute;left:11%;right:11%;top:7%;height:5px;border-radius:999px;background:rgba(255,255,255,.85);box-shadow:0 0 32px 12px rgba(255,255,255,.55);display:none}.led-effect.active{display:block}.material-matte .ceiling{background-image:linear-gradient(180deg,rgba(255,255,255,.1),rgba(0,0,0,.02))}.material-satin .ceiling{background-image:linear-gradient(120deg,rgba(255,255,255,.45),transparent 40%,rgba(0,0,0,.03))}.material-gloss .ceiling{background-image:linear-gradient(120deg,rgba(255,255,255,.7),transparent 38%,rgba(255,255,255,.3) 58%,transparent 78%);filter:brightness(1.08)}.scene-note{position:absolute;left:16px;bottom:16px;background:rgba(15,23,42,.72);color:#fff;border-radius:999px;padding:9px 12px;font-size:11px;font-weight:900;backdrop-filter:blur(10px)}.note{padding:12px 16px;border-top:1px solid var(--line);font-size:12px;color:var(--muted);font-weight:850}.presets{margin-top:14px;padding:16px}.preset-head{margin-bottom:13px}.preset-head h2{font-size:20px}.preset-head p{font-size:12px;color:var(--muted);font-weight:800;margin-top:3px}.preset-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}.preset{border:1px solid var(--line);background:#fff;border-radius:18px;overflow:hidden;text-align:left;transition:.15s}.preset:hover{transform:translateY(-2px)}.preset-mini{height:112px;position:relative;overflow:hidden;background:#f1f5f9}.preset-mini-room{position:absolute;inset:0;background:linear-gradient(180deg,var(--pc) 0 34%,var(--pw) 34% 73%,var(--pf) 73% 100%)}.strips{position:absolute;left:10px;right:10px;bottom:10px;display:flex;gap:5px}.strips i{height:12px;flex:1;border-radius:999px;border:1px solid #fff}.preset-info{padding:10px 11px}.preset-info b{font-size:13px}.preset-info span{display:block;font-size:11px;color:var(--muted);font-weight:850}body.full .header,body.full .sidebar,body.full .presets{display:none}body.full .shell{max-width:none;padding:0}body.full .layout{display:block}body.full .panel{border:0;border-radius:0}body.full .canvas-wrap{padding:0;background:#000}body.full .studio-scene{border-radius:0;min-height:calc(100vh - 68px)}@media(max-width:980px){.layout{grid-template-columns:1fr}.sidebar{position:static;max-height:none;order:2}.palette{grid-template-columns:repeat(4,1fr)}.preset-grid{grid-template-columns:repeat(2,1fr)}}@media(max-width:520px){.header-inner{height:62px;padding:0 10px}.logo{font-size:23px}.top a,.top button{height:38px;padding:0 10px;font-size:12px}.viewer-bar{flex-direction:column;align-items:flex-start}.canvas-wrap{padding:10px}.studio-scene{min-height:520px;border-radius:20px}.search-row{grid-template-columns:1fr}.preset-grid{grid-template-columns:1fr}.lamp{transform:translate(-50%,-50%) scale(.82)}}
-</style>
-</head><body>
-<header class="header"><div class="header-inner"><a class="logo" href="../index.html">Potolok<span>.in.ua</span></a><div class="top"><a href="../index.html">← Головна</a><button type="button" onclick="saveProject()">🔖 Проєкт</button><button type="button" onclick="resetAll()">⟳ Скинути</button><a class="primary" href="https://t.me/Potolok_in_ua" target="_blank">Розрахунок</a></div></div></header>
-<main class="shell"><div class="layout"><aside class="panel sidebar"><div class="head"><h1>Potolok Studio</h1><p>Нормальна версія з нуля: без кривих масок і без заливки фото. Це чистий 3D-макет кімнати для підбору кольорів.</p></div><div class="body">
-<section class="step"><div class="step-title"><b>1. Поверхня</b><span id="surfaceHint">Стеля</span></div><div class="grid3" id="surfaceTabs"><button type="button" class="surface active" onclick="setSurface('ceiling',this)">Стеля</button><button type="button" class="surface" onclick="setSurface('walls',this)">Стіни</button><button type="button" class="surface" onclick="setSurface('floor',this)">Підлога</button></div></section>
-<section class="step"><div class="step-title"><b id="materialLabel">2. Фактура стелі</b><span id="materialHint">Матова</span></div><div class="materials" id="materialTabs"><button type="button" class="active" onclick="setMaterial('matte',this)">Матова</button><button type="button" onclick="setMaterial('satin',this)">Сатин</button><button type="button" onclick="setMaterial('gloss',this)">Глянець</button></div></section>
-<section class="step"><div class="step-title"><b id="colorLabel">3. Колір стелі</b><span>Каталог</span></div><div class="search-row"><input id="search" placeholder="🔍 Назва або номер" oninput="renderPalette()"><select id="category" onchange="renderPalette()"><option value="all">Всі</option><option value="white">Білі</option><option value="beige">Бежеві</option><option value="gray">Сірі</option><option value="dark">Темні</option><option value="color">Кольорові</option></select></div><div id="palette" class="palette"></div></section>
-<section class="step"><div class="step-title"><b>Поточний вибір</b><span>Проєкт</span></div><div class="choice"><div class="choice-card"><div id="ceilingChoice" class="choice-color"></div><div><b>Стеля</b><span id="ceilingName">Білий 301</span></div><button type="button" onclick="setSurfaceByName('ceiling')">Змінити</button></div><div class="choice-card"><div id="wallsChoice" class="choice-color"></div><div><b>Стіни</b><span id="wallsName">Кремовий 210</span></div><button type="button" onclick="setSurfaceByName('walls')">Змінити</button></div><div class="choice-card"><div id="floorChoice" class="choice-color"></div><div><b>Підлога</b><span id="floorName">Пісочний 220</span></div><button type="button" onclick="setSurfaceByName('floor')">Змінити</button></div></div></section>
-<section class="step"><div class="step-title"><b>Освітлення</b><span>Опційно</span></div><div class="grid3" id="lightTabs"><button type="button" class="light-btn active" onclick="setLight('none',this)">Без</button><button type="button" class="light-btn" onclick="setLight('spots',this)">Точки</button><button type="button" class="light-btn" onclick="setLight('led',this)">LED</button></div><div class="notice">Це підбір кольору на 3D-макеті. Для фото клієнта потрібно робити окрему ручну маску.</div></section>
-<div class="actions"><button type="button" class="action" onclick="resetAll()">⟳ Скинути</button><button type="button" class="action" onclick="saveProject()">🔖 Зберегти</button><button type="button" class="action blue" onclick="preset('minimal')">✨ Світлий готовий варіант</button><a class="action green" href="https://t.me/Potolok_in_ua" target="_blank">Отримати розрахунок у Telegram</a></div></div></aside>
-<section><div class="panel viewer"><div class="viewer-bar"><div class="project"><b>3D-макет кімнати</b><span>стабільний візуалізатор без помилок масок</span></div><div class="tools"><button type="button" onclick="undoLast()">↶ Назад</button><button type="button" onclick="resetAll()">Скинути</button><button type="button" onclick="toggleFullscreen()">⛶ На весь екран</button></div></div><div class="canvas-wrap"><div class="studio-scene material-matte" id="scene"><div class="room-3d"><div class="ceiling"></div><div class="left-wall"></div><div class="right-wall"></div><div class="back-wall"></div><div class="floor"></div><div class="corner-lines"><div class="line l1"></div><div class="line l2"></div></div><div class="left-plinth"></div><div class="right-plinth"></div><div class="plinth"></div><div class="door"></div><div class="lamp"></div><div id="lightEffect" class="light-effect"></div><div id="ledEffect" class="led-effect"></div><div class="scene-note">Попередня візуалізація</div></div></div></div><div class="note"><strong id="statusText">Готово до вибору кольору</strong></div></div>
-<div class="panel presets"><div class="preset-head"><h2>Готові поєднання</h2><p>Швидкий старт для клієнта перед точним підбором.</p></div><div class="preset-grid">
-<button type="button" class="preset" onclick="preset('minimal')"><div class="preset-mini"><div class="preset-mini-room" style="--pc:#f8fafc;--pw:#e5e7eb;--pf:#c9ad86"></div><div class="strips"><i style="background:#f8fafc"></i><i style="background:#e5e7eb"></i><i style="background:#c9ad86"></i></div></div><div class="preset-info"><b>Світлий мінімалізм</b><span>білий + світло-сірий</span></div></button>
-<button type="button" class="preset" onclick="preset('warm')"><div class="preset-mini"><div class="preset-mini-room" style="--pc:#fff;--pw:#ead8bd;--pf:#bfa27a"></div><div class="strips"><i style="background:#fff"></i><i style="background:#ead8bd"></i><i style="background:#bfa27a"></i></div></div><div class="preset-info"><b>Теплий беж</b><span>м’який домашній варіант</span></div></button>
-<button type="button" class="preset" onclick="preset('gray')"><div class="preset-mini"><div class="preset-mini-room" style="--pc:#fff;--pw:#cbd5e1;--pf:#737d8a"></div><div class="strips"><i style="background:#fff"></i><i style="background:#cbd5e1"></i><i style="background:#737d8a"></i></div></div><div class="preset-info"><b>Сучасний сірий</b><span>стримано та практично</span></div></button>
-<button type="button" class="preset" onclick="preset('contrast')"><div class="preset-mini"><div class="preset-mini-room" style="--pc:#111827;--pw:#aeb8c6;--pf:#d7c0a1"></div><div class="strips"><i style="background:#111827"></i><i style="background:#aeb8c6"></i><i style="background:#d7c0a1"></i></div></div><div class="preset-info"><b>Контрастний</b><span>темна стеля + світлі стіни</span></div></button>
-<button type="button" class="preset" onclick="preset('premium')"><div class="preset-mini"><div class="preset-mini-room" style="--pc:#f8fafc;--pw:#d7d2c5;--pf:#374151"></div><div class="strips"><i style="background:#f8fafc"></i><i style="background:#d7d2c5"></i><i style="background:#374151"></i></div></div><div class="preset-info"><b>Преміум спокій</b><span>світла стеля + графіт</span></div></button>
-</div></div></section></div></main>
-<script>
-let currentSurface='ceiling',currentMaterial='matte',historyStack=[];
-const labels={ceiling:{title:'Стеля',gen:'стелі',name:'ceilingName',choice:'ceilingChoice',css:'--ceiling'},walls:{title:'Стіни',gen:'стін',name:'wallsName',choice:'wallsChoice',css:'--walls'},floor:{title:'Підлога',gen:'підлоги',name:'floorName',choice:'floorChoice',css:'--floor'}};
-const colors=[{name:'White 301',label:'Білий 301',hex:'#ffffff',cat:'white'},{name:'White 303',label:'Молочний 303',hex:'#f8fafc',cat:'white'},{name:'White Warm 305',label:'Теплий білий 305',hex:'#fff8ed',cat:'white'},{name:'Ice 310',label:'Холодний білий 310',hex:'#eef6ff',cat:'white'},{name:'Cream 210',label:'Кремовий 210',hex:'#ead8bd',cat:'beige'},{name:'Sand 220',label:'Пісочний 220',hex:'#c9ad86',cat:'beige'},{name:'Warm Beige 225',label:'Теплий беж 225',hex:'#d7c0a1',cat:'beige'},{name:'Latte 230',label:'Латте 230',hex:'#b79b7b',cat:'beige'},{name:'Gray 510',label:'Світло-сірий 510',hex:'#cbd5e1',cat:'gray'},{name:'Silver 512',label:'Сріблястий 512',hex:'#aeb8c6',cat:'gray'},{name:'Gray 514',label:'Сірий 514',hex:'#8b95a1',cat:'gray'},{name:'Concrete 520',label:'Бетон 520',hex:'#737d8a',cat:'gray'},{name:'Graphite 700',label:'Графіт 700',hex:'#374151',cat:'dark'},{name:'Black 900',label:'Чорний 900',hex:'#111827',cat:'dark'},{name:'Chocolate 760',label:'Шоколад 760',hex:'#5b3928',cat:'dark'},{name:'Navy 440',label:'Темно-синій 440',hex:'#1e3a8a',cat:'dark'},{name:'Sky 430',label:'Небесний 430',hex:'#38bdf8',cat:'color'},{name:'Blue 420',label:'Синій 420',hex:'#2563eb',cat:'color'},{name:'Olive 340',label:'Олива 340',hex:'#6b7c32',cat:'color'},{name:'Green 330',label:'Зелений 330',hex:'#16a34a',cat:'color'},{name:'Mint 335',label:'М’ята 335',hex:'#7dd3aa',cat:'color'},{name:'Red 120',label:'Червоний 120',hex:'#dc2626',cat:'color'},{name:'Bordo 130',label:'Бордо 130',hex:'#7f1d1d',cat:'color'},{name:'Pink 140',label:'Пудровий 140',hex:'#f4a8c8',cat:'color'},{name:'Violet 810',label:'Фіолетовий 810',hex:'#7c3aed',cat:'color'},{name:'Gold 720',label:'Золото 720',hex:'#d4af37',cat:'color'}];
-function renderPalette(){const cat=document.getElementById('category').value,q=document.getElementById('search').value.toLowerCase().trim(),box=document.getElementById('palette');box.innerHTML='';colors.filter(c=>{const hay=(c.name+' '+c.label).toLowerCase();return(cat==='all'||c.cat===cat)&&hay.includes(q)}).forEach(c=>{const b=document.createElement('button');b.type='button';b.className='swatch';b.dataset.code=c.label;b.title=c.label;b.style.background=c.hex;b.onclick=()=>applyColor(c,true);box.appendChild(b)})}
-function setSurface(surface,btn){currentSurface=surface;document.querySelectorAll('#surfaceTabs .surface').forEach(x=>x.classList.remove('active'));if(btn)btn.classList.add('active');document.getElementById('surfaceHint').textContent=labels[surface].title;document.getElementById('materialLabel').textContent='2. Фактура '+labels[surface].gen;document.getElementById('colorLabel').textContent='3. Колір '+labels[surface].gen;document.getElementById('statusText').textContent='Активна поверхня: '+labels[surface].title}
-function setSurfaceByName(surface){const i=surface==='ceiling'?0:surface==='walls'?1:2;setSurface(surface,document.querySelectorAll('#surfaceTabs .surface')[i])}
-function setMaterial(material,btn){currentMaterial=material;document.querySelectorAll('#materialTabs button').forEach(x=>x.classList.remove('active'));btn.classList.add('active');document.getElementById('materialHint').textContent={matte:'Матова',satin:'Сатин',gloss:'Глянець'}[material];const scene=document.getElementById('scene');scene.classList.remove('material-matte','material-satin','material-gloss');scene.classList.add('material-'+material)}
-function setLight(type,btn){document.querySelectorAll('#lightTabs .light-btn').forEach(x=>x.classList.remove('active'));btn.classList.add('active');document.getElementById('lightEffect').classList.toggle('active',type==='spots');document.getElementById('ledEffect').classList.toggle('active',type==='led')}
-function snapshot(){const root=document.documentElement;return{ceiling:root.style.getPropertyValue('--ceiling')||'#ffffff',walls:root.style.getPropertyValue('--walls')||'#ead8bd',floor:root.style.getPropertyValue('--floor')||'#c9ad86',ceilingName:document.getElementById('ceilingName').textContent,wallsName:document.getElementById('wallsName').textContent,floorName:document.getElementById('floorName').textContent}}
-function restore(d){document.documentElement.style.setProperty('--ceiling',d.ceiling);document.documentElement.style.setProperty('--walls',d.walls);document.documentElement.style.setProperty('--floor',d.floor);document.getElementById('ceilingName').textContent=d.ceilingName;document.getElementById('wallsName').textContent=d.wallsName;document.getElementById('floorName').textContent=d.floorName;document.getElementById('ceilingChoice').style.background=d.ceiling;document.getElementById('wallsChoice').style.background=d.walls;document.getElementById('floorChoice').style.background=d.floor}
-function applyColor(c,push){if(push)historyStack.push(snapshot());document.documentElement.style.setProperty(labels[currentSurface].css,c.hex);document.getElementById(labels[currentSurface].name).textContent=c.label;document.getElementById(labels[currentSurface].choice).style.background=c.hex;document.getElementById('statusText').textContent=labels[currentSurface].title+': '+c.label}
-function resetAll(){historyStack.push(snapshot());restore({ceiling:'#ffffff',walls:'#ead8bd',floor:'#c9ad86',ceilingName:'Білий 301',wallsName:'Кремовий 210',floorName:'Пісочний 220'});document.getElementById('statusText').textContent='Проєкт скинуто'}
-function undoLast(){const last=historyStack.pop();if(last){restore(last);document.getElementById('statusText').textContent='Скасовано останню дію'}}
-function saveProject(){localStorage.setItem('potolokStudioProject',JSON.stringify(snapshot()));alert('Проєкт збережено у цьому браузері.')}
-function loadProject(){const raw=localStorage.getItem('potolokStudioProject');if(raw)restore(JSON.parse(raw));else resetAll()}
-function colorByName(n){return colors.find(c=>c.name===n)}function applyTo(surface,name){const prev=currentSurface;currentSurface=surface;const c=colorByName(name);if(c)applyColor(c,false);currentSurface=prev}
-function preset(t){historyStack.push(snapshot());const sets={minimal:{ceiling:'White 303',walls:'Gray 510',floor:'Sand 220'},warm:{ceiling:'White 301',walls:'Cream 210',floor:'Warm Beige 225'},gray:{ceiling:'White 301',walls:'Gray 510',floor:'Concrete 520'},contrast:{ceiling:'Black 900',walls:'Silver 512',floor:'Warm Beige 225'},premium:{ceiling:'White 303',walls:'Warm Beige 225',floor:'Graphite 700'}};Object.entries(sets[t]).forEach(([s,n])=>applyTo(s,n));document.getElementById('statusText').textContent='Застосовано готове поєднання'}
-function toggleFullscreen(){document.body.classList.toggle('full')}
-document.addEventListener('keydown',e=>{if(e.key==='Escape'&&document.body.classList.contains('full'))toggleFullscreen();if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='z')undoLast()});renderPalette();loadProject();
-</script></body></html>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Potolok AI PRO 3.0</title>
+  <style>
+
+:root{
+  --bg:#f6f9ff;
+  --card:#ffffff;
+  --text:#0f172a;
+  --muted:#64748b;
+  --line:#dbe7f5;
+  --line2:#edf3fb;
+  --blue:#0b63ff;
+  --blue2:#eaf2ff;
+  --green:#16a34a;
+  --green2:#22c55e;
+  --dark:#061126;
+  --red:#ef4444;
+  --orange:#f59e0b;
+  --shadow:0 18px 45px rgba(15,23,42,.08);
+  --shadow2:0 10px 25px rgba(15,23,42,.055);
+  --radiusXL:24px;
+  --radiusL:18px;
+  --radiusM:14px;
+  --radiusS:10px;
+}
+*{
+  box-sizing:border-box;
+  margin:0;
+  padding:0;
+}
+html{
+  scroll-behavior:smooth;
+}
+body{
+  font-family:Inter,Arial,Helvetica,sans-serif;
+  background:
+    radial-gradient(circle at top left,rgba(11,99,255,.08),transparent 28%),
+    linear-gradient(180deg,#fbfdff 0%,var(--bg) 45%,#f7faff 100%);
+  color:var(--text);
+  min-height:100vh;
+}
+a{
+  color:inherit;
+  text-decoration:none;
+}
+button,
+input,
+select{
+  font:inherit;
+}
+button{
+  cursor:pointer;
+}
+img{
+  display:block;
+  max-width:100%;
+}
+.app-header{
+  height:78px;
+  background:rgba(255,255,255,.94);
+  border-bottom:1px solid var(--line);
+  backdrop-filter:blur(16px);
+  position:sticky;
+  top:0;
+  z-index:50;
+}
+.header-inner{
+  max-width:1240px;
+  height:100%;
+  margin:0 auto;
+  padding:0 18px;
+  display:grid;
+  grid-template-columns:260px 1fr 330px;
+  align-items:center;
+  gap:18px;
+}
+.brand{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  min-width:0;
+}
+.brand-icon{
+  width:44px;
+  height:44px;
+  border-radius:12px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:#fff;
+  font-weight:900;
+  background:linear-gradient(135deg,#073b7a,#0b63ff);
+  box-shadow:0 10px 22px rgba(11,99,255,.24);
+  flex:0 0 auto;
+}
+.brand-text{
+  line-height:1.05;
+}
+.brand-text b{
+  display:block;
+  font-size:21px;
+  letter-spacing:.7px;
+  font-weight:950;
+}
+.brand-text span{
+  display:block;
+  margin-top:4px;
+  font-size:11px;
+  letter-spacing:2.5px;
+  font-weight:900;
+}
+.page-title{
+  font-size:18px;
+  font-weight:900;
+  text-align:left;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.header-actions{
+  display:flex;
+  align-items:center;
+  justify-content:flex-end;
+  gap:12px;
+}
+.top-button{
+  min-height:44px;
+  border:1px solid var(--line);
+  background:#fff;
+  border-radius:13px;
+  padding:0 16px;
+  display:flex;
+  align-items:center;
+  gap:8px;
+  color:#0f2857;
+  font-weight:850;
+  box-shadow:0 4px 12px rgba(15,23,42,.035);
+}
+.top-button:hover{
+  border-color:#bfd2ec;
+  background:#f8fbff;
+}
+.workspace{
+  max-width:1240px;
+  margin:18px auto 26px;
+  padding:0 18px;
+  display:grid;
+  grid-template-columns:340px 1fr;
+  gap:22px;
+  align-items:start;
+}
+.sidebar{
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:var(--radiusXL);
+  box-shadow:var(--shadow);
+  padding:18px;
+  position:sticky;
+  top:96px;
+}
+.side-block{
+  padding-bottom:22px;
+  margin-bottom:22px;
+  border-bottom:1px solid var(--line2);
+}
+.side-block:last-child{
+  padding-bottom:0;
+  margin-bottom:0;
+  border-bottom:0;
+}
+.side-title{
+  font-size:18px;
+  font-weight:950;
+  margin-bottom:12px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+}
+.side-badge{
+  font-size:12px;
+  color:#64748b;
+  background:#f1f5f9;
+  border:1px solid var(--line);
+  border-radius:999px;
+  padding:5px 9px;
+  font-weight:900;
+}
+.room-card{
+  position:relative;
+  width:100%;
+  aspect-ratio:4/3;
+  overflow:hidden;
+  border-radius:18px;
+  border:1px solid var(--line);
+  background:#eef4ff;
+}
+.room-card img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+}
+.empty-photo{
+  width:100%;
+  height:100%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:#7a8aa3;
+  font-weight:900;
+  text-align:center;
+  padding:20px;
+}
+.camera-chip{
+  position:absolute;
+  left:14px;
+  bottom:14px;
+  width:52px;
+  height:52px;
+  border-radius:50%;
+  background:rgba(6,17,38,.82);
+  color:#fff;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:23px;
+  box-shadow:0 8px 18px rgba(0,0,0,.22);
+}
+.btn{
+  border:0;
+  width:100%;
+  min-height:52px;
+  border-radius:14px;
+  padding:0 16px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  font-weight:950;
+  transition:.15s ease;
+  margin-top:12px;
+}
+.btn:active{
+  transform:scale(.99);
+}
+.btn-blue{
+  background:linear-gradient(180deg,#0b69ff,#075bff);
+  color:#fff;
+  box-shadow:0 12px 20px rgba(11,99,255,.20);
+}
+.btn-green{
+  background:linear-gradient(135deg,#12a957,#20c972);
+  color:#fff;
+  box-shadow:0 12px 20px rgba(22,163,74,.18);
+}
+.btn-dark{
+  background:#061126;
+  color:#fff;
+  box-shadow:0 12px 20px rgba(6,17,38,.16);
+}
+.btn-light{
+  background:#fff;
+  border:1px solid var(--line);
+  color:var(--blue);
+  box-shadow:0 6px 14px rgba(15,23,42,.04);
+}
+.select-card{
+  border:1px solid var(--line);
+  background:#fff;
+  border-radius:16px;
+  min-height:58px;
+  padding:9px 12px;
+  display:grid;
+  grid-template-columns:44px 1fr 18px;
+  gap:10px;
+  align-items:center;
+}
+.color-dot{
+  width:42px;
+  height:42px;
+  border-radius:50%;
+  border:1px solid #d7e1ee;
+  background:#fff;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.55);
+}
+.select-card select{
+  border:0;
+  outline:none;
+  background:transparent;
+  width:100%;
+  color:#111827;
+  font-weight:900;
+  font-size:14px;
+}
+.select-arrow{
+  color:#64748b;
+  font-weight:900;
+}
+.hint{
+  margin-top:10px;
+  color:var(--muted);
+  font-size:13px;
+  line-height:1.45;
+  font-weight:650;
+}
+.hint b{
+  color:var(--blue);
+}
+.options-list{
+  display:grid;
+  gap:10px;
+}
+.option-row{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  color:#172033;
+  font-weight:800;
+  font-size:15px;
+  line-height:1.25;
+}
+.option-row input{
+  width:18px;
+  height:18px;
+  accent-color:var(--blue);
+  flex:0 0 auto;
+}
+.phone-input{
+  width:100%;
+  min-height:52px;
+  border:1px solid var(--line);
+  border-radius:16px;
+  background:#fff;
+  outline:none;
+  padding:0 14px;
+  color:#111827;
+  font-weight:900;
+}
+.phone-input:focus{
+  border-color:var(--blue);
+  box-shadow:0 0 0 4px rgba(11,99,255,.10);
+}
+.info-card{
+  margin-top:14px;
+  border:1px solid #bfd9ff;
+  background:#f2f8ff;
+  border-radius:16px;
+  padding:14px;
+  color:#334155;
+  font-size:13px;
+  line-height:1.45;
+  font-weight:700;
+}
+.info-card b{
+  display:block;
+  color:#0f172a;
+  font-size:14px;
+  margin-bottom:4px;
+}
+.main{
+  min-width:0;
+}
+.section-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:14px;
+  margin-bottom:14px;
+}
+.section-title{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  min-width:0;
+}
+.section-title h1,
+.section-title h2{
+  font-size:25px;
+  line-height:1.15;
+  font-weight:950;
+  letter-spacing:-.35px;
+}
+.badge{
+  color:var(--blue);
+  background:var(--blue2);
+  border-radius:999px;
+  padding:7px 12px;
+  font-size:13px;
+  font-weight:950;
+  white-space:nowrap;
+}
+.link-button{
+  border:0;
+  background:transparent;
+  color:var(--blue);
+  font-weight:900;
+  font-size:14px;
+  display:flex;
+  align-items:center;
+  gap:6px;
+}
+.result-card{
+  background:#fff;
+  border:1px solid var(--line);
+  border-radius:var(--radiusXL);
+  box-shadow:var(--shadow);
+  padding:20px;
+}
+.result-top{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:14px;
+  margin-bottom:14px;
+}
+.result-title{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  min-width:0;
+}
+.result-title h2{
+  font-size:25px;
+  font-weight:950;
+  letter-spacing:-.25px;
+}
+.actual{
+  background:var(--green);
+  color:#fff;
+  border-radius:999px;
+  padding:8px 14px;
+  font-size:13px;
+  font-weight:950;
+  box-shadow:inset 0 -2px 0 rgba(0,0,0,.08);
+}
+.mini-actions{
+  display:flex;
+  align-items:center;
+  gap:9px;
+}
+.icon-button{
+  min-width:42px;
+  height:42px;
+  padding:0 12px;
+  border:1px solid var(--line);
+  background:#fff;
+  border-radius:12px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  font-weight:900;
+  color:#0f172a;
+}
+.hero-image{
+  border:1px solid #e2e8f0;
+  background:#eef4ff;
+  border-radius:20px;
+  overflow:hidden;
+  min-height:450px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:#6b7b92;
+  font-weight:950;
+  position:relative;
+}
+.hero-image img{
+  width:100%;
+  height:100%;
+  max-height:540px;
+  object-fit:cover;
+}
+.hero-placeholder{
+  text-align:center;
+  padding:22px;
+  line-height:1.45;
+}
+.hero-placeholder strong{
+  display:block;
+  font-size:20px;
+  color:#334155;
+  margin-bottom:6px;
+}
+.spec-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px 34px;
+  margin:18px 0 18px;
+}
+.spec-item{
+  display:grid;
+  grid-template-columns:24px 1fr;
+  gap:8px;
+  align-items:center;
+  color:#0f172a;
+  font-size:15px;
+  line-height:1.35;
+}
+.spec-icon{
+  width:22px;
+  height:22px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:#071126;
+  font-size:15px;
+  font-style:normal;
+}
+.spec-item b{
+  font-weight:950;
+}
+.spec-item span{
+  color:#334155;
+  font-weight:650;
+}
+.result-actions{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:14px;
+}
+.gallery-section{
+  margin-top:22px;
+}
+.gallery{
+  display:flex;
+  gap:16px;
+  overflow-x:auto;
+  padding:2px 0 4px;
+  scrollbar-width:thin;
+}
+.variant-card{
+  width:205px;
+  flex:0 0 auto;
+  border:1px solid var(--line);
+  background:#fff;
+  border-radius:16px;
+  padding:9px;
+  box-shadow:var(--shadow2);
+  cursor:pointer;
+  position:relative;
+}
+.variant-card.active{
+  border:2px solid var(--blue);
+  padding:8px;
+}
+.variant-card img{
+  width:100%;
+  height:112px;
+  object-fit:cover;
+  border-radius:13px;
+  background:#eef4ff;
+}
+.variant-card b{
+  display:block;
+  margin-top:8px;
+  font-size:15px;
+  font-weight:950;
+}
+.variant-card small{
+  display:block;
+  color:#334155;
+  font-size:12px;
+  font-weight:750;
+  line-height:1.38;
+  margin-top:3px;
+}
+.mini-badge{
+  display:inline-flex;
+  margin-top:6px;
+  color:#16a34a;
+  background:#e9fff3;
+  border-radius:999px;
+  padding:4px 8px;
+  font-size:10px;
+  font-weight:950;
+}
+.favorite-star{
+  position:absolute;
+  top:14px;
+  right:14px;
+  width:26px;
+  height:26px;
+  border-radius:50%;
+  background:#fff;
+  color:var(--blue);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  box-shadow:0 6px 14px rgba(15,23,42,.12);
+  font-size:15px;
+}
+.add-card{
+  width:190px;
+  min-height:185px;
+  flex:0 0 auto;
+  border:1px dashed #b9c7dc;
+  border-radius:16px;
+  background:rgba(255,255,255,.68);
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  color:#334155;
+  font-weight:850;
+  text-align:center;
+  cursor:pointer;
+}
+.add-card strong{
+  display:block;
+  font-size:42px;
+  font-weight:300;
+  line-height:1;
+  margin-bottom:8px;
+  color:#1e293b;
+}
+.bottom-grid{
+  margin-top:22px;
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:22px;
+}
+.panel-card,
+.price-card{
+  background:#fff;
+  border:1px solid var(--line);
+  border-radius:var(--radiusL);
+  box-shadow:var(--shadow2);
+  padding:18px;
+}
+.card-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom:12px;
+}
+.card-head h3{
+  font-size:18px;
+  font-weight:950;
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+.kit-table{
+  width:100%;
+  border-collapse:collapse;
+  font-size:14px;
+}
+.kit-table th{
+  text-align:left;
+  color:#334155;
+  font-size:13px;
+  padding:8px 0;
+  font-weight:900;
+}
+.kit-table td{
+  padding:9px 0;
+  border-bottom:1px solid #eef2f7;
+  color:#0f172a;
+}
+.kit-table th:nth-child(2),
+.kit-table th:nth-child(3),
+.kit-table td:nth-child(2),
+.kit-table td:nth-child(3){
+  text-align:right;
+}
+.kit-table td:nth-child(2),
+.kit-table td:nth-child(3){
+  font-weight:850;
+}
+.total-line{
+  margin-top:12px;
+  padding-top:12px;
+  border-top:1px solid #e5edf7;
+  color:#334155;
+  font-size:14px;
+  font-weight:750;
+}
+.price{
+  margin:8px 0 3px;
+  color:#16a34a;
+  font-size:36px;
+  line-height:1;
+  font-weight:950;
+  letter-spacing:-.5px;
+}
+.price-note{
+  color:#64748b;
+  font-size:14px;
+  font-weight:700;
+  margin-bottom:12px;
+}
+.benefit-list{
+  display:grid;
+  gap:8px;
+  margin:12px 0 4px;
+}
+.benefit{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  color:#334155;
+  font-size:14px;
+  font-weight:750;
+}
+.feature-bar{
+  margin-top:22px;
+  background:#fff;
+  border:1px solid var(--line);
+  border-radius:18px;
+  box-shadow:var(--shadow2);
+  padding:16px;
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:14px;
+}
+.feature{
+  display:grid;
+  grid-template-columns:42px 1fr;
+  gap:10px;
+  align-items:center;
+  min-width:0;
+}
+.feature-icon{
+  width:42px;
+  height:42px;
+  border-radius:50%;
+  background:var(--blue2);
+  color:var(--blue);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:20px;
+}
+.feature b{
+  display:block;
+  font-size:14px;
+  font-weight:950;
+  margin-bottom:2px;
+}
+.feature span{
+  display:block;
+  color:#64748b;
+  font-size:12px;
+  font-weight:700;
+  line-height:1.25;
+}
+.loader{
+  display:none;
+  margin-top:12px;
+  color:var(--blue);
+  font-weight:950;
+  text-align:center;
+}
+.toast{
+  position:fixed;
+  left:50%;
+  bottom:22px;
+  transform:translateX(-50%);
+  background:#061126;
+  color:#fff;
+  padding:12px 16px;
+  border-radius:14px;
+  box-shadow:0 12px 30px rgba(0,0,0,.22);
+  font-weight:850;
+  display:none;
+  z-index:100;
+  max-width:calc(100% - 28px);
+  text-align:center;
+}
+@media(max-width:1000px){
+  .header-inner{
+    grid-template-columns:240px 1fr 290px;
+  }
+  .workspace{
+    grid-template-columns:320px 1fr;
+  }
+  .feature-bar{
+    grid-template-columns:repeat(2,1fr);
+  }
+}
+@media(max-width:900px){
+  .app-header{
+    position:static;
+    height:auto;
+  }
+  .header-inner{
+    display:block;
+    padding:14px;
+  }
+  .brand{
+    margin-bottom:10px;
+  }
+  .brand-icon{
+    width:42px;
+    height:42px;
+  }
+  .brand-text b{
+    font-size:22px;
+  }
+  .page-title{
+    font-size:16px;
+    margin-bottom:12px;
+    white-space:normal;
+  }
+  .header-actions{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px;
+  }
+  .top-button{
+    justify-content:center;
+    padding:0 8px;
+    min-height:46px;
+  }
+  .workspace{
+    display:block;
+    margin:14px auto 22px;
+    padding:0 12px;
+  }
+  .sidebar{
+    position:static;
+    padding:16px;
+    border-radius:20px;
+  }
+  .side-block{
+    margin-bottom:20px;
+    padding-bottom:20px;
+  }
+  .side-title{
+    font-size:18px;
+  }
+  .content-head{
+    margin:22px 0 12px;
+    align-items:flex-start;
+  }
+  .section-title h1,
+  .section-title h2{
+    font-size:23px;
+    line-height:1.15;
+  }
+  .badge{
+    font-size:12px;
+    padding:7px 10px;
+  }
+  .result-card{
+    padding:16px;
+    border-radius:20px;
+  }
+  .result-top{
+    align-items:flex-start;
+  }
+  .result-title{
+    display:block;
+  }
+  .result-title h2{
+    font-size:24px;
+    margin-bottom:8px;
+  }
+  .mini-actions{
+    display:none;
+  }
+  .hero-image{
+    min-height:260px;
+    border-radius:18px;
+  }
+  .hero-placeholder strong{
+    font-size:18px;
+  }
+  .spec-grid{
+    grid-template-columns:1fr;
+    gap:10px;
+    margin:16px 0;
+  }
+  .result-actions{
+    grid-template-columns:1fr;
+    gap:10px;
+  }
+  .gallery-head{
+    align-items:flex-start;
+  }
+  .gallery-head h2{
+    font-size:22px;
+  }
+  .variant-card{
+    width:160px;
+  }
+  .variant-card img{
+    height:92px;
+  }
+  .add-card{
+    width:150px;
+    min-height:160px;
+  }
+  .bottom-grid{
+    grid-template-columns:1fr;
+    gap:14px;
+  }
+  .panel-card,
+  .price-card{
+    border-radius:20px;
+    padding:16px;
+  }
+  .price{
+    font-size:32px;
+  }
+  .feature-bar{
+    grid-template-columns:1fr;
+    border-radius:20px;
+  }
+}
+
+  </style>
+</head>
+<body>
+  <header class="app-header">
+    <div class="header-inner">
+      <a class="brand" href="../index.html">
+        <div class="brand-icon">⬡</div>
+        <div class="brand-text">
+          <b>POTOLOK</b>
+          <span>НАТЯЖНІ СТЕЛІ</span>
+        </div>
+      </a>
+      <div class="page-title">Potolok AI — AI-візуалізація стелі</div>
+      <div class="header-actions">
+        <button class="top-button" type="button" onclick="openHowItWorks()">ⓘ Як це працює</button>
+        <button class="top-button" type="button" onclick="scrollToGallery()">♡ Мої варіанти</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="workspace">
+    <aside class="sidebar">
+      <section class="side-block">
+        <div class="side-title"><span>1. Завантажте фото кімнати</span></div>
+        <div class="room-card">
+          <div id="emptyPhoto" class="empty-photo">Фото кімнати</div>
+          <img id="roomPreview" src="" alt="room" style="display:none">
+          <div class="camera-chip">📷</div>
+        </div>
+        <input id="photoInput" type="file" accept="image/*" hidden>
+        <button class="btn btn-blue" type="button" onclick="photoInput.click()">↗ Змінити фото</button>
+      </section>
+
+      <section class="side-block">
+        <div class="side-title"><span>2. Виберіть колір стелі</span></div>
+        <div class="select-card">
+          <div id="colorDot" class="color-dot"></div>
+          <select id="colorSelect" onchange="syncDraft()">
+                    <option value="white" data-label="Білий 301" data-brand="MSD Premium" data-dot="#ffffff">Білий 301 — MSD Premium</option>
+                    <option value="warm_white" data-label="Теплий білий 303" data-brand="MSD Premium" data-dot="#fff8ed">Теплий білий 303 — MSD Premium</option>
+                    <option value="black" data-label="Чорний 305 (Лак)" data-brand="MSD Premium" data-dot="#000000">Чорний 305 (Лак) — MSD Premium</option>
+                    <option value="graphite" data-label="Графіт 700" data-brand="MSD Premium" data-dot="#374151">Графіт 700 — MSD Premium</option>
+                    <option value="light_gray" data-label="Світло-сірий 510" data-brand="MSD Premium" data-dot="#cbd5e1">Світло-сірий 510 — MSD Premium</option>
+                    <option value="silver" data-label="Сріблястий 512" data-brand="MSD Premium" data-dot="#aeb8c6">Сріблястий 512 — MSD Premium</option>
+                    <option value="beige" data-label="Бежевий 571" data-brand="MSD Premium" data-dot="#d8c4a3">Бежевий 571 — MSD Premium</option>
+                    <option value="cream" data-label="Кремовий 210" data-brand="MSD Premium" data-dot="#ead8bd">Кремовий 210 — MSD Premium</option>
+                    <option value="sand" data-label="Пісочний 220" data-brand="MSD Premium" data-dot="#c9ad86">Пісочний 220 — MSD Premium</option>
+                    <option value="latte" data-label="Латте 230" data-brand="MSD Premium" data-dot="#b79b7b">Латте 230 — MSD Premium</option>
+                    <option value="blue" data-label="Синій 420" data-brand="MSD Premium" data-dot="#2563eb">Синій 420 — MSD Premium</option>
+                    <option value="sky" data-label="Небесний 430" data-brand="MSD Premium" data-dot="#38bdf8">Небесний 430 — MSD Premium</option>
+                    <option value="green" data-label="Зелений 330" data-brand="MSD Premium" data-dot="#16a34a">Зелений 330 — MSD Premium</option>
+                    <option value="mint" data-label="М’ята 335" data-brand="MSD Premium" data-dot="#7dd3aa">М’ята 335 — MSD Premium</option>
+                    <option value="red" data-label="Червоний 120" data-brand="MSD Premium" data-dot="#dc2626">Червоний 120 — MSD Premium</option>
+                    <option value="bordo" data-label="Бордо 130" data-brand="MSD Premium" data-dot="#7f1d1d">Бордо 130 — MSD Premium</option>
+                    <option value="violet" data-label="Фіолетовий 810" data-brand="MSD Premium" data-dot="#7c3aed">Фіолетовий 810 — MSD Premium</option>
+                    <option value="gold" data-label="Золото 720" data-brand="MSD Premium" data-dot="#d4af37">Золото 720 — MSD Premium</option>
+          </select>
+          <div class="select-arrow">⌄</div>
+        </div>
+        <div class="hint">ⓘ Не знаєте номер? Оберіть із <b>каталогу</b></div>
+      </section>
+
+      <section class="side-block">
+        <div class="side-title"><span>3. Фактура стелі</span></div>
+        <div class="select-card">
+          <div class="color-dot" style="background:#f1f5f9"></div>
+          <select id="materialSelect" onchange="syncDraft()">
+            <option value="matte" data-label="Матова">Матова</option>
+            <option value="satin" data-label="Сатин">Сатин</option>
+            <option value="glossy" data-label="Глянець (Лак)">Глянець (Лак)</option>
+          </select>
+          <div class="select-arrow">⌄</div>
+        </div>
+      </section>
+
+      <section class="side-block">
+        <div class="side-title">
+          <span>4. Додаткові опції</span>
+          <span class="side-badge">Опційно</span>
+        </div>
+        <div class="options-list">
+          <label class="option-row"><input id="keepLight" type="checkbox" checked onchange="syncDraft()"> <span>Залишити люстру / світильники</span></label>
+          <label class="option-row"><input id="shadowProfile" type="checkbox" onchange="syncDraft()"> <span>Тіньовий профіль</span></label>
+          <label class="option-row"><input id="ledLine" type="checkbox" checked onchange="syncDraft()"> <span>LED-підсвітка по периметру</span></label>
+          <label class="option-row"><input id="lightLines" type="checkbox" onchange="syncDraft()"> <span>Світлові лінії</span></label>
+          <label class="option-row"><input id="cornice" type="checkbox" onchange="syncDraft()"> <span>Карниз</span></label>
+          <label class="option-row"><input id="spots" type="checkbox" onchange="syncDraft()"> <span>Точкові світильники</span></label>
+          <label class="option-row"><input id="magneticTracks" type="checkbox" onchange="syncDraft()"> <span>Магнітні треки</span></label>
+        </div>
+      </section>
+
+      <section class="side-block">
+        <div class="side-title"><span>Телефон</span></div>
+        <input id="clientPhoneAI" class="phone-input" type="tel" placeholder="+380 XX XXX XX XX" oninput="syncDraft()">
+        <div class="hint">Перша генерація безкоштовна. Далі — 4 генерації за номером телефону.</div>
+      </section>
+
+      <button class="btn btn-blue" type="button" onclick="generateAI()">✨ Підготувати AI-візуалізацію</button>
+      <div id="loader" class="loader">Готуємо AI-візуалізацію...</div>
+
+      <div class="info-card">
+        <b>Потрібна допомога?</b>
+        Напишіть нам у Telegram — ми підкажемо найкраще рішення.
+        <a class="btn btn-light" href="https://t.me/potolok_kharkiv" target="_blank">✈ Написати в Telegram</a>
+      </div>
+    </aside>
+
+    <main class="main">
+      <div class="section-head content-head">
+        <div class="section-title">
+          <span style="font-size:24px">🖼️</span>
+          <h1>✨ Моя AI-візуалізація</h1>
+          <span id="variantCount" class="badge">0 варіантів</span>
+        </div>
+      </div>
+
+      <section class="result-card">
+        <div class="result-top">
+          <div class="result-title">
+            <h2 id="variantTitle">Варіант №1</h2>
+            <span class="actual">Актуальний</span>
+          </div>
+          <div class="mini-actions">
+            <button class="icon-button" type="button" onclick="toggleFavorite()">♡ В обране</button>
+            <button class="icon-button" type="button" onclick="shareCurrent()">⌯</button>
+            <button class="icon-button" type="button" onclick="deleteCurrent()">🗑</button>
+          </div>
+        </div>
+
+        <div id="resultImageWrap" class="hero-image">
+          <div class="hero-placeholder">
+            <strong>AI-візуалізація з’явиться тут</strong>
+            Завантажте фото кімнати, оберіть параметри та натисніть кнопку генерації.
+          </div>
+        </div>
+
+        <div class="spec-grid">
+          <div class="spec-item"><i class="spec-icon">●</i><div><b>Колір стелі:</b> <span id="specColor">—</span></div></div>
+          <div class="spec-item"><i class="spec-icon">↔</i><div><b>Тіньовий профіль:</b> <span id="specShadow">ні</span></div></div>
+          <div class="spec-item"><i class="spec-icon">♟</i><div><b>Фактура:</b> <span id="specMaterial">—</span></div></div>
+          <div class="spec-item"><i class="spec-icon">☼</i><div><b>LED-підсвітка:</b> <span id="specLed">ні</span></div></div>
+          <div class="spec-item"><i class="spec-icon">●</i><div><b>Виробник:</b> <span id="specBrand">—</span></div></div>
+          <div class="spec-item"><i class="spec-icon">⌁</i><div><b>Світлові лінії:</b> <span id="specLines">ні</span></div></div>
+          <div class="spec-item"><i class="spec-icon">♬</i><div><b>Люстра / світильники:</b> <span id="specLight">—</span></div></div>
+          <div class="spec-item"><i class="spec-icon">☎</i><div><b>Телефон:</b> <span id="specPhone">без телефону</span></div></div>
+          <div class="spec-item"><i class="spec-icon">▣</i><div><b>Карниз:</b> <span id="specCornice">ні</span></div></div>
+          <div class="spec-item"><i class="spec-icon">▤</i><div><b>Треки:</b> <span id="specTracks">ні</span></div></div>
+        </div>
+
+        <div class="result-actions">
+          <button class="btn btn-green" type="button" onclick="sendCurrentToTelegram()">✈ Надіслати цей варіант в Telegram</button>
+          <a id="downloadBtn" class="btn btn-dark" href="#" download="potolok-ai.png">⬇ Завантажити варіант</a>
+        </div>
+      </section>
+
+      <section id="galleryBlock" class="gallery-section">
+        <div class="section-head gallery-head">
+          <div class="section-title">
+            <h2>▣ Мої AI-візуалізації</h2>
+            <span id="galleryCount" class="badge">0 варіантів</span>
+          </div>
+          <button class="link-button" type="button" onclick="scrollToGallery()">Переглянути всі ⌄</button>
+        </div>
+        <div id="gallery" class="gallery">
+          <div class="add-card" onclick="window.scrollTo({top:0,behavior:'smooth'})">
+            <strong>+</strong>
+            Створити<br>новий варіант
+          </div>
+        </div>
+      </section>
+
+      <section class="bottom-grid">
+        <div class="panel-card">
+          <div class="card-head">
+            <h3>📋 Орієнтовна комплектація</h3>
+            <button class="link-button" type="button">Редагувати</button>
+          </div>
+          <table id="kitTable" class="kit-table">
+            <thead>
+              <tr>
+                <th>Елемент</th>
+                <th>Кількість</th>
+                <th>Од.</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+          <div id="kitTotal" class="total-line">Усього позицій: 0</div>
+        </div>
+
+        <div class="price-card">
+          <div class="card-head">
+            <h3>💰 Орієнтовна вартість</h3>
+            <button class="link-button" type="button">Детальніше</button>
+          </div>
+          <div id="priceValue" class="price">— грн</div>
+          <div class="price-note">Орієнтовна ціна під ключ</div>
+          <div class="benefit-list">
+            <div class="benefit">✅ Безкоштовний замір</div>
+            <div class="benefit">✅ Якісний монтаж</div>
+            <div class="benefit">✅ Гарантія 10 років на полотно</div>
+            <div class="benefit">✅ Гарантія 5 років на монтаж</div>
+          </div>
+          <button class="btn btn-blue" type="button" onclick="sendCurrentToTelegram()">📞 Залишити заявку на цей варіант</button>
+        </div>
+      </section>
+
+      <section class="feature-bar">
+        <div class="feature"><div class="feature-icon">🪄</div><div><b>Реалістична візуалізація</b><span>AI показує реальний результат</span></div></div>
+        <div class="feature"><div class="feature-icon">⚙</div><div><b>Безкоштовна генерація</b><span>Перша генерація безкоштовна</span></div></div>
+        <div class="feature"><div class="feature-icon">🛡</div><div><b>Швидкий розрахунок</b><span>Отримайте ціну за 1 хвилину</span></div></div>
+        <div class="feature"><div class="feature-icon">🎧</div><div><b>Підтримка 24/7</b><span>Ми завжди на зв’язку</span></div></div>
+      </section>
+    </main>
+  </div>
+
+  <div id="toast" class="toast"></div>
+
+  <script>
+    const COLOR_DATA = [["white", "Білий 301", "MSD Premium", "#ffffff"], ["warm_white", "Теплий білий 303", "MSD Premium", "#fff8ed"], ["black", "Чорний 305 (Лак)", "MSD Premium", "#000000"], ["graphite", "Графіт 700", "MSD Premium", "#374151"], ["light_gray", "Світло-сірий 510", "MSD Premium", "#cbd5e1"], ["silver", "Сріблястий 512", "MSD Premium", "#aeb8c6"], ["beige", "Бежевий 571", "MSD Premium", "#d8c4a3"], ["cream", "Кремовий 210", "MSD Premium", "#ead8bd"], ["sand", "Пісочний 220", "MSD Premium", "#c9ad86"], ["latte", "Латте 230", "MSD Premium", "#b79b7b"], ["blue", "Синій 420", "MSD Premium", "#2563eb"], ["sky", "Небесний 430", "MSD Premium", "#38bdf8"], ["green", "Зелений 330", "MSD Premium", "#16a34a"], ["mint", "М’ята 335", "MSD Premium", "#7dd3aa"], ["red", "Червоний 120", "MSD Premium", "#dc2626"], ["bordo", "Бордо 130", "MSD Premium", "#7f1d1d"], ["violet", "Фіолетовий 810", "MSD Premium", "#7c3aed"], ["gold", "Золото 720", "MSD Premium", "#d4af37"]];
+
+    let uploadedImageBase64 = '';
+    let variants = [];
+    let currentIndex = -1;
+    let favoriteSet = new Set();
+
+    const photoInput = document.getElementById('photoInput');
+    const roomPreview = document.getElementById('roomPreview');
+    const emptyPhoto = document.getElementById('emptyPhoto');
+
+    photoInput.addEventListener('change', function(){
+      const file = this.files[0];
+      if(!file) return;
+
+      const reader = new FileReader();
+
+      reader.onload = function(e){
+        uploadedImageBase64 = e.target.result;
+        roomPreview.src = uploadedImageBase64;
+        roomPreview.style.display = 'block';
+        emptyPhoto.style.display = 'none';
+        showToast('Фото кімнати завантажено');
+      };
+
+      reader.readAsDataURL(file);
+    });
+
+    function getParams(){
+      const colorOption = colorSelect.options[colorSelect.selectedIndex];
+      const materialOption = materialSelect.options[materialSelect.selectedIndex];
+
+      return {
+        color: colorSelect.value,
+        colorLabel: colorOption.dataset.label,
+        brand: colorOption.dataset.brand,
+        dot: colorOption.dataset.dot,
+        material: materialSelect.value,
+        materialLabel: materialOption.dataset.label,
+        keepLight: keepLight.checked,
+        shadowProfile: shadowProfile.checked,
+        ledLine: ledLine.checked,
+        lightLines: lightLines.checked,
+        cornice: cornice.checked,
+        spots: spots.checked,
+        magneticTracks: magneticTracks.checked,
+        phone: clientPhoneAI.value.trim()
+      };
+    }
+
+    function syncDraft(){
+      const p = getParams();
+
+      colorDot.style.background = p.dot;
+      specColor.textContent = p.colorLabel;
+      specMaterial.textContent = p.materialLabel;
+      specBrand.textContent = p.brand;
+      specLight.textContent = p.keepLight ? 'залишити без змін' : 'можна змінювати';
+      specShadow.textContent = p.shadowProfile ? 'так' : 'ні';
+      specLed.textContent = p.ledLine ? 'по периметру' : 'ні';
+      specLines.textContent = p.lightLines ? 'так' : 'ні';
+      specPhone.textContent = p.phone || 'без телефону';
+      specCornice.textContent = p.cornice ? 'так' : 'ні';
+      specTracks.textContent = p.magneticTracks ? 'магнітні' : 'ні';
+
+      renderKit(p);
+    }
+
+    function renderKit(v){
+      const rows = [
+        ['Площа стелі (полотно)', '17.5', 'м²'],
+        ['Профіль алюмінієвий H', '18', 'м.п.'],
+        ['Вставка по периметру', '18', 'м.п.'],
+        ['LED-підсвітка по периметру', v.ledLine ? '17' : '—', 'м.п.'],
+        ['Світлові лінії', v.lightLines ? '3' : '—', 'м.п.'],
+        ['Тіньовий профіль', v.shadowProfile ? '18' : '—', 'м.п.'],
+        ['Карниз', v.cornice ? '3.2' : '—', 'м.п.'],
+        ['Точкові світильники', v.spots ? '6' : '—', 'шт.'],
+        ['Магнітні треки', v.magneticTracks ? '3' : '—', 'м.п.']
+      ];
+
+      const activeRows = rows.filter(row => row[1] !== '—');
+
+      kitTable.querySelector('tbody').innerHTML = rows.map(row => `
+        <tr>
+          <td>${row[0]}</td>
+          <td>${row[1]}</td>
+          <td>${row[2]}</td>
+        </tr>
+      `).join('');
+
+      kitTotal.textContent = 'Усього позицій: ' + activeRows.length;
+      priceValue.textContent = estimatePrice(v).toLocaleString('uk-UA') + ' грн';
+    }
+
+    function estimatePrice(v){
+      let total = 17500 * 400 / 1000;
+      total += 18 * 40;
+
+      if(v.ledLine) total += 17 * 550;
+      if(v.shadowProfile) total += 18 * 150;
+      if(v.lightLines) total += 3 * 700;
+      if(v.cornice) total += 3200;
+      if(v.spots) total += 6 * 450;
+      if(v.magneticTracks) total += 3 * 3000;
+
+      return Math.round(total);
+    }
+
+    async function generateAI(){
+      if(!uploadedImageBase64){
+        alert('Спочатку завантажте фото кімнати.');
+        return;
+      }
+
+      const p = getParams();
+      loader.style.display = 'block';
+
+      try{
+        const response = await fetch('/api/ai-ceiling', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            imageBase64: uploadedImageBase64,
+            phone: p.phone,
+            color: p.color,
+            material: p.material,
+            keepLight: p.keepLight,
+            shadowProfile: p.shadowProfile,
+            ledLine: p.ledLine,
+            lightLines: p.lightLines,
+            cornice: p.cornice,
+            spots: p.spots,
+            magneticTracks: p.magneticTracks
+          })
+        });
+
+        const data = await response.json();
+
+        if(!response.ok) throw new Error(data.error || 'Помилка AI');
+        if(!data.image) throw new Error('AI не повернув зображення');
+
+        const variant = {
+          ...p,
+          image: data.image,
+          number: variants.length + 1,
+          createdAt: new Date().toLocaleString('uk-UA')
+        };
+
+        variants.unshift(variant);
+        currentIndex = 0;
+
+        renderGallery();
+        updateCurrent(variant);
+        showToast('AI-візуалізацію створено');
+
+      }catch(error){
+        alert('Помилка: ' + error.message);
+      }finally{
+        loader.style.display = 'none';
+      }
+    }
+
+    function updateCurrent(v){
+      variantTitle.textContent = 'Варіант №' + v.number;
+      resultImageWrap.innerHTML = `<img src="${v.image}" alt="AI result">`;
+      downloadBtn.href = v.image;
+
+      specColor.textContent = v.colorLabel;
+      specMaterial.textContent = v.materialLabel;
+      specBrand.textContent = v.brand;
+      specLight.textContent = v.keepLight ? 'залишити без змін' : 'можна змінювати';
+      specShadow.textContent = v.shadowProfile ? 'так' : 'ні';
+      specLed.textContent = v.ledLine ? 'по периметру' : 'ні';
+      specLines.textContent = v.lightLines ? 'так' : 'ні';
+      specPhone.textContent = v.phone || 'без телефону';
+      specCornice.textContent = v.cornice ? 'так' : 'ні';
+      specTracks.textContent = v.magneticTracks ? 'магнітні' : 'ні';
+
+      renderKit(v);
+    }
+
+    function renderGallery(){
+      variantCount.textContent = variants.length + ' варіантів';
+      galleryCount.textContent = variants.length + ' варіантів';
+
+      const cards = variants.map((v,index) => {
+        const activeClass = index === currentIndex ? 'active' : '';
+        const activeBadge = index === currentIndex ? '<span class="mini-badge">Актуальний</span>' : '';
+        const fav = favoriteSet.has(v.number) ? '★' : '☆';
+
+        return `
+          <div class="variant-card ${activeClass}" onclick="selectVariant(${index})">
+            <div class="favorite-star">${fav}</div>
+            <img src="${v.image}" alt="variant">
+            <b>№${v.number}</b>
+            <small>${v.colorLabel}<br>${v.materialLabel}</small>
+            ${activeBadge}
+          </div>
+        `;
+      }).join('');
+
+      gallery.innerHTML = cards + `
+        <div class="add-card" onclick="window.scrollTo({top:0,behavior:'smooth'})">
+          <strong>+</strong>
+          Створити<br>новий варіант
+        </div>
+      `;
+    }
+
+    function selectVariant(index){
+      currentIndex = index;
+      renderGallery();
+      updateCurrent(variants[index]);
+    }
+
+    function deleteCurrent(){
+      if(currentIndex < 0){
+        alert('Поки немає варіантів.');
+        return;
+      }
+
+      const removed = variants[currentIndex];
+      favoriteSet.delete(removed.number);
+      variants.splice(currentIndex, 1);
+
+      if(variants.length){
+        currentIndex = 0;
+        updateCurrent(variants[0]);
+      }else{
+        currentIndex = -1;
+        resultImageWrap.innerHTML = `
+          <div class="hero-placeholder">
+            <strong>AI-візуалізація з’явиться тут</strong>
+            Завантажте фото кімнати, оберіть параметри та натисніть кнопку генерації.
+          </div>
+        `;
+      }
+
+      renderGallery();
+      showToast('Варіант видалено');
+    }
+
+    function toggleFavorite(){
+      if(currentIndex < 0){
+        alert('Поки немає варіантів.');
+        return;
+      }
+
+      const variant = variants[currentIndex];
+
+      if(favoriteSet.has(variant.number)){
+        favoriteSet.delete(variant.number);
+        showToast('Прибрано з обраного');
+      }else{
+        favoriteSet.add(variant.number);
+        showToast('Додано в обране');
+      }
+
+      renderGallery();
+    }
+
+    function shareCurrent(){
+      if(currentIndex < 0){
+        alert('Поки немає варіантів.');
+        return;
+      }
+
+      if(navigator.share){
+        navigator.share({
+          title: 'Potolok AI',
+          text: 'Мій AI-варіант натяжної стелі',
+          url: location.href
+        });
+      }else{
+        navigator.clipboard?.writeText(location.href);
+        showToast('Посилання скопійовано');
+      }
+    }
+
+    function sendCurrentToTelegram(){
+      if(currentIndex < 0){
+        alert('Спочатку створіть AI-візуалізацію.');
+        return;
+      }
+
+      const v = variants[currentIndex];
+
+      const text =
+`Хочу цей AI-варіант №${v.number}
+Колір: ${v.colorLabel}
+Фактура: ${v.materialLabel}
+Виробник: ${v.brand}
+LED: ${v.ledLine ? 'так' : 'ні'}
+Тіньовий профіль: ${v.shadowProfile ? 'так' : 'ні'}
+Світлові лінії: ${v.lightLines ? 'так' : 'ні'}
+Карниз: ${v.cornice ? 'так' : 'ні'}
+Точкові світильники: ${v.spots ? 'так' : 'ні'}
+Магнітні треки: ${v.magneticTracks ? 'так' : 'ні'}
+Телефон: ${v.phone || 'не вказано'}`;
+
+      window.open('https://t.me/potolok_kharkiv?text=' + encodeURIComponent(text), '_blank');
+    }
+
+    function scrollToGallery(){
+      galleryBlock.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    function openHowItWorks(){
+      alert('1. Завантажте фото кімнати.\n2. Оберіть колір, фактуру та опції.\n3. Натисніть AI-візуалізацію.\n4. Збережіть або надішліть варіант у Telegram.');
+    }
+
+    function showToast(message){
+      toast.textContent = message;
+      toast.style.display = 'block';
+      clearTimeout(window.toastTimer);
+      window.toastTimer = setTimeout(() => {
+        toast.style.display = 'none';
+      }, 2400);
+    }
+
+    syncDraft();
+  </script>
+</body>
+<!-- reserve-line-0001 -->
+<!-- reserve-line-0002 -->
+<!-- reserve-line-0003 -->
+<!-- reserve-line-0004 -->
+<!-- reserve-line-0005 -->
+<!-- reserve-line-0006 -->
+<!-- reserve-line-0007 -->
+<!-- reserve-line-0008 -->
+<!-- reserve-line-0009 -->
+<!-- reserve-line-0010 -->
+<!-- reserve-line-0011 -->
+<!-- reserve-line-0012 -->
+<!-- reserve-line-0013 -->
+<!-- reserve-line-0014 -->
+<!-- reserve-line-0015 -->
+<!-- reserve-line-0016 -->
+<!-- reserve-line-0017 -->
+<!-- reserve-line-0018 -->
+<!-- reserve-line-0019 -->
+<!-- reserve-line-0020 -->
+<!-- reserve-line-0021 -->
+<!-- reserve-line-0022 -->
+<!-- reserve-line-0023 -->
+<!-- reserve-line-0024 -->
+<!-- reserve-line-0025 -->
+<!-- reserve-line-0026 -->
+<!-- reserve-line-0027 -->
+<!-- reserve-line-0028 -->
+<!-- reserve-line-0029 -->
+<!-- reserve-line-0030 -->
+<!-- reserve-line-0031 -->
+<!-- reserve-line-0032 -->
+<!-- reserve-line-0033 -->
+<!-- reserve-line-0034 -->
+<!-- reserve-line-0035 -->
+<!-- reserve-line-0036 -->
+<!-- reserve-line-0037 -->
+<!-- reserve-line-0038 -->
+</html>
