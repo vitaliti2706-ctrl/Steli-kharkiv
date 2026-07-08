@@ -1,1 +1,423 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1180, initial-scale=1.0">
+<title>Potolok AI PRO</title>
+<style>
+:root{
+  --bg:#f7faff;
+  --card:#fff;
+  --text:#071126;
+  --muted:#64748b;
+  --line:#dbe7f5;
+  --blue:#0b63ff;
+  --green:#12a957;
+  --dark:#061126;
+  --shadow:0 14px 35px rgba(15,23,42,.07);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{min-width:1180px}
+body{font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:var(--text);overflow-x:auto}
+button,input,select{font:inherit}
+button{cursor:pointer}
+a{text-decoration:none;color:inherit}
+img{display:block;max-width:100%}
+
+.topbar{height:72px;background:#fff;border-bottom:1px solid #dfe8f4;position:sticky;top:0;z-index:50}
+.top-inner{width:1160px;height:72px;margin:0 auto;display:grid;grid-template-columns:240px 1fr 330px;align-items:center;gap:18px}
+.logo{display:flex;align-items:center;gap:12px}
+.logo-mark{width:44px;height:44px;border-radius:10px;background:linear-gradient(135deg,#073b7a,#0b63ff);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;font-size:20px}
+.logo-text b{display:block;font-size:20px;letter-spacing:.8px;font-weight:950}
+.logo-text span{display:block;font-size:10px;letter-spacing:2.5px;font-weight:900;margin-top:3px}
+.top-title{font-size:18px;font-weight:900}
+.top-actions{display:flex;justify-content:flex-end;gap:12px}
+.top-btn{height:44px;border:1px solid var(--line);border-radius:12px;background:#fff;padding:0 16px;font-weight:900;color:#10203d;display:flex;align-items:center;gap:8px}
+
+.wrap{width:1160px;margin:18px auto 26px;display:grid;grid-template-columns:330px 1fr;gap:22px;align-items:start}
+.sidebar{background:#fff;border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);padding:18px;position:sticky;top:90px}
+.main{min-width:0}
+
+.step{margin-bottom:26px}
+.step h3{font-size:18px;font-weight:950;margin-bottom:14px}
+.photo-box{height:220px;border:1px solid var(--line);border-radius:14px;overflow:hidden;background:#edf4ff;position:relative}
+.photo-box img{width:100%;height:100%;object-fit:cover}
+.empty-photo{height:100%;display:flex;align-items:center;justify-content:center;color:#6e7f95;font-weight:900}
+.cam{position:absolute;left:14px;bottom:14px;width:52px;height:52px;border-radius:50%;background:rgba(6,17,38,.84);color:#fff;display:flex;align-items:center;justify-content:center;font-size:23px}
+.btn{border:0;border-radius:10px;min-height:46px;padding:0 14px;font-weight:950;display:flex;align-items:center;justify-content:center;gap:8px;width:100%}
+.btn-blue{background:#0b63ff;color:#fff}
+.btn-green{background:linear-gradient(135deg,#10a957,#21c873);color:#fff}
+.btn-dark{background:#061126;color:#fff}
+.btn-white{background:#fff;color:#0b63ff;border:1px solid var(--line)}
+.btn.mt{margin-top:12px}
+
+.select-card{border:1px solid var(--line);border-radius:14px;background:#fff;height:58px;display:grid;grid-template-columns:44px 1fr 20px;gap:10px;align-items:center;padding:8px 10px}
+.color-dot{width:42px;height:42px;border-radius:50%;border:1px solid #d9e3ef;background:#fff}
+select{border:0;outline:0;background:transparent;width:100%;font-weight:900;color:#0f172a;font-size:14px}
+.hint{margin-top:10px;font-size:13px;color:#64748b;font-weight:700;line-height:1.4}
+.hint b{color:#0b63ff}
+.option{display:flex;align-items:center;gap:10px;margin:11px 0;font-size:15px;font-weight:800}
+.option input{width:18px;height:18px;accent-color:#0b63ff}
+.phone{width:100%;height:50px;border:1px solid var(--line);border-radius:14px;padding:0 14px;font-weight:900;outline:0}
+.help{margin-top:16px;background:#f2f8ff;border:1px solid #cfe1f8;border-radius:14px;padding:14px;font-size:13px;color:#334155;font-weight:700;line-height:1.45}
+.help b{display:block;color:#071126;font-size:14px;margin-bottom:4px}
+
+.title-row{display:flex;align-items:center;justify-content:space-between;margin:0 0 14px}
+.title-left{display:flex;align-items:center;gap:10px}
+.title-left h1{font-size:24px;font-weight:950}
+.badge{background:#eaf2ff;color:#0b63ff;border-radius:999px;padding:7px 12px;font-size:13px;font-weight:950}
+.result-card{background:#fff;border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);padding:20px}
+.card-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.card-title{display:flex;align-items:center;gap:12px}
+.card-title h2{font-size:25px;font-weight:950}
+.actual{background:#10a957;color:#fff;border-radius:999px;padding:8px 14px;font-size:13px;font-weight:950}
+.icon-actions{display:flex;gap:10px}
+.icon-btn{height:40px;min-width:40px;border:1px solid var(--line);border-radius:10px;background:#fff;font-weight:900}
+.fav{padding:0 14px;color:#071126}
+
+.result-img{height:500px;border:1px solid #e2e8f0;border-radius:18px;overflow:hidden;background:#edf4ff;display:flex;align-items:center;justify-content:center;color:#66758b;font-weight:900;text-align:center;line-height:1.45}
+.result-img img{width:100%;height:100%;object-fit:cover}
+.specs{display:grid;grid-template-columns:1fr 1fr;gap:11px 34px;margin:18px 0}
+.spec{display:grid;grid-template-columns:22px 1fr;gap:8px;align-items:center;font-size:14px;color:#0f172a}
+.spec i{font-style:normal;text-align:center;font-weight:900}
+.spec b{font-weight:950}
+.spec span{font-weight:650;color:#334155}
+.actions{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+
+.gallery-block{margin-top:22px}
+.gallery-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.gallery-head h2{font-size:22px;font-weight:950;display:flex;align-items:center;gap:10px}
+.link{border:0;background:transparent;color:#0b63ff;font-weight:900;font-size:14px}
+.gallery{display:flex;gap:18px;overflow-x:auto;padding-bottom:4px}
+.variant{width:200px;flex:0 0 auto;background:#fff;border:1px solid var(--line);border-radius:15px;padding:8px;box-shadow:0 8px 22px rgba(15,23,42,.05);position:relative}
+.variant.active{border:2px solid #0b63ff;padding:7px}
+.variant img{width:100%;height:110px;object-fit:cover;border-radius:12px;background:#edf4ff}
+.variant b{display:block;margin-top:8px;font-size:14px}
+.variant small{display:block;color:#334155;font-size:12px;font-weight:700;line-height:1.35;margin-top:3px}
+.star{position:absolute;right:13px;top:13px;width:26px;height:26px;background:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#0b63ff;box-shadow:0 6px 14px rgba(0,0,0,.14)}
+.mini-badge{display:inline-block;margin-top:5px;background:#e8fff1;color:#16a34a;border-radius:999px;padding:4px 8px;font-size:10px;font-weight:950}
+.add-card{width:190px;min-height:180px;flex:0 0 auto;border:1px dashed #b9c7dc;border-radius:15px;background:#fff;display:flex;align-items:center;justify-content:center;flex-direction:column;text-align:center;color:#334155;font-weight:850}
+.add-card strong{font-size:42px;font-weight:300;color:#1e293b}
+
+.bottom{display:grid;grid-template-columns:1fr 1fr;gap:22px;margin-top:22px}
+.panel{background:#fff;border:1px solid var(--line);border-radius:18px;box-shadow:0 10px 25px rgba(15,23,42,.055);padding:18px}
+.panel-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.panel-head h3{font-size:18px;font-weight:950}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th{text-align:left;color:#334155;font-size:13px;font-weight:900;padding:8px 0}
+td{border-bottom:1px solid #eef2f7;padding:9px 0}
+th:nth-child(2),th:nth-child(3),td:nth-child(2),td:nth-child(3){text-align:right;font-weight:850}
+.total{border-top:1px solid #e5edf7;margin-top:12px;padding-top:12px;color:#334155;font-size:14px;font-weight:800}
+.price{font-size:36px;font-weight:950;color:#16a34a;margin:8px 0 4px}
+.price-note{color:#64748b;font-size:14px;font-weight:700;margin-bottom:12px}
+.benefit{margin:8px 0;color:#334155;font-weight:750;font-size:14px}
+
+.features{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:22px;background:#fff;border:1px solid var(--line);border-radius:18px;padding:16px}
+.feature{display:grid;grid-template-columns:42px 1fr;gap:10px;align-items:center}
+.fi{width:42px;height:42px;border-radius:50%;background:#eaf2ff;color:#0b63ff;display:flex;align-items:center;justify-content:center;font-size:20px}
+.feature b{display:block;font-size:13px;font-weight:950}
+.feature span{display:block;font-size:12px;color:#64748b;font-weight:700;margin-top:2px}
+.loader{display:none;margin-top:10px;text-align:center;color:#0b63ff;font-weight:950}
+.toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:#061126;color:#fff;padding:12px 16px;border-radius:14px;font-weight:850;display:none;z-index:100}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="top-inner">
+    <a class="logo" href="../index.html">
+      <div class="logo-mark">⬡</div>
+      <div class="logo-text"><b>POTOLOK</b><span>НАТЯЖНІ СТЕЛІ</span></div>
+    </a>
+    <div class="top-title">Potolok AI — AI-візуалізація стелі</div>
+    <div class="top-actions">
+      <button class="top-btn" onclick="openHowItWorks()">ⓘ Як це працює</button>
+      <button class="top-btn" onclick="scrollToGallery()">♡ Мої варіанти</button>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+  <aside class="sidebar">
+    <section class="step">
+      <h3>1. Завантажте фото кімнати</h3>
+      <div class="photo-box">
+        <div id="emptyPhoto" class="empty-photo">Фото кімнати</div>
+        <img id="roomPreview" src="" alt="room" style="display:none">
+        <div class="cam">📷</div>
+      </div>
+      <input id="photoInput" type="file" accept="image/*" hidden>
+      <button class="btn btn-blue mt" onclick="photoInput.click()">↗ Змінити фото</button>
+    </section>
+
+    <section class="step">
+      <h3>2. Виберіть колір стелі</h3>
+      <div class="select-card">
+        <div id="colorDot" class="color-dot"></div>
+        <select id="colorSelect" onchange="syncDraft()">
+          <option value="black" data-label="Чорний 305 (Лак)" data-brand="MSD Premium" data-dot="#000000">Чорний 305 (Лак) — MSD Premium</option>
+          <option value="white" data-label="Білий 301" data-brand="MSD Premium" data-dot="#ffffff">Білий 301 — MSD Premium</option>
+          <option value="graphite" data-label="Графіт 700" data-brand="MSD Premium" data-dot="#374151">Графіт 700 — MSD Premium</option>
+          <option value="light gray" data-label="Світло-сірий 510" data-brand="MSD Premium" data-dot="#cbd5e1">Світло-сірий 510 — MSD Premium</option>
+          <option value="beige" data-label="Бежевий 571" data-brand="MSD Premium" data-dot="#d8c4a3">Бежевий 571 — MSD Premium</option>
+        </select>
+        <span>⌄</span>
+      </div>
+      <div class="hint">ⓘ Не знаєте номер? Оберіть із <b>каталогу</b></div>
+    </section>
+
+    <section class="step">
+      <h3>3. Фактура стелі</h3>
+      <div class="select-card">
+        <div class="color-dot" style="background:#f1f5f9"></div>
+        <select id="materialSelect" onchange="syncDraft()">
+          <option value="glossy" data-label="Глянець (Лак)">Глянець (Лак)</option>
+          <option value="matte" data-label="Матова">Матова</option>
+          <option value="satin" data-label="Сатин">Сатин</option>
+        </select>
+        <span>⌄</span>
+      </div>
+    </section>
+
+    <section class="step">
+      <h3>4. Додаткові опції ⓘ</h3>
+      <label class="option"><input id="keepLight" type="checkbox" checked onchange="syncDraft()">Залишити люстру / світильники</label>
+      <label class="option"><input id="shadowProfile" type="checkbox" onchange="syncDraft()">Тіньовий профіль</label>
+      <label class="option"><input id="ledLine" type="checkbox" checked onchange="syncDraft()">LED-підсвітка по периметру</label>
+      <label class="option"><input id="lightLines" type="checkbox" onchange="syncDraft()">Світлові лінії</label>
+      <label class="option"><input id="cornice" type="checkbox" onchange="syncDraft()">Карниз</label>
+      <label class="option"><input id="spots" type="checkbox" onchange="syncDraft()">Точкові світильники</label>
+    </section>
+
+    <section class="step">
+      <h3>Телефон</h3>
+      <input id="clientPhoneAI" class="phone" type="tel" placeholder="+380 XX XXX XX XX" oninput="syncDraft()">
+      <div class="hint">Перша генерація безкоштовна. Далі — 4 генерації за номером телефону.</div>
+    </section>
+
+    <button class="btn btn-blue" onclick="generateAI()">✨ Підготувати AI-візуалізацію</button>
+    <div id="loader" class="loader">Готуємо AI-візуалізацію...</div>
+
+    <div class="help">
+      <b>Потрібна допомога?</b>
+      Напишіть нам у Telegram — ми підкажемо найкраще рішення.
+      <a class="btn btn-white mt" href="https://t.me/potolok_kharkiv" target="_blank">✈ Написати в Telegram</a>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="title-row">
+      <div class="title-left"><span>🖼️</span><h1>✨ Моя AI-візуалізація</h1><span id="variantCount" class="badge">0 варіантів</span></div>
+    </div>
+
+    <section class="result-card">
+      <div class="card-top">
+        <div class="card-title"><h2 id="variantTitle">Варіант №1</h2><span class="actual">Актуальний</span></div>
+        <div class="icon-actions">
+          <button class="icon-btn fav" onclick="toggleFavorite()">♡ В обране</button>
+          <button class="icon-btn" onclick="shareCurrent()">⌯</button>
+          <button class="icon-btn" onclick="deleteCurrent()">🗑</button>
+        </div>
+      </div>
+
+      <div id="resultImageWrap" class="result-img">
+        <div>AI-візуалізація з’явиться тут<br>Завантажте фото кімнати та натисніть кнопку генерації.</div>
+      </div>
+
+      <div class="specs">
+        <div class="spec"><i>●</i><div><b>Колір стелі:</b> <span id="specColor">—</span></div></div>
+        <div class="spec"><i>↔</i><div><b>Тіньовий профіль:</b> <span id="specShadow">ні</span></div></div>
+        <div class="spec"><i>♟</i><div><b>Фактура:</b> <span id="specMaterial">—</span></div></div>
+        <div class="spec"><i>☼</i><div><b>LED-підсвітка:</b> <span id="specLed">ні</span></div></div>
+        <div class="spec"><i>●</i><div><b>Виробник:</b> <span id="specBrand">—</span></div></div>
+        <div class="spec"><i>⌁</i><div><b>Світлові лінії:</b> <span id="specLines">ні</span></div></div>
+        <div class="spec"><i>♬</i><div><b>Люстра / світильники:</b> <span id="specLight">—</span></div></div>
+        <div class="spec"><i>☎</i><div><b>Телефон:</b> <span id="specPhone">без телефону</span></div></div>
+      </div>
+
+      <div class="actions">
+        <button class="btn btn-green" onclick="sendCurrentToTelegram()">✈ Надіслати цей варіант в Telegram</button>
+        <a id="downloadBtn" class="btn btn-dark" href="#" download="potolok-ai.png">⬇ Завантажити варіант</a>
+      </div>
+    </section>
+
+    <section id="galleryBlock" class="gallery-block">
+      <div class="gallery-head">
+        <h2>▣ Мої AI-візуалізації <span id="galleryCount" class="badge">0 варіантів</span></h2>
+        <button class="link" onclick="scrollToGallery()">Переглянути всі⌄</button>
+      </div>
+      <div id="gallery" class="gallery">
+        <div class="add-card" onclick="window.scrollTo({top:0,behavior:'smooth'})"><strong>+</strong>Створити<br>новий варіант</div>
+      </div>
+    </section>
+
+    <section class="bottom">
+      <div class="panel">
+        <div class="panel-head"><h3>📋 Орієнтовна комплектація</h3><button class="link">Редагувати</button></div>
+        <table id="kitTable"><thead><tr><th>Елемент</th><th>Кількість</th><th>Од.</th></tr></thead><tbody></tbody></table>
+        <div id="kitTotal" class="total">Усього позицій: 0</div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head"><h3>💰 Орієнтовна вартість</h3><button class="link">Детальніше</button></div>
+        <div id="priceValue" class="price">— грн</div>
+        <div class="price-note">Орієнтовна ціна під ключ</div>
+        <div class="benefit">✅ Безкоштовний замір</div>
+        <div class="benefit">✅ Якісний монтаж</div>
+        <div class="benefit">✅ Гарантія 10 років на полотно</div>
+        <div class="benefit">✅ Гарантія 5 років на монтаж</div>
+        <button class="btn btn-blue" onclick="sendCurrentToTelegram()">📞 Залишити заявку на цей варіант</button>
+      </div>
+    </section>
+
+    <section class="features">
+      <div class="feature"><div class="fi">🪄</div><div><b>Реалістична візуалізація</b><span>AI показує реальний результат</span></div></div>
+      <div class="feature"><div class="fi">⚙</div><div><b>Безкоштовна генерація</b><span>Перша генерація безкоштовна</span></div></div>
+      <div class="feature"><div class="fi">🛡</div><div><b>Швидкий розрахунок</b><span>Отримайте ціну за 1 хвилину</span></div></div>
+      <div class="feature"><div class="fi">🎧</div><div><b>Підтримка 24/7</b><span>Ми завжди на зв’язку</span></div></div>
+    </section>
+  </main>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script>
+let uploadedImageBase64='',variants=[],currentIndex=-1,favoriteSet=new Set();
+
+photoInput.addEventListener('change',function(){
+  const file=this.files[0];
+  if(!file)return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    uploadedImageBase64=e.target.result;
+    roomPreview.src=uploadedImageBase64;
+    roomPreview.style.display='block';
+    emptyPhoto.style.display='none';
+    showToast('Фото завантажено');
+  };
+  reader.readAsDataURL(file);
+});
+
+function getParams(){
+  const c=colorSelect.options[colorSelect.selectedIndex];
+  const m=materialSelect.options[materialSelect.selectedIndex];
+  return{
+    color:colorSelect.value,colorLabel:c.dataset.label,brand:c.dataset.brand,dot:c.dataset.dot,
+    material:materialSelect.value,materialLabel:m.dataset.label,keepLight:keepLight.checked,
+    shadowProfile:shadowProfile.checked,ledLine:ledLine.checked,lightLines:lightLines.checked,
+    cornice:cornice.checked,spots:spots.checked,phone:clientPhoneAI.value.trim()
+  };
+}
+
+function syncDraft(){
+  const p=getParams();
+  colorDot.style.background=p.dot;
+  specColor.textContent=p.colorLabel;
+  specMaterial.textContent=p.materialLabel;
+  specBrand.textContent=p.brand;
+  specLight.textContent=p.keepLight?'залишити без змін':'можна змінювати';
+  specShadow.textContent=p.shadowProfile?'так':'ні';
+  specLed.textContent=p.ledLine?'по периметру':'ні';
+  specLines.textContent=p.lightLines?'так':'ні';
+  specPhone.textContent=p.phone||'без телефону';
+  renderKit(p);
+}
+
+function renderKit(v){
+  const rows=[
+    ['Площа стелі (полотно)','17.5','м²'],
+    ['Профіль алюмінієвий H','18','м.п.'],
+    ['LED-підсвітка по периметру',v.ledLine?'17':'—','м.п.'],
+    ['Світлові лінії',v.lightLines?'3':'—','м.п.'],
+    ['Точкові світильники',v.spots?'6':'—','шт.'],
+    ['Карниз',v.cornice?'3.2':'—','м.п.']
+  ];
+  kitTable.querySelector('tbody').innerHTML=rows.map(r=>`<tr><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td></tr>`).join('');
+  kitTotal.textContent='Усього позицій: '+rows.filter(r=>r[1]!=='—').length;
+  priceValue.textContent=estimatePrice(v).toLocaleString('uk-UA')+' грн';
+}
+
+function estimatePrice(v){
+  let total=17070;
+  if(v.lightLines)total+=2100;
+  if(v.cornice)total+=3200;
+  if(v.spots)total+=2700;
+  if(v.shadowProfile)total+=2700;
+  return Math.round(total);
+}
+
+async function generateAI(){
+  if(!uploadedImageBase64){alert('Спочатку завантажте фото кімнати.');return}
+  const p=getParams();
+  loader.style.display='block';
+  try{
+    const response=await fetch('/api/ai-ceiling',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        imageBase64:uploadedImageBase64,phone:p.phone,color:p.color,material:p.material,
+        keepLight:p.keepLight,shadowProfile:p.shadowProfile,ledLine:p.ledLine,
+        lightLines:p.lightLines,cornice:p.cornice,spots:p.spots
+      })
+    });
+    const data=await response.json();
+    if(!response.ok)throw new Error(data.error||'Помилка AI');
+    if(!data.image)throw new Error('AI не повернув зображення');
+    const variant={...p,image:data.image,number:variants.length+1};
+    variants.unshift(variant);currentIndex=0;renderGallery();updateCurrent(variant);showToast('AI-візуалізацію створено');
+  }catch(e){alert('Помилка: '+e.message)}
+  finally{loader.style.display='none'}
+}
+
+function updateCurrent(v){
+  variantTitle.textContent='Варіант №'+v.number;
+  resultImageWrap.innerHTML=`<img src="${v.image}" alt="AI result">`;
+  downloadBtn.href=v.image;
+  specColor.textContent=v.colorLabel;specMaterial.textContent=v.materialLabel;specBrand.textContent=v.brand;
+  specLight.textContent=v.keepLight?'залишити без змін':'можна змінювати';
+  specShadow.textContent=v.shadowProfile?'так':'ні';specLed.textContent=v.ledLine?'по периметру':'ні';
+  specLines.textContent=v.lightLines?'так':'ні';specPhone.textContent=v.phone||'без телефону';
+  renderKit(v);
+}
+
+function renderGallery(){
+  variantCount.textContent=variants.length+' варіант';
+  galleryCount.textContent=variants.length+' варіант';
+  const cards=variants.map((v,i)=>`
+    <div class="variant ${i===currentIndex?'active':''}" onclick="selectVariant(${i})">
+      <div class="star">${favoriteSet.has(v.number)?'★':'☆'}</div>
+      <img src="${v.image}" alt="">
+      <b>№${v.number}</b>
+      <small>${v.colorLabel}<br>${v.materialLabel}</small>
+      ${i===currentIndex?'<span class="mini-badge">Актуальний</span>':''}
+    </div>`).join('');
+  gallery.innerHTML=cards+`<div class="add-card" onclick="window.scrollTo({top:0,behavior:'smooth'})"><strong>+</strong>Створити<br>новий варіант</div>`;
+}
+
+function selectVariant(i){currentIndex=i;renderGallery();updateCurrent(variants[i])}
+function deleteCurrent(){if(currentIndex<0)return alert('Поки немає варіантів.');variants.splice(currentIndex,1);currentIndex=variants.length?0:-1;renderGallery();if(currentIndex>=0)updateCurrent(variants[currentIndex])}
+function toggleFavorite(){if(currentIndex<0)return alert('Поки немає варіантів.');const n=variants[currentIndex].number;favoriteSet.has(n)?favoriteSet.delete(n):favoriteSet.add(n);renderGallery()}
+function shareCurrent(){navigator.clipboard?.writeText(location.href);showToast('Посилання скопійовано')}
+function sendCurrentToTelegram(){
+  if(currentIndex<0){alert('Спочатку створіть AI-візуалізацію.');return}
+  const v=variants[currentIndex];
+  const text=`Хочу цей AI-варіант №${v.number}
+Колір: ${v.colorLabel}
+Фактура: ${v.materialLabel}
+Виробник: ${v.brand}
+LED: ${v.ledLine?'так':'ні'}
+Тіньовий профіль: ${v.shadowProfile?'так':'ні'}
+Світлові лінії: ${v.lightLines?'так':'ні'}
+Карниз: ${v.cornice?'так':'ні'}
+Точкові світильники: ${v.spots?'так':'ні'}
+Телефон: ${v.phone||'не вказано'}`;
+  window.open('https://t.me/potolok_kharkiv?text='+encodeURIComponent(text),'_blank');
+}
+function scrollToGallery(){galleryBlock.scrollIntoView({behavior:'smooth',block:'start'})}
+function openHowItWorks(){alert('1. Завантажте фото кімнати.\\n2. Оберіть колір і опції.\\n3. Натисніть AI-візуалізацію.\\n4. Надішліть варіант у Telegram.')}
+function showToast(t){toast.textContent=t;toast.style.display='block';clearTimeout(window.tt);window.tt=setTimeout(()=>toast.style.display='none',2200)}
+syncDraft();
+</script>
+</body>
+</html>
 
