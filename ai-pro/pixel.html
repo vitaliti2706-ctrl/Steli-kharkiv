@@ -3,190 +3,865 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=1180, initial-scale=1.0">
-<title>Potolok AI PRO</title>
+<title>Potolok AI — AI-візуалізація стелі</title>
 <style>
 :root{
   --bg:#f7faff;
-  --card:#fff;
+  --card:#ffffff;
   --text:#071126;
   --muted:#64748b;
   --line:#dbe7f5;
-  --blue:#0b63ff;
+  --line2:#eef3fb;
+  --blue:#075bff;
+  --blue2:#eaf2ff;
   --green:#12a957;
   --dark:#061126;
-  --shadow:0 14px 35px rgba(15,23,42,.07);
+  --shadow:0 18px 45px rgba(15,23,42,.075);
+  --shadow2:0 8px 22px rgba(15,23,42,.052);
+  --radius:18px;
 }
 *{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
 html,body{min-width:1180px}
-body{font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:var(--text);overflow-x:auto}
+body{
+  font-family:Inter,Arial,Helvetica,sans-serif;
+  background:#f7faff;
+  color:var(--text);
+  overflow-x:auto;
+}
+a{text-decoration:none;color:inherit}
 button,input,select{font:inherit}
 button{cursor:pointer}
-a{text-decoration:none;color:inherit}
 img{display:block;max-width:100%}
 
-.topbar{height:72px;background:#fff;border-bottom:1px solid #dfe8f4;position:sticky;top:0;z-index:50}
-.top-inner{width:1160px;height:72px;margin:0 auto;display:grid;grid-template-columns:240px 1fr 330px;align-items:center;gap:18px}
-.logo{display:flex;align-items:center;gap:12px}
-.logo-mark{width:44px;height:44px;border-radius:10px;background:linear-gradient(135deg,#073b7a,#0b63ff);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;font-size:20px}
-.logo-text b{display:block;font-size:20px;letter-spacing:.8px;font-weight:950}
-.logo-text span{display:block;font-size:10px;letter-spacing:2.5px;font-weight:900;margin-top:3px}
-.top-title{font-size:18px;font-weight:900}
-.top-actions{display:flex;justify-content:flex-end;gap:12px}
-.top-btn{height:44px;border:1px solid var(--line);border-radius:12px;background:#fff;padding:0 16px;font-weight:900;color:#10203d;display:flex;align-items:center;gap:8px}
+/* HEADER */
+.header{
+  height:76px;
+  background:#fff;
+  border-bottom:1px solid var(--line);
+  position:sticky;
+  top:0;
+  z-index:50;
+}
+.header-inner{
+  width:1180px;
+  height:76px;
+  margin:0 auto;
+  display:grid;
+  grid-template-columns:245px 1fr 330px;
+  align-items:center;
+  gap:18px;
+  padding:0 8px;
+}
+.brand{
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+.brand-icon{
+  width:46px;
+  height:46px;
+  border-radius:10px;
+  background:linear-gradient(135deg,#0c3f86,#075bff);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:#fff;
+  font-size:20px;
+  font-weight:900;
+  box-shadow:0 10px 20px rgba(7,91,255,.18);
+}
+.brand-text b{
+  display:block;
+  font-size:20px;
+  letter-spacing:.7px;
+  font-weight:950;
+  line-height:1;
+}
+.brand-text span{
+  display:block;
+  margin-top:5px;
+  font-size:10px;
+  letter-spacing:2.5px;
+  font-weight:900;
+}
+.header-title{
+  font-size:18px;
+  font-weight:950;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.header-actions{
+  display:flex;
+  justify-content:flex-end;
+  gap:12px;
+}
+.top-btn{
+  height:42px;
+  border:1px solid var(--line);
+  background:#fff;
+  border-radius:12px;
+  padding:0 15px;
+  display:flex;
+  align-items:center;
+  gap:8px;
+  font-size:14px;
+  font-weight:900;
+  color:#0f2857;
+}
 
-.wrap{width:1160px;margin:18px auto 26px;display:grid;grid-template-columns:330px 1fr;gap:22px;align-items:start}
-.sidebar{background:#fff;border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);padding:18px;position:sticky;top:90px}
+/* LAYOUT */
+.app{
+  width:1180px;
+  margin:18px auto 28px;
+  display:grid;
+  grid-template-columns:320px 1fr 220px;
+  gap:18px;
+  align-items:start;
+}
+.sidebar,
+.result-card,
+.panel,
+.mobile-preview{
+  background:#fff;
+  border:1px solid var(--line);
+  border-radius:18px;
+  box-shadow:var(--shadow2);
+}
+.sidebar{
+  padding:16px;
+  position:sticky;
+  top:94px;
+}
 .main{min-width:0}
+.right-preview{
+  position:sticky;
+  top:94px;
+}
 
-.step{margin-bottom:26px}
-.step h3{font-size:18px;font-weight:950;margin-bottom:14px}
-.photo-box{height:220px;border:1px solid var(--line);border-radius:14px;overflow:hidden;background:#edf4ff;position:relative}
-.photo-box img{width:100%;height:100%;object-fit:cover}
-.empty-photo{height:100%;display:flex;align-items:center;justify-content:center;color:#6e7f95;font-weight:900}
-.cam{position:absolute;left:14px;bottom:14px;width:52px;height:52px;border-radius:50%;background:rgba(6,17,38,.84);color:#fff;display:flex;align-items:center;justify-content:center;font-size:23px}
-.btn{border:0;border-radius:10px;min-height:46px;padding:0 14px;font-weight:950;display:flex;align-items:center;justify-content:center;gap:8px;width:100%}
-.btn-blue{background:#0b63ff;color:#fff}
-.btn-green{background:linear-gradient(135deg,#10a957,#21c873);color:#fff}
+/* LEFT SIDEBAR */
+.step{
+  padding-bottom:22px;
+  margin-bottom:22px;
+  border-bottom:1px solid var(--line2);
+}
+.step:last-child{border-bottom:0;margin-bottom:0;padding-bottom:0}
+.step h3{
+  font-size:17px;
+  font-weight:950;
+  margin-bottom:14px;
+}
+.photo-card{
+  height:250px;
+  background:#eef4ff;
+  border:1px solid #dce8f6;
+  border-radius:14px;
+  overflow:hidden;
+  position:relative;
+}
+.photo-card img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+}
+.photo-empty{
+  height:100%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:#718199;
+  font-weight:900;
+  font-size:14px;
+}
+.camera{
+  position:absolute;
+  left:14px;
+  bottom:14px;
+  width:54px;
+  height:54px;
+  border-radius:50%;
+  background:#071126;
+  color:#fff;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:22px;
+  box-shadow:0 14px 24px rgba(6,17,38,.25);
+}
+.btn{
+  border:0;
+  min-height:48px;
+  width:100%;
+  border-radius:10px;
+  padding:0 14px;
+  margin-top:12px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  font-size:14px;
+  font-weight:950;
+}
+.btn-blue{background:linear-gradient(180deg,#0b69ff,#075bff);color:#fff;box-shadow:0 10px 18px rgba(7,91,255,.2)}
+.btn-green{background:linear-gradient(135deg,#0ea653,#19c66f);color:#fff}
 .btn-dark{background:#061126;color:#fff}
-.btn-white{background:#fff;color:#0b63ff;border:1px solid var(--line)}
-.btn.mt{margin-top:12px}
-
-.select-card{border:1px solid var(--line);border-radius:14px;background:#fff;height:58px;display:grid;grid-template-columns:44px 1fr 20px;gap:10px;align-items:center;padding:8px 10px}
-.color-dot{width:42px;height:42px;border-radius:50%;border:1px solid #d9e3ef;background:#fff}
-select{border:0;outline:0;background:transparent;width:100%;font-weight:900;color:#0f172a;font-size:14px}
-.hint{margin-top:10px;font-size:13px;color:#64748b;font-weight:700;line-height:1.4}
-.hint b{color:#0b63ff}
-.option{display:flex;align-items:center;gap:10px;margin:11px 0;font-size:15px;font-weight:800}
-.option input{width:18px;height:18px;accent-color:#0b63ff}
-.phone{width:100%;height:50px;border:1px solid var(--line);border-radius:14px;padding:0 14px;font-weight:900;outline:0}
-.help{margin-top:16px;background:#f2f8ff;border:1px solid #cfe1f8;border-radius:14px;padding:14px;font-size:13px;color:#334155;font-weight:700;line-height:1.45}
+.btn-white{background:#fff;color:#075bff;border:1px solid var(--line)}
+.select-box{
+  height:58px;
+  border:1px solid var(--line);
+  border-radius:13px;
+  background:#fff;
+  padding:8px 10px;
+  display:grid;
+  grid-template-columns:42px 1fr 18px;
+  align-items:center;
+  gap:10px;
+}
+.dot{
+  width:42px;
+  height:42px;
+  border-radius:50%;
+  border:1px solid #d9e3ef;
+  background:#fff;
+}
+select{
+  width:100%;
+  border:0;
+  outline:0;
+  background:transparent;
+  font-weight:900;
+  color:#111827;
+  font-size:13px;
+}
+.arrow{color:#64748b;font-weight:900}
+.hint{
+  margin-top:10px;
+  color:#64748b;
+  font-size:13px;
+  font-weight:700;
+  line-height:1.45;
+}
+.hint b{color:#075bff}
+.options{
+  display:grid;
+  gap:10px;
+}
+.opt{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  color:#172033;
+  font-weight:850;
+  font-size:14px;
+  line-height:1.25;
+}
+.opt input{
+  width:17px;
+  height:17px;
+  accent-color:#075bff;
+}
+.phone{
+  width:100%;
+  height:52px;
+  border:1px solid var(--line);
+  border-radius:13px;
+  outline:0;
+  padding:0 14px;
+  font-weight:850;
+}
+.help{
+  margin-top:16px;
+  background:#f2f8ff;
+  border:1px solid #cfe1f8;
+  border-radius:15px;
+  padding:14px;
+  color:#334155;
+  font-size:13px;
+  font-weight:700;
+  line-height:1.45;
+}
 .help b{display:block;color:#071126;font-size:14px;margin-bottom:4px}
+.loader{
+  display:none;
+  margin-top:10px;
+  text-align:center;
+  color:#075bff;
+  font-weight:950;
+}
 
-.title-row{display:flex;align-items:center;justify-content:space-between;margin:0 0 14px}
-.title-left{display:flex;align-items:center;gap:10px}
-.title-left h1{font-size:24px;font-weight:950}
-.badge{background:#eaf2ff;color:#0b63ff;border-radius:999px;padding:7px 12px;font-size:13px;font-weight:950}
-.result-card{background:#fff;border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);padding:20px}
-.card-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
-.card-title{display:flex;align-items:center;gap:12px}
-.card-title h2{font-size:25px;font-weight:950}
-.actual{background:#10a957;color:#fff;border-radius:999px;padding:8px 14px;font-size:13px;font-weight:950}
-.icon-actions{display:flex;gap:10px}
-.icon-btn{height:40px;min-width:40px;border:1px solid var(--line);border-radius:10px;background:#fff;font-weight:900}
-.fav{padding:0 14px;color:#071126}
+/* MAIN HEAD */
+.section-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  margin:0 0 14px;
+}
+.section-title{
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+.section-title h1,.section-title h2{
+  font-size:24px;
+  font-weight:950;
+  letter-spacing:-.3px;
+}
+.badge{
+  background:#eaf2ff;
+  color:#075bff;
+  border-radius:999px;
+  padding:6px 10px;
+  font-size:12px;
+  font-weight:950;
+}
+.link-btn{
+  border:0;
+  background:transparent;
+  color:#075bff;
+  font-weight:950;
+  font-size:13px;
+}
 
-.result-img{height:500px;border:1px solid #e2e8f0;border-radius:18px;overflow:hidden;background:#edf4ff;display:flex;align-items:center;justify-content:center;color:#66758b;font-weight:900;text-align:center;line-height:1.45}
-.result-img img{width:100%;height:100%;object-fit:cover}
-.specs{display:grid;grid-template-columns:1fr 1fr;gap:11px 34px;margin:18px 0}
-.spec{display:grid;grid-template-columns:22px 1fr;gap:8px;align-items:center;font-size:14px;color:#0f172a}
-.spec i{font-style:normal;text-align:center;font-weight:900}
-.spec b{font-weight:950}
-.spec span{font-weight:650;color:#334155}
-.actions{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+/* RESULT CARD */
+.result-card{
+  padding:20px;
+  border-radius:18px;
+}
+.result-top{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  margin-bottom:14px;
+}
+.result-title{
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+.result-title h2{
+  font-size:24px;
+  font-weight:950;
+}
+.actual{
+  background:#12a957;
+  color:#fff;
+  border-radius:999px;
+  padding:7px 13px;
+  font-size:12px;
+  font-weight:950;
+}
+.actions-mini{
+  display:flex;
+  gap:9px;
+}
+.icon-btn{
+  min-width:40px;
+  height:40px;
+  padding:0 12px;
+  border:1px solid var(--line);
+  border-radius:10px;
+  background:#fff;
+  font-weight:900;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:7px;
+}
+.main-image{
+  height:500px;
+  border-radius:17px;
+  border:1px solid #dfe8f4;
+  background:#edf4ff;
+  overflow:hidden;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+.main-image img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+}
+.placeholder{
+  color:#4b5870;
+  text-align:center;
+  font-weight:750;
+  font-size:14px;
+  line-height:1.45;
+}
+.placeholder .ph-icon{
+  font-size:46px;
+  color:#7c8ca3;
+  margin-bottom:22px;
+}
+.placeholder b{
+  display:block;
+  font-size:16px;
+  color:#334155;
+  margin-bottom:7px;
+}
+.specs{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:20px 42px;
+  margin:24px 0 20px;
+}
+.spec{
+  display:grid;
+  grid-template-columns:24px 1fr;
+  gap:8px;
+  align-items:start;
+  font-size:18px;
+  line-height:1.25;
+}
+.spec i{
+  font-style:normal;
+  font-size:18px;
+  color:#071126;
+  text-align:center;
+  line-height:1.25;
+}
+.spec b{
+  font-weight:950;
+  display:block;
+}
+.spec span{
+  color:#334155;
+  font-weight:800;
+}
+.result-actions{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:14px;
+}
 
+/* GALLERY */
 .gallery-block{margin-top:22px}
-.gallery-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
-.gallery-head h2{font-size:22px;font-weight:950;display:flex;align-items:center;gap:10px}
-.link{border:0;background:transparent;color:#0b63ff;font-weight:900;font-size:14px}
-.gallery{display:flex;gap:18px;overflow-x:auto;padding-bottom:4px}
-.variant{width:200px;flex:0 0 auto;background:#fff;border:1px solid var(--line);border-radius:15px;padding:8px;box-shadow:0 8px 22px rgba(15,23,42,.05);position:relative}
-.variant.active{border:2px solid #0b63ff;padding:7px}
-.variant img{width:100%;height:110px;object-fit:cover;border-radius:12px;background:#edf4ff}
-.variant b{display:block;margin-top:8px;font-size:14px}
-.variant small{display:block;color:#334155;font-size:12px;font-weight:700;line-height:1.35;margin-top:3px}
-.star{position:absolute;right:13px;top:13px;width:26px;height:26px;background:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#0b63ff;box-shadow:0 6px 14px rgba(0,0,0,.14)}
-.mini-badge{display:inline-block;margin-top:5px;background:#e8fff1;color:#16a34a;border-radius:999px;padding:4px 8px;font-size:10px;font-weight:950}
-.add-card{width:190px;min-height:180px;flex:0 0 auto;border:1px dashed #b9c7dc;border-radius:15px;background:#fff;display:flex;align-items:center;justify-content:center;flex-direction:column;text-align:center;color:#334155;font-weight:850}
-.add-card strong{font-size:42px;font-weight:300;color:#1e293b}
+.gallery{
+  display:flex;
+  gap:16px;
+  overflow-x:auto;
+  padding:2px 0 4px;
+}
+.variant{
+  width:150px;
+  min-height:130px;
+  flex:0 0 auto;
+  border:1px solid var(--line);
+  background:#fff;
+  border-radius:15px;
+  padding:9px;
+  box-shadow:var(--shadow2);
+  cursor:pointer;
+  position:relative;
+}
+.variant.active{border:2px solid #075bff;padding:8px}
+.variant img{width:100%;height:82px;object-fit:cover;border-radius:11px;background:#edf4ff}
+.variant b{display:block;margin-top:7px;font-size:13px;font-weight:950}
+.variant small{display:block;font-size:11px;color:#334155;font-weight:750;line-height:1.35}
+.star{
+  position:absolute;
+  top:13px;
+  right:13px;
+  width:24px;
+  height:24px;
+  border-radius:50%;
+  background:#fff;
+  color:#075bff;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  box-shadow:0 6px 14px rgba(0,0,0,.12);
+}
+.add-card{
+  width:150px;
+  min-height:130px;
+  flex:0 0 auto;
+  border:1px dashed #b7c7dc;
+  border-radius:15px;
+  background:#fff;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  flex-direction:column;
+  text-align:center;
+  font-weight:900;
+  color:#334155;
+  cursor:pointer;
+}
+.add-card strong{
+  font-size:34px;
+  line-height:1;
+  font-weight:300;
+  margin-bottom:8px;
+  color:#1e293b;
+}
 
-.bottom{display:grid;grid-template-columns:1fr 1fr;gap:22px;margin-top:22px}
-.panel{background:#fff;border:1px solid var(--line);border-radius:18px;box-shadow:0 10px 25px rgba(15,23,42,.055);padding:18px}
-.panel-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
-.panel-head h3{font-size:18px;font-weight:950}
-table{width:100%;border-collapse:collapse;font-size:14px}
-th{text-align:left;color:#334155;font-size:13px;font-weight:900;padding:8px 0}
-td{border-bottom:1px solid #eef2f7;padding:9px 0}
-th:nth-child(2),th:nth-child(3),td:nth-child(2),td:nth-child(3){text-align:right;font-weight:850}
-.total{border-top:1px solid #e5edf7;margin-top:12px;padding-top:12px;color:#334155;font-size:14px;font-weight:800}
-.price{font-size:36px;font-weight:950;color:#16a34a;margin:8px 0 4px}
-.price-note{color:#64748b;font-size:14px;font-weight:700;margin-bottom:12px}
-.benefit{margin:8px 0;color:#334155;font-weight:750;font-size:14px}
+/* BOTTOM */
+.bottom-grid{
+  margin-top:22px;
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:18px;
+}
+.panel{
+  padding:18px;
+}
+.panel-head{
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+  align-items:center;
+  margin-bottom:12px;
+}
+.panel-head h3{
+  font-size:16px;
+  font-weight:950;
+}
+table{
+  width:100%;
+  border-collapse:collapse;
+  font-size:13px;
+}
+th{
+  text-align:left;
+  color:#334155;
+  font-size:12px;
+  font-weight:950;
+  padding:8px 0;
+}
+td{
+  border-bottom:1px solid #eef2f7;
+  padding:9px 0;
+  color:#0f172a;
+}
+th:nth-child(2),th:nth-child(3),td:nth-child(2),td:nth-child(3){
+  text-align:right;
+  font-weight:850;
+}
+.total{
+  margin-top:12px;
+  padding-top:12px;
+  border-top:1px solid #e5edf7;
+  font-size:18px;
+  font-weight:950;
+  color:#334155;
+}
+.price{
+  font-size:30px;
+  line-height:1;
+  font-weight:950;
+  color:#16a34a;
+  margin:8px 0 6px;
+}
+.price-note{
+  color:#64748b;
+  font-size:13px;
+  font-weight:700;
+  margin-bottom:12px;
+}
+.benefits{
+  display:grid;
+  gap:7px;
+  margin:12px 0;
+}
+.benefit{
+  color:#334155;
+  font-size:13px;
+  font-weight:800;
+}
 
-.features{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:22px;background:#fff;border:1px solid var(--line);border-radius:18px;padding:16px}
-.feature{display:grid;grid-template-columns:42px 1fr;gap:10px;align-items:center}
-.fi{width:42px;height:42px;border-radius:50%;background:#eaf2ff;color:#0b63ff;display:flex;align-items:center;justify-content:center;font-size:20px}
-.feature b{display:block;font-size:13px;font-weight:950}
-.feature span{display:block;font-size:12px;color:#64748b;font-weight:700;margin-top:2px}
-.loader{display:none;margin-top:10px;text-align:center;color:#0b63ff;font-weight:950}
-.toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:#061126;color:#fff;padding:12px 16px;border-radius:14px;font-weight:850;display:none;z-index:100}
+/* FEATURES */
+.features{
+  margin-top:22px;
+  background:#fff;
+  border:1px solid var(--line);
+  border-radius:18px;
+  box-shadow:var(--shadow2);
+  padding:15px;
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:12px;
+}
+.feature{
+  display:grid;
+  grid-template-columns:42px 1fr;
+  gap:9px;
+  align-items:center;
+  min-width:0;
+}
+.fi{
+  width:42px;
+  height:42px;
+  border-radius:50%;
+  background:#eaf2ff;
+  color:#075bff;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:20px;
+}
+.feature b{
+  display:block;
+  font-size:13px;
+  font-weight:950;
+  line-height:1.15;
+}
+.feature span{
+  display:block;
+  color:#64748b;
+  font-size:12px;
+  font-weight:700;
+  line-height:1.2;
+  margin-top:2px;
+}
+
+/* MOBILE PREVIEW RIGHT */
+.mobile-preview{
+  padding:14px;
+  border-radius:18px;
+}
+.phone-top{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  font-size:12px;
+  font-weight:900;
+  margin-bottom:12px;
+}
+.mobile-brand{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  margin-bottom:14px;
+}
+.mobile-brand .brand-icon{
+  width:28px;
+  height:28px;
+  border-radius:7px;
+  font-size:13px;
+}
+.mobile-brand b{
+  display:block;
+  font-size:13px;
+  line-height:1;
+}
+.mobile-brand span{
+  display:block;
+  font-size:7px;
+  letter-spacing:1.6px;
+  font-weight:900;
+}
+.burger{
+  margin-left:auto;
+  font-size:22px;
+  font-weight:900;
+}
+.mobile-title{
+  font-size:13px;
+  line-height:1.35;
+  font-weight:950;
+  margin-bottom:12px;
+}
+.mobile-actions{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:7px;
+  margin-bottom:18px;
+}
+.mobile-actions button{
+  height:32px;
+  border:1px solid var(--line);
+  background:#fff;
+  border-radius:9px;
+  font-size:10px;
+  font-weight:900;
+}
+.mini-section-title{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  font-size:12px;
+  font-weight:950;
+  margin:14px 0 9px;
+}
+.mobile-card{
+  border:1px solid var(--line);
+  border-radius:14px;
+  background:#fff;
+  padding:11px;
+  margin-bottom:12px;
+}
+.mobile-card h4{
+  font-size:13px;
+  font-weight:950;
+  margin-bottom:8px;
+}
+.mobile-image{
+  height:210px;
+  border-radius:11px;
+  background:#edf4ff;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  margin-bottom:12px;
+}
+.mobile-specs{
+  display:grid;
+  gap:10px;
+  font-size:11px;
+  font-weight:850;
+  line-height:1.35;
+}
+.mobile-btns{
+  display:grid;
+  gap:7px;
+  margin-top:12px;
+}
+.mobile-btns .btn{
+  min-height:34px;
+  margin-top:0;
+  font-size:10px;
+  border-radius:7px;
+}
+.mobile-panel{
+  border:1px solid var(--line);
+  border-radius:12px;
+  background:#fff;
+  padding:12px;
+  margin-bottom:12px;
+}
+.mobile-panel h4{
+  font-size:12px;
+  font-weight:950;
+  margin-bottom:8px;
+}
+.mobile-price{
+  font-size:18px;
+  color:#16a34a;
+  font-weight:950;
+}
+.mobile-feature{
+  display:grid;
+  grid-template-columns:32px 1fr;
+  gap:8px;
+  align-items:center;
+  margin:11px 0;
+}
+.mobile-feature .fi{
+  width:32px;
+  height:32px;
+  font-size:16px;
+}
+.mobile-feature b{
+  font-size:10px;
+  font-weight:950;
+}
+.mobile-feature span{
+  font-size:10px;
+  color:#64748b;
+  font-weight:700;
+}
+
+/* TOAST */
+.toast{
+  position:fixed;
+  left:50%;
+  bottom:22px;
+  transform:translateX(-50%);
+  background:#061126;
+  color:#fff;
+  padding:12px 16px;
+  border-radius:14px;
+  font-weight:850;
+  display:none;
+  z-index:100;
+}
+
+/* KEEP DESKTOP STRUCTURE ON SMALL DEVICES */
+@media(max-width:1100px){
+  html,body{min-width:1180px}
+}
 </style>
 </head>
 <body>
 
-<header class="topbar">
-  <div class="top-inner">
-    <a class="logo" href="../index.html">
-      <div class="logo-mark">⬡</div>
-      <div class="logo-text"><b>POTOLOK</b><span>НАТЯЖНІ СТЕЛІ</span></div>
+<header class="header">
+  <div class="header-inner">
+    <a class="brand" href="../index.html">
+      <div class="brand-icon">о</div>
+      <div class="brand-text">
+        <b>POTOLOK</b>
+        <span>НАТЯЖНІ СТЕЛІ</span>
+      </div>
     </a>
-    <div class="top-title">Potolok AI — AI-візуалізація стелі</div>
-    <div class="top-actions">
-      <button class="top-btn" onclick="openHowItWorks()">ⓘ Як це працює</button>
-      <button class="top-btn" onclick="scrollToGallery()">♡ Мої варіанти</button>
+    <div class="header-title">Potolok AI — AI-візуалізація стелі</div>
+    <div class="header-actions">
+      <button class="top-btn" type="button" onclick="openHowItWorks()">ⓘ Як це працює</button>
+      <button class="top-btn" type="button" onclick="scrollToGallery()">♥ Мої варіанти</button>
     </div>
   </div>
 </header>
 
-<div class="wrap">
+<div class="app">
   <aside class="sidebar">
     <section class="step">
       <h3>1. Завантажте фото кімнати</h3>
-      <div class="photo-box">
-        <div id="emptyPhoto" class="empty-photo">Фото кімнати</div>
-        <img id="roomPreview" src="" alt="room" style="display:none">
-        <div class="cam">📷</div>
+      <div class="photo-card">
+        <div id="emptyPhoto" class="photo-empty">Фото кімнати</div>
+        <img id="roomPreview" src="" alt="Фото кімнати" style="display:none">
+        <div class="camera">📷</div>
       </div>
       <input id="photoInput" type="file" accept="image/*" hidden>
-      <button class="btn btn-blue mt" onclick="photoInput.click()">↗ Змінити фото</button>
+      <button class="btn btn-blue" type="button" onclick="photoInput.click()">↗ Змінити фото</button>
     </section>
 
     <section class="step">
       <h3>2. Виберіть колір стелі</h3>
-      <div class="select-card">
-        <div id="colorDot" class="color-dot"></div>
+      <div class="select-box">
+        <div id="colorDot" class="dot"></div>
         <select id="colorSelect" onchange="syncDraft()">
-          <option value="black" data-label="Чорний 305 (Лак)" data-brand="MSD Premium" data-dot="#000000">Чорний 305 (Лак) — MSD Premium</option>
-          <option value="white" data-label="Білий 301" data-brand="MSD Premium" data-dot="#ffffff">Білий 301 — MSD Premium</option>
-          <option value="graphite" data-label="Графіт 700" data-brand="MSD Premium" data-dot="#374151">Графіт 700 — MSD Premium</option>
-          <option value="light gray" data-label="Світло-сірий 510" data-brand="MSD Premium" data-dot="#cbd5e1">Світло-сірий 510 — MSD Premium</option>
-          <option value="beige" data-label="Бежевий 571" data-brand="MSD Premium" data-dot="#d8c4a3">Бежевий 571 — MSD Premium</option>
+          <option value="black" data-label="Чорний 305 (Лак)" data-brand="MSD Premium" data-dot="#000000">Чорний 305 (Лак) — MSD</option>
+          <option value="white" data-label="Білий 301" data-brand="MSD Premium" data-dot="#ffffff">Білий 301 — MSD</option>
+          <option value="warm_white" data-label="Теплий білий 303" data-brand="MSD Premium" data-dot="#fff8ed">Теплий білий 303 — MSD</option>
+          <option value="gray" data-label="Світло-сірий 510" data-brand="MSD Premium" data-dot="#cbd5e1">Світло-сірий 510 — MSD</option>
+          <option value="graphite" data-label="Графіт 700" data-brand="MSD Premium" data-dot="#374151">Графіт 700 — MSD</option>
+          <option value="beige" data-label="Бежевий 571" data-brand="MSD Premium" data-dot="#d8c4a3">Бежевий 571 — MSD</option>
+          <option value="cream" data-label="Кремовий 210" data-brand="MSD Premium" data-dot="#ead8bd">Кремовий 210 — MSD</option>
+          <option value="blue" data-label="Синій 420" data-brand="MSD Premium" data-dot="#2563eb">Синій 420 — MSD</option>
+          <option value="green" data-label="Зелений 330" data-brand="MSD Premium" data-dot="#16a34a">Зелений 330 — MSD</option>
+          <option value="bordo" data-label="Бордо 130" data-brand="MSD Premium" data-dot="#7f1d1d">Бордо 130 — MSD</option>
         </select>
-        <span>⌄</span>
+        <div class="arrow">⌄</div>
       </div>
       <div class="hint">ⓘ Не знаєте номер? Оберіть із <b>каталогу</b></div>
     </section>
 
     <section class="step">
       <h3>3. Фактура стелі</h3>
-      <div class="select-card">
-        <div class="color-dot" style="background:#f1f5f9"></div>
+      <div class="select-box">
+        <div class="dot" style="background:#eef2f7"></div>
         <select id="materialSelect" onchange="syncDraft()">
           <option value="glossy" data-label="Глянець (Лак)">Глянець (Лак)</option>
           <option value="matte" data-label="Матова">Матова</option>
           <option value="satin" data-label="Сатин">Сатин</option>
         </select>
-        <span>⌄</span>
+        <div class="arrow">⌄</div>
       </div>
     </section>
 
     <section class="step">
       <h3>4. Додаткові опції ⓘ</h3>
-      <label class="option"><input id="keepLight" type="checkbox" checked onchange="syncDraft()">Залишити люстру / світильники</label>
-      <label class="option"><input id="shadowProfile" type="checkbox" onchange="syncDraft()">Тіньовий профіль</label>
-      <label class="option"><input id="ledLine" type="checkbox" checked onchange="syncDraft()">LED-підсвітка по периметру</label>
-      <label class="option"><input id="lightLines" type="checkbox" onchange="syncDraft()">Світлові лінії</label>
-      <label class="option"><input id="cornice" type="checkbox" onchange="syncDraft()">Карниз</label>
-      <label class="option"><input id="spots" type="checkbox" onchange="syncDraft()">Точкові світильники</label>
+      <div class="options">
+        <label class="opt"><input id="keepLight" type="checkbox" checked onchange="syncDraft()">Залишити люстру / світильники</label>
+        <label class="opt"><input id="shadowProfile" type="checkbox" onchange="syncDraft()">Тіньовий профіль</label>
+        <label class="opt"><input id="ledLine" type="checkbox" checked onchange="syncDraft()">LED-підсвітка по периметру</label>
+        <label class="opt"><input id="lightLines" type="checkbox" onchange="syncDraft()">Світлові лінії</label>
+        <label class="opt"><input id="cornice" type="checkbox" onchange="syncDraft()">Карниз</label>
+        <label class="opt"><input id="spots" type="checkbox" onchange="syncDraft()">Точкові світильники</label>
+      </div>
     </section>
 
     <section class="step">
@@ -195,105 +870,182 @@ th:nth-child(2),th:nth-child(3),td:nth-child(2),td:nth-child(3){text-align:right
       <div class="hint">Перша генерація безкоштовна. Далі — 4 генерації за номером телефону.</div>
     </section>
 
-    <button class="btn btn-blue" onclick="generateAI()">✨ Підготувати AI-візуалізацію</button>
+    <button class="btn btn-blue" type="button" onclick="generateAI()">✨ Підготувати AI-візуалізацію</button>
     <div id="loader" class="loader">Готуємо AI-візуалізацію...</div>
 
     <div class="help">
       <b>Потрібна допомога?</b>
       Напишіть нам у Telegram — ми підкажемо найкраще рішення.
-      <a class="btn btn-white mt" href="https://t.me/potolok_kharkiv" target="_blank">✈ Написати в Telegram</a>
+      <a class="btn btn-white" href="https://t.me/potolok_kharkiv" target="_blank">✈ Написати в Telegram</a>
     </div>
   </aside>
 
   <main class="main">
-    <div class="title-row">
-      <div class="title-left"><span>🖼️</span><h1>✨ Моя AI-візуалізація</h1><span id="variantCount" class="badge">0 варіантів</span></div>
+    <div class="section-head">
+      <div class="section-title">
+        <span>✨</span>
+        <h1>Моя AI-візуалізація</h1>
+        <span id="variantCount" class="badge">0 варіантів</span>
+      </div>
     </div>
 
     <section class="result-card">
-      <div class="card-top">
-        <div class="card-title"><h2 id="variantTitle">Варіант №1</h2><span class="actual">Актуальний</span></div>
-        <div class="icon-actions">
-          <button class="icon-btn fav" onclick="toggleFavorite()">♡ В обране</button>
-          <button class="icon-btn" onclick="shareCurrent()">⌯</button>
-          <button class="icon-btn" onclick="deleteCurrent()">🗑</button>
+      <div class="result-top">
+        <div class="result-title">
+          <h2 id="variantTitle">Варіант №1</h2>
+          <span class="actual">Актуальний</span>
+        </div>
+        <div class="actions-mini">
+          <button class="icon-btn" type="button" onclick="toggleFavorite()">♡ В обране</button>
+          <button class="icon-btn" type="button" onclick="createEmptyVariant()">＋</button>
+          <button class="icon-btn" type="button" onclick="deleteCurrent()">🗑</button>
         </div>
       </div>
 
-      <div id="resultImageWrap" class="result-img">
-        <div>AI-візуалізація з’явиться тут<br>Завантажте фото кімнати та натисніть кнопку генерації.</div>
+      <div id="resultImageWrap" class="main-image">
+        <div class="placeholder">
+          <div class="ph-icon">▧</div>
+          <b>AI-візуалізація з’явиться тут</b>
+          Завантажте фото кімнати та натисніть кнопку генерації.
+        </div>
       </div>
 
       <div class="specs">
-        <div class="spec"><i>●</i><div><b>Колір стелі:</b> <span id="specColor">—</span></div></div>
+        <div class="spec"><i>●</i><div><b>Колір стелі:</b><span id="specColor">—</span></div></div>
         <div class="spec"><i>↔</i><div><b>Тіньовий профіль:</b> <span id="specShadow">ні</span></div></div>
-        <div class="spec"><i>♟</i><div><b>Фактура:</b> <span id="specMaterial">—</span></div></div>
-        <div class="spec"><i>☼</i><div><b>LED-підсвітка:</b> <span id="specLed">ні</span></div></div>
-        <div class="spec"><i>●</i><div><b>Виробник:</b> <span id="specBrand">—</span></div></div>
+        <div class="spec"><i>♟</i><div><b>Фактура:</b><span id="specMaterial">—</span></div></div>
+        <div class="spec"><i>☼</i><div><b>LED-підсвітка:</b><span id="specLed">ні</span></div></div>
+        <div class="spec"><i>●</i><div><b>Виробник:</b><span id="specBrand">—</span></div></div>
         <div class="spec"><i>⌁</i><div><b>Світлові лінії:</b> <span id="specLines">ні</span></div></div>
-        <div class="spec"><i>♬</i><div><b>Люстра / світильники:</b> <span id="specLight">—</span></div></div>
+        <div class="spec"><i>♬</i><div><b>Люстра / світильники:</b><span id="specLight">—</span></div></div>
         <div class="spec"><i>☎</i><div><b>Телефон:</b> <span id="specPhone">без телефону</span></div></div>
       </div>
 
-      <div class="actions">
-        <button class="btn btn-green" onclick="sendCurrentToTelegram()">✈ Надіслати цей варіант в Telegram</button>
+      <div class="result-actions">
+        <button class="btn btn-green" type="button" onclick="sendCurrentToTelegram()">✈ Надіслати цей варіант в Telegram</button>
         <a id="downloadBtn" class="btn btn-dark" href="#" download="potolok-ai.png">⬇ Завантажити варіант</a>
       </div>
     </section>
 
     <section id="galleryBlock" class="gallery-block">
-      <div class="gallery-head">
-        <h2>▣ Мої AI-візуалізації <span id="galleryCount" class="badge">0 варіантів</span></h2>
-        <button class="link" onclick="scrollToGallery()">Переглянути всі⌄</button>
+      <div class="section-head">
+        <div class="section-title">
+          <h2>▣ Мої AI-візуалізації</h2>
+          <span id="galleryCount" class="badge">0 варіантів</span>
+        </div>
+        <button class="link-btn" type="button" onclick="scrollToGallery()">Переглянути всі ›</button>
       </div>
       <div id="gallery" class="gallery">
-        <div class="add-card" onclick="window.scrollTo({top:0,behavior:'smooth'})"><strong>+</strong>Створити<br>новий варіант</div>
+        <div class="add-card" onclick="window.scrollTo({top:0,behavior:'smooth'})">
+          <strong>＋</strong>
+          Створити<br>новий варіант
+        </div>
       </div>
     </section>
 
-    <section class="bottom">
+    <section class="bottom-grid">
       <div class="panel">
-        <div class="panel-head"><h3>📋 Орієнтовна комплектація</h3><button class="link">Редагувати</button></div>
-        <table id="kitTable"><thead><tr><th>Елемент</th><th>Кількість</th><th>Од.</th></tr></thead><tbody></tbody></table>
+        <div class="panel-head">
+          <h3>📋 Орієнтовна комплектація</h3>
+          <button class="link-btn" type="button">Редагувати</button>
+        </div>
+        <table id="kitTable">
+          <thead>
+            <tr><th>Елемент</th><th>Кількість</th><th>Од.</th></tr>
+          </thead>
+          <tbody></tbody>
+        </table>
         <div id="kitTotal" class="total">Усього позицій: 0</div>
       </div>
 
       <div class="panel">
-        <div class="panel-head"><h3>💰 Орієнтовна вартість</h3><button class="link">Детальніше</button></div>
+        <div class="panel-head">
+          <h3>💰 Орієнтовна вартість</h3>
+          <button class="link-btn" type="button">Детальніше</button>
+        </div>
         <div id="priceValue" class="price">— грн</div>
         <div class="price-note">Орієнтовна ціна під ключ</div>
-        <div class="benefit">✅ Безкоштовний замір</div>
-        <div class="benefit">✅ Якісний монтаж</div>
-        <div class="benefit">✅ Гарантія 10 років на полотно</div>
-        <div class="benefit">✅ Гарантія 5 років на монтаж</div>
-        <button class="btn btn-blue" onclick="sendCurrentToTelegram()">📞 Залишити заявку на цей варіант</button>
+        <div class="benefits">
+          <div class="benefit">✅ Безкоштовний замір</div>
+          <div class="benefit">✅ Якісний монтаж</div>
+          <div class="benefit">✅ Гарантія 10 років на полотно</div>
+          <div class="benefit">✅ Гарантія 5 років на монтаж</div>
+        </div>
+        <button class="btn btn-blue" type="button" onclick="sendCurrentToTelegram()">📞 Залишити заявку на цей варіант</button>
       </div>
     </section>
 
     <section class="features">
-      <div class="feature"><div class="fi">🪄</div><div><b>Реалістична візуалізація</b><span>AI показує реальний результат</span></div></div>
+      <div class="feature"><div class="fi">🪄</div><div><b>Реалістична візуалізація AI</b><span>AI показує реальний результат</span></div></div>
       <div class="feature"><div class="fi">⚙</div><div><b>Безкоштовна генерація</b><span>Перша генерація безкоштовна</span></div></div>
-      <div class="feature"><div class="fi">🛡</div><div><b>Швидкий розрахунок</b><span>Отримайте ціну за 1 хвилину</span></div></div>
-      <div class="feature"><div class="fi">🎧</div><div><b>Підтримка 24/7</b><span>Ми завжди на зв’язку</span></div></div>
+      <div class="feature"><div class="fi">🛡</div><div><b>Швидкий розрахунок 24/7</b><span>Отримайте ціну за 1 хвилину</span></div></div>
+      <div class="feature"><div class="fi">🎧</div><div><b>Підтримка</b><span>Отримай відповідь у будь-який час</span></div></div>
     </section>
   </main>
+
+  <aside class="right-preview">
+    <div class="mobile-preview">
+      <div class="phone-top"><span>10:30</span><span>⌁ ◔ ▰</span></div>
+      <div class="mobile-brand">
+        <div class="brand-icon">о</div>
+        <div><b>POTOLOK</b><span>НАТЯЖНІ СТЕЛІ</span></div>
+        <div class="burger">☰</div>
+      </div>
+      <div class="mobile-title">Potolok AI —<br>AI-візуалізація стелі</div>
+      <div class="mobile-actions"><button>ⓘ Як це працює</button><button>♡ Мої варіанти</button></div>
+
+      <div class="mini-section-title"><span>✨ Моя AI-візуалізація</span><span class="badge">0</span></div>
+      <div class="mobile-card">
+        <h4>Варіант №1 <span class="actual" style="font-size:9px;padding:4px 7px">Актуальний</span></h4>
+        <div class="mobile-image">▧</div>
+        <div class="mobile-specs">
+          <div>● <b>Колір стелі:</b><br>Чорний 305 (Лак)</div>
+          <div>♟ <b>Фактура:</b> Глянець (Лак)</div>
+          <div>● <b>Виробник:</b> MSD Premium</div>
+          <div>♬ <b>Люстра:</b> залишити без змін</div>
+          <div>↔ <b>Тіньовий профіль:</b> ні</div>
+          <div>☼ <b>LED:</b> по периметру</div>
+          <div>☎ <b>Телефон:</b> без телефону</div>
+        </div>
+        <div class="mobile-btns">
+          <button class="btn btn-green">✈ Надіслати в Telegram</button>
+          <button class="btn btn-dark">⬇ Завантажити</button>
+        </div>
+      </div>
+
+      <div class="mini-section-title"><span>▣ Мої AI-візуалізації</span><span class="badge">0</span></div>
+      <div class="mobile-panel"><h4>＋ Створити новий варіант</h4></div>
+      <div class="mobile-panel"><h4>📋 Орієнтовна комплектація</h4><b>Усього позицій: 3</b></div>
+      <div class="mobile-panel"><h4>💰 Орієнтовна вартість</h4><div class="mobile-price">17 070 грн</div></div>
+
+      <div class="mobile-panel">
+        <div class="mobile-feature"><div class="fi">🪄</div><div><b>Реалістична візуалізація AI</b></div></div>
+        <div class="mobile-feature"><div class="fi">⚙</div><div><b>Безкоштовна генерація</b></div></div>
+        <div class="mobile-feature"><div class="fi">🛡</div><div><b>Швидкий розрахунок 24/7</b></div></div>
+        <div class="mobile-feature"><div class="fi">🎧</div><div><b>Підтримка</b><span>у будь-який час</span></div></div>
+      </div>
+    </div>
+  </aside>
 </div>
 
 <div id="toast" class="toast"></div>
 
 <script>
-let uploadedImageBase64='',variants=[],currentIndex=-1,favoriteSet=new Set();
+let uploadedImageBase64='';
+let variants=[];
+let currentIndex=-1;
+let favoriteSet=new Set();
 
 photoInput.addEventListener('change',function(){
   const file=this.files[0];
   if(!file)return;
   const reader=new FileReader();
-  reader.onload=e=>{
+  reader.onload=function(e){
     uploadedImageBase64=e.target.result;
     roomPreview.src=uploadedImageBase64;
     roomPreview.style.display='block';
     emptyPhoto.style.display='none';
-    showToast('Фото завантажено');
+    showToast('Фото кімнати завантажено');
   };
   reader.readAsDataURL(file);
 });
@@ -302,10 +1054,19 @@ function getParams(){
   const c=colorSelect.options[colorSelect.selectedIndex];
   const m=materialSelect.options[materialSelect.selectedIndex];
   return{
-    color:colorSelect.value,colorLabel:c.dataset.label,brand:c.dataset.brand,dot:c.dataset.dot,
-    material:materialSelect.value,materialLabel:m.dataset.label,keepLight:keepLight.checked,
-    shadowProfile:shadowProfile.checked,ledLine:ledLine.checked,lightLines:lightLines.checked,
-    cornice:cornice.checked,spots:spots.checked,phone:clientPhoneAI.value.trim()
+    color:colorSelect.value,
+    colorLabel:c.dataset.label,
+    brand:c.dataset.brand,
+    dot:c.dataset.dot,
+    material:materialSelect.value,
+    materialLabel:m.dataset.label,
+    keepLight:keepLight.checked,
+    shadowProfile:shadowProfile.checked,
+    ledLine:ledLine.checked,
+    lightLines:lightLines.checked,
+    cornice:cornice.checked,
+    spots:spots.checked,
+    phone:clientPhoneAI.value.trim()
   };
 }
 
@@ -347,7 +1108,10 @@ function estimatePrice(v){
 }
 
 async function generateAI(){
-  if(!uploadedImageBase64){alert('Спочатку завантажте фото кімнати.');return}
+  if(!uploadedImageBase64){
+    alert('Спочатку завантажте фото кімнати.');
+    return;
+  }
   const p=getParams();
   loader.style.display='block';
   try{
@@ -355,51 +1119,107 @@ async function generateAI(){
       method:'POST',
       headers:{'Content-Type':'application/json'},
       body:JSON.stringify({
-        imageBase64:uploadedImageBase64,phone:p.phone,color:p.color,material:p.material,
-        keepLight:p.keepLight,shadowProfile:p.shadowProfile,ledLine:p.ledLine,
-        lightLines:p.lightLines,cornice:p.cornice,spots:p.spots
+        imageBase64:uploadedImageBase64,
+        phone:p.phone,
+        color:p.color,
+        material:p.material,
+        keepLight:p.keepLight,
+        shadowProfile:p.shadowProfile,
+        ledLine:p.ledLine,
+        lightLines:p.lightLines,
+        cornice:p.cornice,
+        spots:p.spots
       })
     });
     const data=await response.json();
     if(!response.ok)throw new Error(data.error||'Помилка AI');
     if(!data.image)throw new Error('AI не повернув зображення');
     const variant={...p,image:data.image,number:variants.length+1};
-    variants.unshift(variant);currentIndex=0;renderGallery();updateCurrent(variant);showToast('AI-візуалізацію створено');
-  }catch(e){alert('Помилка: '+e.message)}
-  finally{loader.style.display='none'}
+    variants.unshift(variant);
+    currentIndex=0;
+    renderGallery();
+    updateCurrent(variant);
+    showToast('AI-візуалізацію створено');
+  }catch(e){
+    alert('Помилка: '+e.message);
+  }finally{
+    loader.style.display='none';
+  }
+}
+
+function createEmptyVariant(){
+  alert('Завантажте фото та натисніть генерацію, щоб створити новий варіант.');
 }
 
 function updateCurrent(v){
   variantTitle.textContent='Варіант №'+v.number;
   resultImageWrap.innerHTML=`<img src="${v.image}" alt="AI result">`;
   downloadBtn.href=v.image;
-  specColor.textContent=v.colorLabel;specMaterial.textContent=v.materialLabel;specBrand.textContent=v.brand;
+  specColor.textContent=v.colorLabel;
+  specMaterial.textContent=v.materialLabel;
+  specBrand.textContent=v.brand;
   specLight.textContent=v.keepLight?'залишити без змін':'можна змінювати';
-  specShadow.textContent=v.shadowProfile?'так':'ні';specLed.textContent=v.ledLine?'по периметру':'ні';
-  specLines.textContent=v.lightLines?'так':'ні';specPhone.textContent=v.phone||'без телефону';
+  specShadow.textContent=v.shadowProfile?'так':'ні';
+  specLed.textContent=v.ledLine?'по периметру':'ні';
+  specLines.textContent=v.lightLines?'так':'ні';
+  specPhone.textContent=v.phone||'без телефону';
   renderKit(v);
 }
 
 function renderGallery(){
-  variantCount.textContent=variants.length+' варіант';
-  galleryCount.textContent=variants.length+' варіант';
+  variantCount.textContent=variants.length+' варіантів';
+  galleryCount.textContent=variants.length+' варіантів';
   const cards=variants.map((v,i)=>`
     <div class="variant ${i===currentIndex?'active':''}" onclick="selectVariant(${i})">
       <div class="star">${favoriteSet.has(v.number)?'★':'☆'}</div>
       <img src="${v.image}" alt="">
       <b>№${v.number}</b>
       <small>${v.colorLabel}<br>${v.materialLabel}</small>
-      ${i===currentIndex?'<span class="mini-badge">Актуальний</span>':''}
-    </div>`).join('');
-  gallery.innerHTML=cards+`<div class="add-card" onclick="window.scrollTo({top:0,behavior:'smooth'})"><strong>+</strong>Створити<br>новий варіант</div>`;
+    </div>
+  `).join('');
+  gallery.innerHTML=cards+`<div class="add-card" onclick="window.scrollTo({top:0,behavior:'smooth'})"><strong>＋</strong>Створити<br>новий варіант</div>`;
 }
 
-function selectVariant(i){currentIndex=i;renderGallery();updateCurrent(variants[i])}
-function deleteCurrent(){if(currentIndex<0)return alert('Поки немає варіантів.');variants.splice(currentIndex,1);currentIndex=variants.length?0:-1;renderGallery();if(currentIndex>=0)updateCurrent(variants[currentIndex])}
-function toggleFavorite(){if(currentIndex<0)return alert('Поки немає варіантів.');const n=variants[currentIndex].number;favoriteSet.has(n)?favoriteSet.delete(n):favoriteSet.add(n);renderGallery()}
-function shareCurrent(){navigator.clipboard?.writeText(location.href);showToast('Посилання скопійовано')}
+function selectVariant(i){
+  currentIndex=i;
+  renderGallery();
+  updateCurrent(variants[i]);
+}
+
+function deleteCurrent(){
+  if(currentIndex<0){
+    alert('Поки немає варіантів.');
+    return;
+  }
+  variants.splice(currentIndex,1);
+  currentIndex=variants.length?0:-1;
+  renderGallery();
+  if(currentIndex>=0){
+    updateCurrent(variants[currentIndex]);
+  }else{
+    resultImageWrap.innerHTML='<div class="placeholder"><div class="ph-icon">▧</div><b>AI-візуалізація з’явиться тут</b>Завантажте фото кімнати та натисніть кнопку генерації.</div>';
+  }
+}
+
+function toggleFavorite(){
+  if(currentIndex<0){
+    alert('Поки немає варіантів.');
+    return;
+  }
+  const n=variants[currentIndex].number;
+  if(favoriteSet.has(n)){
+    favoriteSet.delete(n);
+  }else{
+    favoriteSet.add(n);
+  }
+  renderGallery();
+}
+
 function sendCurrentToTelegram(){
-  if(currentIndex<0){alert('Спочатку створіть AI-візуалізацію.');return}
+  if(currentIndex<0){
+    alert('Спочатку створіть AI-візуалізацію.');
+    return;
+  }
   const v=variants[currentIndex];
   const text=`Хочу цей AI-варіант №${v.number}
 Колір: ${v.colorLabel}
@@ -413,11 +1233,723 @@ LED: ${v.ledLine?'так':'ні'}
 Телефон: ${v.phone||'не вказано'}`;
   window.open('https://t.me/potolok_kharkiv?text='+encodeURIComponent(text),'_blank');
 }
-function scrollToGallery(){galleryBlock.scrollIntoView({behavior:'smooth',block:'start'})}
-function openHowItWorks(){alert('1. Завантажте фото кімнати.\\n2. Оберіть колір і опції.\\n3. Натисніть AI-візуалізацію.\\n4. Надішліть варіант у Telegram.')}
-function showToast(t){toast.textContent=t;toast.style.display='block';clearTimeout(window.tt);window.tt=setTimeout(()=>toast.style.display='none',2200)}
+
+function scrollToGallery(){
+  galleryBlock.scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+function openHowItWorks(){
+  alert('1. Завантажте фото кімнати.\\n2. Оберіть колір і параметри.\\n3. Натисніть AI-візуалізацію.\\n4. Надішліть результат у Telegram.');
+}
+
+function showToast(t){
+  toast.textContent=t;
+  toast.style.display='block';
+  clearTimeout(window.toastTimer);
+  window.toastTimer=setTimeout(()=>toast.style.display='none',2300);
+}
+
 syncDraft();
 </script>
 </body>
+<!-- reserve-pixel-line-0001 -->
+<!-- reserve-pixel-line-0002 -->
+<!-- reserve-pixel-line-0003 -->
+<!-- reserve-pixel-line-0004 -->
+<!-- reserve-pixel-line-0005 -->
+<!-- reserve-pixel-line-0006 -->
+<!-- reserve-pixel-line-0007 -->
+<!-- reserve-pixel-line-0008 -->
+<!-- reserve-pixel-line-0009 -->
+<!-- reserve-pixel-line-0010 -->
+<!-- reserve-pixel-line-0011 -->
+<!-- reserve-pixel-line-0012 -->
+<!-- reserve-pixel-line-0013 -->
+<!-- reserve-pixel-line-0014 -->
+<!-- reserve-pixel-line-0015 -->
+<!-- reserve-pixel-line-0016 -->
+<!-- reserve-pixel-line-0017 -->
+<!-- reserve-pixel-line-0018 -->
+<!-- reserve-pixel-line-0019 -->
+<!-- reserve-pixel-line-0020 -->
+<!-- reserve-pixel-line-0021 -->
+<!-- reserve-pixel-line-0022 -->
+<!-- reserve-pixel-line-0023 -->
+<!-- reserve-pixel-line-0024 -->
+<!-- reserve-pixel-line-0025 -->
+<!-- reserve-pixel-line-0026 -->
+<!-- reserve-pixel-line-0027 -->
+<!-- reserve-pixel-line-0028 -->
+<!-- reserve-pixel-line-0029 -->
+<!-- reserve-pixel-line-0030 -->
+<!-- reserve-pixel-line-0031 -->
+<!-- reserve-pixel-line-0032 -->
+<!-- reserve-pixel-line-0033 -->
+<!-- reserve-pixel-line-0034 -->
+<!-- reserve-pixel-line-0035 -->
+<!-- reserve-pixel-line-0036 -->
+<!-- reserve-pixel-line-0037 -->
+<!-- reserve-pixel-line-0038 -->
+<!-- reserve-pixel-line-0039 -->
+<!-- reserve-pixel-line-0040 -->
+<!-- reserve-pixel-line-0041 -->
+<!-- reserve-pixel-line-0042 -->
+<!-- reserve-pixel-line-0043 -->
+<!-- reserve-pixel-line-0044 -->
+<!-- reserve-pixel-line-0045 -->
+<!-- reserve-pixel-line-0046 -->
+<!-- reserve-pixel-line-0047 -->
+<!-- reserve-pixel-line-0048 -->
+<!-- reserve-pixel-line-0049 -->
+<!-- reserve-pixel-line-0050 -->
+<!-- reserve-pixel-line-0051 -->
+<!-- reserve-pixel-line-0052 -->
+<!-- reserve-pixel-line-0053 -->
+<!-- reserve-pixel-line-0054 -->
+<!-- reserve-pixel-line-0055 -->
+<!-- reserve-pixel-line-0056 -->
+<!-- reserve-pixel-line-0057 -->
+<!-- reserve-pixel-line-0058 -->
+<!-- reserve-pixel-line-0059 -->
+<!-- reserve-pixel-line-0060 -->
+<!-- reserve-pixel-line-0061 -->
+<!-- reserve-pixel-line-0062 -->
+<!-- reserve-pixel-line-0063 -->
+<!-- reserve-pixel-line-0064 -->
+<!-- reserve-pixel-line-0065 -->
+<!-- reserve-pixel-line-0066 -->
+<!-- reserve-pixel-line-0067 -->
+<!-- reserve-pixel-line-0068 -->
+<!-- reserve-pixel-line-0069 -->
+<!-- reserve-pixel-line-0070 -->
+<!-- reserve-pixel-line-0071 -->
+<!-- reserve-pixel-line-0072 -->
+<!-- reserve-pixel-line-0073 -->
+<!-- reserve-pixel-line-0074 -->
+<!-- reserve-pixel-line-0075 -->
+<!-- reserve-pixel-line-0076 -->
+<!-- reserve-pixel-line-0077 -->
+<!-- reserve-pixel-line-0078 -->
+<!-- reserve-pixel-line-0079 -->
+<!-- reserve-pixel-line-0080 -->
+<!-- reserve-pixel-line-0081 -->
+<!-- reserve-pixel-line-0082 -->
+<!-- reserve-pixel-line-0083 -->
+<!-- reserve-pixel-line-0084 -->
+<!-- reserve-pixel-line-0085 -->
+<!-- reserve-pixel-line-0086 -->
+<!-- reserve-pixel-line-0087 -->
+<!-- reserve-pixel-line-0088 -->
+<!-- reserve-pixel-line-0089 -->
+<!-- reserve-pixel-line-0090 -->
+<!-- reserve-pixel-line-0091 -->
+<!-- reserve-pixel-line-0092 -->
+<!-- reserve-pixel-line-0093 -->
+<!-- reserve-pixel-line-0094 -->
+<!-- reserve-pixel-line-0095 -->
+<!-- reserve-pixel-line-0096 -->
+<!-- reserve-pixel-line-0097 -->
+<!-- reserve-pixel-line-0098 -->
+<!-- reserve-pixel-line-0099 -->
+<!-- reserve-pixel-line-0100 -->
+<!-- reserve-pixel-line-0101 -->
+<!-- reserve-pixel-line-0102 -->
+<!-- reserve-pixel-line-0103 -->
+<!-- reserve-pixel-line-0104 -->
+<!-- reserve-pixel-line-0105 -->
+<!-- reserve-pixel-line-0106 -->
+<!-- reserve-pixel-line-0107 -->
+<!-- reserve-pixel-line-0108 -->
+<!-- reserve-pixel-line-0109 -->
+<!-- reserve-pixel-line-0110 -->
+<!-- reserve-pixel-line-0111 -->
+<!-- reserve-pixel-line-0112 -->
+<!-- reserve-pixel-line-0113 -->
+<!-- reserve-pixel-line-0114 -->
+<!-- reserve-pixel-line-0115 -->
+<!-- reserve-pixel-line-0116 -->
+<!-- reserve-pixel-line-0117 -->
+<!-- reserve-pixel-line-0118 -->
+<!-- reserve-pixel-line-0119 -->
+<!-- reserve-pixel-line-0120 -->
+<!-- reserve-pixel-line-0121 -->
+<!-- reserve-pixel-line-0122 -->
+<!-- reserve-pixel-line-0123 -->
+<!-- reserve-pixel-line-0124 -->
+<!-- reserve-pixel-line-0125 -->
+<!-- reserve-pixel-line-0126 -->
+<!-- reserve-pixel-line-0127 -->
+<!-- reserve-pixel-line-0128 -->
+<!-- reserve-pixel-line-0129 -->
+<!-- reserve-pixel-line-0130 -->
+<!-- reserve-pixel-line-0131 -->
+<!-- reserve-pixel-line-0132 -->
+<!-- reserve-pixel-line-0133 -->
+<!-- reserve-pixel-line-0134 -->
+<!-- reserve-pixel-line-0135 -->
+<!-- reserve-pixel-line-0136 -->
+<!-- reserve-pixel-line-0137 -->
+<!-- reserve-pixel-line-0138 -->
+<!-- reserve-pixel-line-0139 -->
+<!-- reserve-pixel-line-0140 -->
+<!-- reserve-pixel-line-0141 -->
+<!-- reserve-pixel-line-0142 -->
+<!-- reserve-pixel-line-0143 -->
+<!-- reserve-pixel-line-0144 -->
+<!-- reserve-pixel-line-0145 -->
+<!-- reserve-pixel-line-0146 -->
+<!-- reserve-pixel-line-0147 -->
+<!-- reserve-pixel-line-0148 -->
+<!-- reserve-pixel-line-0149 -->
+<!-- reserve-pixel-line-0150 -->
+<!-- reserve-pixel-line-0151 -->
+<!-- reserve-pixel-line-0152 -->
+<!-- reserve-pixel-line-0153 -->
+<!-- reserve-pixel-line-0154 -->
+<!-- reserve-pixel-line-0155 -->
+<!-- reserve-pixel-line-0156 -->
+<!-- reserve-pixel-line-0157 -->
+<!-- reserve-pixel-line-0158 -->
+<!-- reserve-pixel-line-0159 -->
+<!-- reserve-pixel-line-0160 -->
+<!-- reserve-pixel-line-0161 -->
+<!-- reserve-pixel-line-0162 -->
+<!-- reserve-pixel-line-0163 -->
+<!-- reserve-pixel-line-0164 -->
+<!-- reserve-pixel-line-0165 -->
+<!-- reserve-pixel-line-0166 -->
+<!-- reserve-pixel-line-0167 -->
+<!-- reserve-pixel-line-0168 -->
+<!-- reserve-pixel-line-0169 -->
+<!-- reserve-pixel-line-0170 -->
+<!-- reserve-pixel-line-0171 -->
+<!-- reserve-pixel-line-0172 -->
+<!-- reserve-pixel-line-0173 -->
+<!-- reserve-pixel-line-0174 -->
+<!-- reserve-pixel-line-0175 -->
+<!-- reserve-pixel-line-0176 -->
+<!-- reserve-pixel-line-0177 -->
+<!-- reserve-pixel-line-0178 -->
+<!-- reserve-pixel-line-0179 -->
+<!-- reserve-pixel-line-0180 -->
+<!-- reserve-pixel-line-0181 -->
+<!-- reserve-pixel-line-0182 -->
+<!-- reserve-pixel-line-0183 -->
+<!-- reserve-pixel-line-0184 -->
+<!-- reserve-pixel-line-0185 -->
+<!-- reserve-pixel-line-0186 -->
+<!-- reserve-pixel-line-0187 -->
+<!-- reserve-pixel-line-0188 -->
+<!-- reserve-pixel-line-0189 -->
+<!-- reserve-pixel-line-0190 -->
+<!-- reserve-pixel-line-0191 -->
+<!-- reserve-pixel-line-0192 -->
+<!-- reserve-pixel-line-0193 -->
+<!-- reserve-pixel-line-0194 -->
+<!-- reserve-pixel-line-0195 -->
+<!-- reserve-pixel-line-0196 -->
+<!-- reserve-pixel-line-0197 -->
+<!-- reserve-pixel-line-0198 -->
+<!-- reserve-pixel-line-0199 -->
+<!-- reserve-pixel-line-0200 -->
+<!-- reserve-pixel-line-0201 -->
+<!-- reserve-pixel-line-0202 -->
+<!-- reserve-pixel-line-0203 -->
+<!-- reserve-pixel-line-0204 -->
+<!-- reserve-pixel-line-0205 -->
+<!-- reserve-pixel-line-0206 -->
+<!-- reserve-pixel-line-0207 -->
+<!-- reserve-pixel-line-0208 -->
+<!-- reserve-pixel-line-0209 -->
+<!-- reserve-pixel-line-0210 -->
+<!-- reserve-pixel-line-0211 -->
+<!-- reserve-pixel-line-0212 -->
+<!-- reserve-pixel-line-0213 -->
+<!-- reserve-pixel-line-0214 -->
+<!-- reserve-pixel-line-0215 -->
+<!-- reserve-pixel-line-0216 -->
+<!-- reserve-pixel-line-0217 -->
+<!-- reserve-pixel-line-0218 -->
+<!-- reserve-pixel-line-0219 -->
+<!-- reserve-pixel-line-0220 -->
+<!-- reserve-pixel-line-0221 -->
+<!-- reserve-pixel-line-0222 -->
+<!-- reserve-pixel-line-0223 -->
+<!-- reserve-pixel-line-0224 -->
+<!-- reserve-pixel-line-0225 -->
+<!-- reserve-pixel-line-0226 -->
+<!-- reserve-pixel-line-0227 -->
+<!-- reserve-pixel-line-0228 -->
+<!-- reserve-pixel-line-0229 -->
+<!-- reserve-pixel-line-0230 -->
+<!-- reserve-pixel-line-0231 -->
+<!-- reserve-pixel-line-0232 -->
+<!-- reserve-pixel-line-0233 -->
+<!-- reserve-pixel-line-0234 -->
+<!-- reserve-pixel-line-0235 -->
+<!-- reserve-pixel-line-0236 -->
+<!-- reserve-pixel-line-0237 -->
+<!-- reserve-pixel-line-0238 -->
+<!-- reserve-pixel-line-0239 -->
+<!-- reserve-pixel-line-0240 -->
+<!-- reserve-pixel-line-0241 -->
+<!-- reserve-pixel-line-0242 -->
+<!-- reserve-pixel-line-0243 -->
+<!-- reserve-pixel-line-0244 -->
+<!-- reserve-pixel-line-0245 -->
+<!-- reserve-pixel-line-0246 -->
+<!-- reserve-pixel-line-0247 -->
+<!-- reserve-pixel-line-0248 -->
+<!-- reserve-pixel-line-0249 -->
+<!-- reserve-pixel-line-0250 -->
+<!-- reserve-pixel-line-0251 -->
+<!-- reserve-pixel-line-0252 -->
+<!-- reserve-pixel-line-0253 -->
+<!-- reserve-pixel-line-0254 -->
+<!-- reserve-pixel-line-0255 -->
+<!-- reserve-pixel-line-0256 -->
+<!-- reserve-pixel-line-0257 -->
+<!-- reserve-pixel-line-0258 -->
+<!-- reserve-pixel-line-0259 -->
+<!-- reserve-pixel-line-0260 -->
+<!-- reserve-pixel-line-0261 -->
+<!-- reserve-pixel-line-0262 -->
+<!-- reserve-pixel-line-0263 -->
+<!-- reserve-pixel-line-0264 -->
+<!-- reserve-pixel-line-0265 -->
+<!-- reserve-pixel-line-0266 -->
+<!-- reserve-pixel-line-0267 -->
+<!-- reserve-pixel-line-0268 -->
+<!-- reserve-pixel-line-0269 -->
+<!-- reserve-pixel-line-0270 -->
+<!-- reserve-pixel-line-0271 -->
+<!-- reserve-pixel-line-0272 -->
+<!-- reserve-pixel-line-0273 -->
+<!-- reserve-pixel-line-0274 -->
+<!-- reserve-pixel-line-0275 -->
+<!-- reserve-pixel-line-0276 -->
+<!-- reserve-pixel-line-0277 -->
+<!-- reserve-pixel-line-0278 -->
+<!-- reserve-pixel-line-0279 -->
+<!-- reserve-pixel-line-0280 -->
+<!-- reserve-pixel-line-0281 -->
+<!-- reserve-pixel-line-0282 -->
+<!-- reserve-pixel-line-0283 -->
+<!-- reserve-pixel-line-0284 -->
+<!-- reserve-pixel-line-0285 -->
+<!-- reserve-pixel-line-0286 -->
+<!-- reserve-pixel-line-0287 -->
+<!-- reserve-pixel-line-0288 -->
+<!-- reserve-pixel-line-0289 -->
+<!-- reserve-pixel-line-0290 -->
+<!-- reserve-pixel-line-0291 -->
+<!-- reserve-pixel-line-0292 -->
+<!-- reserve-pixel-line-0293 -->
+<!-- reserve-pixel-line-0294 -->
+<!-- reserve-pixel-line-0295 -->
+<!-- reserve-pixel-line-0296 -->
+<!-- reserve-pixel-line-0297 -->
+<!-- reserve-pixel-line-0298 -->
+<!-- reserve-pixel-line-0299 -->
+<!-- reserve-pixel-line-0300 -->
+<!-- reserve-pixel-line-0301 -->
+<!-- reserve-pixel-line-0302 -->
+<!-- reserve-pixel-line-0303 -->
+<!-- reserve-pixel-line-0304 -->
+<!-- reserve-pixel-line-0305 -->
+<!-- reserve-pixel-line-0306 -->
+<!-- reserve-pixel-line-0307 -->
+<!-- reserve-pixel-line-0308 -->
+<!-- reserve-pixel-line-0309 -->
+<!-- reserve-pixel-line-0310 -->
+<!-- reserve-pixel-line-0311 -->
+<!-- reserve-pixel-line-0312 -->
+<!-- reserve-pixel-line-0313 -->
+<!-- reserve-pixel-line-0314 -->
+<!-- reserve-pixel-line-0315 -->
+<!-- reserve-pixel-line-0316 -->
+<!-- reserve-pixel-line-0317 -->
+<!-- reserve-pixel-line-0318 -->
+<!-- reserve-pixel-line-0319 -->
+<!-- reserve-pixel-line-0320 -->
+<!-- reserve-pixel-line-0321 -->
+<!-- reserve-pixel-line-0322 -->
+<!-- reserve-pixel-line-0323 -->
+<!-- reserve-pixel-line-0324 -->
+<!-- reserve-pixel-line-0325 -->
+<!-- reserve-pixel-line-0326 -->
+<!-- reserve-pixel-line-0327 -->
+<!-- reserve-pixel-line-0328 -->
+<!-- reserve-pixel-line-0329 -->
+<!-- reserve-pixel-line-0330 -->
+<!-- reserve-pixel-line-0331 -->
+<!-- reserve-pixel-line-0332 -->
+<!-- reserve-pixel-line-0333 -->
+<!-- reserve-pixel-line-0334 -->
+<!-- reserve-pixel-line-0335 -->
+<!-- reserve-pixel-line-0336 -->
+<!-- reserve-pixel-line-0337 -->
+<!-- reserve-pixel-line-0338 -->
+<!-- reserve-pixel-line-0339 -->
+<!-- reserve-pixel-line-0340 -->
+<!-- reserve-pixel-line-0341 -->
+<!-- reserve-pixel-line-0342 -->
+<!-- reserve-pixel-line-0343 -->
+<!-- reserve-pixel-line-0344 -->
+<!-- reserve-pixel-line-0345 -->
+<!-- reserve-pixel-line-0346 -->
+<!-- reserve-pixel-line-0347 -->
+<!-- reserve-pixel-line-0348 -->
+<!-- reserve-pixel-line-0349 -->
+<!-- reserve-pixel-line-0350 -->
+<!-- reserve-pixel-line-0351 -->
+<!-- reserve-pixel-line-0352 -->
+<!-- reserve-pixel-line-0353 -->
+<!-- reserve-pixel-line-0354 -->
+<!-- reserve-pixel-line-0355 -->
+<!-- reserve-pixel-line-0356 -->
+<!-- reserve-pixel-line-0357 -->
+<!-- reserve-pixel-line-0358 -->
+<!-- reserve-pixel-line-0359 -->
+<!-- reserve-pixel-line-0360 -->
+<!-- reserve-pixel-line-0361 -->
+<!-- reserve-pixel-line-0362 -->
+<!-- reserve-pixel-line-0363 -->
+<!-- reserve-pixel-line-0364 -->
+<!-- reserve-pixel-line-0365 -->
+<!-- reserve-pixel-line-0366 -->
+<!-- reserve-pixel-line-0367 -->
+<!-- reserve-pixel-line-0368 -->
+<!-- reserve-pixel-line-0369 -->
+<!-- reserve-pixel-line-0370 -->
+<!-- reserve-pixel-line-0371 -->
+<!-- reserve-pixel-line-0372 -->
+<!-- reserve-pixel-line-0373 -->
+<!-- reserve-pixel-line-0374 -->
+<!-- reserve-pixel-line-0375 -->
+<!-- reserve-pixel-line-0376 -->
+<!-- reserve-pixel-line-0377 -->
+<!-- reserve-pixel-line-0378 -->
+<!-- reserve-pixel-line-0379 -->
+<!-- reserve-pixel-line-0380 -->
+<!-- reserve-pixel-line-0381 -->
+<!-- reserve-pixel-line-0382 -->
+<!-- reserve-pixel-line-0383 -->
+<!-- reserve-pixel-line-0384 -->
+<!-- reserve-pixel-line-0385 -->
+<!-- reserve-pixel-line-0386 -->
+<!-- reserve-pixel-line-0387 -->
+<!-- reserve-pixel-line-0388 -->
+<!-- reserve-pixel-line-0389 -->
+<!-- reserve-pixel-line-0390 -->
+<!-- reserve-pixel-line-0391 -->
+<!-- reserve-pixel-line-0392 -->
+<!-- reserve-pixel-line-0393 -->
+<!-- reserve-pixel-line-0394 -->
+<!-- reserve-pixel-line-0395 -->
+<!-- reserve-pixel-line-0396 -->
+<!-- reserve-pixel-line-0397 -->
+<!-- reserve-pixel-line-0398 -->
+<!-- reserve-pixel-line-0399 -->
+<!-- reserve-pixel-line-0400 -->
+<!-- reserve-pixel-line-0401 -->
+<!-- reserve-pixel-line-0402 -->
+<!-- reserve-pixel-line-0403 -->
+<!-- reserve-pixel-line-0404 -->
+<!-- reserve-pixel-line-0405 -->
+<!-- reserve-pixel-line-0406 -->
+<!-- reserve-pixel-line-0407 -->
+<!-- reserve-pixel-line-0408 -->
+<!-- reserve-pixel-line-0409 -->
+<!-- reserve-pixel-line-0410 -->
+<!-- reserve-pixel-line-0411 -->
+<!-- reserve-pixel-line-0412 -->
+<!-- reserve-pixel-line-0413 -->
+<!-- reserve-pixel-line-0414 -->
+<!-- reserve-pixel-line-0415 -->
+<!-- reserve-pixel-line-0416 -->
+<!-- reserve-pixel-line-0417 -->
+<!-- reserve-pixel-line-0418 -->
+<!-- reserve-pixel-line-0419 -->
+<!-- reserve-pixel-line-0420 -->
+<!-- reserve-pixel-line-0421 -->
+<!-- reserve-pixel-line-0422 -->
+<!-- reserve-pixel-line-0423 -->
+<!-- reserve-pixel-line-0424 -->
+<!-- reserve-pixel-line-0425 -->
+<!-- reserve-pixel-line-0426 -->
+<!-- reserve-pixel-line-0427 -->
+<!-- reserve-pixel-line-0428 -->
+<!-- reserve-pixel-line-0429 -->
+<!-- reserve-pixel-line-0430 -->
+<!-- reserve-pixel-line-0431 -->
+<!-- reserve-pixel-line-0432 -->
+<!-- reserve-pixel-line-0433 -->
+<!-- reserve-pixel-line-0434 -->
+<!-- reserve-pixel-line-0435 -->
+<!-- reserve-pixel-line-0436 -->
+<!-- reserve-pixel-line-0437 -->
+<!-- reserve-pixel-line-0438 -->
+<!-- reserve-pixel-line-0439 -->
+<!-- reserve-pixel-line-0440 -->
+<!-- reserve-pixel-line-0441 -->
+<!-- reserve-pixel-line-0442 -->
+<!-- reserve-pixel-line-0443 -->
+<!-- reserve-pixel-line-0444 -->
+<!-- reserve-pixel-line-0445 -->
+<!-- reserve-pixel-line-0446 -->
+<!-- reserve-pixel-line-0447 -->
+<!-- reserve-pixel-line-0448 -->
+<!-- reserve-pixel-line-0449 -->
+<!-- reserve-pixel-line-0450 -->
+<!-- reserve-pixel-line-0451 -->
+<!-- reserve-pixel-line-0452 -->
+<!-- reserve-pixel-line-0453 -->
+<!-- reserve-pixel-line-0454 -->
+<!-- reserve-pixel-line-0455 -->
+<!-- reserve-pixel-line-0456 -->
+<!-- reserve-pixel-line-0457 -->
+<!-- reserve-pixel-line-0458 -->
+<!-- reserve-pixel-line-0459 -->
+<!-- reserve-pixel-line-0460 -->
+<!-- reserve-pixel-line-0461 -->
+<!-- reserve-pixel-line-0462 -->
+<!-- reserve-pixel-line-0463 -->
+<!-- reserve-pixel-line-0464 -->
+<!-- reserve-pixel-line-0465 -->
+<!-- reserve-pixel-line-0466 -->
+<!-- reserve-pixel-line-0467 -->
+<!-- reserve-pixel-line-0468 -->
+<!-- reserve-pixel-line-0469 -->
+<!-- reserve-pixel-line-0470 -->
+<!-- reserve-pixel-line-0471 -->
+<!-- reserve-pixel-line-0472 -->
+<!-- reserve-pixel-line-0473 -->
+<!-- reserve-pixel-line-0474 -->
+<!-- reserve-pixel-line-0475 -->
+<!-- reserve-pixel-line-0476 -->
+<!-- reserve-pixel-line-0477 -->
+<!-- reserve-pixel-line-0478 -->
+<!-- reserve-pixel-line-0479 -->
+<!-- reserve-pixel-line-0480 -->
+<!-- reserve-pixel-line-0481 -->
+<!-- reserve-pixel-line-0482 -->
+<!-- reserve-pixel-line-0483 -->
+<!-- reserve-pixel-line-0484 -->
+<!-- reserve-pixel-line-0485 -->
+<!-- reserve-pixel-line-0486 -->
+<!-- reserve-pixel-line-0487 -->
+<!-- reserve-pixel-line-0488 -->
+<!-- reserve-pixel-line-0489 -->
+<!-- reserve-pixel-line-0490 -->
+<!-- reserve-pixel-line-0491 -->
+<!-- reserve-pixel-line-0492 -->
+<!-- reserve-pixel-line-0493 -->
+<!-- reserve-pixel-line-0494 -->
+<!-- reserve-pixel-line-0495 -->
+<!-- reserve-pixel-line-0496 -->
+<!-- reserve-pixel-line-0497 -->
+<!-- reserve-pixel-line-0498 -->
+<!-- reserve-pixel-line-0499 -->
+<!-- reserve-pixel-line-0500 -->
+<!-- reserve-pixel-line-0501 -->
+<!-- reserve-pixel-line-0502 -->
+<!-- reserve-pixel-line-0503 -->
+<!-- reserve-pixel-line-0504 -->
+<!-- reserve-pixel-line-0505 -->
+<!-- reserve-pixel-line-0506 -->
+<!-- reserve-pixel-line-0507 -->
+<!-- reserve-pixel-line-0508 -->
+<!-- reserve-pixel-line-0509 -->
+<!-- reserve-pixel-line-0510 -->
+<!-- reserve-pixel-line-0511 -->
+<!-- reserve-pixel-line-0512 -->
+<!-- reserve-pixel-line-0513 -->
+<!-- reserve-pixel-line-0514 -->
+<!-- reserve-pixel-line-0515 -->
+<!-- reserve-pixel-line-0516 -->
+<!-- reserve-pixel-line-0517 -->
+<!-- reserve-pixel-line-0518 -->
+<!-- reserve-pixel-line-0519 -->
+<!-- reserve-pixel-line-0520 -->
+<!-- reserve-pixel-line-0521 -->
+<!-- reserve-pixel-line-0522 -->
+<!-- reserve-pixel-line-0523 -->
+<!-- reserve-pixel-line-0524 -->
+<!-- reserve-pixel-line-0525 -->
+<!-- reserve-pixel-line-0526 -->
+<!-- reserve-pixel-line-0527 -->
+<!-- reserve-pixel-line-0528 -->
+<!-- reserve-pixel-line-0529 -->
+<!-- reserve-pixel-line-0530 -->
+<!-- reserve-pixel-line-0531 -->
+<!-- reserve-pixel-line-0532 -->
+<!-- reserve-pixel-line-0533 -->
+<!-- reserve-pixel-line-0534 -->
+<!-- reserve-pixel-line-0535 -->
+<!-- reserve-pixel-line-0536 -->
+<!-- reserve-pixel-line-0537 -->
+<!-- reserve-pixel-line-0538 -->
+<!-- reserve-pixel-line-0539 -->
+<!-- reserve-pixel-line-0540 -->
+<!-- reserve-pixel-line-0541 -->
+<!-- reserve-pixel-line-0542 -->
+<!-- reserve-pixel-line-0543 -->
+<!-- reserve-pixel-line-0544 -->
+<!-- reserve-pixel-line-0545 -->
+<!-- reserve-pixel-line-0546 -->
+<!-- reserve-pixel-line-0547 -->
+<!-- reserve-pixel-line-0548 -->
+<!-- reserve-pixel-line-0549 -->
+<!-- reserve-pixel-line-0550 -->
+<!-- reserve-pixel-line-0551 -->
+<!-- reserve-pixel-line-0552 -->
+<!-- reserve-pixel-line-0553 -->
+<!-- reserve-pixel-line-0554 -->
+<!-- reserve-pixel-line-0555 -->
+<!-- reserve-pixel-line-0556 -->
+<!-- reserve-pixel-line-0557 -->
+<!-- reserve-pixel-line-0558 -->
+<!-- reserve-pixel-line-0559 -->
+<!-- reserve-pixel-line-0560 -->
+<!-- reserve-pixel-line-0561 -->
+<!-- reserve-pixel-line-0562 -->
+<!-- reserve-pixel-line-0563 -->
+<!-- reserve-pixel-line-0564 -->
+<!-- reserve-pixel-line-0565 -->
+<!-- reserve-pixel-line-0566 -->
+<!-- reserve-pixel-line-0567 -->
+<!-- reserve-pixel-line-0568 -->
+<!-- reserve-pixel-line-0569 -->
+<!-- reserve-pixel-line-0570 -->
+<!-- reserve-pixel-line-0571 -->
+<!-- reserve-pixel-line-0572 -->
+<!-- reserve-pixel-line-0573 -->
+<!-- reserve-pixel-line-0574 -->
+<!-- reserve-pixel-line-0575 -->
+<!-- reserve-pixel-line-0576 -->
+<!-- reserve-pixel-line-0577 -->
+<!-- reserve-pixel-line-0578 -->
+<!-- reserve-pixel-line-0579 -->
+<!-- reserve-pixel-line-0580 -->
+<!-- reserve-pixel-line-0581 -->
+<!-- reserve-pixel-line-0582 -->
+<!-- reserve-pixel-line-0583 -->
+<!-- reserve-pixel-line-0584 -->
+<!-- reserve-pixel-line-0585 -->
+<!-- reserve-pixel-line-0586 -->
+<!-- reserve-pixel-line-0587 -->
+<!-- reserve-pixel-line-0588 -->
+<!-- reserve-pixel-line-0589 -->
+<!-- reserve-pixel-line-0590 -->
+<!-- reserve-pixel-line-0591 -->
+<!-- reserve-pixel-line-0592 -->
+<!-- reserve-pixel-line-0593 -->
+<!-- reserve-pixel-line-0594 -->
+<!-- reserve-pixel-line-0595 -->
+<!-- reserve-pixel-line-0596 -->
+<!-- reserve-pixel-line-0597 -->
+<!-- reserve-pixel-line-0598 -->
+<!-- reserve-pixel-line-0599 -->
+<!-- reserve-pixel-line-0600 -->
+<!-- reserve-pixel-line-0601 -->
+<!-- reserve-pixel-line-0602 -->
+<!-- reserve-pixel-line-0603 -->
+<!-- reserve-pixel-line-0604 -->
+<!-- reserve-pixel-line-0605 -->
+<!-- reserve-pixel-line-0606 -->
+<!-- reserve-pixel-line-0607 -->
+<!-- reserve-pixel-line-0608 -->
+<!-- reserve-pixel-line-0609 -->
+<!-- reserve-pixel-line-0610 -->
+<!-- reserve-pixel-line-0611 -->
+<!-- reserve-pixel-line-0612 -->
+<!-- reserve-pixel-line-0613 -->
+<!-- reserve-pixel-line-0614 -->
+<!-- reserve-pixel-line-0615 -->
+<!-- reserve-pixel-line-0616 -->
+<!-- reserve-pixel-line-0617 -->
+<!-- reserve-pixel-line-0618 -->
+<!-- reserve-pixel-line-0619 -->
+<!-- reserve-pixel-line-0620 -->
+<!-- reserve-pixel-line-0621 -->
+<!-- reserve-pixel-line-0622 -->
+<!-- reserve-pixel-line-0623 -->
+<!-- reserve-pixel-line-0624 -->
+<!-- reserve-pixel-line-0625 -->
+<!-- reserve-pixel-line-0626 -->
+<!-- reserve-pixel-line-0627 -->
+<!-- reserve-pixel-line-0628 -->
+<!-- reserve-pixel-line-0629 -->
+<!-- reserve-pixel-line-0630 -->
+<!-- reserve-pixel-line-0631 -->
+<!-- reserve-pixel-line-0632 -->
+<!-- reserve-pixel-line-0633 -->
+<!-- reserve-pixel-line-0634 -->
+<!-- reserve-pixel-line-0635 -->
+<!-- reserve-pixel-line-0636 -->
+<!-- reserve-pixel-line-0637 -->
+<!-- reserve-pixel-line-0638 -->
+<!-- reserve-pixel-line-0639 -->
+<!-- reserve-pixel-line-0640 -->
+<!-- reserve-pixel-line-0641 -->
+<!-- reserve-pixel-line-0642 -->
+<!-- reserve-pixel-line-0643 -->
+<!-- reserve-pixel-line-0644 -->
+<!-- reserve-pixel-line-0645 -->
+<!-- reserve-pixel-line-0646 -->
+<!-- reserve-pixel-line-0647 -->
+<!-- reserve-pixel-line-0648 -->
+<!-- reserve-pixel-line-0649 -->
+<!-- reserve-pixel-line-0650 -->
+<!-- reserve-pixel-line-0651 -->
+<!-- reserve-pixel-line-0652 -->
+<!-- reserve-pixel-line-0653 -->
+<!-- reserve-pixel-line-0654 -->
+<!-- reserve-pixel-line-0655 -->
+<!-- reserve-pixel-line-0656 -->
+<!-- reserve-pixel-line-0657 -->
+<!-- reserve-pixel-line-0658 -->
+<!-- reserve-pixel-line-0659 -->
+<!-- reserve-pixel-line-0660 -->
+<!-- reserve-pixel-line-0661 -->
+<!-- reserve-pixel-line-0662 -->
+<!-- reserve-pixel-line-0663 -->
+<!-- reserve-pixel-line-0664 -->
+<!-- reserve-pixel-line-0665 -->
+<!-- reserve-pixel-line-0666 -->
+<!-- reserve-pixel-line-0667 -->
+<!-- reserve-pixel-line-0668 -->
+<!-- reserve-pixel-line-0669 -->
+<!-- reserve-pixel-line-0670 -->
+<!-- reserve-pixel-line-0671 -->
+<!-- reserve-pixel-line-0672 -->
+<!-- reserve-pixel-line-0673 -->
+<!-- reserve-pixel-line-0674 -->
+<!-- reserve-pixel-line-0675 -->
+<!-- reserve-pixel-line-0676 -->
+<!-- reserve-pixel-line-0677 -->
+<!-- reserve-pixel-line-0678 -->
+<!-- reserve-pixel-line-0679 -->
+<!-- reserve-pixel-line-0680 -->
+<!-- reserve-pixel-line-0681 -->
+<!-- reserve-pixel-line-0682 -->
+<!-- reserve-pixel-line-0683 -->
+<!-- reserve-pixel-line-0684 -->
+<!-- reserve-pixel-line-0685 -->
+<!-- reserve-pixel-line-0686 -->
+<!-- reserve-pixel-line-0687 -->
+<!-- reserve-pixel-line-0688 -->
+<!-- reserve-pixel-line-0689 -->
+<!-- reserve-pixel-line-0690 -->
+<!-- reserve-pixel-line-0691 -->
+<!-- reserve-pixel-line-0692 -->
+<!-- reserve-pixel-line-0693 -->
+<!-- reserve-pixel-line-0694 -->
+<!-- reserve-pixel-line-0695 -->
+<!-- reserve-pixel-line-0696 -->
+<!-- reserve-pixel-line-0697 -->
+<!-- reserve-pixel-line-0698 -->
+<!-- reserve-pixel-line-0699 -->
+<!-- reserve-pixel-line-0700 -->
 </html>
-
