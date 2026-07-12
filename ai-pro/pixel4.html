@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Potolok AI PRO — калькулятор і візуалізація</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}html{scroll-behavior:smooth}body{font-family:Arial,Helvetica,sans-serif;background:#f4f7fb;color:#0f172a;overflow-x:hidden}a{text-decoration:none;color:inherit}button,input,select{font:inherit}button{cursor:pointer}.wrap{max-width:1180px;margin:auto;padding:0 14px}
+.header{height:50px;background:#fff;border-bottom:1px solid #e5e7eb;display:flex;align-items:center;position:sticky;top:0;z-index:20}.nav{display:flex;align-items:center;justify-content:space-between;width:100%;gap:10px}.logo{font-size:22px;font-weight:950;letter-spacing:-1px;white-space:nowrap}.logo span{color:#075bff}.menu{display:none}.phone{font-size:14px;font-weight:900}.tg{display:none}
+.hero{padding:18px 0 10px}.hero-box{background:linear-gradient(135deg,#071428,#075bff);color:#fff;border-radius:22px;padding:24px 18px;box-shadow:0 18px 44px rgba(7,91,255,.22)}.hero-badge{display:inline-block;background:rgba(255,255,255,.13);border:1px solid rgba(255,255,255,.25);border-radius:999px;padding:6px 10px;font-size:10px;font-weight:900;margin-bottom:10px}.hero h1{font-size:30px;line-height:1;letter-spacing:-1px;margin-bottom:9px}.hero p{font-size:12px;line-height:1.45;color:#dbeafe;max-width:780px}.hero-points{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:14px}.hero-point{background:rgba(255,255,255,.1);border-radius:12px;padding:10px;text-align:center;font-size:10px;font-weight:900}.hero-point span{display:block;font-size:8px;color:#cfe3ff;font-weight:700;margin-top:2px}
+.app{padding:10px 0 26px}.grid{display:grid;grid-template-columns:1fr;gap:14px}.panel{background:#fff;border:1px solid #e5e7eb;border-radius:16px;box-shadow:0 10px 24px rgba(15,23,42,.08)}.controls,.main{padding:14px}.block{margin-bottom:18px}.block:last-child{margin-bottom:0}.block-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}.block-head h2,.block-head h3{font-size:16px}.tag{font-size:9px;color:#64748b;background:#f8fafc;border:1px solid #e5e7eb;border-radius:999px;padding:4px 7px;font-weight:900}
+.photo-box{height:210px;border-radius:13px;border:1px solid #dbe3ef;background:#eef5ff;overflow:hidden;position:relative}.photo-box img{width:100%;height:100%;object-fit:cover;display:block}.photo-empty{height:100%;display:flex;align-items:center;justify-content:center;color:#64748b;font-size:12px;font-weight:900}.camera{position:absolute;left:12px;bottom:12px;width:46px;height:46px;border-radius:50%;background:rgba(7,20,40,.86);color:#fff;display:flex;align-items:center;justify-content:center;font-size:20px}
+.btn{display:inline-flex;align-items:center;justify-content:center;min-height:38px;border-radius:9px;font-size:11px;font-weight:900;padding:10px 14px;border:0}.btn-full{width:100%}.blue{background:#075bff;color:#fff;box-shadow:0 10px 22px rgba(7,91,255,.22)}.green{background:#22c55e;color:#fff}.dark{background:#071428;color:#fff}.outline{background:#fff;color:#075bff;border:1px solid #075bff}.mt{margin-top:10px}.btn-row{display:flex;gap:8px;flex-wrap:wrap}.btn-row .btn{flex:1}
+.palette-tools{display:grid;grid-template-columns:1fr;gap:8px;margin-bottom:10px}.palette-tools input,.palette-tools select,.field input,.field select{width:100%;border:1px solid #dbe3ef;border-radius:9px;padding:9px;font-size:10px;background:#f8fafc;color:#0f172a;outline:none}.palette{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.swatch{border:1px solid #e5e7eb;border-radius:12px;background:#fff;overflow:hidden;padding:0;min-height:70px}.swatch.active{outline:2px solid #075bff;border-color:#075bff}.swatch-color{height:42px;border-bottom:1px solid #e5e7eb}.swatch-info{padding:6px;text-align:left}.swatch-info b{display:block;font-size:8px;line-height:1.15}.swatch-info span{display:block;color:#64748b;font-size:7px;margin-top:2px}
+.texture-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.texture-btn{border:1px solid #dbe3ef;border-radius:10px;background:#fff;min-height:42px;font-size:10px;font-weight:900}.texture-btn.active{background:#eef5ff;color:#075bff;border-color:#075bff}
+.tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;background:#f8fafc;border:1px solid #e5e7eb;padding:5px;border-radius:12px;margin-bottom:10px}.tab-btn{border:0;background:transparent;border-radius:8px;padding:9px 6px;font-size:10px;font-weight:900}.tab-btn.active{background:#fff;color:#075bff;box-shadow:0 4px 12px rgba(15,23,42,.08)}
+.options-grid{display:grid;gap:8px}.option-card{border:1px solid #e5e7eb;border-radius:12px;padding:10px;background:#fff}.option-top{display:flex;align-items:center;justify-content:space-between;gap:10px}.option-check{display:flex;align-items:center;gap:9px;font-size:11px;font-weight:900}.option-check input{width:17px;height:17px;accent-color:#075bff}.price-label{font-size:9px;color:#075bff;font-weight:900;white-space:nowrap}.option-fields{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:9px}.field{display:flex;flex-direction:column;gap:4px}.field label{font-size:9px;font-weight:800;color:#334155}.hidden{display:none!important}
+.price-box{margin-top:10px;background:#f8fafc;border:1px solid #dbe3ef;border-radius:13px;padding:12px}.price-box span{display:block;color:#64748b;font-size:9px}.price-box b{display:block;color:#075bff;font-size:26px;margin-top:4px}.price-detail{margin-top:6px;color:#64748b;font-size:8px;line-height:1.35}
+.result-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}.result-title{display:flex;align-items:center;gap:8px}.result-title h2{font-size:18px}.actual{background:#dcfce7;color:#16a34a;border-radius:999px;padding:4px 7px;font-size:8px;font-weight:900}.icons{display:flex;gap:6px}.icon-btn{width:34px;height:34px;border-radius:9px;border:1px solid #e5e7eb;background:#fff;font-size:14px}.result-image{min-height:290px;border-radius:14px;border:1px solid #dbe3ef;background:#eef5ff;overflow:hidden;display:flex;align-items:center;justify-content:center;text-align:center;color:#64748b;font-size:11px;font-weight:900;padding:14px}.result-image img{width:100%;height:100%;max-height:520px;object-fit:cover}.specs{display:grid;grid-template-columns:1fr;gap:8px;margin:12px 0}.spec{display:grid;grid-template-columns:18px 1fr;gap:7px;font-size:10px}.spec b{font-weight:900}.spec span{color:#475569}
+.bottom-grid{display:grid;grid-template-columns:1fr;gap:12px;margin-top:14px}.mini-panel{background:#fff;border:1px solid #e5e7eb;border-radius:14px;padding:12px;box-shadow:0 8px 20px rgba(15,23,42,.06)}.mini-panel h3{font-size:14px;margin-bottom:8px}table{width:100%;border-collapse:collapse;font-size:9px}th{text-align:left;color:#334155;padding:6px 0}td{padding:7px 0;border-bottom:1px solid #eef2f7}th:nth-child(2),th:nth-child(3),th:nth-child(4),td:nth-child(2),td:nth-child(3),td:nth-child(4){text-align:right}.total-line{margin-top:9px;font-size:10px;color:#475569;font-weight:900}.total-price{font-size:28px;color:#16a34a;font-weight:950;margin:6px 0 8px}.notice{font-size:9px;color:#64748b;line-height:1.35;margin-top:8px}.loader{display:none;margin-top:10px;text-align:center;color:#075bff;font-size:10px;font-weight:900}.api-error{display:none;margin-top:10px;background:#fff7ed;border:1px solid #fed7aa;color:#9a3412;border-radius:10px;padding:10px;font-size:10px;line-height:1.4}.footer{padding:18px;text-align:center;color:#64748b;font-size:10px}
+.print-only{display:none}
+.quote-meta{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+.quote-meta .field input{background:#fff}
+.calc-breakdown{margin-top:7px;font-size:9px;line-height:1.45;color:#475569}
+.calc-breakdown b{color:#0f172a}
+@media print{
+  body{background:#fff}
+  .header,.hero,.controls,.result-image,.icons,.btn-row,.footer,.notice{display:none!important}
+  .app{padding:0}
+  .wrap{max-width:none;padding:0}
+  .grid{display:block}
+  .main{border:0;box-shadow:none;padding:0}
+  .result-head{margin-bottom:14px}
+  .result-title h2{font-size:24px}
+  .actual{display:none}
+  .specs{grid-template-columns:1fr 1fr}
+  .bottom-grid{display:block}
+  .mini-panel{box-shadow:none;border:1px solid #cbd5e1;margin-bottom:14px}
+  .print-only{display:block!important}
+  table{font-size:11px}
+  th,td{padding:8px 0}
+  .total-price{font-size:32px}
+}
+@media(min-width:760px){.wrap{padding:0 22px}.header{height:56px}.logo{font-size:26px}.menu{display:flex;gap:18px;font-size:12px;font-weight:800;color:#334155}.phone{font-size:15px}.tg{display:inline-flex;background:#075bff;color:#fff;padding:8px 12px;border-radius:8px;font-size:11px;font-weight:900}.hero{padding:24px 0 12px}.hero-box{padding:28px 26px;border-radius:24px}.hero h1{font-size:42px}.hero p{font-size:14px}.hero-points{max-width:760px;gap:10px}.hero-point{font-size:12px;padding:12px}.hero-point span{font-size:10px}.grid{grid-template-columns:360px 1fr;gap:18px;align-items:start}.controls{position:sticky;top:74px;max-height:calc(100vh - 90px);overflow:auto}.palette-tools{grid-template-columns:1fr 120px}.result-image{min-height:470px}.specs{grid-template-columns:1fr 1fr;gap:10px 24px}.spec{font-size:11px}.bottom-grid{grid-template-columns:1.2fr .8fr}}
+</style>
+</head>
+<body>
+<header class="header"><div class="wrap nav"><a class="logo" href="../index.html">Potolok<span>.in.ua</span></a><div class="menu"><a href="../index.html">Головна</a><a href="../gallery.html">Наші роботи</a><a href="#colors">Кольори</a><a href="#calc">Калькулятор</a></div><a class="phone" href="tel:+380974546713">097 454 67 13</a><a class="tg" href="https://t.me/Potolok_in_ua">Фото в TG</a></div></header>
+<section class="hero"><div class="wrap"><div class="hero-box"><div class="hero-badge">✨ POTOLOK AI PRO</div><h1>AI-візуалізація та професійний калькулятор</h1><p>Фото кімнати, каталог кольорів, фактура, додаткові роботи, повна комплектація та прозорий розрахунок вартості.</p><div class="hero-points"><div class="hero-point">📷 Фото кімнати<span>з телефону клієнта</span></div><div class="hero-point">🎨 Каталог кольорів<span>мат, сатин, глянець</span></div><div class="hero-point">💰 Детальна смета<span>для себе і клієнта</span></div></div></div></div></section>
+<section class="app"><div class="wrap grid">
+<aside class="panel controls">
+<section class="block"><div class="block-head"><h2>1. Фото кімнати</h2></div><div class="photo-box"><div id="emptyPhoto" class="photo-empty">Завантажте фото кімнати</div><img id="roomPreview" src="" alt="" style="display:none"><div class="camera">📷</div></div><input id="photoInput" type="file" accept="image/*" hidden><button class="btn blue btn-full mt" onclick="photoInput.click()">↗ Завантажити фото</button></section>
+<section class="block" id="colors"><div class="block-head"><h3>2. Колір стелі</h3><span class="tag">Каталог</span></div><div class="palette-tools"><input id="colorSearch" placeholder="Пошук кольору" oninput="renderPalette()"><select id="colorCategory" onchange="renderPalette()"><option value="all">Усі</option><option value="white">Білі</option><option value="gray">Сірі</option><option value="beige">Бежеві</option><option value="dark">Темні</option><option value="color">Кольорові</option></select></div><div id="palette" class="palette"></div></section>
+<section class="block"><div class="block-head"><h3>3. Фактура</h3></div><div class="texture-grid"><button class="texture-btn active" onclick="setTexture('matte',this)">Матова</button><button class="texture-btn" onclick="setTexture('satin',this)">Сатин</button><button class="texture-btn" onclick="setTexture('glossy',this)">Глянець</button></div></section>
+<section class="block" id="calc"><div class="block-head"><h3>4. Калькулятор</h3><span class="tag">Стандарт / Профі</span></div><div class="tabs"><button class="tab-btn active" onclick="setTab('standard',this)">Стандарт</button><button class="tab-btn" onclick="setTab('pro',this)">Профі</button><button class="tab-btn" onclick="setTab('extra',this)">Додатково</button></div><div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:10px"><div class="field"><label>Площа, м²</label><input id="area" type="number" value="17.5" step="0.1" oninput="recalc()"></div><div class="field"><label>Периметр, м.п.</label><input id="perimeter" type="number" value="18" step="0.1" oninput="recalc()"></div><div class="field"><label>Кути, шт</label><input id="cornersCount" type="number" value="4" oninput="recalc()"></div><div class="field"><label>Люстри, шт</label><input id="chandelierCount" type="number" value="1" oninput="recalc()"></div></div><div id="standardOptions" class="options-grid"></div><div id="proOptions" class="options-grid hidden"></div><div id="extraOptions" class="options-grid hidden"></div><div class="price-box"><span>Орієнтовна вартість</span><b id="priceValue">0 грн</b><div id="priceDetails" class="price-detail"></div></div></section>
+<section class="block"><div class="block-head"><h3>Телефон</h3></div><div class="field"><input id="clientPhoneAI" type="tel" placeholder="+380 XX XXX XX XX"></div></section>
+<button class="btn blue btn-full" onclick="generateAI()">✨ Підготувати AI-візуалізацію</button><div id="loader" class="loader">Готуємо AI-візуалізацію...</div><div id="apiError" class="api-error"></div><div class="btn-row mt"><a class="btn outline" href="https://t.me/Potolok_in_ua">📷 Фото в TG</a><a class="btn outline" href="tel:+380974546713">📞 Подзвонити</a></div>
+</aside>
+<main><section class="panel main"><div class="result-head"><div class="result-title"><h2>Моя AI-візуалізація</h2><span class="actual">Актуальний</span></div><div class="icons"><button class="icon-btn" onclick="shareCurrent()">⌯</button><button class="icon-btn" onclick="clearResult()">🗑</button></div></div><div id="resultImageWrap" class="result-image">AI-візуалізація з’явиться тут після успішної відповіді API</div><div class="specs"><div class="spec"><span>●</span><div><b>Колір:</b> <span id="specColor">—</span></div></div><div class="spec"><span>♟</span><div><b>Фактура:</b> <span id="specTexture">Матова</span></div></div><div class="spec"><span>▤</span><div><b>Комплектація:</b> <span id="specKit">базова</span></div></div><div class="spec"><span>💰</span><div><b>Орієнтовна ціна:</b> <span id="specPrice">—</span></div></div></div><div class="btn-row"><button class="btn green" onclick="sendToTelegram()">✈ Надіслати розрахунок</button><a id="downloadBtn" class="btn dark" href="#" download="potolok-ai.png">⬇ Завантажити</a></div></section>
+<section class="bottom-grid"><div class="mini-panel">
+    <div class="print-only" style="margin-bottom:16px">
+      <div style="font-size:24px;font-weight:950">Potolok.in.ua</div>
+      <div style="font-size:12px;color:#64748b;margin-top:4px">Попередній кошторис натяжної стелі</div>
+      <div style="font-size:12px;margin-top:6px">097 454 67 13 • Харків та область</div>
+    </div>
+    <h3>Детальна смета</h3>
+    <div class="quote-meta">
+      <div class="field"><label>Клієнт</label><input id="clientName" placeholder="Ім’я клієнта"></div>
+      <div class="field"><label>Об’єкт / адреса</label><input id="objectName" placeholder="Кімната або адреса"></div>
+    </div><table><thead><tr><th>Позиція</th><th>К-сть</th><th>Ціна</th><th>Сума</th></tr></thead><tbody id="estimateBody"></tbody></table><div id="estimateTotal" class="total-line">Разом: 0 грн</div></div><div class="mini-panel"><h3>Підсумок</h3><div id="bottomPrice" class="total-price">0 грн</div><div class="notice">Ціна попередня. Остаточна вартість залежить від заміру, стану стін, висоти монтажу, складності геометрії та обраних матеріалів.</div><button class="btn blue btn-full mt" onclick="sendToTelegram()">📨 Залишити заявку</button>
+    <button class="btn outline btn-full mt" onclick="printEstimate()">📄 Зберегти кошторис PDF</button>
+    </div></section></main>
+</div></section>
+<footer class="footer">© 2026 Potolok.in.ua • 097 454 67 13</footer>
+<script>
+const COLORS=[{name:'Білий 301',brand:'MSD Premium',hex:'#ffffff',cat:'white'},{name:'Теплий білий 303',brand:'MSD Premium',hex:'#fff8ed',cat:'white'},{name:'Світло-сірий 510',brand:'MSD Premium',hex:'#cbd5e1',cat:'gray'},{name:'Сріблястий 512',brand:'MSD Premium',hex:'#aeb8c6',cat:'gray'},{name:'Графіт 700',brand:'MSD Premium',hex:'#374151',cat:'dark'},{name:'Чорний 305',brand:'MSD Premium',hex:'#000000',cat:'dark'},{name:'Бежевий 571',brand:'MSD Premium',hex:'#d8c4a3',cat:'beige'},{name:'Кремовий 210',brand:'MSD Premium',hex:'#ead8bd',cat:'beige'},{name:'Пісочний 220',brand:'MSD Premium',hex:'#c9ad86',cat:'beige'},{name:'Латте 230',brand:'MSD Premium',hex:'#b79b7b',cat:'beige'},{name:'Синій 420',brand:'MSD Premium',hex:'#2563eb',cat:'color'},{name:'Небесний 430',brand:'MSD Premium',hex:'#38bdf8',cat:'color'},{name:'Зелений 330',brand:'MSD Premium',hex:'#16a34a',cat:'color'},{name:'М’ята 335',brand:'MSD Premium',hex:'#7dd3aa',cat:'color'},{name:'Бордо 130',brand:'MSD Premium',hex:'#7f1d1d',cat:'dark'},{name:'Фіолетовий 810',brand:'MSD Premium',hex:'#7c3aed',cat:'color'},{name:'Золото 720',brand:'MSD Premium',hex:'#d4af37',cat:'color'}];
+const ITEMS=[
+{id:'base',group:'standard',name:'Полотно',unit:'м²',price:500,always:true,qtyFrom:'area'},
+{id:'insert',group:'standard',name:'Декоративна вставка',unit:'м.п.',price:50,qtyFrom:'perimeter'},
+{id:'shadow',group:'standard',name:'Тіньовий профіль',unit:'м.п.',price:250},
+{id:'floating',group:'standard',name:'Парящий профіль',unit:'м.п.',price:750},
+{id:'spots',group:'standard',name:'Точкові світильники',unit:'шт',price:200},
+{id:'chandelier',group:'standard',name:'Люстра',unit:'шт',price:400,always:true,qtyFrom:'chandelierCount'},
+{id:'pipe',group:'standard',name:'Обвід труби',unit:'шт',price:200},
+{id:'corners',group:'standard',name:'Кути',unit:'шт',price:70,always:true,qtyFrom:'cornersCount'},
+{id:'lightline',group:'pro',name:'Світлові лінії',unit:'м.п.',price:1200},
+{id:'cornice',group:'pro',name:'Вбудований карниз',unit:'м.п.',price:1200},
+{id:'corniceLed',group:'pro',name:'Карниз з підсвіткою',unit:'м.п.',price:1700},
+{id:'trackSurface',group:'pro',name:'Накладний трек',unit:'м.п.',price:1500},
+{id:'trackMagnetic',group:'pro',name:'Магнітний трек',unit:'м.п.',price:4500},
+{id:'ventBasic',group:'pro',name:'Вентиляційна решітка',unit:'шт',price:400},
+{id:'ventMagnetic',group:'pro',name:'Магнітна вентрешітка',unit:'шт',price:900},
+{id:'ventShadow',group:'pro',name:'Тіньова витяжка / решітка',unit:'шт',price:1500},
+{id:'curveSimple',group:'pro',name:'Криволінійна конструкція проста',unit:'м.п.',price:1200},
+{id:'curveHard',group:'pro',name:'Криволінійна конструкція складна',unit:'м.п.',price:1800},
+{id:'film',group:'extra',name:'Пакування стін плівкою',unit:'м.п.',price:80},
+{id:'porcelain',group:'extra',name:'Свердління керамограніту',unit:'м.п.',price:400},
+{id:'demontage',group:'extra',name:'Демонтаж старої стелі',unit:'м²',price:120},
+{id:'height',group:'extra',name:'Монтаж понад 3 м',unit:'м²',price:150},
+{id:'seal',group:'extra',name:'Герметизація стику',unit:'м.п.',price:120},
+{id:'conditioner',group:'extra',name:'Закладна під кондиціонер',unit:'шт',price:700},
+{id:'wardrobe',group:'extra',name:'Закладна під шафу',unit:'м.п.',price:450}
+];
+let selectedColor=COLORS[0],selectedTexture='matte',uploadedImageBase64='';
+const money=n=>Math.round(n).toLocaleString('uk-UA')+' грн';
+const getNum=id=>Number(document.getElementById(id)?.value)||0;
+function renderPalette(){const q=colorSearch.value.toLowerCase(),cat=colorCategory.value;palette.innerHTML=COLORS.filter(c=>(cat==='all'||c.cat===cat)&&(c.name+' '+c.brand).toLowerCase().includes(q)).map(c=>`<button class="swatch ${selectedColor.name===c.name?'active':''}" onclick="selectColor('${c.name}')"><div class="swatch-color" style="background:${c.hex}"></div><div class="swatch-info"><b>${c.name}</b><span>${c.brand}</span></div></button>`).join('')}
+function selectColor(name){selectedColor=COLORS.find(c=>c.name===name)||COLORS[0];renderPalette();updateSpecs()}
+function setTexture(t,btn){selectedTexture=t;document.querySelectorAll('.texture-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');updateSpecs()}
+function textureLabel(){return selectedTexture==='glossy'?'Глянець':selectedTexture==='satin'?'Сатин':'Матова'}
+function renderOptions(){['standard','pro','extra'].forEach(group=>{document.getElementById(group+'Options').innerHTML=ITEMS.filter(x=>x.group===group&&!x.always).map(item=>`<div class="option-card"><div class="option-top"><label class="option-check"><input id="check_${item.id}" type="checkbox" onchange="toggleItem('${item.id}')">${item.name}</label><span class="price-label">${money(item.price)} / ${item.unit}</span></div><div id="fields_${item.id}" class="option-fields hidden"><div class="field"><label>Кількість</label><input id="qty_${item.id}" type="number" value="1" step="0.1" min="0" oninput="recalc()"></div><div class="field"><label>Од.</label><input value="${item.unit}" disabled></div></div></div>`).join('')})}
+function toggleItem(id){
+  const fields=document.getElementById('fields_'+id);
+  const checked=document.getElementById('check_'+id).checked;
+  fields.classList.toggle('hidden',!checked);
+
+  if(checked){
+    const perimeterItems=['insert','shadow','floating','film','seal'];
+    const areaItems=['demontage','height'];
+    const defaultSix=['spots'];
+
+    if(perimeterItems.includes(id)){
+      document.getElementById('qty_'+id).value=getNum('perimeter');
+    }else if(areaItems.includes(id)){
+      document.getElementById('qty_'+id).value=getNum('area');
+    }else if(defaultSix.includes(id) && getNum('qty_'+id)===1){
+      document.getElementById('qty_'+id).value=6;
+    }
+  }
+
+  recalc();
+}
+function setTab(tab,btn){document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');['standard','pro','extra'].forEach(g=>document.getElementById(g+'Options').classList.toggle('hidden',g!==tab))}
+function currentRows(){const rows=[];ITEMS.forEach(item=>{let active=item.always||document.getElementById('check_'+item.id)?.checked;if(!active)return;let qty=item.qtyFrom?getNum(item.qtyFrom):getNum('qty_'+item.id);if(qty<=0)return;rows.push({...item,qty,sum:qty*item.price})});return rows}
+function recalc(){
+  const rows=currentRows();
+  const calculatedTotal=rows.reduce((sum,row)=>sum+row.sum,0);
+  const total=Math.max(calculatedTotal,5000);
+
+  priceValue.textContent=money(total);
+  bottomPrice.textContent=money(total);
+  specPrice.textContent=money(total);
+
+  priceDetails.innerHTML=
+    '<div class="calc-breakdown">'+
+    '<b>Розраховано:</b> '+money(calculatedTotal)+'<br>'+
+    '<b>Мінімальне замовлення:</b> 5 000 грн'+
+    (calculatedTotal<5000?'<br><b>До сплати:</b> 5 000 грн':'')+
+    '</div>';
+
+  estimateBody.innerHTML=rows.map(r=>
+    `<tr><td>${r.name}</td><td>${r.qty}</td><td>${money(r.price)}</td><td>${money(r.sum)}</td></tr>`
+  ).join('');
+
+  if(calculatedTotal<5000){
+    estimateBody.innerHTML+=
+      `<tr><td><b>Доплата до мінімального замовлення</b></td><td>1</td><td>${money(5000-calculatedTotal)}</td><td>${money(5000-calculatedTotal)}</td></tr>`;
+  }
+
+  estimateTotal.textContent='Разом до сплати: '+money(total);
+  specKit.textContent=rows.map(r=>r.name).slice(0,4).join(', ')+(rows.length>4?'…':'');
+  updateSpecs();
+}
+function updateSpecs(){specColor.textContent=selectedColor.name;specTexture.textContent=textureLabel()}
+photoInput.addEventListener('change',function(){const file=this.files[0];if(!file)return;const reader=new FileReader();reader.onload=e=>{uploadedImageBase64=e.target.result;roomPreview.src=uploadedImageBase64;roomPreview.style.display='block';emptyPhoto.style.display='none'};reader.readAsDataURL(file)});
+async function generateAI(){if(!uploadedImageBase64){alert('Спочатку завантажте фото кімнати.');return}loader.style.display='block';apiError.style.display='none';try{const response=await fetch('/api/ai-ceiling',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({imageBase64:uploadedImageBase64,color:selectedColor.name,colorHex:selectedColor.hex,material:selectedTexture,phone:clientPhoneAI.value.trim()})});const data=await response.json().catch(()=>({}));if(!response.ok)throw new Error(data.error||'API повернув помилку '+response.status);if(!data.image)throw new Error('API не повернув поле image');resultImageWrap.innerHTML=`<img src="${data.image}" alt="AI result">`;downloadBtn.href=data.image}catch(e){apiError.textContent='Не вдалося звернутися до /api/ai-ceiling: '+e.message+'. Калькулятор працює, але AI-функцію треба окремо підключити на Vercel.';apiError.style.display='block'}finally{loader.style.display='none'}}
+function clearResult(){resultImageWrap.textContent='AI-візуалізація з’явиться тут після успішної відповіді API';downloadBtn.href='#'}
+function shareCurrent(){navigator.clipboard?.writeText(location.href);alert('Посилання скопійовано')}
+function sendToTelegram(){
+  const rows=currentRows();
+  const calculatedTotal=rows.reduce((sum,row)=>sum+row.sum,0);
+  const total=Math.max(calculatedTotal,5000);
+  const text=`Добрий день! Хочу розрахунок натяжної стелі.
+
+Клієнт: ${clientName.value.trim()||'не вказано'}
+Об’єкт: ${objectName.value.trim()||'не вказано'}
+Колір: ${selectedColor.name}
+Фактура: ${textureLabel()}
+Площа: ${getNum('area')} м²
+Периметр: ${getNum('perimeter')} м.п.
+
+${rows.map(r=>`${r.name}: ${r.qty} ${r.unit} × ${money(r.price)} = ${money(r.sum)}`).join('\n')}
+
+Розраховано: ${money(calculatedTotal)}
+${calculatedTotal<5000?'Мінімальне замовлення: 5 000 грн\n':''}До сплати: ${money(total)}
+Телефон: ${clientPhoneAI.value.trim()||'не вказано'}`;
+
+  window.location.href='https://t.me/Potolok_in_ua?url=&text='+encodeURIComponent(text);
+}
+renderPalette();renderOptions();recalc();
+</script>
+</body>
+</html>
