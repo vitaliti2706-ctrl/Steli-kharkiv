@@ -1,5 +1,13 @@
-<!DOC
-,sans-serif;background:#f4f7fb;color:#0f172a;overflow-x:hidden}
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Potolok AI PRO — Pixel 5</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:Arial,Helvetica,sans-serif;background:#f4f7fb;color:#0f172a;overflow-x:hidden}
 a{text-decoration:none;color:inherit}
 button,input,select,textarea{font:inherit}
 button{cursor:pointer}
@@ -63,6 +71,7 @@ th:nth-child(2),th:nth-child(3),th:nth-child(4),td:nth-child(2),td:nth-child(3),
 .palette-tools{grid-template-columns:1fr 110px 130px}.palette{grid-template-columns:repeat(4,1fr)}.option-grid{grid-template-columns:1fr}.profile-grid{grid-template-columns:repeat(3,1fr)}
 .result-image{min-height:470px}.specs{grid-template-columns:1fr 1fr;gap:10px 24px}.spec{font-size:11px}.bottom-grid{grid-template-columns:1.2fr .8fr}.planner-layout{grid-template-columns:260px 1fr}.planner-canvas svg{height:520px}.planner-info{grid-template-columns:repeat(4,1fr)}
 }
+
 </style>
 </head>
 <body>
@@ -271,6 +280,7 @@ function applyPlannerToCalc(){const m=polygonMetrics();area.value=m.area.toFixed
 function loadDraft(){const raw=localStorage.getItem('potolok_pixel5_draft');if(!raw)return;try{const o=JSON.parse(raw);activeObjectId=o.id||null;clientName.value=o.clientName||'';clientPhone.value=o.clientPhone||'';objectAddress.value=o.address||'';measureDate.value=o.date||new Date().toISOString().slice(0,10);ceilingHeight.value=o.height||2.7;objectComment.value=o.comment||'';area.value=o.area||17.5;perimeter.value=o.perimeter||18;cornersCount.value=o.corners||4;chandelierCount.value=o.chandeliers||1;uploadedImageBase64=o.photo||'';if(uploadedImageBase64){roomPreview.src=uploadedImageBase64;roomPreview.style.display='block';emptyPhoto.style.display='none'}selectedColor=o.color||COLORS[0];selectedTexture=o.texture||'matte';customPrompt.value=o.prompt||'';roomPoints=o.planner?.points||[];plannerObjects=o.planner?.objects||[];if(!roomPoints.length)applyRoomSize();else renderPlanner()}catch(e){}}
 
 initManufacturers();renderAIOptions();renderProfileCards();renderCalcOptions();loadDraft();renderPalette();renderHistory();recalc();updateAISpec();if(!measureDate.value)measureDate.value=new Date().toISOString().slice(0,10);if(!roomPoints.length)applyRoomSize();updateSummary();
+
 </script>
 </body>
 </html>
