@@ -1,0 +1,276 @@
+<!DOC
+,sans-serif;background:#f4f7fb;color:#0f172a;overflow-x:hidden}
+a{text-decoration:none;color:inherit}
+button,input,select,textarea{font:inherit}
+button{cursor:pointer}
+img{display:block;max-width:100%}
+.wrap{max-width:1180px;margin:auto;padding:0 14px}
+.header{height:50px;background:#fff;border-bottom:1px solid #e5e7eb;display:flex;align-items:center;position:sticky;top:0;z-index:30}
+.nav{display:flex;align-items:center;justify-content:space-between;width:100%;gap:10px}
+.logo{font-size:22px;font-weight:950;letter-spacing:-1px;white-space:nowrap}.logo span{color:#075bff}
+.menu{display:none}.phone{font-size:13px;font-weight:900;white-space:nowrap}.tg-top{display:none}
+.hero{padding:16px 0 10px}
+.hero-box{background:linear-gradient(135deg,#071428,#075bff);color:#fff;border-radius:22px;padding:22px 18px;box-shadow:0 18px 44px rgba(7,91,255,.22)}
+.hero-badge{display:inline-block;background:rgba(255,255,255,.13);border:1px solid rgba(255,255,255,.25);border-radius:999px;padding:6px 10px;font-size:10px;font-weight:900;margin-bottom:9px}
+.hero h1{font-size:29px;line-height:1;letter-spacing:-1px;margin-bottom:8px}.hero p{font-size:12px;line-height:1.45;color:#dbeafe;max-width:790px}
+.hero-points{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:14px}
+.hero-point{background:rgba(255,255,255,.1);border-radius:12px;padding:10px;text-align:center;font-size:10px;font-weight:900}.hero-point span{display:block;font-size:8px;color:#cfe3ff;font-weight:700;margin-top:2px}
+.app{padding:10px 0 26px}.panel{background:#fff;border:1px solid #e5e7eb;border-radius:16px;box-shadow:0 10px 24px rgba(15,23,42,.08)}
+.tabs-main{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;padding:8px;background:#fff;border:1px solid #e5e7eb;border-radius:14px;box-shadow:0 8px 20px rgba(15,23,42,.06);margin-bottom:12px;overflow-x:auto}
+.main-tab{min-width:92px;border:0;background:#f8fafc;border-radius:9px;padding:10px 7px;font-size:10px;font-weight:900;color:#475569}.main-tab.active{background:#075bff;color:#fff}
+.page-section{display:none}.page-section.active{display:block}
+.grid{display:grid;grid-template-columns:1fr;gap:14px}.controls,.main{padding:14px}
+.block{margin-bottom:18px}.block:last-child{margin-bottom:0}
+.block-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}.block-head h2,.block-head h3{font-size:16px;line-height:1.2}
+.tag{font-size:9px;color:#64748b;background:#f8fafc;border:1px solid #e5e7eb;border-radius:999px;padding:4px 7px;font-weight:900}
+.field-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.field{display:flex;flex-direction:column;gap:4px}.field.full{grid-column:1/-1}
+.field label{font-size:9px;font-weight:800;color:#334155}
+.field input,.field select,.field textarea{width:100%;border:1px solid #dbe3ef;border-radius:9px;padding:9px;font-size:10px;background:#f8fafc;color:#0f172a;outline:none}.field textarea{min-height:78px;resize:vertical}
+.btn{display:inline-flex;align-items:center;justify-content:center;min-height:38px;border-radius:9px;font-size:11px;font-weight:900;padding:10px 14px;border:0}
+.btn-full{width:100%}.blue{background:#075bff;color:#fff;box-shadow:0 10px 22px rgba(7,91,255,.22)}.green{background:#22c55e;color:#fff}.dark{background:#071428;color:#fff}.outline{background:#fff;color:#075bff;border:1px solid #075bff}.danger{background:#fff;color:#dc2626;border:1px solid #fecaca}
+.mt{margin-top:10px}.btn-row{display:flex;gap:8px;flex-wrap:wrap}.btn-row .btn{flex:1}
+.photo-box{height:210px;border-radius:13px;border:1px solid #dbe3ef;background:#eef5ff;overflow:hidden;position:relative}
+.photo-box img{width:100%;height:100%;object-fit:cover}.photo-empty{height:100%;display:flex;align-items:center;justify-content:center;color:#64748b;font-size:12px;font-weight:900;text-align:center;padding:16px}
+.camera{position:absolute;left:12px;bottom:12px;width:46px;height:46px;border-radius:50%;background:rgba(7,20,40,.86);color:#fff;display:flex;align-items:center;justify-content:center;font-size:20px}
+.palette-tools{display:grid;grid-template-columns:1fr;gap:8px;margin-bottom:10px}.palette{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.swatch{border:1px solid #e5e7eb;border-radius:12px;background:#fff;overflow:hidden;padding:0;min-height:70px}.swatch.active{outline:2px solid #075bff;border-color:#075bff}
+.swatch-color{height:42px;border-bottom:1px solid #e5e7eb}.swatch-info{padding:6px;text-align:left}.swatch-info b{display:block;font-size:8px;line-height:1.15}.swatch-info span{display:block;color:#64748b;font-size:7px;margin-top:2px}
+.texture-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.texture-btn{border:1px solid #dbe3ef;border-radius:10px;background:#fff;min-height:42px;font-size:10px;font-weight:900}.texture-btn.active{background:#eef5ff;color:#075bff;border-color:#075bff}
+.option-grid{display:grid;grid-template-columns:1fr;gap:8px}.option-card{border:1px solid #e5e7eb;border-radius:12px;padding:10px;background:#fff}.option-top{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.option-check{display:flex;align-items:center;gap:9px;font-size:11px;font-weight:900}.option-check input{width:17px;height:17px;accent-color:#075bff}.price-label{font-size:9px;color:#075bff;font-weight:900;white-space:nowrap}
+.option-fields{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:9px}.hidden{display:none!important}
+.profile-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:9px}.profile-card{border:1px solid #e5e7eb;border-radius:13px;overflow:hidden;background:#fff}.profile-img{height:92px;background:linear-gradient(135deg,#eef2f7,#dbeafe);display:flex;align-items:center;justify-content:center;color:#475569;font-weight:950;font-size:12px;position:relative}.profile-img img{width:100%;height:100%;object-fit:cover}.profile-body{padding:9px}.profile-body b{display:block;font-size:10px}.profile-body span{display:block;font-size:8px;color:#64748b;margin-top:3px}.profile-body button{margin-top:8px;width:100%;border:1px solid #dbe3ef;background:#fff;border-radius:8px;padding:7px;font-size:9px;font-weight:900}.profile-card.active{outline:2px solid #075bff}
+.price-box{margin-top:10px;background:#f8fafc;border:1px solid #dbe3ef;border-radius:13px;padding:12px}.price-box span{display:block;color:#64748b;font-size:9px}.price-box b{display:block;color:#075bff;font-size:26px;margin-top:4px}.price-detail{margin-top:6px;color:#64748b;font-size:9px;line-height:1.45}
+.result-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}.result-title{display:flex;align-items:center;gap:8px}.result-title h2{font-size:18px}.actual{background:#dcfce7;color:#16a34a;border-radius:999px;padding:4px 7px;font-size:8px;font-weight:900}
+.icons{display:flex;gap:6px}.icon-btn{width:34px;height:34px;border-radius:9px;border:1px solid #e5e7eb;background:#fff;font-size:14px}
+.result-image{min-height:290px;border-radius:14px;border:1px solid #dbe3ef;background:#eef5ff;overflow:hidden;display:flex;align-items:center;justify-content:center;text-align:center;color:#64748b;font-size:11px;font-weight:900;padding:14px}.result-image img{width:100%;height:100%;max-height:520px;object-fit:cover}
+.specs{display:grid;grid-template-columns:1fr;gap:8px;margin:12px 0}.spec{display:grid;grid-template-columns:18px 1fr;gap:7px;font-size:10px;line-height:1.3}.spec b{font-weight:900}.spec span{color:#475569}
+.api-error{display:none;margin-top:10px;background:#fff7ed;border:1px solid #fed7aa;color:#9a3412;border-radius:10px;padding:10px;font-size:10px;line-height:1.4}
+.loader{display:none;margin-top:10px;text-align:center;color:#075bff;font-size:10px;font-weight:900}
+.bottom-grid{display:grid;grid-template-columns:1fr;gap:12px;margin-top:14px}.mini-panel{background:#fff;border:1px solid #e5e7eb;border-radius:14px;padding:12px;box-shadow:0 8px 20px rgba(15,23,42,.06)}
+.mini-panel h3{font-size:14px;margin-bottom:8px}table{width:100%;border-collapse:collapse;font-size:9px}th{text-align:left;color:#334155;padding:6px 0}td{padding:7px 0;border-bottom:1px solid #eef2f7}
+th:nth-child(2),th:nth-child(3),th:nth-child(4),td:nth-child(2),td:nth-child(3),td:nth-child(4){text-align:right}.total-line{margin-top:9px;font-size:10px;color:#475569;font-weight:900}.total-price{font-size:28px;color:#16a34a;font-weight:950;margin:6px 0 8px}
+.notice{font-size:9px;color:#64748b;line-height:1.35;margin-top:8px}
+.planner-layout{display:grid;grid-template-columns:1fr;gap:12px}.planner-toolbar{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}.tool-btn{border:1px solid #dbe3ef;background:#fff;border-radius:9px;padding:9px 5px;font-size:9px;font-weight:900}.tool-btn.active{background:#075bff;color:#fff;border-color:#075bff}
+.planner-canvas{background:#fff;border:1px solid #dbe3ef;border-radius:14px;padding:10px;overflow:hidden}.planner-canvas svg{width:100%;height:360px;touch-action:none;background:repeating-linear-gradient(0deg,#f8fafc,#f8fafc 19px,#edf2f7 20px),repeating-linear-gradient(90deg,transparent,transparent 19px,#edf2f7 20px)}
+.planner-info{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}.metric{background:#f8fafc;border:1px solid #e5e7eb;border-radius:10px;padding:10px}.metric span{font-size:8px;color:#64748b}.metric b{display:block;font-size:16px;margin-top:3px}
+.object-list{display:grid;gap:8px}.object-card{border:1px solid #e5e7eb;border-radius:12px;padding:10px;background:#fff}.object-card b{display:block;font-size:11px}.object-card span{display:block;font-size:8px;color:#64748b;margin-top:3px}.object-actions{display:flex;gap:6px;margin-top:8px}.object-actions button{flex:1;border:1px solid #dbe3ef;background:#fff;border-radius:8px;padding:7px;font-size:9px;font-weight:900}
+.footer{padding:18px;text-align:center;color:#64748b;font-size:10px}
+@media(min-width:760px){
+.wrap{padding:0 22px}.header{height:56px}.logo{font-size:26px}.menu{display:flex;gap:18px;font-size:12px;font-weight:800;color:#334155}.phone{font-size:15px}.tg-top{display:inline-flex;background:#075bff;color:#fff;padding:8px 12px;border-radius:8px;font-size:11px;font-weight:900}
+.hero{padding:24px 0 12px}.hero-box{padding:28px 26px;border-radius:24px}.hero h1{font-size:42px}.hero p{font-size:14px}.hero-points{max-width:760px;gap:10px}.hero-point{font-size:12px;padding:12px}.hero-point span{font-size:10px}
+.grid{grid-template-columns:360px 1fr;gap:18px;align-items:start}.controls{position:sticky;top:74px;max-height:calc(100vh - 90px);overflow:auto}
+.palette-tools{grid-template-columns:1fr 110px 130px}.palette{grid-template-columns:repeat(4,1fr)}.option-grid{grid-template-columns:1fr}.profile-grid{grid-template-columns:repeat(3,1fr)}
+.result-image{min-height:470px}.specs{grid-template-columns:1fr 1fr;gap:10px 24px}.spec{font-size:11px}.bottom-grid{grid-template-columns:1.2fr .8fr}.planner-layout{grid-template-columns:260px 1fr}.planner-canvas svg{height:520px}.planner-info{grid-template-columns:repeat(4,1fr)}
+}
+</style>
+</head>
+<body>
+<header class="header"><div class="wrap nav"><a class="logo" href="../index.html">Potolok<span>.in.ua</span></a><div class="menu"><a href="../index.html">Головна</a><a href="../gallery.html">Наші роботи</a><a href="#app">Pixel 5</a></div><a class="phone" href="tel:+380974546713">097 454 67 13</a><a class="tg-top" href="https://t.me/Potolok_in_ua">Фото в TG</a></div></header>
+
+<section class="hero"><div class="wrap"><div class="hero-box"><div class="hero-badge">✨ POTOLOK AI PRO — PIXEL 5</div><h1>Замір, AI-візуалізація, калькулятор і кошторис</h1><p>Один інструмент для роботи на замірі: фото, план кімнати, вибір матеріалів, додаткових елементів, детальна смета, PDF і збереження об’єкта.</p><div class="hero-points"><div class="hero-point">📐 План кімнати<span>периметр і площа</span></div><div class="hero-point">🎨 AI-проєкт<span>стеля та освітлення</span></div><div class="hero-point">📄 Кошторис PDF<span>для себе і клієнта</span></div></div></div></div></section>
+
+<section id="app" class="app"><div class="wrap">
+<div class="tabs-main">
+<button class="main-tab active" onclick="showMainTab('object',this)">🏠 Об’єкт</button>
+<button class="main-tab" onclick="showMainTab('ai',this)">✨ AI</button>
+<button class="main-tab" onclick="showMainTab('calc',this)">💰 Калькулятор</button>
+<button class="main-tab" onclick="showMainTab('planner',this)">📐 План</button>
+<button class="main-tab" onclick="showMainTab('history',this)">💾 Історія</button>
+</div>
+
+<section id="tab_object" class="page-section active">
+<div class="grid">
+<aside class="panel controls">
+<div class="block"><div class="block-head"><h2>Картка об’єкта</h2><span class="tag">Автозбереження</span></div>
+<div class="field-grid">
+<div class="field"><label>Клієнт</label><input id="clientName" placeholder="Ім’я клієнта" oninput="autosave()"></div>
+<div class="field"><label>Телефон</label><input id="clientPhone" placeholder="+380..." oninput="autosave()"></div>
+<div class="field full"><label>Адреса / ЖК</label><input id="objectAddress" placeholder="Адреса об’єкта" oninput="autosave()"></div>
+<div class="field"><label>Дата заміру</label><input id="measureDate" type="date" oninput="autosave()"></div>
+<div class="field"><label>Висота, м</label><input id="ceilingHeight" type="number" value="2.7" step="0.01" oninput="autosave()"></div>
+<div class="field full"><label>Коментар</label><textarea id="objectComment" placeholder="Особливості монтажу, стан стін, побажання..." oninput="autosave()"></textarea></div>
+</div></div>
+<div class="block"><div class="block-head"><h3>Фото кімнати</h3></div>
+<div class="photo-box"><div id="emptyPhoto" class="photo-empty">Завантажте або зробіть фото кімнати</div><img id="roomPreview" src="" alt="" style="display:none"><div class="camera">📷</div></div>
+<input id="photoInput" type="file" accept="image/*" capture="environment" hidden><button class="btn blue btn-full mt" onclick="photoInput.click()">📷 Додати фото</button></div>
+<div class="btn-row"><button class="btn green" onclick="saveObject()">💾 Зберегти об’єкт</button><button class="btn outline" onclick="newObject()">＋ Новий</button></div>
+</aside>
+<main class="panel main">
+<div class="block-head"><h2>Поточний об’єкт</h2><span id="saveStatus" class="tag">Не збережено</span></div>
+<div class="specs">
+<div class="spec"><span>👤</span><div><b>Клієнт:</b> <span id="summaryClient">—</span></div></div>
+<div class="spec"><span>☎</span><div><b>Телефон:</b> <span id="summaryPhone">—</span></div></div>
+<div class="spec"><span>📍</span><div><b>Адреса:</b> <span id="summaryAddress">—</span></div></div>
+<div class="spec"><span>📅</span><div><b>Дата:</b> <span id="summaryDate">—</span></div></div>
+<div class="spec"><span>📐</span><div><b>Площа:</b> <span id="summaryArea">—</span></div></div>
+<div class="spec"><span>↔</span><div><b>Периметр:</b> <span id="summaryPerimeter">—</span></div></div>
+</div>
+<div class="notice">Дані з цієї картки автоматично підтягуються в калькулятор, кошторис і PDF.</div>
+</main>
+</div>
+</section>
+
+<section id="tab_ai" class="page-section">
+<div class="grid">
+<aside class="panel controls">
+<div class="block"><div class="block-head"><h2>Матеріал стелі</h2></div>
+<div class="palette-tools">
+<input id="colorSearch" placeholder="Пошук кольору" oninput="renderPalette()">
+<select id="manufacturerFilter" onchange="renderPalette()"></select>
+<select id="colorCategory" onchange="renderPalette()"><option value="all">Усі кольори</option><option value="white">Білі</option><option value="gray">Сірі</option><option value="beige">Бежеві</option><option value="dark">Темні</option><option value="color">Кольорові</option></select>
+</div><div id="palette" class="palette"></div></div>
+<div class="block"><div class="block-head"><h3>Фактура</h3></div><div class="texture-grid"><button class="texture-btn active" onclick="setTexture('matte',this)">Матова</button><button class="texture-btn" onclick="setTexture('satin',this)">Сатин</button><button class="texture-btn" onclick="setTexture('glossy',this)">Глянець</button></div></div>
+<div class="block"><div class="block-head"><h3>Що додати у проєкт?</h3><span class="tag">AI-опитування</span></div><div id="aiOptions" class="option-grid"></div></div>
+<div class="block"><div class="field"><label>Опишіть бажаний результат</label><textarea id="customPrompt" placeholder="Наприклад: чорний магнітний трек по центру, прихований карниз біля вікна, тепла LED-підсвітка..." oninput="autosave()"></textarea></div></div>
+<button class="btn blue btn-full" onclick="generateAI()">✨ Створити AI-візуалізацію</button><div id="loader" class="loader">Готуємо AI-візуалізацію...</div><div id="apiError" class="api-error"></div>
+</aside>
+<main class="panel main">
+<div class="result-head"><div class="result-title"><h2>AI-візуалізація</h2><span class="actual">Поточний варіант</span></div><div class="icons"><button class="icon-btn" onclick="shareCurrent()">⌯</button><button class="icon-btn" onclick="clearResult()">🗑</button></div></div>
+<div id="resultImageWrap" class="result-image">Завантажте фото, оберіть матеріал і додаткові елементи, потім запустіть AI.</div>
+<div class="specs">
+<div class="spec"><span>●</span><div><b>Виробник:</b> <span id="specManufacturer">—</span></div></div>
+<div class="spec"><span>🎨</span><div><b>Колір:</b> <span id="specColor">—</span></div></div>
+<div class="spec"><span>♟</span><div><b>Фактура:</b> <span id="specTexture">Матова</span></div></div>
+<div class="spec"><span>💡</span><div><b>Елементи:</b> <span id="specElements">не вибрано</span></div></div>
+</div>
+<div class="btn-row"><a id="downloadBtn" class="btn dark" href="#" download="potolok-ai.png">⬇ Завантажити</a><button class="btn green" onclick="sendToTelegram()">✈ Надіслати</button></div>
+</main>
+</div>
+</section>
+
+<section id="tab_calc" class="page-section">
+<div class="grid">
+<aside class="panel controls">
+<div class="block"><div class="block-head"><h2>Основні параметри</h2></div><div class="field-grid">
+<div class="field"><label>Площа, м²</label><input id="area" type="number" value="17.5" step="0.1" oninput="recalc();autosave()"></div>
+<div class="field"><label>Периметр, м.п.</label><input id="perimeter" type="number" value="18" step="0.1" oninput="recalc();autosave()"></div>
+<div class="field"><label>Кути, шт</label><input id="cornersCount" type="number" value="4" oninput="recalc();autosave()"></div>
+<div class="field"><label>Люстри, шт</label><input id="chandelierCount" type="number" value="1" oninput="recalc();autosave()"></div>
+</div></div>
+<div class="block"><div class="block-head"><h3>Профілі та конструкції</h3><span class="tag">з фото</span></div><div id="profileCards" class="profile-grid"></div></div>
+<div class="block"><div class="block-head"><h3>Додаткові позиції</h3></div><div id="calcOptions" class="option-grid"></div></div>
+<div class="price-box"><span>Орієнтовна вартість</span><b id="priceValue">0 грн</b><div id="priceDetails" class="price-detail"></div></div>
+</aside>
+<main>
+<div class="mini-panel"><h3>Детальна смета</h3><table><thead><tr><th>Позиція</th><th>К-сть</th><th>Ціна</th><th>Сума</th></tr></thead><tbody id="estimateBody"></tbody></table><div id="estimateTotal" class="total-line">Разом: 0 грн</div></div>
+<div class="bottom-grid"><div class="mini-panel"><h3>Підсумок</h3><div id="bottomPrice" class="total-price">0 грн</div><div class="notice">Ціна попередня. Остаточна вартість після заміру.</div><button class="btn blue btn-full mt" onclick="sendToTelegram()">📨 Надіслати кошторис</button></div>
+<div class="mini-panel"><h3>Документи</h3><button class="btn outline btn-full" onclick="downloadPDF()">📄 Зберегти кошторис PDF</button><button class="btn outline btn-full mt" onclick="saveObject()">💾 Зберегти в історію</button></div></div>
+</main>
+</div>
+</section>
+
+<section id="tab_planner" class="page-section">
+<div class="planner-layout">
+<aside class="panel controls">
+<div class="block"><div class="block-head"><h2>Шаблон кімнати</h2></div><div class="planner-toolbar"><button class="tool-btn active" onclick="setTemplate('rect',this)">Прямокутна</button><button class="tool-btn" onclick="setTemplate('lshape',this)">Г-подібна</button><button class="tool-btn" onclick="setTemplate('custom',this)">Довільна</button></div></div>
+<div class="block"><div class="field-grid"><div class="field"><label>Ширина, м</label><input id="roomWidth" type="number" value="4.5" step="0.1" oninput="applyRoomSize()"></div><div class="field"><label>Довжина, м</label><input id="roomLength" type="number" value="3.8" step="0.1" oninput="applyRoomSize()"></div></div></div>
+<div class="block"><div class="block-head"><h3>Позначки</h3></div><div class="planner-toolbar"><button class="tool-btn" onclick="setPlannerTool('door',this)">🚪 Двері</button><button class="tool-btn" onclick="setPlannerTool('window',this)">🪟 Вікно</button><button class="tool-btn" onclick="setPlannerTool('light',this)">💡 Точка</button><button class="tool-btn" onclick="setPlannerTool('chandelier',this)">◉ Люстра</button><button class="tool-btn" onclick="setPlannerTool('vent',this)">▦ Вент.</button><button class="tool-btn" onclick="setPlannerTool('delete',this)">🗑 Видалити</button></div></div>
+<div class="btn-row"><button class="btn outline" onclick="undoPlanner()">↶ Назад</button><button class="btn danger" onclick="resetPlanner()">Скинути</button></div>
+<div class="planner-info mt"><div class="metric"><span>Площа</span><b id="plannerArea">0 м²</b></div><div class="metric"><span>Периметр</span><b id="plannerPerimeter">0 м</b></div></div>
+<button class="btn blue btn-full mt" onclick="applyPlannerToCalc()">Передати в калькулятор</button>
+</aside>
+<main class="planner-canvas"><svg id="plannerSvg" viewBox="0 0 800 600" onclick="plannerClick(event)"><g id="roomLayer"></g><g id="objectLayer"></g><g id="nodeLayer"></g></svg></main>
+</div>
+</section>
+
+<section id="tab_history" class="page-section">
+<div class="panel main"><div class="block-head"><h2>Збережені об’єкти</h2><button class="btn outline" onclick="exportHistory()">⬇ Експорт JSON</button></div><div id="objectList" class="object-list"></div></div>
+</section>
+
+</div></section>
+<footer class="footer">© 2026 Potolok.in.ua • 097 454 67 13</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
+<script>
+const MANUFACTURERS=['MSD Premium','MSD Evolution','BAUF','Pongs','Teqtum','Descor'];
+const COLORS=[
+{manufacturer:'MSD Premium',name:'Білий 301',hex:'#ffffff',cat:'white'},{manufacturer:'MSD Premium',name:'Теплий білий 303',hex:'#fff8ed',cat:'white'},{manufacturer:'MSD Premium',name:'Світло-сірий 510',hex:'#cbd5e1',cat:'gray'},{manufacturer:'MSD Premium',name:'Сріблястий 512',hex:'#aeb8c6',cat:'gray'},{manufacturer:'MSD Premium',name:'Графіт 700',hex:'#374151',cat:'dark'},{manufacturer:'MSD Premium',name:'Чорний 305',hex:'#000000',cat:'dark'},{manufacturer:'MSD Premium',name:'Бежевий 571',hex:'#d8c4a3',cat:'beige'},{manufacturer:'MSD Premium',name:'Кремовий 210',hex:'#ead8bd',cat:'beige'},
+{manufacturer:'MSD Evolution',name:'Білий Evolution',hex:'#fafafa',cat:'white'},{manufacturer:'MSD Evolution',name:'Перламутр',hex:'#e8e5df',cat:'beige'},{manufacturer:'BAUF',name:'Білий BAUF',hex:'#ffffff',cat:'white'},{manufacturer:'BAUF',name:'Антрацит',hex:'#343a40',cat:'dark'},{manufacturer:'Pongs',name:'Pongs White',hex:'#fcfcfc',cat:'white'},{manufacturer:'Pongs',name:'Pongs Beige',hex:'#d9c7a7',cat:'beige'},{manufacturer:'Teqtum',name:'Teqtum Euro White',hex:'#fdfdfd',cat:'white'},{manufacturer:'Descor',name:'Descor White',hex:'#f8f8f6',cat:'white'},
+{manufacturer:'MSD Premium',name:'Пісочний 220',hex:'#c9ad86',cat:'beige'},{manufacturer:'MSD Premium',name:'Латте 230',hex:'#b79b7b',cat:'beige'},{manufacturer:'MSD Premium',name:'Синій 420',hex:'#2563eb',cat:'color'},{manufacturer:'MSD Premium',name:'Небесний 430',hex:'#38bdf8',cat:'color'},{manufacturer:'MSD Premium',name:'Зелений 330',hex:'#16a34a',cat:'color'},{manufacturer:'MSD Premium',name:'М’ята 335',hex:'#7dd3aa',cat:'color'},{manufacturer:'MSD Premium',name:'Бордо 130',hex:'#7f1d1d',cat:'dark'},{manufacturer:'MSD Premium',name:'Фіолетовий 810',hex:'#7c3aed',cat:'color'}
+];
+const PROFILE_ITEMS=[
+{id:'shadow',name:'Тіньовий профіль',unit:'м.п.',price:250,img:'images/profiles/shadow.jpg',desc:'Чорний тіньовий контур'},
+{id:'floating',name:'Парящий профіль',unit:'м.п.',price:750,img:'images/profiles/floating.jpg',desc:'LED-ефект по периметру'},
+{id:'cornice',name:'Вбудований карниз',unit:'м.п.',price:1200,img:'images/profiles/cornice.jpg',desc:'Прихована ніша для штор'},
+{id:'corniceLed',name:'Карниз з підсвіткою',unit:'м.п.',price:1700,img:'images/profiles/cornice-led.jpg',desc:'Карниз з інтегрованою LED'},
+{id:'trackSurface',name:'Накладний трек',unit:'м.п.',price:1500,img:'images/profiles/track-surface.jpg',desc:'Накладна трекова система'},
+{id:'trackMagnetic',name:'Магнітний трек',unit:'м.п.',price:4500,img:'images/profiles/track-magnetic.jpg',desc:'Вбудована магнітна система'}
+];
+const EXTRA_ITEMS=[
+{id:'base',name:'Полотно',unit:'м²',price:500,always:true,qty:'area'},
+{id:'insert',name:'Декоративна вставка',unit:'м.п.',price:50},
+{id:'lightline',name:'Світлові лінії',unit:'м.п.',price:1200},
+{id:'spots',name:'Точкові світильники',unit:'шт',price:200},
+{id:'chandelier',name:'Люстра',unit:'шт',price:400,always:true,qty:'chandelierCount'},
+{id:'pipe',name:'Обвід труби',unit:'шт',price:200},
+{id:'corners',name:'Кути',unit:'шт',price:70,always:true,qty:'cornersCount'},
+{id:'ventBasic',name:'Вентиляційна решітка',unit:'шт',price:400},
+{id:'ventMagnetic',name:'Магнітна вентрешітка',unit:'шт',price:900},
+{id:'ventShadow',name:'Тіньова витяжка',unit:'шт',price:1500},
+{id:'curveSimple',name:'Криволінійна конструкція проста',unit:'м.п.',price:1200},
+{id:'curveHard',name:'Криволінійна конструкція складна',unit:'м.п.',price:1800},
+{id:'film',name:'Пакування стін плівкою',unit:'м.п.',price:80},
+{id:'porcelain',name:'Свердління керамограніту',unit:'м.п.',price:400},
+{id:'demontage',name:'Демонтаж старої стелі',unit:'м²',price:120},
+{id:'height',name:'Монтаж понад 3 м',unit:'м²',price:150},
+{id:'conditioner',name:'Закладна під кондиціонер',unit:'шт',price:700},
+{id:'wardrobe',name:'Закладна під шафу',unit:'м.п.',price:450}
+];
+const AI_OPTIONS=[
+{id:'keepExisting',name:'Залишити існуюче освітлення'},{id:'removeExisting',name:'Прибрати існуюче освітлення'},{id:'shadowAI',name:'Тіньовий профіль'},{id:'floatingAI',name:'Парящий профіль'},{id:'perimeterLed',name:'LED по периметру'},{id:'lightLinesAI',name:'Світлові лінії'},{id:'spotsAI',name:'Точкові світильники'},{id:'chandelierAI',name:'Люстра'},{id:'surfaceTrackAI',name:'Накладний трек'},{id:'magneticTrackAI',name:'Магнітний трек'},{id:'corniceAI',name:'Вбудований карниз'},{id:'corniceLedAI',name:'Карниз з підсвіткою'},{id:'ventAI',name:'Вентиляційна решітка'},{id:'shadowVentAI',name:'Тіньова вентиляція'}
+];
+
+let selectedColor=COLORS[0],selectedTexture='matte',uploadedImageBase64='',activeObjectId=null;
+let roomPoints=[],plannerObjects=[],plannerHistory=[],plannerTool='move',roomTemplate='rect',dragIndex=-1;
+
+function money(n){return Math.round(n).toLocaleString('uk-UA')+' грн'}
+function num(id){return Number(document.getElementById(id)?.value)||0}
+function showMainTab(name,btn){document.querySelectorAll('.main-tab').forEach(b=>b.classList.remove('active'));btn.classList.add('active');document.querySelectorAll('.page-section').forEach(s=>s.classList.remove('active'));document.getElementById('tab_'+name).classList.add('active')}
+function initManufacturers(){manufacturerFilter.innerHTML='<option value="all">Усі виробники</option>'+MANUFACTURERS.map(m=>`<option>${m}</option>`).join('')}
+function renderPalette(){const q=colorSearch.value.toLowerCase(),m=manufacturerFilter.value,cat=colorCategory.value;palette.innerHTML=COLORS.filter(c=>(m==='all'||c.manufacturer===m)&&(cat==='all'||c.cat===cat)&&(c.name+' '+c.manufacturer).toLowerCase().includes(q)).map(c=>`<button class="swatch ${selectedColor.name===c.name&&selectedColor.manufacturer===c.manufacturer?'active':''}" onclick="selectColor('${c.manufacturer}','${c.name}')"><div class="swatch-color" style="background:${c.hex}"></div><div class="swatch-info"><b>${c.name}</b><span>${c.manufacturer}</span></div></button>`).join('')}
+function selectColor(m,n){selectedColor=COLORS.find(c=>c.manufacturer===m&&c.name===n)||COLORS[0];renderPalette();updateAISpec();autosave()}
+function setTexture(t,btn){selectedTexture=t;document.querySelectorAll('.texture-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');updateAISpec();autosave()}
+function textureLabel(){return selectedTexture==='glossy'?'Глянець':selectedTexture==='satin'?'Сатин':'Матова'}
+function renderAIOptions(){aiOptions.innerHTML=AI_OPTIONS.map(o=>`<div class="option-card"><label class="option-check"><input id="ai_${o.id}" type="checkbox" onchange="updateAISpec();autosave()"> ${o.name}</label></div>`).join('')}
+function renderProfileCards(){profileCards.innerHTML=PROFILE_ITEMS.map(p=>`<div id="profile_${p.id}" class="profile-card"><div class="profile-img"><img src="${p.img}" alt="${p.name}" onerror="this.style.display='none';this.parentElement.innerHTML='Фото профілю'"></div><div class="profile-body"><b>${p.name}</b><span>${p.desc}<br>${money(p.price)} / ${p.unit}</span><button onclick="toggleProfile('${p.id}')">Додати / прибрати</button><div id="profileFields_${p.id}" class="option-fields hidden"><div class="field"><label>Кількість</label><input id="qty_profile_${p.id}" type="number" value="1" step="0.1" oninput="recalc()"></div><div class="field"><label>Од.</label><input value="${p.unit}" disabled></div></div></div></div>`).join('')}
+function toggleProfile(id){const card=document.getElementById('profile_'+id),f=document.getElementById('profileFields_'+id),active=!card.classList.contains('active');card.classList.toggle('active',active);f.classList.toggle('hidden',!active);if(active&&['shadow','floating'].includes(id))document.getElementById('qty_profile_'+id).value=num('perimeter');recalc();autosave()}
+function renderCalcOptions(){calcOptions.innerHTML=EXTRA_ITEMS.filter(i=>!i.always).map(i=>`<div class="option-card"><div class="option-top"><label class="option-check"><input id="check_${i.id}" type="checkbox" onchange="toggleExtra('${i.id}')">${i.name}</label><span class="price-label">${money(i.price)} / ${i.unit}</span></div><div id="fields_${i.id}" class="option-fields hidden"><div class="field"><label>Кількість</label><input id="qty_${i.id}" type="number" value="1" step="0.1" oninput="recalc()"></div><div class="field"><label>Од.</label><input value="${i.unit}" disabled></div></div></div>`).join('')}
+function toggleExtra(id){const c=document.getElementById('check_'+id),f=document.getElementById('fields_'+id);f.classList.toggle('hidden',!c.checked);if(c.checked){if(['insert','film'].includes(id))document.getElementById('qty_'+id).value=num('perimeter');if(['demontage','height'].includes(id))document.getElementById('qty_'+id).value=num('area');if(id==='spots')document.getElementById('qty_'+id).value=6}recalc();autosave()}
+function currentRows(){const rows=[];EXTRA_ITEMS.forEach(i=>{let active=i.always||document.getElementById('check_'+i.id)?.checked;if(!active)return;let q=i.qty?num(i.qty):num('qty_'+i.id);if(q>0)rows.push({...i,qty:q,sum:q*i.price})});PROFILE_ITEMS.forEach(p=>{if(document.getElementById('profile_'+p.id)?.classList.contains('active')){const q=num('qty_profile_'+p.id);if(q>0)rows.push({...p,qty:q,sum:q*p.price})}});return rows}
+function recalc(){const rows=currentRows(),calculated=rows.reduce((s,r)=>s+r.sum,0),total=Math.max(calculated,5000);priceValue.textContent=money(total);bottomPrice.textContent=money(total);priceDetails.innerHTML=`<b>Розраховано:</b> ${money(calculated)}<br><b>Мінімальне замовлення:</b> 5 000 грн${calculated<5000?'<br><b>До сплати:</b> 5 000 грн':''}`;estimateBody.innerHTML=rows.map(r=>`<tr><td>${r.name}</td><td>${r.qty}</td><td>${money(r.price)}</td><td>${money(r.sum)}</td></tr>`).join('');if(calculated<5000)estimateBody.innerHTML+=`<tr><td><b>Доплата до мінімального замовлення</b></td><td>1</td><td>${money(5000-calculated)}</td><td>${money(5000-calculated)}</td></tr>`;estimateTotal.textContent='Разом до сплати: '+money(total);summaryArea.textContent=num('area')+' м²';summaryPerimeter.textContent=num('perimeter')+' м';autosave()}
+function updateAISpec(){specManufacturer.textContent=selectedColor.manufacturer;specColor.textContent=selectedColor.name;specTexture.textContent=textureLabel();const a=AI_OPTIONS.filter(o=>document.getElementById('ai_'+o.id)?.checked).map(o=>o.name);specElements.textContent=a.length?a.join(', '):'не вибрано'}
+photoInput.addEventListener('change',function(){const file=this.files[0];if(!file)return;const r=new FileReader();r.onload=e=>{uploadedImageBase64=e.target.result;roomPreview.src=uploadedImageBase64;roomPreview.style.display='block';emptyPhoto.style.display='none';autosave()};r.readAsDataURL(file)});
+async function generateAI(){if(!uploadedImageBase64){alert('Спочатку завантажте фото кімнати.');return}loader.style.display='block';apiError.style.display='none';const options=AI_OPTIONS.filter(o=>document.getElementById('ai_'+o.id)?.checked).map(o=>o.name);try{const response=await fetch('/api/ai-ceiling',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({imageBase64:uploadedImageBase64,manufacturer:selectedColor.manufacturer,color:selectedColor.name,colorHex:selectedColor.hex,material:selectedTexture,options,customRequest:customPrompt.value.trim(),instruction:'Зберегти геометрію кімнати, стіни, підлогу, вікна та двері. Змінювати лише стелю і вибрані елементи. Реалістична перспектива та освітлення.'})});const data=await response.json().catch(()=>({}));if(!response.ok)throw new Error(data.error||'API '+response.status);if(!data.image)throw new Error('API не повернув поле image');resultImageWrap.innerHTML=`<img src="${data.image}" alt="AI result">`;downloadBtn.href=data.image;autosave()}catch(e){apiError.textContent='AI не запущено: '+e.message+'. Калькулятор і кошторис працюють. Для AI треба оновити серверний /api/ai-ceiling, щоб він приймав нові параметри.';apiError.style.display='block'}finally{loader.style.display='none'}}
+function clearResult(){resultImageWrap.textContent='Завантажте фото, оберіть матеріал і додаткові елементи, потім запустіть AI.';downloadBtn.href='#'}
+function shareCurrent(){navigator.clipboard?.writeText(location.href);alert('Посилання скопійовано')}
+function collectObject(){return{id:activeObjectId||Date.now().toString(),clientName:clientName.value,clientPhone:clientPhone.value,address:objectAddress.value,date:measureDate.value,height:ceilingHeight.value,comment:objectComment.value,photo:uploadedImageBase64,area:num('area'),perimeter:num('perimeter'),corners:num('cornersCount'),chandeliers:num('chandelierCount'),color:selectedColor,texture:selectedTexture,prompt:customPrompt.value,planner:{points:roomPoints,objects:plannerObjects},rows:currentRows(),total:Math.max(currentRows().reduce((s,r)=>s+r.sum,0),5000),savedAt:new Date().toISOString()}}
+function updateSummary(){summaryClient.textContent=clientName.value||'—';summaryPhone.textContent=clientPhone.value||'—';summaryAddress.textContent=objectAddress.value||'—';summaryDate.textContent=measureDate.value||'—';summaryArea.textContent=num('area')+' м²';summaryPerimeter.textContent=num('perimeter')+' м'}
+function autosave(){updateSummary();localStorage.setItem('potolok_pixel5_draft',JSON.stringify(collectObject()));saveStatus.textContent='Чернетку збережено'}
+function saveObject(){const o=collectObject(),list=JSON.parse(localStorage.getItem('potolok_pixel5_objects')||'[]'),idx=list.findIndex(x=>x.id===o.id);if(idx>=0)list[idx]=o;else list.unshift(o);localStorage.setItem('potolok_pixel5_objects',JSON.stringify(list));activeObjectId=o.id;saveStatus.textContent='Об’єкт збережено';renderHistory();alert('Об’єкт збережено')}
+function newObject(){activeObjectId=null;['clientName','clientPhone','objectAddress','objectComment'].forEach(id=>document.getElementById(id).value='');uploadedImageBase64='';roomPreview.style.display='none';emptyPhoto.style.display='flex';measureDate.value=new Date().toISOString().slice(0,10);saveStatus.textContent='Новий об’єкт';autosave()}
+function renderHistory(){const list=JSON.parse(localStorage.getItem('potolok_pixel5_objects')||'[]');objectList.innerHTML=list.length?list.map(o=>`<div class="object-card"><b>${o.clientName||'Без імені'} — ${o.address||'Без адреси'}</b><span>${o.date||''} • ${o.area||0} м² • ${money(o.total||0)}</span><div class="object-actions"><button onclick="loadObject('${o.id}')">Відкрити</button><button onclick="deleteObject('${o.id}')">Видалити</button></div></div>`).join(''):'<div class="notice">Збережених об’єктів поки немає.</div>'}
+function loadObject(id){const list=JSON.parse(localStorage.getItem('potolok_pixel5_objects')||'[]'),o=list.find(x=>x.id===id);if(!o)return;activeObjectId=o.id;clientName.value=o.clientName||'';clientPhone.value=o.clientPhone||'';objectAddress.value=o.address||'';measureDate.value=o.date||'';ceilingHeight.value=o.height||2.7;objectComment.value=o.comment||'';area.value=o.area||0;perimeter.value=o.perimeter||0;cornersCount.value=o.corners||0;chandelierCount.value=o.chandeliers||0;uploadedImageBase64=o.photo||'';if(uploadedImageBase64){roomPreview.src=uploadedImageBase64;roomPreview.style.display='block';emptyPhoto.style.display='none'}selectedColor=o.color||COLORS[0];selectedTexture=o.texture||'matte';customPrompt.value=o.prompt||'';roomPoints=o.planner?.points||roomPoints;plannerObjects=o.planner?.objects||[];renderPlanner();renderPalette();recalc();updateAISpec();saveStatus.textContent='Об’єкт відкрито';window.scrollTo({top:0,behavior:'smooth'})}
+function deleteObject(id){let list=JSON.parse(localStorage.getItem('potolok_pixel5_objects')||'[]');list=list.filter(x=>x.id!==id);localStorage.setItem('potolok_pixel5_objects',JSON.stringify(list));renderHistory()}
+function exportHistory(){const data=localStorage.getItem('potolok_pixel5_objects')||'[]',a=document.createElement('a');a.href=URL.createObjectURL(new Blob([data],{type:'application/json'}));a.download='potolok-objects.json';a.click();URL.revokeObjectURL(a.href)}
+function sendToTelegram(){const o=collectObject(),text=`Добрий день! Кошторис Potolok.in.ua\n\nКлієнт: ${o.clientName||'—'}\nТелефон: ${o.clientPhone||'—'}\nАдреса: ${o.address||'—'}\nПлоща: ${o.area} м²\nПериметр: ${o.perimeter} м.п.\nКолір: ${o.color.name} (${o.color.manufacturer})\nФактура: ${textureLabel()}\n\n${o.rows.map(r=>`${r.name}: ${r.qty} ${r.unit} × ${money(r.price)} = ${money(r.sum)}`).join('\n')}\n\nРазом: ${money(o.total)}`;window.location.href='https://t.me/Potolok_in_ua?url=&text='+encodeURIComponent(text)}
+async function downloadPDF(){if(!window.jspdf){alert('Бібліотека PDF не завантажилась. Відкрийте сторінку у Chrome та повторіть.');return}const {jsPDF}=window.jspdf,doc=new jsPDF({unit:'mm',format:'a4'}),o=collectObject();doc.setFont('helvetica','bold');doc.setFontSize(18);doc.text('Potolok.in.ua',14,16);doc.setFontSize(11);doc.text('Попередній кошторис натяжної стелі',14,23);doc.setFont('helvetica','normal');doc.setFontSize(9);doc.text(`Клієнт: ${o.clientName||'—'}`,14,31);doc.text(`Телефон: ${o.clientPhone||'—'}`,14,36);doc.text(`Адреса: ${o.address||'—'}`,14,41);doc.text(`Дата: ${o.date||new Date().toLocaleDateString('uk-UA')}`,14,46);doc.text(`Площа: ${o.area} м²   Периметр: ${o.perimeter} м.п.`,14,51);doc.text(`Матеріал: ${o.color.name}, ${o.color.manufacturer}, ${textureLabel()}`,14,56);const rows=o.rows.map(r=>[r.name,String(r.qty)+' '+r.unit,money(r.price),money(r.sum)]);if(o.total>o.rows.reduce((s,r)=>s+r.sum,0)){const d=o.total-o.rows.reduce((s,r)=>s+r.sum,0);rows.push(['Доплата до мінімального замовлення','1',money(d),money(d)])}doc.autoTable({startY:62,head:[['Позиція','Кількість','Ціна','Сума']],body:rows,styles:{fontSize:8},headStyles:{fillColor:[7,91,255]}});let y=doc.lastAutoTable.finalY+10;doc.setFont('helvetica','bold');doc.setFontSize(14);doc.text(`Разом: ${money(o.total)}`,14,y);doc.setFont('helvetica','normal');doc.setFontSize(8);doc.text('Ціна попередня. Остаточна вартість визначається після заміру.',14,y+7);doc.text('Potolok.in.ua • 097 454 67 13 • Харків та область',14,y+13);doc.save(`Koshtorys-Potolok-${(o.clientName||'client').replace(/\s+/g,'-')}.pdf`)}
+function setTemplate(t,btn){roomTemplate=t;document.querySelectorAll('.planner-toolbar .tool-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');if(t==='rect')applyRoomSize();else if(t==='lshape'){roomPoints=[[140,110],[600,110],[600,300],[430,300],[430,500],[140,500]];pushPlanner();renderPlanner()}else{roomPoints=[[140,120],[600,100],[650,420],[390,520],[120,430]];pushPlanner();renderPlanner()}}
+function applyRoomSize(){const w=Math.max(num('roomWidth'),1),l=Math.max(num('roomLength'),1),scale=Math.min(500/w,360/l);const x=150,y=110;roomPoints=[[x,y],[x+w*scale,y],[x+w*scale,y+l*scale],[x,y+l*scale]];pushPlanner();renderPlanner()}
+function setPlannerTool(t,btn){plannerTool=t;document.querySelectorAll('.planner-toolbar .tool-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active')}
+function svgPoint(evt){const svg=plannerSvg,pt=svg.createSVGPoint();pt.x=evt.clientX;pt.y=evt.clientY;const p=pt.matrixTransform(svg.getScreenCTM().inverse());return[p.x,p.y]}
+function plannerClick(e){if(plannerTool==='move')return;const [x,y]=svgPoint(e);if(plannerTool==='delete'){let best=-1,dist=35;plannerObjects.forEach((o,i)=>{const d=Math.hypot(o.x-x,o.y-y);if(d<dist){dist=d;best=i}});if(best>=0){pushPlanner();plannerObjects.splice(best,1);renderPlanner()}return}pushPlanner();plannerObjects.push({type:plannerTool,x,y});renderPlanner();autosave()}
+function pushPlanner(){plannerHistory.push(JSON.stringify({points:roomPoints,objects:plannerObjects}));if(plannerHistory.length>30)plannerHistory.shift()}
+function undoPlanner(){const s=plannerHistory.pop();if(!s)return;const d=JSON.parse(s);roomPoints=d.points;plannerObjects=d.objects;renderPlanner()}
+function resetPlanner(){roomPoints=[];plannerObjects=[];applyRoomSize()}
+function polygonMetrics(){if(roomPoints.length<3)return{area:0,perimeter:0};let area=0,per=0;for(let i=0;i<roomPoints.length;i++){const [x1,y1]=roomPoints[i],[x2,y2]=roomPoints[(i+1)%roomPoints.length];area+=x1*y2-x2*y1;per+=Math.hypot(x2-x1,y2-y1)}const scaleX=num('roomWidth')/Math.max(...roomPoints.map(p=>p[0])-Math.min(...roomPoints.map(p=>p[0])),1),scaleY=num('roomLength')/Math.max(...roomPoints.map(p=>p[1])-Math.min(...roomPoints.map(p=>p[1])),1),scale=(scaleX+scaleY)/2;return{area:Math.abs(area/2)*scale*scale,perimeter:per*scale}}
+function renderPlanner(){roomLayer.innerHTML='';nodeLayer.innerHTML='';objectLayer.innerHTML='';if(roomPoints.length){const poly=document.createElementNS('http://www.w3.org/2000/svg','polygon');poly.setAttribute('points',roomPoints.map(p=>p.join(',')).join(' '));poly.setAttribute('fill','rgba(7,91,255,.10)');poly.setAttribute('stroke','#075bff');poly.setAttribute('stroke-width','4');roomLayer.appendChild(poly);roomPoints.forEach((p,i)=>{const c=document.createElementNS('http://www.w3.org/2000/svg','circle');c.setAttribute('cx',p[0]);c.setAttribute('cy',p[1]);c.setAttribute('r','9');c.setAttribute('fill','#fff');c.setAttribute('stroke','#075bff');c.setAttribute('stroke-width','4');c.style.cursor='move';c.addEventListener('pointerdown',e=>{dragIndex=i;plannerSvg.setPointerCapture(e.pointerId);e.stopPropagation()});nodeLayer.appendChild(c)})}plannerObjects.forEach(o=>{const t=document.createElementNS('http://www.w3.org/2000/svg','text');t.setAttribute('x',o.x);t.setAttribute('y',o.y);t.setAttribute('font-size','28');t.setAttribute('text-anchor','middle');t.textContent={door:'🚪',window:'🪟',light:'●',chandelier:'◉',vent:'▦'}[o.type]||'•';objectLayer.appendChild(t)});const m=polygonMetrics();plannerArea.textContent=m.area.toFixed(2)+' м²';plannerPerimeter.textContent=m.perimeter.toFixed(2)+' м'}
+plannerSvg.addEventListener('pointermove',e=>{if(dragIndex<0)return;const [x,y]=svgPoint(e);roomPoints[dragIndex]=[Math.max(20,Math.min(780,x)),Math.max(20,Math.min(580,y))];renderPlanner()});plannerSvg.addEventListener('pointerup',e=>{if(dragIndex>=0){dragIndex=-1;autosave()}});
+function applyPlannerToCalc(){const m=polygonMetrics();area.value=m.area.toFixed(2);perimeter.value=m.perimeter.toFixed(2);recalc();alert('Площа і периметр передані в калькулятор')}
+function loadDraft(){const raw=localStorage.getItem('potolok_pixel5_draft');if(!raw)return;try{const o=JSON.parse(raw);activeObjectId=o.id||null;clientName.value=o.clientName||'';clientPhone.value=o.clientPhone||'';objectAddress.value=o.address||'';measureDate.value=o.date||new Date().toISOString().slice(0,10);ceilingHeight.value=o.height||2.7;objectComment.value=o.comment||'';area.value=o.area||17.5;perimeter.value=o.perimeter||18;cornersCount.value=o.corners||4;chandelierCount.value=o.chandeliers||1;uploadedImageBase64=o.photo||'';if(uploadedImageBase64){roomPreview.src=uploadedImageBase64;roomPreview.style.display='block';emptyPhoto.style.display='none'}selectedColor=o.color||COLORS[0];selectedTexture=o.texture||'matte';customPrompt.value=o.prompt||'';roomPoints=o.planner?.points||[];plannerObjects=o.planner?.objects||[];if(!roomPoints.length)applyRoomSize();else renderPlanner()}catch(e){}}
+
+initManufacturers();renderAIOptions();renderProfileCards();renderCalcOptions();loadDraft();renderPalette();renderHistory();recalc();updateAISpec();if(!measureDate.value)measureDate.value=new Date().toISOString().slice(0,10);if(!roomPoints.length)applyRoomSize();updateSummary();
+</script>
+</body>
+</html>
