@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Potolok AI PRO — Pixel 5.2.1</title>
+<title>Potolok AI PRO — Pixel 5.2.3</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth}
@@ -116,12 +116,19 @@ th:nth-child(2),th:nth-child(3),th:nth-child(4),td:nth-child(2),td:nth-child(3),
 .point-hit{fill:transparent;stroke:transparent;pointer-events:all;cursor:grab}
 .point-hit:active{cursor:grabbing}
 
+
+.rotate-handle{fill:#fff;stroke:#075bff;stroke-width:4;cursor:grab;filter:drop-shadow(0 3px 5px rgba(7,91,255,.25))}
+.rotate-guide{stroke:#075bff;stroke-width:2;stroke-dasharray:5 4;pointer-events:none}
+.resize-handle{fill:#fff;stroke:#22c55e;stroke-width:4;cursor:ew-resize;filter:drop-shadow(0 3px 5px rgba(34,197,94,.25))}
+.resize-guide{stroke:#22c55e;stroke-width:2;stroke-dasharray:5 4;pointer-events:none}
+.rotate-handle:active,.resize-handle:active{cursor:grabbing}
+
 </style>
 </head>
 <body>
 <header class="header"><div class="wrap nav"><a class="logo" href="../index.html">Potolok<span>.in.ua</span></a><div class="menu"><a href="../index.html">Головна</a><a href="../gallery.html">Наші роботи</a><a href="#app">Pixel 5</a></div><a class="phone" href="tel:+380974546713">097 454 67 13</a><a class="tg-top" href="https://t.me/Potolok_in_ua">Фото в TG</a></div></header>
 
-<section class="hero"><div class="wrap"><div class="hero-box"><div class="hero-badge">✨ POTOLOK AI PRO — PIXEL 5.2.1</div><h1>Замір, AI-візуалізація, калькулятор і кошторис</h1><p>Один інструмент для роботи на замірі: фото, план кімнати, вибір матеріалів, додаткових елементів, детальна смета, PDF і збереження об’єкта.</p><div class="hero-points"><div class="hero-point">📐 План кімнати<span>периметр і площа</span></div><div class="hero-point">🎨 AI-проєкт<span>стеля та освітлення</span></div><div class="hero-point">📄 Кошторис PDF<span>для себе і клієнта</span></div></div></div></div></section>
+<section class="hero"><div class="wrap"><div class="hero-box"><div class="hero-badge">✨ POTOLOK AI PRO — PIXEL 5.2.3</div><h1>Замір, AI-візуалізація, калькулятор і кошторис</h1><p>Один інструмент для роботи на замірі: фото, план кімнати, вибір матеріалів, додаткових елементів, детальна смета, PDF і збереження об’єкта.</p><div class="hero-points"><div class="hero-point">📐 План кімнати<span>периметр і площа</span></div><div class="hero-point">🎨 AI-проєкт<span>стеля та освітлення</span></div><div class="hero-point">📄 Кошторис PDF<span>для себе і клієнта</span></div></div></div></div></section>
 
 <section id="app" class="app"><div class="wrap">
 <div class="tabs-main">
@@ -283,7 +290,7 @@ th:nth-child(2),th:nth-child(3),th:nth-child(4),td:nth-child(2),td:nth-child(3),
 </div>
 <div class="planner-toolbar mt"><button class="tool-btn" onclick="setPlannerTool('select',this)">☝ Вибрати</button><button class="tool-btn" onclick="setPlannerTool('delete',this)">🗑 Видалити</button><button class="tool-btn" onclick="duplicateSelectedObject()">⧉ Копія</button></div>
 <div id="objectInspector" class="inspector">
-  <div class="inspector-title">Властивості елемента: <span id="inspectorName">—</span></div>
+  <div class="inspector-title">Властивості елемента: <span id="inspectorName">—</span></div><div class="plan-note">Синя ручка — поворот пальцем. Зелена ручка — розтягування по довжині.</div>
   <div class="inspector-grid">
     <div class="field"><label>Довжина, м</label><input id="objectLength" type="number" step="0.01" min="0.05" oninput="updateSelectedObject()"></div>
     <div class="field"><label>Ширина / діаметр, м</label><input id="objectWidth" type="number" step="0.01" min="0.03" oninput="updateSelectedObject()"></div>
@@ -359,6 +366,7 @@ let selectedColor=COLORS[0],selectedTexture='matte',uploadedImageBase64='',activ
 let roomPoints=[],plannerObjects=[],plannerHistory=[],plannerRedo=[],plannerTool='select',roomTemplate='rect',dragIndex=-1,segmentLengths=[];
 let selectedObjectIndex=-1,objectDragIndex=-1,objectDragOffset=[0,0],customPointTotal=8;
 let plannerZoom=1,plannerView={x:0,y:0,w:800,h:600};
+let rotationDragIndex=-1,rotationStartAngle=0,rotationBase=0,resizeDragIndex=-1;
 let projectRooms=[],activeRoomId=null,roomSyncLock=false;
 
 function money(n){return Math.round(n).toLocaleString('uk-UA')+' грн'}
@@ -795,7 +803,7 @@ function generateCustomContour(skipConfirm=false){
   customPointTotal=n;roomTemplate='custom';segmentLengths=Array(n).fill(1);
   const cx=400,cy=300,rx=250,ry=190;
   roomPoints=Array.from({length:n},(_,i)=>{const a=-Math.PI/2+i*2*Math.PI/n;return[cx+rx*Math.cos(a),cy+ry*Math.sin(a)]});
-  roomPoints._real=null;renderSegmentInputs();pushPlanner();renderPlanner();
+  roomPoints._real=null;renderSegmentInputs();pushPlanner();rebuildCustomByLengths();renderPlanner();
   closureStatus.className='planner-hint closure-ok';closureStatus.textContent='✅ Контур замкнений. Пересуньте точки за формою приміщення та введіть довжини стін.';
   autosave();
 }
@@ -854,9 +862,74 @@ function removeContourPoint(){
 }
 function updateSegment(i,value){
   segmentLengths[i]=Math.max(.01,Number(String(value).replace(',','.'))||.01);
-  if(roomTemplate==='custom'){renderPlanner();autosave();return}
+  if(roomTemplate==='custom'){
+    rebuildCustomByLengths();
+    renderPlanner();autosave();return;
+  }
   buildRoomFromSegments(false);autosave();
 }
+
+function rebuildCustomByLengths(){
+  const n=roomPoints.length;
+  if(n<3||segmentLengths.length!==n)return;
+
+  const targets=segmentLengths.map(v=>Math.max(.01,Number(v)||.01));
+  const maxTarget=Math.max(...targets);
+  const sumOther=targets.reduce((a,b)=>a+b,0)-maxTarget;
+
+  if(maxTarget>=sumOther){
+    closureStatus.className='planner-hint closure-bad';
+    closureStatus.textContent='⚠️ Контур неможливо замкнути: найдовша стіна більша або дорівнює сумі інших.';
+    return;
+  }
+
+  let pts=roomPoints.map(p=>[Number(p[0])||0,Number(p[1])||0]);
+  const centerX=pts.reduce((s,p)=>s+p[0],0)/n;
+  const centerY=pts.reduce((s,p)=>s+p[1],0)/n;
+
+  let screenPer=0;
+  for(let i=0;i<n;i++){
+    const a=pts[i],b=pts[(i+1)%n];
+    screenPer+=Math.hypot(b[0]-a[0],b[1]-a[1]);
+  }
+
+  const realPer=targets.reduce((a,b)=>a+b,0);
+  const pxPerMeter=screenPer>20?screenPer/realPer:80;
+  const pxTargets=targets.map(v=>v*pxPerMeter);
+
+  for(let iter=0;iter<160;iter++){
+    for(let i=0;i<n;i++){
+      const j=(i+1)%n;
+      let dx=pts[j][0]-pts[i][0],dy=pts[j][1]-pts[i][1];
+      let d=Math.hypot(dx,dy);
+      if(d<.001){dx=1;dy=0;d=1}
+      const correction=(d-pxTargets[i])/d*.5;
+      pts[i][0]+=dx*correction;
+      pts[i][1]+=dy*correction;
+      pts[j][0]-=dx*correction;
+      pts[j][1]-=dy*correction;
+    }
+
+    const cx=pts.reduce((s,p)=>s+p[0],0)/n;
+    const cy=pts.reduce((s,p)=>s+p[1],0)/n;
+    const ox=centerX-cx,oy=centerY-cy;
+    pts.forEach(p=>{p[0]+=ox;p[1]+=oy});
+  }
+
+  const xs=pts.map(p=>p[0]),ys=pts.map(p=>p[1]);
+  const minX=Math.min(...xs),maxX=Math.max(...xs),minY=Math.min(...ys),maxY=Math.max(...ys);
+  const bw=Math.max(maxX-minX,1),bh=Math.max(maxY-minY,1);
+  const fit=Math.min(560/bw,400/bh);
+  const ox=120+(560-bw*fit)/2;
+  const oy=90+(400-bh*fit)/2;
+
+  roomPoints=pts.map(([x,y])=>[ox+(x-minX)*fit,oy+(y-minY)*fit]);
+  roomPoints._real=null;
+
+  closureStatus.className='planner-hint closure-ok';
+  closureStatus.textContent='✅ Контур перебудовано пропорційно введеним довжинам. Площа довільної форми орієнтовна без діагоналей.';
+}
+
 function polygonMetrics(){
   if(roomTemplate==='custom'&&roomPoints.length>=3){
     let areaPx=0,perPx=0;
@@ -945,6 +1018,48 @@ function deleteSelectedObject(){
   if(selectedObjectIndex<0)return;pushPlanner();plannerObjects.splice(selectedObjectIndex,1);selectedObjectIndex=-1;renderPlanner();showObjectInspector();autosave();
 }
 function svgEl(tag,attrs={}){const e=document.createElementNS('http://www.w3.org/2000/svg',tag);Object.entries(attrs).forEach(([k,v])=>e.setAttribute(k,v));return e}
+
+function beginRotateObject(i,e){
+  e.stopPropagation();
+  const o=plannerObjects[i];if(!o)return;
+  pushPlanner();
+  selectedObjectIndex=i;
+  rotationDragIndex=i;
+  const p=svgPoint(e);
+  rotationStartAngle=Math.atan2(p[1]-o.y,p[0]-o.x)*180/Math.PI;
+  rotationBase=Number(o.rotation)||0;
+  plannerSvg.setPointerCapture(e.pointerId);
+  showObjectInspector();
+  renderPlanner();
+}
+function beginResizeObject(i,e){
+  e.stopPropagation();
+  const o=plannerObjects[i];if(!o)return;
+  pushPlanner();
+  selectedObjectIndex=i;
+  resizeDragIndex=i;
+  plannerSvg.setPointerCapture(e.pointerId);
+  showObjectInspector();
+  renderPlanner();
+}
+function addTransformHandles(g,o,i,L,W){
+  if(i!==selectedObjectIndex)return;
+
+  const rotateX=L/2+42;
+  const rotateY=-W/2-14;
+  const resizeX=L/2+14;
+
+  const rg=svgEl('line',{x1:L/2,y1:rotateY,x2:rotateX,y2:rotateY,class:'rotate-guide'});
+  const rh=svgEl('circle',{cx:rotateX,cy:rotateY,r:13,class:'rotate-handle'});
+  rh.addEventListener('pointerdown',e=>beginRotateObject(i,e));
+
+  const sg=svgEl('line',{x1:L/2,y1:0,x2:resizeX,y2:0,class:'resize-guide'});
+  const sh=svgEl('circle',{cx:resizeX,cy:0,r:13,class:'resize-handle'});
+  sh.addEventListener('pointerdown',e=>beginResizeObject(i,e));
+
+  g.append(rg,rh,sg,sh);
+}
+
 function drawPlannerObject(o,i,scale){
   const g=svgEl('g',{'data-planner-object':i,transform:`translate(${o.x} ${o.y}) rotate(${o.rotation||0})`,class:i===selectedObjectIndex?'svg-selected':''});
   g.style.cursor='move';g.addEventListener('pointerdown',e=>selectPlannerObject(i,e));
@@ -966,6 +1081,7 @@ function drawPlannerObject(o,i,scale){
     g.append(svgEl('rect',{x:-L/2,y:-W/2,width:L,height:W,rx:Math.min(8,W/3),fill,stroke:o.type==='lightline'?'#f59e0b':stroke,'stroke-width':2}));
   }
   if(o.label){const t=svgEl('text',{x:0,y:-W/2-8,'text-anchor':'middle','font-size':13,'font-weight':900,fill:'#0f172a'});t.textContent=o.label;g.append(t)}
+  addTransformHandles(g,o,i,L,W);
   objectLayer.appendChild(g);
 }
 function renderPlanner(){
@@ -987,11 +1103,53 @@ function renderPlanner(){
 }
 plannerSvg.addEventListener('pointermove',e=>{
   const [x,y]=svgPoint(e);
-  if(dragIndex>=0){roomPoints[dragIndex]=[Math.max(20,Math.min(780,x)),Math.max(20,Math.min(580,y))];renderPlanner();return}
-  if(objectDragIndex>=0){const o=plannerObjects[objectDragIndex];o.x=x-objectDragOffset[0];o.y=y-objectDragOffset[1];renderPlanner()}
+
+  if(rotationDragIndex>=0){
+    const o=plannerObjects[rotationDragIndex];if(!o)return;
+    const angle=Math.atan2(y-o.y,x-o.x)*180/Math.PI;
+    let next=rotationBase+(angle-rotationStartAngle);
+    const snap=Math.round(next/45)*45;
+    if(Math.abs(next-snap)<4)next=snap;
+    o.rotation=Math.round(next*10)/10;
+    objectRotation.value=o.rotation;
+    renderPlanner();
+    return;
+  }
+
+  if(resizeDragIndex>=0){
+    const o=plannerObjects[resizeDragIndex];if(!o)return;
+    const angle=-(Number(o.rotation)||0)*Math.PI/180;
+    const dx=x-o.x,dy=y-o.y;
+    const localX=dx*Math.cos(angle)-dy*Math.sin(angle);
+    const scale=plannerScale();
+    o.length=Math.max(.05,Math.abs(localX)*2/Math.max(scale,.01));
+    objectLength.value=Math.round(o.length*100)/100;
+    renderPlanner();
+    return;
+  }
+
+  if(dragIndex>=0){
+    roomPoints[dragIndex]=[Math.max(20,Math.min(780,x)),Math.max(20,Math.min(580,y))];
+    renderPlanner();
+    return;
+  }
+
+  if(objectDragIndex>=0){
+    const o=plannerObjects[objectDragIndex];
+    o.x=x-objectDragOffset[0];
+    o.y=y-objectDragOffset[1];
+    renderPlanner();
+  }
 });
 plannerSvg.addEventListener('pointerup',e=>{
-  if(dragIndex>=0||objectDragIndex>=0){dragIndex=-1;objectDragIndex=-1;autosave()}
+  if(rotationDragIndex>=0||resizeDragIndex>=0||dragIndex>=0||objectDragIndex>=0){
+    rotationDragIndex=-1;
+    resizeDragIndex=-1;
+    dragIndex=-1;
+    objectDragIndex=-1;
+    showObjectInspector();
+    autosave();
+  }
 });
 
 initManufacturers();renderAIOptions();renderProfileCards();renderCalcOptions();loadDraft();renderPalette();renderHistory();recalc();updateAISpec();renderRooms();if(!measureDate.value)measureDate.value=new Date().toISOString().slice(0,10);if(!segmentLengths.length){segmentLengths=templateDefaults('rect');renderSegmentInputs();buildRoomFromSegments(false)}customPointBox.classList.toggle('hidden',roomTemplate!=='custom');showObjectInspector();applyPlannerView();updateSummary();
