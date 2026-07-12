@@ -74,6 +74,24 @@ th:nth-child(2),th:nth-child(3),th:nth-child(4),td:nth-child(2),td:nth-child(3),
 .result-image{min-height:470px}.specs{grid-template-columns:1fr 1fr;gap:10px 24px}.spec{font-size:11px}.bottom-grid{grid-template-columns:1.2fr .8fr}.planner-layout{grid-template-columns:260px 1fr}.planner-canvas svg{height:520px}.planner-info{grid-template-columns:repeat(4,1fr)}
 }
 
+
+.room-manager{border:1px solid #dbe3ef;background:#f8fbff;border-radius:14px;padding:12px}
+.room-manager-top{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:end}
+.room-list{display:grid;gap:8px;margin-top:10px}
+.room-card{border:1px solid #dbe3ef;background:#fff;border-radius:11px;padding:10px;display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center}
+.room-card.active{border-color:#075bff;box-shadow:0 0 0 2px rgba(7,91,255,.10)}
+.room-card b{display:block;font-size:11px}
+.room-card span{display:block;font-size:8px;color:#64748b;margin-top:3px}
+.room-card-actions{display:flex;gap:5px}
+.room-card-actions button{border:1px solid #dbe3ef;background:#fff;border-radius:8px;padding:7px;font-size:9px;font-weight:900}
+.object-totals{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:12px}
+.object-total{background:#f8fafc;border:1px solid #e5e7eb;border-radius:11px;padding:10px}
+.object-total span{display:block;font-size:8px;color:#64748b}
+.object-total b{display:block;font-size:17px;margin-top:3px}
+.current-room-chip{display:inline-flex;align-items:center;gap:6px;background:#eef5ff;color:#075bff;border:1px solid #dbeafe;border-radius:999px;padding:6px 9px;font-size:9px;font-weight:950}
+.room-empty{font-size:9px;color:#64748b;padding:9px;border:1px dashed #cbd5e1;border-radius:9px;text-align:center}
+@media(min-width:760px){.object-totals{grid-template-columns:repeat(4,1fr)}}
+
 </style>
 </head>
 <body>
@@ -102,6 +120,19 @@ th:nth-child(2),th:nth-child(3),th:nth-child(4),td:nth-child(2),td:nth-child(3),
 <div class="field"><label>Висота, м</label><input id="ceilingHeight" type="number" value="2.7" step="0.01" oninput="autosave()"></div>
 <div class="field full"><label>Коментар</label><textarea id="objectComment" placeholder="Особливості монтажу, стан стін, побажання..." oninput="autosave()"></textarea></div>
 </div></div>
+
+<div class="block room-manager">
+  <div class="block-head"><h3>Кімнати об’єкта</h3><span id="roomCountBadge" class="tag">0 кімнат</span></div>
+  <div class="room-manager-top">
+    <div class="field"><label>Назва поточної кімнати</label><input id="roomName" placeholder="Наприклад: Кухня" oninput="syncRoomName();autosave()"></div>
+    <button class="btn blue" type="button" onclick="addRoom()">＋ Кімната</button>
+  </div>
+  <div class="btn-row mt">
+    <button class="btn green" type="button" onclick="saveCurrentRoom()">💾 Зберегти кімнату</button>
+    <button class="btn outline" type="button" onclick="duplicateCurrentRoom()">⧉ Копія</button>
+  </div>
+  <div id="roomList" class="room-list"></div>
+</div>
 <div class="block"><div class="block-head"><h3>Фото кімнати</h3></div>
 <div class="photo-box"><div id="emptyPhoto" class="photo-empty">Завантажте або зробіть фото кімнати</div><img id="roomPreview" src="" alt="" style="display:none"><div class="camera">📷</div></div>
 <input id="photoInput" type="file" accept="image/*" capture="environment" hidden><button class="btn blue btn-full mt" onclick="photoInput.click()">📷 Додати фото</button><div id="photoMeta" class="photo-meta">Фото автоматично стискається перед відправкою в AI.</div></div>
@@ -117,7 +148,16 @@ th:nth-child(2),th:nth-child(3),th:nth-child(4),td:nth-child(2),td:nth-child(3),
 <div class="spec"><span>📐</span><div><b>Площа:</b> <span id="summaryArea">—</span></div></div>
 <div class="spec"><span>↔</span><div><b>Периметр:</b> <span id="summaryPerimeter">—</span></div></div>
 </div>
-<div class="notice">Дані з цієї картки автоматично підтягуються в калькулятор, кошторис і PDF.</div>
+
+<div class="current-room-chip">📁 Поточна кімната: <span id="currentRoomLabel">—</span></div>
+<div class="object-totals">
+  <div class="object-total"><span>Кімнат</span><b id="objectRoomsTotal">0</b></div>
+  <div class="object-total"><span>Загальна площа</span><b id="objectAreaTotal">0 м²</b></div>
+  <div class="object-total"><span>Загальний периметр</span><b id="objectPerimeterTotal">0 м</b></div>
+  <div class="object-total"><span>Вартість об’єкта</span><b id="objectPriceTotal">0 грн</b></div>
+</div>
+<div class="notice">Кожна кімната має власний план, фото, параметри, кошторис та AI-налаштування. Усі кімнати зберігаються всередині одного об’єкта за адресою.</div>
+
 </main>
 </div>
 </section>
@@ -174,7 +214,7 @@ th:nth-child(2),th:nth-child(3),th:nth-child(4),td:nth-child(2),td:nth-child(3),
 <section id="tab_planner" class="page-section">
 <div class="planner-layout">
 <aside class="panel controls">
-<div class="block"><div class="block-head"><h2>Кімната по точках</h2><span class="tag">A–B–C…</span></div><div class="planner-toolbar"><button class="tool-btn active" onclick="setTemplate('rect',this)">Прямокутна</button><button class="tool-btn" onclick="setTemplate('lshape',this)">Г-подібна</button><button class="tool-btn" onclick="setTemplate('custom',this)">Довільна</button></div><div class="planner-hint">Оберіть шаблон і введіть довжину кожної стіни: A–B, B–C, C–D тощо. Схема, периметр і площа перерахуються автоматично.</div></div>
+<div class="block"><div class="block-head"><h2>Кімната по точках</h2><span id="plannerRoomLabel" class="tag">A–B–C…</span></div><div class="planner-toolbar"><button class="tool-btn active" onclick="setTemplate('rect',this)">Прямокутна</button><button class="tool-btn" onclick="setTemplate('lshape',this)">Г-подібна</button><button class="tool-btn" onclick="setTemplate('custom',this)">Довільна</button></div><div class="planner-hint">Оберіть шаблон і введіть довжину кожної стіни: A–B, B–C, C–D тощо. Схема, периметр і площа перерахуються автоматично.</div></div>
 <div class="block"><div class="block-head"><h3>Довжини між точками</h3><span class="tag">метри</span></div><div id="segmentInputs" class="segment-list"></div><div id="closureStatus" class="planner-hint"></div></div>
 <div class="block"><div class="block-head"><h3>Позначки</h3></div><div class="planner-toolbar"><button class="tool-btn" onclick="setPlannerTool('door',this)">🚪 Двері</button><button class="tool-btn" onclick="setPlannerTool('window',this)">🪟 Вікно</button><button class="tool-btn" onclick="setPlannerTool('light',this)">💡 Точка</button><button class="tool-btn" onclick="setPlannerTool('chandelier',this)">◉ Люстра</button><button class="tool-btn" onclick="setPlannerTool('vent',this)">▦ Вент.</button><button class="tool-btn" onclick="setPlannerTool('delete',this)">🗑 Видалити</button></div></div>
 <div class="btn-row"><button class="btn outline" onclick="undoPlanner()">↶ Назад</button><button class="btn danger" onclick="resetPlanner()">Скинути</button></div>
@@ -235,6 +275,7 @@ const AI_OPTIONS=[
 
 let selectedColor=COLORS[0],selectedTexture='matte',uploadedImageBase64='',activeObjectId=null;
 let roomPoints=[],plannerObjects=[],plannerHistory=[],plannerTool='move',roomTemplate='rect',dragIndex=-1,segmentLengths=[];
+let projectRooms=[],activeRoomId=null,roomSyncLock=false;
 
 function money(n){return Math.round(n).toLocaleString('uk-UA')+' грн'}
 function num(id){return Number(document.getElementById(id)?.value)||0}
@@ -288,7 +329,335 @@ plannerSvg.addEventListener('pointermove',e=>{if(dragIndex<0)return;const [x,y]=
 function applyPlannerToCalc(){const m=polygonMetrics();area.value=m.area.toFixed(2);perimeter.value=m.perimeter.toFixed(2);recalc();alert('Площа і периметр передані в калькулятор')}
 function loadDraft(){const raw=localStorage.getItem('potolok_pixel5_draft');if(!raw)return;try{const o=JSON.parse(raw);activeObjectId=o.id||null;clientName.value=o.clientName||'';clientPhone.value=o.clientPhone||'';objectAddress.value=o.address||'';measureDate.value=o.date||new Date().toISOString().slice(0,10);ceilingHeight.value=o.height||2.7;objectComment.value=o.comment||'';area.value=o.area||17.5;perimeter.value=o.perimeter||18;cornersCount.value=o.corners||4;chandelierCount.value=o.chandeliers||1;uploadedImageBase64=o.photo||'';if(uploadedImageBase64){roomPreview.src=uploadedImageBase64;roomPreview.style.display='block';emptyPhoto.style.display='none'}selectedColor=o.color||COLORS[0];selectedTexture=o.texture||'matte';customPrompt.value=o.prompt||'';roomTemplate=o.planner?.template||'rect';segmentLengths=o.planner?.segments||templateDefaults(roomTemplate);renderSegmentInputs();buildRoomFromSegments(false);plannerObjects=o.planner?.objects||[];renderPlanner()}catch(e){}}
 
-initManufacturers();renderAIOptions();renderProfileCards();renderCalcOptions();loadDraft();renderPalette();renderHistory();recalc();updateAISpec();if(!measureDate.value)measureDate.value=new Date().toISOString().slice(0,10);if(!segmentLengths.length){segmentLengths=templateDefaults('rect');renderSegmentInputs();buildRoomFromSegments(false)}updateSummary();
+
+function uid(prefix='id'){return prefix+'_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,7)}
+function deepCopy(v){return JSON.parse(JSON.stringify(v))}
+function checkedMap(prefix,items){
+  const out={};
+  items.forEach(item=>{
+    const el=document.getElementById(prefix+item.id);
+    if(el)out[item.id]=!!el.checked;
+  });
+  return out;
+}
+function quantityMap(prefix,items){
+  const out={};
+  items.forEach(item=>{
+    const el=document.getElementById(prefix+item.id);
+    if(el)out[item.id]=Number(el.value)||0;
+  });
+  return out;
+}
+function profileState(){
+  const out={};
+  PROFILE_ITEMS.forEach(p=>{
+    const card=document.getElementById('profile_'+p.id);
+    out[p.id]={
+      active:!!card?.classList.contains('active'),
+      qty:Number(document.getElementById('qty_profile_'+p.id)?.value)||0
+    };
+  });
+  return out;
+}
+function currentCalculatedTotal(){return currentRows().reduce((s,r)=>s+r.sum,0)}
+function captureCurrentRoom(){
+  const existing=projectRooms.find(r=>r.id===activeRoomId);
+  return{
+    id:activeRoomId||uid('room'),
+    name:(roomName?.value||existing?.name||'Кімната').trim()||'Кімната',
+    photo:uploadedImageBase64||'',
+    area:num('area'),
+    perimeter:num('perimeter'),
+    corners:num('cornersCount'),
+    chandeliers:num('chandelierCount'),
+    height:num('ceilingHeight'),
+    color:deepCopy(selectedColor),
+    texture:selectedTexture,
+    prompt:customPrompt.value||'',
+    planner:{
+      points:deepCopy(roomPoints),
+      objects:deepCopy(plannerObjects),
+      template:roomTemplate,
+      segments:deepCopy(segmentLengths)
+    },
+    extras:{
+      checked:checkedMap('check_',EXTRA_ITEMS.filter(i=>!i.always)),
+      qty:quantityMap('qty_',EXTRA_ITEMS.filter(i=>!i.always))
+    },
+    profiles:profileState(),
+    ai:checkedMap('ai_',AI_OPTIONS),
+    rows:deepCopy(currentRows()),
+    calculated:currentCalculatedTotal(),
+    total:Math.max(currentCalculatedTotal(),5000),
+    updatedAt:new Date().toISOString()
+  };
+}
+function syncActiveRoomFromUI(render=false){
+  if(roomSyncLock)return;
+  if(!activeRoomId){
+    const room=captureCurrentRoom();
+    activeRoomId=room.id;
+    projectRooms.push(room);
+  }else{
+    const room=captureCurrentRoom();
+    const i=projectRooms.findIndex(r=>r.id===activeRoomId);
+    if(i>=0)projectRooms[i]=room; else projectRooms.push(room);
+  }
+  if(render)renderRooms();
+}
+function clearDynamicSelections(){
+  EXTRA_ITEMS.filter(i=>!i.always).forEach(i=>{
+    const c=document.getElementById('check_'+i.id),f=document.getElementById('fields_'+i.id),q=document.getElementById('qty_'+i.id);
+    if(c)c.checked=false;if(f)f.classList.add('hidden');if(q)q.value=1;
+  });
+  PROFILE_ITEMS.forEach(p=>{
+    const card=document.getElementById('profile_'+p.id),f=document.getElementById('profileFields_'+p.id),q=document.getElementById('qty_profile_'+p.id);
+    if(card)card.classList.remove('active');if(f)f.classList.add('hidden');if(q)q.value=1;
+  });
+  AI_OPTIONS.forEach(o=>{const e=document.getElementById('ai_'+o.id);if(e)e.checked=false});
+}
+function resetRoomWorkspace(name='Нова кімната'){
+  roomSyncLock=true;
+  roomName.value=name;
+  uploadedImageBase64='';
+  roomPreview.src='';
+  roomPreview.style.display='none';
+  emptyPhoto.style.display='flex';
+  photoMeta.textContent='Фото автоматично стискається перед відправкою в AI.';
+  area.value=17.5;perimeter.value=18;cornersCount.value=4;chandelierCount.value=1;
+  selectedColor=COLORS[0];selectedTexture='matte';customPrompt.value='';
+  clearDynamicSelections();
+  document.querySelectorAll('.texture-btn').forEach((b,i)=>b.classList.toggle('active',i===0));
+  roomTemplate='rect';segmentLengths=templateDefaults('rect');plannerObjects=[];
+  renderSegmentInputs();buildRoomFromSegments(false);renderPalette();updateAISpec();recalc();
+  roomSyncLock=false;
+}
+function restoreRoom(room){
+  if(!room)return;
+  roomSyncLock=true;
+  activeRoomId=room.id;
+  roomName.value=room.name||'Кімната';
+  uploadedImageBase64=room.photo||'';
+  if(uploadedImageBase64){roomPreview.src=uploadedImageBase64;roomPreview.style.display='block';emptyPhoto.style.display='none'}
+  else{roomPreview.src='';roomPreview.style.display='none';emptyPhoto.style.display='flex'}
+  area.value=room.area||0;perimeter.value=room.perimeter||0;cornersCount.value=room.corners||0;chandelierCount.value=room.chandeliers||0;
+  if(room.height)ceilingHeight.value=room.height;
+  selectedColor=room.color||COLORS[0];selectedTexture=room.texture||'matte';customPrompt.value=room.prompt||'';
+  clearDynamicSelections();
+  Object.entries(room.extras?.checked||{}).forEach(([id,on])=>{
+    const c=document.getElementById('check_'+id),f=document.getElementById('fields_'+id);
+    if(c)c.checked=on;if(f)f.classList.toggle('hidden',!on);
+  });
+  Object.entries(room.extras?.qty||{}).forEach(([id,v])=>{const q=document.getElementById('qty_'+id);if(q)q.value=v});
+  Object.entries(room.profiles||{}).forEach(([id,state])=>{
+    const card=document.getElementById('profile_'+id),f=document.getElementById('profileFields_'+id),q=document.getElementById('qty_profile_'+id);
+    if(card)card.classList.toggle('active',!!state.active);if(f)f.classList.toggle('hidden',!state.active);if(q)q.value=state.qty||1;
+  });
+  Object.entries(room.ai||{}).forEach(([id,on])=>{const e=document.getElementById('ai_'+id);if(e)e.checked=on});
+  document.querySelectorAll('.texture-btn').forEach((b,i)=>b.classList.toggle('active',[ 'matte','satin','glossy'][i]===selectedTexture));
+  roomTemplate=room.planner?.template||'rect';
+  segmentLengths=deepCopy(room.planner?.segments||templateDefaults(roomTemplate));
+  plannerObjects=deepCopy(room.planner?.objects||[]);
+  renderSegmentInputs();buildRoomFromSegments(false);renderPlanner();renderPalette();updateAISpec();recalc();
+  roomSyncLock=false;
+  renderRooms();
+}
+function addRoom(){
+  syncActiveRoomFromUI(false);
+  const next=projectRooms.length+1;
+  const room={id:uid('room'),name:'Кімната '+next};
+  activeRoomId=room.id;
+  projectRooms.push(room);
+  resetRoomWorkspace(room.name);
+  syncActiveRoomFromUI(false);
+  renderRooms();autosave();
+}
+function saveCurrentRoom(){
+  syncActiveRoomFromUI(true);
+  saveStatus.textContent='Кімнату збережено';
+  autosave();
+}
+function duplicateCurrentRoom(){
+  syncActiveRoomFromUI(false);
+  const src=projectRooms.find(r=>r.id===activeRoomId);
+  if(!src)return;
+  const copy=deepCopy(src);
+  copy.id=uid('room');copy.name=(src.name||'Кімната')+' — копія';copy.updatedAt=new Date().toISOString();
+  projectRooms.push(copy);activeRoomId=copy.id;restoreRoom(copy);autosave();
+}
+function selectRoom(id){
+  if(id===activeRoomId)return;
+  syncActiveRoomFromUI(false);
+  const room=projectRooms.find(r=>r.id===id);
+  if(room)restoreRoom(room);
+  autosave();
+}
+function deleteRoom(id){
+  if(projectRooms.length<=1){alert('В об’єкті має залишитися хоча б одна кімната.');return}
+  if(!confirm('Видалити цю кімнату разом із планом, фото та кошторисом?'))return;
+  projectRooms=projectRooms.filter(r=>r.id!==id);
+  if(activeRoomId===id){activeRoomId=projectRooms[0].id;restoreRoom(projectRooms[0])}
+  renderRooms();autosave();
+}
+function syncRoomName(){
+  if(!activeRoomId)return;
+  const room=projectRooms.find(r=>r.id===activeRoomId);
+  if(room)room.name=(roomName.value||'Кімната').trim()||'Кімната';
+  renderRooms();
+}
+function objectMetrics(){
+  syncActiveRoomFromUI(false);
+  const area=projectRooms.reduce((s,r)=>s+(Number(r.area)||0),0);
+  const perimeter=projectRooms.reduce((s,r)=>s+(Number(r.perimeter)||0),0);
+  const calculated=projectRooms.reduce((s,r)=>s+(Number(r.calculated)||0),0);
+  return{area,perimeter,calculated,total:Math.max(calculated,5000)};
+}
+function renderRooms(){
+  if(!roomList)return;
+  roomCountBadge.textContent=projectRooms.length+' кімн.';
+  currentRoomLabel.textContent=projectRooms.find(r=>r.id===activeRoomId)?.name||'—';
+  plannerRoomLabel.textContent=(projectRooms.find(r=>r.id===activeRoomId)?.name||'Кімната')+' • A–B–C…';
+  roomList.innerHTML=projectRooms.length?projectRooms.map(r=>`
+    <div class="room-card ${r.id===activeRoomId?'active':''}">
+      <div onclick="selectRoom('${r.id}')">
+        <b>${r.name||'Кімната'}</b>
+        <span>${Number(r.area||0).toFixed(2)} м² • ${Number(r.perimeter||0).toFixed(2)} м • ${money(r.total||0)}</span>
+      </div>
+      <div class="room-card-actions">
+        <button type="button" onclick="selectRoom('${r.id}')">Відкрити</button>
+        <button type="button" onclick="deleteRoom('${r.id}')">🗑</button>
+      </div>
+    </div>`).join(''):'<div class="room-empty">Додайте першу кімнату.</div>';
+  const m=objectMetricsNoSync();
+  objectRoomsTotal.textContent=projectRooms.length;
+  objectAreaTotal.textContent=m.area.toFixed(2)+' м²';
+  objectPerimeterTotal.textContent=m.perimeter.toFixed(2)+' м';
+  objectPriceTotal.textContent=money(m.total);
+}
+function objectMetricsNoSync(){
+  const area=projectRooms.reduce((s,r)=>s+(Number(r.area)||0),0);
+  const perimeter=projectRooms.reduce((s,r)=>s+(Number(r.perimeter)||0),0);
+  const calculated=projectRooms.reduce((s,r)=>s+(Number(r.calculated)||0),0);
+  return{area,perimeter,calculated,total:Math.max(calculated,5000)};
+}
+function collectObject(){
+  syncActiveRoomFromUI(false);
+  const m=objectMetricsNoSync();
+  return{
+    id:activeObjectId||uid('object'),
+    clientName:clientName.value,
+    clientPhone:clientPhone.value,
+    address:objectAddress.value,
+    date:measureDate.value,
+    height:ceilingHeight.value,
+    comment:objectComment.value,
+    rooms:deepCopy(projectRooms),
+    activeRoomId,
+    area:m.area,
+    perimeter:m.perimeter,
+    calculated:m.calculated,
+    total:m.total,
+    savedAt:new Date().toISOString()
+  };
+}
+function updateSummary(){
+  const m=objectMetricsNoSync();
+  summaryClient.textContent=clientName.value||'—';summaryPhone.textContent=clientPhone.value||'—';
+  summaryAddress.textContent=objectAddress.value||'—';summaryDate.textContent=measureDate.value||'—';
+  summaryArea.textContent=m.area.toFixed(2)+' м²';summaryPerimeter.textContent=m.perimeter.toFixed(2)+' м';
+  renderRooms();
+}
+function autosave(){
+  if(roomSyncLock)return;
+  syncActiveRoomFromUI(false);
+  updateSummary();
+  try{localStorage.setItem('potolok_pixel51_draft',JSON.stringify(collectObject()));saveStatus.textContent='Чернетку збережено'}
+  catch(e){saveStatus.textContent='Пам’ять заповнена';}
+}
+function saveObject(){
+  const o=collectObject(),list=JSON.parse(localStorage.getItem('potolok_pixel5_objects')||'[]'),idx=list.findIndex(x=>x.id===o.id);
+  if(idx>=0)list[idx]=o;else list.unshift(o);
+  try{localStorage.setItem('potolok_pixel5_objects',JSON.stringify(list))}
+  catch(e){alert('Не вдалося зберегти: пам’ять браузера заповнена. Експортуйте архів і видаліть зайві фото.');return}
+  activeObjectId=o.id;saveStatus.textContent='Об’єкт збережено';renderHistory();alert('Об’єкт і '+o.rooms.length+' кімн. збережено');
+}
+function newObject(){
+  activeObjectId=null;projectRooms=[];activeRoomId=null;
+  ['clientName','clientPhone','objectAddress','objectComment'].forEach(id=>document.getElementById(id).value='');
+  measureDate.value=new Date().toISOString().slice(0,10);ceilingHeight.value=2.7;
+  const first={id:uid('room'),name:'Кімната 1'};projectRooms=[first];activeRoomId=first.id;
+  resetRoomWorkspace(first.name);syncActiveRoomFromUI(false);renderRooms();saveStatus.textContent='Новий об’єкт';autosave();
+}
+function normalizeLegacyObject(o){
+  if(Array.isArray(o.rooms)&&o.rooms.length)return o;
+  const room={
+    id:uid('room'),name:'Кімната 1',photo:o.photo||'',area:o.area||0,perimeter:o.perimeter||0,
+    corners:o.corners||4,chandeliers:o.chandeliers||0,height:o.height||2.7,color:o.color||COLORS[0],
+    texture:o.texture||'matte',prompt:o.prompt||'',planner:o.planner||{},rows:o.rows||[],
+    calculated:(o.rows||[]).reduce((s,r)=>s+(Number(r.sum)||0),0),total:o.total||5000
+  };
+  return{...o,rooms:[room],activeRoomId:room.id};
+}
+function renderHistory(){
+  const list=JSON.parse(localStorage.getItem('potolok_pixel5_objects')||'[]').map(normalizeLegacyObject);
+  objectList.innerHTML=list.length?list.map(o=>`
+    <div class="object-card">
+      <b>${o.clientName||'Без імені'} — ${o.address||'Без адреси'}</b>
+      <span>${o.date||''} • ${(o.rooms||[]).length} кімн. • ${Number(o.area||0).toFixed(2)} м² • ${money(o.total||0)}</span>
+      <div class="object-actions"><button onclick="loadObject('${o.id}')">Відкрити</button><button onclick="deleteObject('${o.id}')">Видалити</button></div>
+    </div>`).join(''):'<div class="notice">Збережених об’єктів поки немає.</div>';
+}
+function loadObject(id){
+  const list=JSON.parse(localStorage.getItem('potolok_pixel5_objects')||'[]').map(normalizeLegacyObject),o=list.find(x=>x.id===id);if(!o)return;
+  roomSyncLock=true;activeObjectId=o.id;clientName.value=o.clientName||'';clientPhone.value=o.clientPhone||'';objectAddress.value=o.address||'';
+  measureDate.value=o.date||'';ceilingHeight.value=o.height||2.7;objectComment.value=o.comment||'';
+  projectRooms=deepCopy(o.rooms||[]);activeRoomId=o.activeRoomId&&projectRooms.some(r=>r.id===o.activeRoomId)?o.activeRoomId:projectRooms[0]?.id;
+  roomSyncLock=false;if(!projectRooms.length){newObject();return}
+  restoreRoom(projectRooms.find(r=>r.id===activeRoomId)||projectRooms[0]);saveStatus.textContent='Об’єкт відкрито';renderHistory();window.scrollTo({top:0,behavior:'smooth'});
+}
+function loadDraft(){
+  const raw=localStorage.getItem('potolok_pixel51_draft')||localStorage.getItem('potolok_pixel5_draft');
+  if(!raw){newObject();return}
+  try{
+    const o=normalizeLegacyObject(JSON.parse(raw));roomSyncLock=true;activeObjectId=o.id||null;
+    clientName.value=o.clientName||'';clientPhone.value=o.clientPhone||'';objectAddress.value=o.address||'';
+    measureDate.value=o.date||new Date().toISOString().slice(0,10);ceilingHeight.value=o.height||2.7;objectComment.value=o.comment||'';
+    projectRooms=deepCopy(o.rooms||[]);activeRoomId=o.activeRoomId&&projectRooms.some(r=>r.id===o.activeRoomId)?o.activeRoomId:projectRooms[0]?.id;
+    roomSyncLock=false;if(!projectRooms.length){newObject();return}
+    restoreRoom(projectRooms.find(r=>r.id===activeRoomId)||projectRooms[0]);
+  }catch(e){newObject()}
+}
+function sendToTelegram(){
+  const o=collectObject();
+  const roomText=o.rooms.map((r,i)=>`\n${i+1}. ${r.name}\nПлоща: ${Number(r.area||0).toFixed(2)} м²\nПериметр: ${Number(r.perimeter||0).toFixed(2)} м.п.\n${(r.rows||[]).map(x=>`${x.name}: ${x.qty} ${x.unit} = ${money(x.sum)}`).join('\n')}`).join('\n');
+  const text=`Добрий день! Кошторис Potolok.in.ua\n\nКлієнт: ${o.clientName||'—'}\nТелефон: ${o.clientPhone||'—'}\nАдреса: ${o.address||'—'}\nКімнат: ${o.rooms.length}\nЗагальна площа: ${o.area.toFixed(2)} м²\nЗагальний периметр: ${o.perimeter.toFixed(2)} м.п.\n${roomText}\n\nРазом по об’єкту: ${money(o.total)}`;
+  window.location.href='https://t.me/Potolok_in_ua?url=&text='+encodeURIComponent(text);
+}
+async function downloadPDF(){
+  if(!window.jspdf){alert('Бібліотека PDF не завантажилась. Відкрийте сторінку у Chrome та повторіть.');return}
+  const {jsPDF}=window.jspdf,doc=new jsPDF({unit:'mm',format:'a4'}),o=collectObject();
+  doc.setFont('helvetica','bold');doc.setFontSize(18);doc.text('Potolok.in.ua',14,16);
+  doc.setFontSize(11);doc.text('Кошторис об’єкта',14,23);doc.setFont('helvetica','normal');doc.setFontSize(9);
+  doc.text(`Клієнт: ${o.clientName||'—'}`,14,31);doc.text(`Телефон: ${o.clientPhone||'—'}`,14,36);
+  doc.text(`Адреса: ${o.address||'—'}`,14,41);doc.text(`Дата: ${o.date||new Date().toLocaleDateString('uk-UA')}`,14,46);
+  doc.text(`Кімнат: ${o.rooms.length}   Площа: ${o.area.toFixed(2)} м²   Периметр: ${o.perimeter.toFixed(2)} м.п.`,14,51);
+  let y=58;
+  o.rooms.forEach((r,index)=>{
+    if(y>245){doc.addPage();y=18}
+    doc.setFont('helvetica','bold');doc.setFontSize(11);doc.text(`${index+1}. ${r.name||'Кімната'}`,14,y);
+    doc.setFont('helvetica','normal');doc.setFontSize(8);doc.text(`Площа: ${Number(r.area||0).toFixed(2)} м²   Периметр: ${Number(r.perimeter||0).toFixed(2)} м.п.`,14,y+5);
+    const rows=(r.rows||[]).map(x=>[x.name,String(x.qty)+' '+x.unit,money(x.price),money(x.sum)]);
+    doc.autoTable({startY:y+9,head:[['Позиція','Кількість','Ціна','Сума']],body:rows,styles:{fontSize:7},headStyles:{fillColor:[7,91,255]},margin:{left:14,right:14}});
+    y=doc.lastAutoTable.finalY+8;
+  });
+  if(y>260){doc.addPage();y=20}
+  doc.setFont('helvetica','bold');doc.setFontSize(14);doc.text(`Разом по об’єкту: ${money(o.total)}`,14,y);
+  doc.setFont('helvetica','normal');doc.setFontSize(8);doc.text('Ціна попередня. Остаточна вартість визначається після заміру.',14,y+7);
+  doc.text('Potolok.in.ua • 097 454 67 13 • Харків та область',14,y+13);
+  doc.save(`Koshtorys-Potolok-${(o.clientName||'client').replace(/\s+/g,'-')}.pdf`);
+}
+
+initManufacturers();renderAIOptions();renderProfileCards();renderCalcOptions();loadDraft();renderPalette();renderHistory();recalc();updateAISpec();renderRooms();if(!measureDate.value)measureDate.value=new Date().toISOString().slice(0,10);if(!segmentLengths.length){segmentLengths=templateDefaults('rect');renderSegmentInputs();buildRoomFromSegments(false)}updateSummary();
 
 </script>
 </body>
