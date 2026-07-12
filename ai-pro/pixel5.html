@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Potolok AI PRO — Pixel 5</title>
+<title>Potolok AI PRO — Pixel 5.2</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth}
@@ -92,12 +92,28 @@ th:nth-child(2),th:nth-child(3),th:nth-child(4),td:nth-child(2),td:nth-child(3),
 .room-empty{font-size:9px;color:#64748b;padding:9px;border:1px dashed #cbd5e1;border-radius:9px;text-align:center}
 @media(min-width:760px){.object-totals{grid-template-columns:repeat(4,1fr)}}
 
+
+.photo-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.photo-actions .btn{margin:0}
+.custom-points{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:end;margin-top:10px}
+.planner-tools-title{font-size:10px;font-weight:950;color:#334155;margin:12px 0 7px}
+.planner-toolbar.wide{grid-template-columns:repeat(3,1fr)}
+.inspector{display:none;margin-top:10px;border:1px solid #bfdbfe;background:#f8fbff;border-radius:12px;padding:10px}
+.inspector.active{display:block}
+.inspector-title{font-size:11px;font-weight:950;margin-bottom:8px}
+.inspector-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.inspector-actions{display:flex;gap:7px;margin-top:8px}
+.inspector-actions button{flex:1}
+.plan-note{font-size:8px;color:#64748b;line-height:1.4;margin-top:7px}
+.svg-selected{filter:drop-shadow(0 0 5px rgba(7,91,255,.75))}
+@media(min-width:760px){.planner-toolbar.wide{grid-template-columns:repeat(4,1fr)}}
+
 </style>
 </head>
 <body>
 <header class="header"><div class="wrap nav"><a class="logo" href="../index.html">Potolok<span>.in.ua</span></a><div class="menu"><a href="../index.html">Головна</a><a href="../gallery.html">Наші роботи</a><a href="#app">Pixel 5</a></div><a class="phone" href="tel:+380974546713">097 454 67 13</a><a class="tg-top" href="https://t.me/Potolok_in_ua">Фото в TG</a></div></header>
 
-<section class="hero"><div class="wrap"><div class="hero-box"><div class="hero-badge">✨ POTOLOK AI PRO — PIXEL 5</div><h1>Замір, AI-візуалізація, калькулятор і кошторис</h1><p>Один інструмент для роботи на замірі: фото, план кімнати, вибір матеріалів, додаткових елементів, детальна смета, PDF і збереження об’єкта.</p><div class="hero-points"><div class="hero-point">📐 План кімнати<span>периметр і площа</span></div><div class="hero-point">🎨 AI-проєкт<span>стеля та освітлення</span></div><div class="hero-point">📄 Кошторис PDF<span>для себе і клієнта</span></div></div></div></div></section>
+<section class="hero"><div class="wrap"><div class="hero-box"><div class="hero-badge">✨ POTOLOK AI PRO — PIXEL 5.2</div><h1>Замір, AI-візуалізація, калькулятор і кошторис</h1><p>Один інструмент для роботи на замірі: фото, план кімнати, вибір матеріалів, додаткових елементів, детальна смета, PDF і збереження об’єкта.</p><div class="hero-points"><div class="hero-point">📐 План кімнати<span>периметр і площа</span></div><div class="hero-point">🎨 AI-проєкт<span>стеля та освітлення</span></div><div class="hero-point">📄 Кошторис PDF<span>для себе і клієнта</span></div></div></div></div></section>
 
 <section id="app" class="app"><div class="wrap">
 <div class="tabs-main">
@@ -135,7 +151,13 @@ th:nth-child(2),th:nth-child(3),th:nth-child(4),td:nth-child(2),td:nth-child(3),
 </div>
 <div class="block"><div class="block-head"><h3>Фото кімнати</h3></div>
 <div class="photo-box"><div id="emptyPhoto" class="photo-empty">Завантажте або зробіть фото кімнати</div><img id="roomPreview" src="" alt="" style="display:none"><div class="camera">📷</div></div>
-<input id="photoInput" type="file" accept="image/*" capture="environment" hidden><button class="btn blue btn-full mt" onclick="photoInput.click()">📷 Додати фото</button><div id="photoMeta" class="photo-meta">Фото автоматично стискається перед відправкою в AI.</div></div>
+<input id="cameraInput" type="file" accept="image/*" capture="environment" hidden>
+<input id="galleryInput" type="file" accept="image/*" hidden>
+<div class="photo-actions">
+  <button class="btn green" type="button" onclick="cameraInput.click()">📷 Зробити фото</button>
+  <button class="btn blue" type="button" onclick="galleryInput.click()">🖼 Обрати з галереї</button>
+</div>
+<div id="photoMeta" class="photo-meta">Фото автоматично стискається та зберігається в поточній кімнаті.</div></div>
 <div class="btn-row"><button class="btn green" onclick="saveObject()">💾 Зберегти об’єкт</button><button class="btn outline" onclick="newObject()">＋ Новий</button></div>
 </aside>
 <main class="panel main">
@@ -185,7 +207,7 @@ th:nth-child(2),th:nth-child(3),th:nth-child(4),td:nth-child(2),td:nth-child(3),
 <div class="spec"><span>♟</span><div><b>Фактура:</b> <span id="specTexture">Матова</span></div></div>
 <div class="spec"><span>💡</span><div><b>Елементи:</b> <span id="specElements">не вибрано</span></div></div>
 </div>
-<div class="btn-row"><a id="downloadBtn" class="btn dark" href="#" download="potolok-ai.png">⬇ Завантажити</a><button class="btn green" onclick="sendToTelegram()">✈ Надіслати</button></div>
+<div class="btn-row"><a id="downloadBtn" class="btn dark" href="#" download="potolok-ai.png">💾 Зберегти AI-зображення</a><button class="btn green" onclick="sendToTelegram()">📲 Надіслати клієнту</button></div>
 </main>
 </div>
 </section>
@@ -214,10 +236,56 @@ th:nth-child(2),th:nth-child(3),th:nth-child(4),td:nth-child(2),td:nth-child(3),
 <section id="tab_planner" class="page-section">
 <div class="planner-layout">
 <aside class="panel controls">
-<div class="block"><div class="block-head"><h2>Кімната по точках</h2><span id="plannerRoomLabel" class="tag">A–B–C…</span></div><div class="planner-toolbar"><button class="tool-btn active" onclick="setTemplate('rect',this)">Прямокутна</button><button class="tool-btn" onclick="setTemplate('lshape',this)">Г-подібна</button><button class="tool-btn" onclick="setTemplate('custom',this)">Довільна</button></div><div class="planner-hint">Оберіть шаблон і введіть довжину кожної стіни: A–B, B–C, C–D тощо. Схема, периметр і площа перерахуються автоматично.</div></div>
+<div class="block"><div class="block-head"><h2>Кімната по точках</h2><span id="plannerRoomLabel" class="tag">A–B–C…</span></div>
+<div class="planner-toolbar"><button class="tool-btn active" onclick="setTemplate('rect',this)">Прямокутна</button><button class="tool-btn" onclick="setTemplate('lshape',this)">Г-подібна</button><button class="tool-btn" onclick="setTemplate('custom',this)">Довільна</button></div>
+<div id="customPointBox" class="custom-points hidden">
+  <div class="field"><label>Кількість точок (3–50)</label><input id="customPointCount" type="number" min="3" max="50" value="8"></div>
+  <button class="btn blue" type="button" onclick="generateCustomContour()">Створити</button>
+</div>
+<div class="btn-row mt"><button class="btn outline" type="button" onclick="addContourPoint()">＋ Точка</button><button class="btn outline" type="button" onclick="removeContourPoint()">− Точка</button></div>
+<div class="planner-hint">Для прямокутної та Г-подібної кімнати розрахунок точний. Для довільної форми задайте кількість кутів, пересуньте точки за реальною формою і внесіть довжини стін. Для максимально точної площі складної кімнати пізніше додамо діагоналі.</div></div>
 <div class="block"><div class="block-head"><h3>Довжини між точками</h3><span class="tag">метри</span></div><div id="segmentInputs" class="segment-list"></div><div id="closureStatus" class="planner-hint"></div></div>
-<div class="block"><div class="block-head"><h3>Позначки</h3></div><div class="planner-toolbar"><button class="tool-btn" onclick="setPlannerTool('door',this)">🚪 Двері</button><button class="tool-btn" onclick="setPlannerTool('window',this)">🪟 Вікно</button><button class="tool-btn" onclick="setPlannerTool('light',this)">💡 Точка</button><button class="tool-btn" onclick="setPlannerTool('chandelier',this)">◉ Люстра</button><button class="tool-btn" onclick="setPlannerTool('vent',this)">▦ Вент.</button><button class="tool-btn" onclick="setPlannerTool('delete',this)">🗑 Видалити</button></div></div>
-<div class="btn-row"><button class="btn outline" onclick="undoPlanner()">↶ Назад</button><button class="btn danger" onclick="resetPlanner()">Скинути</button></div>
+<div class="block"><div class="block-head"><h3>Елементи плану</h3><span class="tag">вигляд зверху</span></div>
+<div class="planner-tools-title">Отвори та технічні точки</div>
+<div class="planner-toolbar wide">
+<button class="tool-btn" onclick="setPlannerTool('door',this)">🚪 Двері</button>
+<button class="tool-btn" onclick="setPlannerTool('window',this)">▥ Вікно</button>
+<button class="tool-btn" onclick="setPlannerTool('pipe1',this)">○ Труба 1×</button>
+<button class="tool-btn" onclick="setPlannerTool('pipe2',this)">◎ Труба 2×</button>
+<button class="tool-btn" onclick="setPlannerTool('vent',this)">▦ Вентиляція</button>
+<button class="tool-btn" onclick="setPlannerTool('column',this)">◉ Колона</button>
+</div>
+<div class="planner-tools-title">Освітлення та стеля</div>
+<div class="planner-toolbar wide">
+<button class="tool-btn" onclick="setPlannerTool('light',this)">⊗ Світильник</button>
+<button class="tool-btn" onclick="setPlannerTool('chandelier',this)">✣ Люстра</button>
+<button class="tool-btn" onclick="setPlannerTool('track',this)">▬ Магн. трек</button>
+<button class="tool-btn" onclick="setPlannerTool('surfaceTrack',this)">═ Накл. трек</button>
+<button class="tool-btn" onclick="setPlannerTool('lightline',this)">━ Світлова лінія</button>
+<button class="tool-btn" onclick="setPlannerTool('cornice',this)">▱ Карниз</button>
+</div>
+<div class="planner-tools-title">Будівельні конструкції</div>
+<div class="planner-toolbar wide">
+<button class="tool-btn" onclick="setPlannerTool('beam',this)">▰ Балка</button>
+<button class="tool-btn" onclick="setPlannerTool('box',this)">▭ Короб</button>
+<button class="tool-btn" onclick="setPlannerTool('circle',this)">○ Круг</button>
+<button class="tool-btn" onclick="setPlannerTool('oval',this)">⬭ Овал</button>
+<button class="tool-btn" onclick="setPlannerTool('curve',this)">⌒ Крива</button>
+<button class="tool-btn" onclick="setPlannerTool('wave',this)">〰 Хвиля</button>
+</div>
+<div class="planner-toolbar mt"><button class="tool-btn" onclick="setPlannerTool('select',this)">☝ Вибрати</button><button class="tool-btn" onclick="setPlannerTool('delete',this)">🗑 Видалити</button><button class="tool-btn" onclick="duplicateSelectedObject()">⧉ Копія</button></div>
+<div id="objectInspector" class="inspector">
+  <div class="inspector-title">Властивості елемента: <span id="inspectorName">—</span></div>
+  <div class="inspector-grid">
+    <div class="field"><label>Довжина, м</label><input id="objectLength" type="number" step="0.01" min="0.05" oninput="updateSelectedObject()"></div>
+    <div class="field"><label>Ширина / діаметр, м</label><input id="objectWidth" type="number" step="0.01" min="0.03" oninput="updateSelectedObject()"></div>
+    <div class="field"><label>Поворот, °</label><input id="objectRotation" type="number" step="1" oninput="updateSelectedObject()"></div>
+    <div class="field"><label>Підпис</label><input id="objectLabel" oninput="updateSelectedObject()"></div>
+  </div>
+  <div class="inspector-actions"><button class="btn outline" type="button" onclick="duplicateSelectedObject()">⧉ Копіювати</button><button class="btn danger" type="button" onclick="deleteSelectedObject()">🗑 Видалити</button></div>
+</div>
+</div>
+<div class="btn-row"><button class="btn outline" onclick="undoPlanner()">↶ Скасувати останню</button><button class="btn outline" onclick="redoPlanner()">↷ Повернути</button><button class="btn danger" onclick="clearPlanner()">🗑 Очистити план</button></div>
 <div class="planner-info mt"><div class="metric"><span>Площа</span><b id="plannerArea">0 м²</b></div><div class="metric"><span>Периметр</span><b id="plannerPerimeter">0 м</b></div></div>
 <button class="btn blue btn-full mt" onclick="applyPlannerToCalc()">Передати в калькулятор</button>
 </aside>
@@ -274,7 +342,8 @@ const AI_OPTIONS=[
 ];
 
 let selectedColor=COLORS[0],selectedTexture='matte',uploadedImageBase64='',activeObjectId=null;
-let roomPoints=[],plannerObjects=[],plannerHistory=[],plannerTool='move',roomTemplate='rect',dragIndex=-1,segmentLengths=[];
+let roomPoints=[],plannerObjects=[],plannerHistory=[],plannerRedo=[],plannerTool='select',roomTemplate='rect',dragIndex=-1,segmentLengths=[];
+let selectedObjectIndex=-1,objectDragIndex=-1,objectDragOffset=[0,0],customPointTotal=8;
 let projectRooms=[],activeRoomId=null,roomSyncLock=false;
 
 function money(n){return Math.round(n).toLocaleString('uk-UA')+' грн'}
@@ -293,7 +362,20 @@ function toggleExtra(id){const c=document.getElementById('check_'+id),f=document
 function currentRows(){const rows=[];EXTRA_ITEMS.forEach(i=>{let active=i.always||document.getElementById('check_'+i.id)?.checked;if(!active)return;let q=i.qty?num(i.qty):num('qty_'+i.id);if(q>0)rows.push({...i,qty:q,sum:q*i.price})});PROFILE_ITEMS.forEach(p=>{if(document.getElementById('profile_'+p.id)?.classList.contains('active')){const q=num('qty_profile_'+p.id);if(q>0)rows.push({...p,qty:q,sum:q*p.price})}});return rows}
 function recalc(){const rows=currentRows(),calculated=rows.reduce((s,r)=>s+r.sum,0),total=Math.max(calculated,5000);priceValue.textContent=money(total);bottomPrice.textContent=money(total);priceDetails.innerHTML=`<b>Розраховано:</b> ${money(calculated)}<br><b>Мінімальне замовлення:</b> 5 000 грн${calculated<5000?'<br><b>До сплати:</b> 5 000 грн':''}`;estimateBody.innerHTML=rows.map(r=>`<tr><td>${r.name}</td><td>${r.qty}</td><td>${money(r.price)}</td><td>${money(r.sum)}</td></tr>`).join('');if(calculated<5000)estimateBody.innerHTML+=`<tr><td><b>Доплата до мінімального замовлення</b></td><td>1</td><td>${money(5000-calculated)}</td><td>${money(5000-calculated)}</td></tr>`;estimateTotal.textContent='Разом до сплати: '+money(total);summaryArea.textContent=num('area')+' м²';summaryPerimeter.textContent=num('perimeter')+' м';autosave()}
 function updateAISpec(){specManufacturer.textContent=selectedColor.manufacturer;specColor.textContent=selectedColor.name;specTexture.textContent=textureLabel();const a=AI_OPTIONS.filter(o=>document.getElementById('ai_'+o.id)?.checked).map(o=>o.name);specElements.textContent=a.length?a.join(', '):'не вибрано'}
-photoInput.addEventListener('change',async function(){const file=this.files[0];if(!file)return;try{photoMeta.textContent='Стискаємо фото…';uploadedImageBase64=await compressImage(file,1600,.78,950000);roomPreview.src=uploadedImageBase64;roomPreview.style.display='block';emptyPhoto.style.display='none';const kb=Math.round((uploadedImageBase64.length*3/4)/1024);photoMeta.textContent='Фото готове: приблизно '+kb+' КБ. Помилка 413 не повинна повторюватися.';autosave()}catch(e){photoMeta.textContent='Не вдалося обробити фото: '+e.message;alert('Помилка фото: '+e.message)}});
+async function handlePhotoInput(input){
+  const file=input.files&&input.files[0];if(!file)return;
+  try{
+    photoMeta.textContent='Стискаємо фото…';
+    uploadedImageBase64=await compressImage(file,1600,.76,820000);
+    roomPreview.src=uploadedImageBase64;roomPreview.style.display='block';emptyPhoto.style.display='none';
+    const kb=Math.round((uploadedImageBase64.length*3/4)/1024);
+    photoMeta.textContent=`✅ ${file.name||'Фото'} • приблизно ${kb} КБ • збережено в поточній кімнаті`;
+    syncActiveRoomFromUI(false);autosave();
+  }catch(e){photoMeta.textContent='Не вдалося обробити фото: '+e.message;alert('Помилка фото: '+e.message)}
+  finally{input.value=''}
+}
+cameraInput.addEventListener('change',()=>handlePhotoInput(cameraInput));
+galleryInput.addEventListener('change',()=>handlePhotoInput(galleryInput));
 function compressImage(file,maxSide=1600,quality=.78,maxBytes=950000){return new Promise((resolve,reject)=>{const reader=new FileReader();reader.onerror=()=>reject(new Error('не вдалося прочитати файл'));reader.onload=()=>{const img=new Image();img.onerror=()=>reject(new Error('формат фото не підтримується'));img.onload=()=>{let w=img.width,h=img.height,scale=Math.min(1,maxSide/Math.max(w,h));w=Math.max(1,Math.round(w*scale));h=Math.max(1,Math.round(h*scale));const canvas=document.createElement('canvas');canvas.width=w;canvas.height=h;const ctx=canvas.getContext('2d');ctx.drawImage(img,0,0,w,h);let q=quality,data=canvas.toDataURL('image/jpeg',q);while((data.length*3/4)>maxBytes&&q>.46){q-=.08;data=canvas.toDataURL('image/jpeg',q)}resolve(data)};img.src=reader.result};reader.readAsDataURL(file)})} 
 async function generateAI(){if(!uploadedImageBase64){alert('Спочатку завантажте фото кімнати.');return}loader.style.display='block';apiError.style.display='none';const options=AI_OPTIONS.filter(o=>document.getElementById('ai_'+o.id)?.checked).map(o=>o.name);try{const response=await fetch('/api/ai-ceiling',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({imageBase64:uploadedImageBase64,manufacturer:selectedColor.manufacturer,color:selectedColor.name,colorHex:selectedColor.hex,material:selectedTexture,options,customRequest:customPrompt.value.trim(),instruction:'Зберегти геометрію кімнати, стіни, підлогу, вікна та двері. Змінювати лише стелю і вибрані елементи. Реалістична перспектива та освітлення.'})});const data=await response.json().catch(()=>({}));if(!response.ok)throw new Error(data.error||'API '+response.status);if(!data.image)throw new Error('API не повернув поле image');resultImageWrap.innerHTML=`<img src="${data.image}" alt="AI result">`;downloadBtn.href=data.image;autosave()}catch(e){apiError.textContent='AI не запущено: '+e.message+'. Калькулятор і кошторис працюють. Для AI треба оновити серверний /api/ai-ceiling, щоб він приймав нові параметри.';apiError.style.display='block'}finally{loader.style.display='none'}}
 function clearResult(){resultImageWrap.textContent='Завантажте фото, оберіть матеріал і додаткові елементи, потім запустіть AI.';downloadBtn.href='#'}
@@ -657,7 +739,182 @@ async function downloadPDF(){
   doc.save(`Koshtorys-Potolok-${(o.clientName||'client').replace(/\s+/g,'-')}.pdf`);
 }
 
-initManufacturers();renderAIOptions();renderProfileCards();renderCalcOptions();loadDraft();renderPalette();renderHistory();recalc();updateAISpec();renderRooms();if(!measureDate.value)measureDate.value=new Date().toISOString().slice(0,10);if(!segmentLengths.length){segmentLengths=templateDefaults('rect');renderSegmentInputs();buildRoomFromSegments(false)}updateSummary();
+
+const PLANNER_NAMES={
+door:'Двері',window:'Вікно',pipe1:'Обвід труби 1×',pipe2:'Обвід труби 2×',vent:'Вентиляція',
+column:'Колона',light:'Точковий світильник',chandelier:'Люстра',track:'Магнітний трек',
+surfaceTrack:'Накладний трек',lightline:'Світлова лінія',cornice:'Карниз',beam:'Балка',
+box:'Короб',circle:'Круг',oval:'Овал',curve:'Крива',wave:'Хвиля'
+};
+function plannerScale(){const m=polygonMetrics();const screen=screenPolygonPerimeter();return screen>0&&m.perimeter>0?screen/m.perimeter:90}
+function screenPolygonPerimeter(){let p=0;for(let i=0;i<roomPoints.length;i++){const a=roomPoints[i],b=roomPoints[(i+1)%roomPoints.length];p+=Math.hypot(b[0]-a[0],b[1]-a[1])}return p}
+function setTemplate(t,btn){
+  roomTemplate=t;
+  document.querySelectorAll('#tab_planner .planner-toolbar:first-of-type .tool-btn').forEach(b=>b.classList.remove('active'));
+  if(btn)btn.classList.add('active');
+  customPointBox.classList.toggle('hidden',t!=='custom');
+  if(t==='custom'){customPointCount.value=customPointTotal;generateCustomContour(true);return}
+  segmentLengths=templateDefaults(t);renderSegmentInputs();buildRoomFromSegments(true);
+}
+function generateCustomContour(skipConfirm=false){
+  const n=Math.max(3,Math.min(50,Math.round(Number(customPointCount.value)||8)));
+  if(!skipConfirm&&roomPoints.length&&roomTemplate==='custom'&&!confirm('Створити новий контур? Поточна геометрія кімнати буде замінена.'))return;
+  customPointTotal=n;roomTemplate='custom';segmentLengths=Array(n).fill(1);
+  const cx=400,cy=300,rx=250,ry=190;
+  roomPoints=Array.from({length:n},(_,i)=>{const a=-Math.PI/2+i*2*Math.PI/n;return[cx+rx*Math.cos(a),cy+ry*Math.sin(a)]});
+  roomPoints._real=null;renderSegmentInputs();pushPlanner();renderPlanner();
+  closureStatus.className='planner-hint closure-ok';closureStatus.textContent='✅ Контур замкнений. Пересуньте точки за формою приміщення та введіть довжини стін.';
+  autosave();
+}
+function addContourPoint(){
+  if(roomTemplate!=='custom'){alert('Додавання окремих точок доступне у режимі «Довільна».');return}
+  pushPlanner();const n=roomPoints.length;if(n>=50)return alert('Максимум 50 точок.');
+  const a=roomPoints[n-1],b=roomPoints[0];roomPoints.push([(a[0]+b[0])/2,(a[1]+b[1])/2]);segmentLengths.push(1);
+  customPointTotal=roomPoints.length;customPointCount.value=customPointTotal;renderSegmentInputs();renderPlanner();autosave();
+}
+function removeContourPoint(){
+  if(roomTemplate!=='custom'||roomPoints.length<=3)return alert('Мінімум 3 точки.');
+  pushPlanner();roomPoints.pop();segmentLengths.pop();customPointTotal=roomPoints.length;customPointCount.value=customPointTotal;renderSegmentInputs();renderPlanner();autosave();
+}
+function updateSegment(i,value){
+  segmentLengths[i]=Math.max(.01,Number(String(value).replace(',','.'))||.01);
+  if(roomTemplate==='custom'){renderPlanner();autosave();return}
+  buildRoomFromSegments(false);autosave();
+}
+function polygonMetrics(){
+  if(roomTemplate==='custom'&&roomPoints.length>=3){
+    let areaPx=0,perPx=0;
+    for(let i=0;i<roomPoints.length;i++){const a=roomPoints[i],b=roomPoints[(i+1)%roomPoints.length];areaPx+=a[0]*b[1]-b[0]*a[1];perPx+=Math.hypot(b[0]-a[0],b[1]-a[1])}
+    const realPer=segmentLengths.reduce((s,v)=>s+(Number(v)||0),0);
+    const k=perPx?realPer/perPx:0;
+    return{area:Math.abs(areaPx/2)*k*k,perimeter:realPer,approx:true};
+  }
+  const real=roomPoints._real;
+  if(real&&real.length>=3){let area=0;for(let i=0;i<real.length;i++){const a=real[i],b=real[(i+1)%real.length];area+=a[0]*b[1]-b[0]*a[1]}return{area:Math.abs(area/2),perimeter:segmentLengths.reduce((a,b)=>a+b,0),approx:false}}
+  return{area:0,perimeter:0,approx:true};
+}
+function setPlannerTool(t,btn){
+  plannerTool=t;
+  document.querySelectorAll('#tab_planner .tool-btn').forEach(b=>b.classList.remove('active'));
+  if(btn)btn.classList.add('active');
+}
+function objectDefaults(type,x,y){
+  const base={type,x,y,rotation:0,label:'',length:1,width:.2};
+  if(type==='door')return{...base,length:.8,width:.08};
+  if(type==='window')return{...base,length:1.2,width:.08};
+  if(type==='pipe1')return{...base,length:.12,width:.12};
+  if(type==='pipe2')return{...base,length:.26,width:.12};
+  if(type==='vent')return{...base,length:.3,width:.3};
+  if(type==='column')return{...base,length:.4,width:.4};
+  if(type==='light')return{...base,length:.12,width:.12};
+  if(type==='chandelier')return{...base,length:.35,width:.35};
+  if(type==='track'||type==='surfaceTrack')return{...base,length:2,width:.12};
+  if(type==='lightline')return{...base,length:2,width:.05};
+  if(type==='cornice')return{...base,length:2.5,width:.25};
+  if(type==='beam')return{...base,length:2,width:.35};
+  if(type==='box')return{...base,length:1.5,width:.5};
+  if(type==='circle')return{...base,length:1,width:1};
+  if(type==='oval')return{...base,length:1.5,width:.8};
+  if(type==='curve'||type==='wave')return{...base,length:2,width:.5};
+  return base;
+}
+function plannerClick(e){
+  if(e.target.closest&&e.target.closest('[data-planner-object]'))return;
+  const [x,y]=svgPoint(e);
+  if(plannerTool==='delete'){let best=-1,dist=50;plannerObjects.forEach((o,i)=>{const d=Math.hypot(o.x-x,o.y-y);if(d<dist){dist=d;best=i}});if(best>=0){pushPlanner();plannerObjects.splice(best,1);selectedObjectIndex=-1;renderPlanner();autosave()}return}
+  if(plannerTool==='select')return;
+  pushPlanner();plannerObjects.push(objectDefaults(plannerTool,x,y));selectedObjectIndex=plannerObjects.length-1;renderPlanner();showObjectInspector();autosave();
+}
+function pushPlanner(){
+  plannerHistory.push(JSON.stringify({points:roomPoints,objects:plannerObjects,segments:segmentLengths,template:roomTemplate}));
+  if(plannerHistory.length>50)plannerHistory.shift();plannerRedo=[];
+}
+function undoPlanner(){
+  const s=plannerHistory.pop();if(!s)return;
+  plannerRedo.push(JSON.stringify({points:roomPoints,objects:plannerObjects,segments:segmentLengths,template:roomTemplate}));
+  const d=JSON.parse(s);roomPoints=d.points;plannerObjects=d.objects;segmentLengths=d.segments||segmentLengths;roomTemplate=d.template||roomTemplate;
+  selectedObjectIndex=-1;renderSegmentInputs();renderPlanner();showObjectInspector();autosave();
+}
+function redoPlanner(){
+  const s=plannerRedo.pop();if(!s)return;
+  plannerHistory.push(JSON.stringify({points:roomPoints,objects:plannerObjects,segments:segmentLengths,template:roomTemplate}));
+  const d=JSON.parse(s);roomPoints=d.points;plannerObjects=d.objects;segmentLengths=d.segments||segmentLengths;roomTemplate=d.template||roomTemplate;
+  selectedObjectIndex=-1;renderSegmentInputs();renderPlanner();showObjectInspector();autosave();
+}
+function clearPlanner(){
+  if(!confirm('Очистити всі елементи плану? Контур і розміри кімнати залишаться.'))return;
+  pushPlanner();plannerObjects=[];selectedObjectIndex=-1;renderPlanner();showObjectInspector();autosave();
+}
+function resetPlanner(){clearPlanner()}
+function selectPlannerObject(i,e){
+  if(e){e.stopPropagation();const p=svgPoint(e);objectDragOffset=[p[0]-plannerObjects[i].x,p[1]-plannerObjects[i].y];objectDragIndex=i;plannerSvg.setPointerCapture(e.pointerId)}
+  selectedObjectIndex=i;plannerTool='select';renderPlanner();showObjectInspector();
+}
+function showObjectInspector(){
+  const o=plannerObjects[selectedObjectIndex];
+  objectInspector.classList.toggle('active',!!o);
+  if(!o)return;
+  inspectorName.textContent=PLANNER_NAMES[o.type]||o.type;objectLength.value=o.length||0;objectWidth.value=o.width||0;objectRotation.value=o.rotation||0;objectLabel.value=o.label||'';
+}
+function updateSelectedObject(){
+  const o=plannerObjects[selectedObjectIndex];if(!o)return;
+  o.length=Math.max(.01,Number(objectLength.value)||.01);o.width=Math.max(.01,Number(objectWidth.value)||.01);o.rotation=Number(objectRotation.value)||0;o.label=objectLabel.value||'';
+  renderPlanner();autosave();
+}
+function duplicateSelectedObject(){
+  const o=plannerObjects[selectedObjectIndex];if(!o)return alert('Спочатку виберіть елемент на плані.');
+  pushPlanner();const c={...o,x:o.x+25,y:o.y+25};plannerObjects.push(c);selectedObjectIndex=plannerObjects.length-1;renderPlanner();showObjectInspector();autosave();
+}
+function deleteSelectedObject(){
+  if(selectedObjectIndex<0)return;pushPlanner();plannerObjects.splice(selectedObjectIndex,1);selectedObjectIndex=-1;renderPlanner();showObjectInspector();autosave();
+}
+function svgEl(tag,attrs={}){const e=document.createElementNS('http://www.w3.org/2000/svg',tag);Object.entries(attrs).forEach(([k,v])=>e.setAttribute(k,v));return e}
+function drawPlannerObject(o,i,scale){
+  const g=svgEl('g',{'data-planner-object':i,transform:`translate(${o.x} ${o.y}) rotate(${o.rotation||0})`,class:i===selectedObjectIndex?'svg-selected':''});
+  g.style.cursor='move';g.addEventListener('pointerdown',e=>selectPlannerObject(i,e));
+  const L=Math.max(10,(o.length||1)*scale),W=Math.max(8,(o.width||.2)*scale);
+  const stroke='#0f172a',blue='#075bff';
+  if(o.type==='door'){g.append(svgEl('line',{x1:0,y1:0,x2:L,y2:0,stroke,'stroke-width':5}),svgEl('path',{d:`M0 0 A${L} ${L} 0 0 1 ${L} ${-L}`,fill:'none',stroke:blue,'stroke-width':2,'stroke-dasharray':'5 4'}))}
+  else if(o.type==='window'){g.append(svgEl('rect',{x:-L/2,y:-W/2,width:L,height:W,fill:'#dbeafe',stroke,'stroke-width':2}),svgEl('line',{x1:-L/2,y1:0,x2:L/2,y2:0,stroke:blue,'stroke-width':2}))}
+  else if(o.type==='pipe1'){g.append(svgEl('circle',{cx:0,cy:0,r:W/2,fill:'#fff',stroke,'stroke-width':3}))}
+  else if(o.type==='pipe2'){g.append(svgEl('circle',{cx:-W*.55,cy:0,r:W/2,fill:'#fff',stroke,'stroke-width':3}),svgEl('circle',{cx:W*.55,cy:0,r:W/2,fill:'#fff',stroke,'stroke-width':3}))}
+  else if(o.type==='vent'){g.append(svgEl('rect',{x:-L/2,y:-W/2,width:L,height:W,fill:'#fff',stroke,'stroke-width':3}));for(let j=-2;j<=2;j++)g.append(svgEl('line',{x1:-L/2+5,y1:j*W/6,x2:L/2-5,y2:j*W/6,stroke:blue,'stroke-width':1.5}))}
+  else if(o.type==='light'){g.append(svgEl('circle',{cx:0,cy:0,r:W/2,fill:'#fff',stroke,'stroke-width':2}),svgEl('line',{x1:-W*.35,y1:-W*.35,x2:W*.35,y2:W*.35,stroke}),svgEl('line',{x1:-W*.35,y1:W*.35,x2:W*.35,y2:-W*.35,stroke}))}
+  else if(o.type==='chandelier'){g.append(svgEl('circle',{cx:0,cy:0,r:W/2,fill:'#fff',stroke,'stroke-width':3}),svgEl('circle',{cx:0,cy:0,r:W/5,fill:blue}))}
+  else if(o.type==='circle'||o.type==='column'){g.append(svgEl('ellipse',{cx:0,cy:0,rx:L/2,ry:W/2,fill:'rgba(100,116,139,.15)',stroke,'stroke-width':3}))}
+  else if(o.type==='oval'){g.append(svgEl('ellipse',{cx:0,cy:0,rx:L/2,ry:W/2,fill:'rgba(7,91,255,.08)',stroke:blue,'stroke-width':3}))}
+  else if(o.type==='curve'){g.append(svgEl('path',{d:`M${-L/2} 0 Q0 ${-W} ${L/2} 0`,fill:'none',stroke:blue,'stroke-width':5}))}
+  else if(o.type==='wave'){g.append(svgEl('path',{d:`M${-L/2} 0 C${-L/3} ${-W},${-L/6} ${W},0 0 C${L/6} ${-W},${L/3} ${W},${L/2} 0`,fill:'none',stroke:'#f59e0b','stroke-width':5}))}
+  else{
+    let fill=o.type==='lightline'?'#facc15':o.type==='track'?'#111827':o.type==='surfaceTrack'?'#475569':o.type==='cornice'?'#dbeafe':o.type==='beam'?'#94a3b8':'rgba(148,163,184,.25)';
+    g.append(svgEl('rect',{x:-L/2,y:-W/2,width:L,height:W,rx:Math.min(8,W/3),fill,stroke:o.type==='lightline'?'#f59e0b':stroke,'stroke-width':2}));
+  }
+  if(o.label){const t=svgEl('text',{x:0,y:-W/2-8,'text-anchor':'middle','font-size':13,'font-weight':900,fill:'#0f172a'});t.textContent=o.label;g.append(t)}
+  objectLayer.appendChild(g);
+}
+function renderPlanner(){
+  roomLayer.innerHTML='';nodeLayer.innerHTML='';objectLayer.innerHTML='';
+  if(roomPoints.length){
+    const poly=svgEl('polygon',{points:roomPoints.map(p=>p.join(',')).join(' '),fill:'rgba(7,91,255,.10)',stroke:'#075bff','stroke-width':4});roomLayer.appendChild(poly);
+    roomPoints.forEach((p,i)=>{
+      const q=roomPoints[(i+1)%roomPoints.length],label=svgEl('text',{x:p[0]+12,y:p[1]-12,class:'point-label'});label.textContent=pointName(i);roomLayer.appendChild(label);
+      const dim=svgEl('text',{x:(p[0]+q[0])/2,y:(p[1]+q[1])/2-9,'text-anchor':'middle',class:'dimension-label'});dim.textContent=(segmentLengths[i]||0).toFixed(2)+' м';roomLayer.appendChild(dim);
+      const c=svgEl('circle',{cx:p[0],cy:p[1],r:9,fill:'#fff',stroke:'#075bff','stroke-width':4});c.style.cursor='move';c.addEventListener('pointerdown',e=>{dragIndex=i;plannerSvg.setPointerCapture(e.pointerId);e.stopPropagation()});nodeLayer.appendChild(c);
+    })
+  }
+  const scale=plannerScale();plannerObjects.forEach((o,i)=>drawPlannerObject(o,i,scale));
+  const m=polygonMetrics();plannerArea.textContent=(m.approx?'≈ ':'')+m.area.toFixed(2)+' м²';plannerPerimeter.textContent=m.perimeter.toFixed(2)+' м';
+}
+plannerSvg.addEventListener('pointermove',e=>{
+  const [x,y]=svgPoint(e);
+  if(dragIndex>=0){roomPoints[dragIndex]=[Math.max(20,Math.min(780,x)),Math.max(20,Math.min(580,y))];renderPlanner();return}
+  if(objectDragIndex>=0){const o=plannerObjects[objectDragIndex];o.x=x-objectDragOffset[0];o.y=y-objectDragOffset[1];renderPlanner()}
+});
+plannerSvg.addEventListener('pointerup',e=>{
+  if(dragIndex>=0||objectDragIndex>=0){dragIndex=-1;objectDragIndex=-1;autosave()}
+});
+
+initManufacturers();renderAIOptions();renderProfileCards();renderCalcOptions();loadDraft();renderPalette();renderHistory();recalc();updateAISpec();renderRooms();if(!measureDate.value)measureDate.value=new Date().toISOString().slice(0,10);if(!segmentLengths.length){segmentLengths=templateDefaults('rect');renderSegmentInputs();buildRoomFromSegments(false)}customPointBox.classList.toggle('hidden',roomTemplate!=='custom');showObjectInspector();updateSummary();
 
 </script>
 </body>
