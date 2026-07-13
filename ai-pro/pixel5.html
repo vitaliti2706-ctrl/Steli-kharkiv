@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Potolok AI PRO — Pixel 5.3</title>
+<title>Potolok AI PRO — Pixel 5.4</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth}
@@ -124,7 +124,7 @@ th:nth-child(2),th:nth-child(3),th:nth-child(4),td:nth-child(2),td:nth-child(3),
 .rotate-handle:active,.resize-handle:active{cursor:grabbing}
 
 
-/* Pixel 5.3 */
+/* Pixel 5.4 */
 .markup-tools{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:9px}
 .markup-stage-wrap{margin-top:10px;border:1px solid #dbe3ef;border-radius:13px;overflow:hidden;background:#0f172a;min-height:220px;display:flex;align-items:center;justify-content:center}
 #markupCanvas{display:block;width:100%;height:auto;max-height:520px;touch-action:none;background:#eef5ff}
@@ -137,7 +137,7 @@ th:nth-child(2),th:nth-child(3),th:nth-child(4),td:nth-child(2),td:nth-child(3),
 <body>
 <header class="header"><div class="wrap nav"><a class="logo" href="../index.html">Potolok<span>.in.ua</span></a><div class="menu"><a href="../index.html">Головна</a><a href="../gallery.html">Наші роботи</a><a href="#app">Pixel 5</a></div><a class="phone" href="tel:+380974546713">097 454 67 13</a><a class="tg-top" href="https://t.me/Potolok_in_ua">Фото в TG</a></div></header>
 
-<section class="hero"><div class="wrap"><div class="hero-box"><div class="hero-badge">✨ POTOLOK AI PRO — PIXEL 5.3</div><h1>Замір, AI-візуалізація, калькулятор і кошторис</h1><p>Один інструмент для роботи на замірі: фото, план кімнати, вибір матеріалів, додаткових елементів, детальна смета, PDF і збереження об’єкта.</p><div class="hero-points"><div class="hero-point">📐 План кімнати<span>периметр і площа</span></div><div class="hero-point">🎨 AI-проєкт<span>стеля та освітлення</span></div><div class="hero-point">📄 Кошторис PDF<span>для себе і клієнта</span></div></div></div></div></section>
+<section class="hero"><div class="wrap"><div class="hero-box"><div class="hero-badge">✨ POTOLOK AI PRO — PIXEL 5.4</div><h1>Замір, AI-візуалізація, калькулятор і кошторис</h1><p>Один інструмент для роботи на замірі: фото, план кімнати, вибір матеріалів, додаткових елементів, детальна смета, PDF і збереження об’єкта.</p><div class="hero-points"><div class="hero-point">📐 План кімнати<span>периметр і площа</span></div><div class="hero-point">🎨 AI-проєкт<span>стеля та освітлення</span></div><div class="hero-point">📄 Кошторис PDF<span>для себе і клієнта</span></div></div></div></div></section>
 
 <section id="app" class="app"><div class="wrap">
 <div class="tabs-main">
@@ -1191,7 +1191,7 @@ initManufacturers();renderAIOptions();renderProfileCards();renderCalcOptions();l
 </script>
 
 <script>
-/* ================= PIXEL 5.3 OVERRIDES ================= */
+/* ================= PIXEL 5.4 OVERRIDES ================= */
 const PIXEL53_PROFILE_ITEMS=[
 {id:'shadowBlack',name:'Тіньовий профіль чорний',unit:'м.п.',price:250,desc:'Чорний тіньовий контур',tone:'black'},
 {id:'shadowWhite',name:'Тіньовий профіль білий',unit:'м.п.',price:250,desc:'Білий тіньовий контур',tone:'white'},
@@ -1353,5 +1353,533 @@ async function exportHistory(){const data=await dbGetObjects(),a=document.create
 renderCalcOptions();renderProfileCards();pixel53ProfileSnapshot=profileState();
 loadMarkupFromRoom();drawMarkupCanvas();renderHistory();
 </script>
+
+<script>
+/* Potolok AI PRO — Pixel 5.4 photo markup upgrade */
+(() => {
+  'use strict';
+
+  // Version labels
+  document.title = 'Potolok AI PRO — Pixel 5.4';
+  document.querySelectorAll('.hero-badge').forEach(el => {
+    el.textContent = el.textContent.replace(/PIXEL\s*5\.3/gi, 'PIXEL 5.4');
+  });
+
+  // Extra styles
+  const style = document.createElement('style');
+  style.textContent = `
+    .markup-zoombar{
+      display:flex;gap:7px;align-items:center;justify-content:flex-end;
+      margin:10px 0 0;
+    }
+    .markup-zoombar button{
+      min-width:42px;height:38px;border:1px solid #dbe3ef;background:#fff;
+      border-radius:9px;font-weight:950;color:#075bff;
+    }
+    .markup-zoombar .markup-zoom-label{min-width:68px}
+    .markup-stage-wrap{
+      overflow:auto!important;justify-content:flex-start!important;
+      align-items:flex-start!important;touch-action:pan-x pan-y;
+    }
+    #markupCanvas{
+      max-height:none!important;transform-origin:top left;
+      flex:0 0 auto;
+    }
+    .markup-selected-note{
+      margin-top:7px;font-size:9px;color:#075bff;font-weight:800;
+    }
+  `;
+  document.head.appendChild(style);
+
+  const oldCanvas = document.getElementById('markupCanvas');
+  if (!oldCanvas) return;
+
+  // Clone canvas to remove old 5.3 pointer listener.
+  const canvas = oldCanvas.cloneNode(false);
+  canvas.width = oldCanvas.width || 800;
+  canvas.height = oldCanvas.height || 520;
+  oldCanvas.replaceWith(canvas);
+
+  const wrap = canvas.closest('.markup-stage-wrap');
+  const controls = document.createElement('div');
+  controls.className = 'markup-zoombar';
+  controls.innerHTML = `
+    <button type="button" id="markupZoomOut">−</button>
+    <button type="button" id="markupZoomLabel" class="markup-zoom-label">100%</button>
+    <button type="button" id="markupZoomIn">＋</button>
+  `;
+  wrap.before(controls);
+
+  const actionRow = wrap.nextElementSibling;
+  if (actionRow && actionRow.classList.contains('btn-row')) {
+    const del = document.createElement('button');
+    del.type = 'button';
+    del.className = 'btn danger';
+    del.textContent = '🗑 Видалити вибране';
+    del.onclick = () => deleteSelectedMarkup();
+    actionRow.appendChild(del);
+  }
+
+  const note = document.createElement('div');
+  note.className = 'markup-selected-note';
+  note.id = 'markupSelectedNote';
+  note.textContent = 'Натисніть на позначку, щоб пересунути, повернути або розтягнути.';
+  wrap.after(note);
+
+  const POINT_TYPES = new Set(['spot', 'chandelier']);
+  const LINE_TYPES = new Set(['track', 'surfaceTrack', 'lightline', 'cornice', 'floating', 'shadow']);
+  const TYPE_NAMES = {
+    spot: 'Світильник',
+    chandelier: 'Люстра',
+    track: 'Магнітний трек',
+    surfaceTrack: 'Накладний трек',
+    lightline: 'Світлова лінія',
+    cornice: 'Карниз',
+    floating: 'Парящий профіль',
+    shadow: 'Тіньовий профіль'
+  };
+  const COLORS54 = {
+    spot: '#f59e0b',
+    chandelier: '#7c3aed',
+    track: '#111827',
+    surfaceTrack: '#475569',
+    lightline: '#facc15',
+    cornice: '#0ea5e9',
+    floating: '#22c55e',
+    shadow: '#111827'
+  };
+
+  let selectedMarkupIndex = -1;
+  let markupZoom54 = 1;
+  let drag54 = null;
+  let preview54 = null;
+  let pointerId54 = null;
+
+  function getCanvas() {
+    return document.getElementById('markupCanvas');
+  }
+
+  function setZoom54(value) {
+    markupZoom54 = Math.max(1, Math.min(3, value));
+    const c = getCanvas();
+    c.style.width = `${markupZoom54 * 100}%`;
+    document.getElementById('markupZoomLabel').textContent = `${Math.round(markupZoom54 * 100)}%`;
+  }
+
+  document.getElementById('markupZoomOut').onclick = () => setZoom54(markupZoom54 - 0.25);
+  document.getElementById('markupZoomIn').onclick = () => setZoom54(markupZoom54 + 0.25);
+  document.getElementById('markupZoomLabel').onclick = () => setZoom54(1);
+  setZoom54(1);
+
+  function canvasPoint54(e) {
+    const c = getCanvas();
+    const r = c.getBoundingClientRect();
+    return {
+      x: (e.clientX - r.left) * c.width / r.width,
+      y: (e.clientY - r.top) * c.height / r.height
+    };
+  }
+
+  function pushMarkupHistory54() {
+    markupHistory.push(JSON.stringify(markupItems));
+    if (markupHistory.length > 60) markupHistory.shift();
+  }
+
+  function distancePointSegment54(px, py, x1, y1, x2, y2) {
+    const vx = x2 - x1, vy = y2 - y1;
+    const wx = px - x1, wy = py - y1;
+    const len2 = vx * vx + vy * vy;
+    if (!len2) return Math.hypot(px - x1, py - y1);
+    let t = (wx * vx + wy * vy) / len2;
+    t = Math.max(0, Math.min(1, t));
+    return Math.hypot(px - (x1 + t * vx), py - (y1 + t * vy));
+  }
+
+  function hitMarkup54(p) {
+    const handleRadius = 22 / markupZoom54;
+    for (let i = markupItems.length - 1; i >= 0; i--) {
+      const it = markupItems[i];
+      if (it.x2 != null) {
+        if (Math.hypot(p.x - it.x, p.y - it.y) <= handleRadius) return {index:i, part:'start'};
+        if (Math.hypot(p.x - it.x2, p.y - it.y2) <= handleRadius) return {index:i, part:'end'};
+        if (distancePointSegment54(p.x,p.y,it.x,it.y,it.x2,it.y2) <= 18 / markupZoom54) return {index:i, part:'body'};
+      } else if (Math.hypot(p.x - it.x, p.y - it.y) <= 25 / markupZoom54) {
+        return {index:i, part:'body'};
+      }
+    }
+    return null;
+  }
+
+  function drawOne54(ctx, it, idx, selected=false, withHandles=true) {
+    const color = COLORS54[it.type] || '#075bff';
+    ctx.save();
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    ctx.strokeStyle = color;
+    ctx.fillStyle = color;
+
+    if (it.x2 != null) {
+      ctx.lineWidth = selected ? 12 : 8;
+      ctx.beginPath();
+      ctx.moveTo(it.x, it.y);
+      ctx.lineTo(it.x2, it.y2);
+      ctx.stroke();
+
+      // Permanent label/name, not only number.
+      const mx = (it.x + it.x2) / 2;
+      const my = (it.y + it.y2) / 2;
+      const label = `${idx + 1}. ${TYPE_NAMES[it.type] || it.type}`;
+      ctx.font = 'bold 16px Arial';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'bottom';
+      ctx.lineWidth = 5;
+      ctx.strokeStyle = 'rgba(255,255,255,.95)';
+      ctx.strokeText(label, mx, my - 9);
+      ctx.fillStyle = '#0f172a';
+      ctx.fillText(label, mx, my - 9);
+
+      if (selected && withHandles) {
+        ctx.lineWidth = 3;
+        ctx.fillStyle = '#fff';
+        ctx.strokeStyle = '#075bff';
+        ctx.beginPath(); ctx.arc(it.x, it.y, 13, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+        ctx.strokeStyle = '#22c55e';
+        ctx.beginPath(); ctx.arc(it.x2, it.y2, 13, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+      }
+    } else {
+      const radius = it.type === 'chandelier' ? 18 : 11;
+      ctx.beginPath();
+      ctx.arc(it.x, it.y, selected ? radius + 4 : radius, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = '#fff';
+      ctx.lineWidth = 3;
+      ctx.stroke();
+
+      const label = `${idx + 1}. ${TYPE_NAMES[it.type] || it.type}`;
+      ctx.font = 'bold 15px Arial';
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'bottom';
+      ctx.lineWidth = 5;
+      ctx.strokeStyle = 'rgba(255,255,255,.95)';
+      ctx.strokeText(label, it.x + 16, it.y - 10);
+      ctx.fillStyle = '#0f172a';
+      ctx.fillText(label, it.x + 16, it.y - 10);
+    }
+    ctx.restore();
+  }
+
+  function drawOverlay54(ctx, withHandles=true) {
+    markupItems.forEach((it, idx) => drawOne54(ctx, it, idx, idx === selectedMarkupIndex, withHandles));
+    if (preview54) {
+      ctx.save();
+      ctx.strokeStyle = COLORS54[preview54.type] || '#075bff';
+      ctx.lineWidth = 8;
+      ctx.lineCap = 'round';
+      ctx.setLineDash([12,8]);
+      ctx.beginPath();
+      ctx.moveTo(preview54.x, preview54.y);
+      ctx.lineTo(preview54.x2, preview54.y2);
+      ctx.stroke();
+      ctx.restore();
+    }
+    const status = document.getElementById('markupStatus');
+    if (status) {
+      status.textContent = markupItems.length
+        ? `Позначок: ${markupItems.length}. Натисніть на елемент для редагування.`
+        : 'Розмітки поки немає.';
+    }
+    const selected = markupItems[selectedMarkupIndex];
+    const selectedNote = document.getElementById('markupSelectedNote');
+    if (selectedNote) selectedNote.textContent = selected
+      ? `Вибрано: ${TYPE_NAMES[selected.type] || selected.type}. Тягніть елемент; у лінії синій край повертає, зелений — розтягує.`
+      : 'Натисніть на позначку, щоб пересунути, повернути або розтягнути.';
+  }
+
+  function drawMarkupCanvas54() {
+    const c = getCanvas();
+    if (!c) return;
+    const ctx = c.getContext('2d');
+    ctx.clearRect(0,0,c.width,c.height);
+    const src = uploadedImageBase64 || '';
+    if (!src) {
+      ctx.fillStyle = '#eef5ff';
+      ctx.fillRect(0,0,c.width,c.height);
+      ctx.fillStyle = '#64748b';
+      ctx.font = 'bold 24px Arial';
+      ctx.textAlign = 'center';
+      ctx.fillText('Завантажте фото кімнати', c.width/2, c.height/2);
+      return;
+    }
+    const im = new Image();
+    im.onload = () => {
+      ctx.clearRect(0,0,c.width,c.height);
+      ctx.drawImage(im,0,0,c.width,c.height);
+      drawOverlay54(ctx,true);
+    };
+    im.src = src;
+  }
+
+  // Override original renderer used by room/photo restore.
+  window.drawMarkupCanvas = drawMarkupCanvas54;
+
+  window.setMarkupTool = function(tool, btn) {
+    // Second tap on the same tool switches it off.
+    if (markupTool === tool && tool !== 'select') {
+      markupTool = 'select';
+      document.querySelectorAll('.markup-tools .tool-btn').forEach(b => b.classList.remove('active'));
+      const selectBtn = [...document.querySelectorAll('.markup-tools .tool-btn')]
+        .find(b => b.textContent.includes('Вибір'));
+      selectBtn?.classList.add('active');
+    } else {
+      markupTool = tool;
+      document.querySelectorAll('.markup-tools .tool-btn').forEach(b => b.classList.remove('active'));
+      btn?.classList.add('active');
+    }
+    markupPending = null;
+    preview54 = null;
+    selectedMarkupIndex = -1;
+    drawMarkupCanvas54();
+  };
+
+  function saveMarkup54() {
+    saveMarkupToRoom();
+    autosave();
+  }
+
+  function pointerDown54(e) {
+    if (!uploadedImageBase64) return;
+    const c = getCanvas();
+    const p = canvasPoint54(e);
+    pointerId54 = e.pointerId;
+    c.setPointerCapture?.(e.pointerId);
+
+    if (markupTool === 'select') {
+      const hit = hitMarkup54(p);
+      selectedMarkupIndex = hit ? hit.index : -1;
+      if (hit) {
+        pushMarkupHistory54();
+        const it = markupItems[hit.index];
+        drag54 = {
+          index: hit.index,
+          part: hit.part,
+          startP: p,
+          original: JSON.parse(JSON.stringify(it))
+        };
+      }
+      drawMarkupCanvas54();
+      e.preventDefault();
+      return;
+    }
+
+    if (POINT_TYPES.has(markupTool)) {
+      pushMarkupHistory54();
+      markupItems.push({type:markupTool,x:p.x,y:p.y});
+      selectedMarkupIndex = markupItems.length - 1;
+      saveMarkup54();
+      drawMarkupCanvas54();
+      e.preventDefault();
+      return;
+    }
+
+    if (LINE_TYPES.has(markupTool)) {
+      pushMarkupHistory54();
+      preview54 = {type:markupTool,x:p.x,y:p.y,x2:p.x,y2:p.y};
+      drag54 = {part:'new-line'};
+      drawMarkupCanvas54();
+      e.preventDefault();
+    }
+  }
+
+  function pointerMove54(e) {
+    if (pointerId54 !== e.pointerId) return;
+    const p = canvasPoint54(e);
+
+    if (preview54 && drag54?.part === 'new-line') {
+      preview54.x2 = p.x;
+      preview54.y2 = p.y;
+      drawMarkupCanvas54();
+      e.preventDefault();
+      return;
+    }
+
+    if (!drag54 || drag54.index == null) return;
+    const it = markupItems[drag54.index];
+    const o = drag54.original;
+    const dx = p.x - drag54.startP.x;
+    const dy = p.y - drag54.startP.y;
+
+    if (drag54.part === 'body') {
+      it.x = o.x + dx;
+      it.y = o.y + dy;
+      if (o.x2 != null) {
+        it.x2 = o.x2 + dx;
+        it.y2 = o.y2 + dy;
+      }
+    } else if (drag54.part === 'start') {
+      it.x = p.x;
+      it.y = p.y;
+    } else if (drag54.part === 'end') {
+      it.x2 = p.x;
+      it.y2 = p.y;
+    }
+    drawMarkupCanvas54();
+    e.preventDefault();
+  }
+
+  function pointerUp54(e) {
+    if (pointerId54 !== e.pointerId) return;
+    if (preview54 && drag54?.part === 'new-line') {
+      const length = Math.hypot(preview54.x2-preview54.x, preview54.y2-preview54.y);
+      if (length >= 8) {
+        markupItems.push({...preview54});
+        selectedMarkupIndex = markupItems.length - 1;
+        saveMarkup54();
+      } else {
+        markupHistory.pop();
+      }
+    } else if (drag54?.index != null) {
+      saveMarkup54();
+    }
+    preview54 = null;
+    drag54 = null;
+    pointerId54 = null;
+    drawMarkupCanvas54();
+    e.preventDefault();
+  }
+
+  canvas.addEventListener('pointerdown', pointerDown54, {passive:false});
+  canvas.addEventListener('pointermove', pointerMove54, {passive:false});
+  canvas.addEventListener('pointerup', pointerUp54, {passive:false});
+  canvas.addEventListener('pointercancel', pointerUp54, {passive:false});
+
+  window.deleteSelectedMarkup = function() {
+    if (selectedMarkupIndex < 0 || !markupItems[selectedMarkupIndex]) {
+      alert('Спочатку виберіть позначку на фото.');
+      return;
+    }
+    pushMarkupHistory54();
+    markupItems.splice(selectedMarkupIndex,1);
+    selectedMarkupIndex = -1;
+    saveMarkup54();
+    drawMarkupCanvas54();
+  };
+
+  const oldUndo54 = window.undoMarkup;
+  window.undoMarkup = function() {
+    selectedMarkupIndex = -1;
+    preview54 = null;
+    drag54 = null;
+    oldUndo54();
+    drawMarkupCanvas54();
+  };
+
+  const oldClear54 = window.clearMarkup;
+  window.clearMarkup = function() {
+    selectedMarkupIndex = -1;
+    preview54 = null;
+    drag54 = null;
+    oldClear54();
+    drawMarkupCanvas54();
+  };
+
+  function markupSummary54() {
+    const groups = {};
+    markupItems.forEach(it => {
+      groups[it.type] = (groups[it.type] || 0) + 1;
+    });
+    return Object.entries(groups)
+      .map(([type,count]) => `${TYPE_NAMES[type] || type}: ${count}`)
+      .join('; ');
+  }
+
+  async function annotatedImage54() {
+    if (!markupItems.length) return uploadedImageBase64;
+    const c = getCanvas();
+    const out = document.createElement('canvas');
+    out.width = c.width;
+    out.height = c.height;
+    const ctx = out.getContext('2d');
+    const im = new Image();
+    await new Promise((resolve,reject) => {
+      im.onload = resolve;
+      im.onerror = reject;
+      im.src = uploadedImageBase64;
+    });
+    ctx.drawImage(im,0,0,out.width,out.height);
+    markupItems.forEach((it,idx) => drawOne54(ctx,it,idx,false,false));
+    return out.toDataURL('image/jpeg',.82);
+  }
+
+  // Stronger AI request with exact counts, names and coordinates.
+  window.generateAI = async function() {
+    if (!uploadedImageBase64) {
+      alert('Спочатку завантажте фото кімнати.');
+      return;
+    }
+    loader.style.display='block';
+    apiError.style.display='none';
+
+    const options = AI_OPTIONS
+      .filter(o => document.getElementById('ai_'+o.id)?.checked)
+      .map(o => o.name);
+
+    const c = getCanvas();
+    const markup = markupItems.map((it,index) => ({
+      index:index+1,
+      type:it.type,
+      name:TYPE_NAMES[it.type] || it.type,
+      x:+(it.x/c.width).toFixed(5),
+      y:+(it.y/c.height).toFixed(5),
+      x2:it.x2==null?null:+(it.x2/c.width).toFixed(5),
+      y2:it.y2==null?null:+(it.y2/c.height).toFixed(5)
+    }));
+
+    try {
+      const annotated = await annotatedImage54();
+      const response = await fetch('/api/ai-ceiling',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({
+          imageBase64:uploadedImageBase64,
+          annotatedImageBase64:annotated,
+          markup,
+          markupSummary:markupSummary54(),
+          manufacturer:selectedColor.manufacturer,
+          color:selectedColor.name,
+          colorHex:selectedColor.hex,
+          material:selectedTexture,
+          options,
+          customRequest:customPrompt.value.trim(),
+          instruction:
+            'Зберегти вихідну геометрію, перспективу, стіни, підлогу, вікна, двері та предмети. '+
+            'Розмістити КОЖЕН позначений елемент без пропусків. Кількість елементів повинна точно дорівнювати markup. '+
+            'Точкові елементи встановити в центрах заданих координат. Лінійні елементи провести точно від x,y до x2,y2, '+
+            'зберігши напрямок, довжину в перспективі та тип елемента. Не замінювати трек світловою лінією або навпаки. '+
+            'Службові кольорові лінії, точки, цифри та підписи прибрати з фінального зображення. '+
+            'Змінювати тільки стелю і замовлені елементи.'
+        })
+      });
+      const data=await response.json().catch(()=>({}));
+      if(!response.ok) throw new Error(data.error||'API '+response.status);
+      if(!data.image) throw new Error('API не повернув поле image');
+      resultImageWrap.innerHTML=`<img src="${data.image}" alt="AI result">`;
+      downloadBtn.href=data.image;
+      syncActiveRoomFromUI(false);
+      autosave();
+    } catch(e) {
+      apiError.textContent='AI не запущено: '+e.message+
+        '. Розмітка збережена. Сервер /api/ai-ceiling має передавати annotatedImageBase64, markup і instruction у модель.';
+      apiError.style.display='block';
+    } finally {
+      loader.style.display='none';
+    }
+  };
+
+  // Redraw after load and when image is already present.
+  setTimeout(drawMarkupCanvas54, 100);
+})();
+
+</script>
 </body>
 </html>
+
