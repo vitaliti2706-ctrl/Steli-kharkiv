@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Potolok AI PRO — Pixel 5.4</title>
+<title>Potolok AI PRO — Pixel 5.5</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth}
@@ -124,7 +124,7 @@ th:nth-child(2),th:nth-child(3),th:nth-child(4),td:nth-child(2),td:nth-child(3),
 .rotate-handle:active,.resize-handle:active{cursor:grabbing}
 
 
-/* Pixel 5.4 */
+/* Pixel 5.5 */
 .markup-tools{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:9px}
 .markup-stage-wrap{margin-top:10px;border:1px solid #dbe3ef;border-radius:13px;overflow:hidden;background:#0f172a;min-height:220px;display:flex;align-items:center;justify-content:center}
 #markupCanvas{display:block;width:100%;height:auto;max-height:520px;touch-action:none;background:#eef5ff}
@@ -137,7 +137,7 @@ th:nth-child(2),th:nth-child(3),th:nth-child(4),td:nth-child(2),td:nth-child(3),
 <body>
 <header class="header"><div class="wrap nav"><a class="logo" href="../index.html">Potolok<span>.in.ua</span></a><div class="menu"><a href="../index.html">Головна</a><a href="../gallery.html">Наші роботи</a><a href="#app">Pixel 5</a></div><a class="phone" href="tel:+380974546713">097 454 67 13</a><a class="tg-top" href="https://t.me/Potolok_in_ua">Фото в TG</a></div></header>
 
-<section class="hero"><div class="wrap"><div class="hero-box"><div class="hero-badge">✨ POTOLOK AI PRO — PIXEL 5.4</div><h1>Замір, AI-візуалізація, калькулятор і кошторис</h1><p>Один інструмент для роботи на замірі: фото, план кімнати, вибір матеріалів, додаткових елементів, детальна смета, PDF і збереження об’єкта.</p><div class="hero-points"><div class="hero-point">📐 План кімнати<span>периметр і площа</span></div><div class="hero-point">🎨 AI-проєкт<span>стеля та освітлення</span></div><div class="hero-point">📄 Кошторис PDF<span>для себе і клієнта</span></div></div></div></div></section>
+<section class="hero"><div class="wrap"><div class="hero-box"><div class="hero-badge">✨ POTOLOK AI PRO — PIXEL 5.5</div><h1>Замір, AI-візуалізація, калькулятор і кошторис</h1><p>Один інструмент для роботи на замірі: фото, план кімнати, вибір матеріалів, додаткових елементів, детальна смета, PDF і збереження об’єкта.</p><div class="hero-points"><div class="hero-point">📐 План кімнати<span>периметр і площа</span></div><div class="hero-point">🎨 AI-проєкт<span>стеля та освітлення</span></div><div class="hero-point">📄 Кошторис PDF<span>для себе і клієнта</span></div></div></div></div></section>
 
 <section id="app" class="app"><div class="wrap">
 <div class="tabs-main">
@@ -1191,7 +1191,7 @@ initManufacturers();renderAIOptions();renderProfileCards();renderCalcOptions();l
 </script>
 
 <script>
-/* ================= PIXEL 5.4 OVERRIDES ================= */
+/* ================= PIXEL 5.5 BASE OVERRIDES ================= */
 const PIXEL53_PROFILE_ITEMS=[
 {id:'shadowBlack',name:'Тіньовий профіль чорний',unit:'м.п.',price:250,desc:'Чорний тіньовий контур',tone:'black'},
 {id:'shadowWhite',name:'Тіньовий профіль білий',unit:'м.п.',price:250,desc:'Білий тіньовий контур',tone:'white'},
@@ -1355,14 +1355,14 @@ loadMarkupFromRoom();drawMarkupCanvas();renderHistory();
 </script>
 
 <script>
-/* Potolok AI PRO — Pixel 5.4 photo markup upgrade */
+/* Potolok AI PRO — Pixel 5.5 photo markup upgrade */
 (() => {
   'use strict';
 
   // Version labels
-  document.title = 'Potolok AI PRO — Pixel 5.4';
+  document.title = 'Potolok AI PRO — Pixel 5.5';
   document.querySelectorAll('.hero-badge').forEach(el => {
-    el.textContent = el.textContent.replace(/PIXEL\s*5\.3/gi, 'PIXEL 5.4');
+    el.textContent = el.textContent.replace(/PIXEL\s*5\.[34]/gi, 'PIXEL 5.5');
   });
 
   // Extra styles
@@ -1880,6 +1880,325 @@ loadMarkupFromRoom();drawMarkupCanvas();renderHistory();
 })();
 
 </script>
+
+<script>
+/* ================= POTOLOK AI PRO — PIXEL 5.5 INTEGRATED UPGRADE ================= */
+(() => {
+  'use strict';
+
+  const css = document.createElement('style');
+  css.textContent = `
+    .p55-block{margin-top:12px;padding:12px;border:1px solid #dbe3ef;border-radius:13px;background:#f8fbff}
+    .p55-title{font-size:12px;font-weight:950;margin-bottom:8px;color:#0f172a}
+    .p55-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:7px}
+    .p55-grid-4{display:grid;grid-template-columns:repeat(2,1fr);gap:7px}
+    .p55-template-btn{border:1px solid #bfdbfe;background:#fff;color:#075bff;border-radius:9px;padding:9px 6px;font-size:9px;font-weight:900}
+    .p55-template-btn:active{background:#eef5ff}
+    .p55-select,.p55-textarea,.p55-range{width:100%}
+    .p55-select,.p55-textarea{border:1px solid #dbe3ef;border-radius:9px;background:#fff;padding:9px;font-size:10px;color:#0f172a}
+    .p55-textarea{min-height:96px;resize:vertical}
+    .p55-range-row{display:grid;grid-template-columns:1fr 54px;gap:8px;align-items:center;margin-top:9px}
+    .p55-range-value{text-align:center;font-size:10px;font-weight:900;color:#075bff}
+    .room-photo-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:9px}
+    .room-photo-item{position:relative;border:1px solid #dbe3ef;border-radius:10px;overflow:hidden;background:#eef5ff;aspect-ratio:1/1}
+    .room-photo-item img{width:100%;height:100%;object-fit:cover}
+    .room-photo-item.primary{outline:3px solid #075bff}
+    .room-photo-item button{position:absolute;right:4px;top:4px;width:26px;height:26px;border:0;border-radius:50%;background:rgba(220,38,38,.92);color:#fff;font-size:12px;font-weight:900}
+    .room-photo-item .p55-primary{position:absolute;left:4px;bottom:4px;background:rgba(7,20,40,.82);color:#fff;border-radius:999px;padding:3px 6px;font-size:7px;font-weight:900}
+    .p55-result-saved{display:none;margin:8px 0 0;padding:8px;border-radius:9px;background:#f0fdf4;border:1px solid #bbf7d0;color:#15803d;font-size:9px;font-weight:900}
+    .p55-plan-note-preview{white-space:pre-wrap;margin-top:9px;padding:10px;border-radius:10px;background:#fff7ed;border:1px solid #fed7aa;color:#9a3412;font-size:10px;line-height:1.45}
+    .p55-photo-caption{font-size:8px;color:#64748b;margin-top:5px}
+    #markupCanvas{background-repeat:no-repeat!important;background-position:0 0!important;background-size:100% 100%!important}
+    @media(min-width:760px){.p55-grid-4{grid-template-columns:repeat(4,1fr)}.room-photo-grid{grid-template-columns:repeat(5,1fr)}}
+  `;
+  document.head.appendChild(css);
+
+  document.title='Potolok AI PRO — Pixel 5.5';
+  document.querySelectorAll('.hero-badge').forEach(el=>el.textContent='✨ POTOLOK AI PRO — PIXEL 5.5');
+
+  let roomPhotos55=[];
+  let activeTemplateGroup55=null;
+  let templateSnapshot55=[];
+
+  function activeRoom55(){return projectRooms.find(r=>r.id===activeRoomId)}
+  function safeAutosave55(){try{autosave()}catch(e){console.warn(e)}}
+  function syncCanvasBackground55(){
+    const c=document.getElementById('markupCanvas');
+    if(c)c.style.backgroundImage=uploadedImageBase64?`url("${uploadedImageBase64}")`:'none';
+  }
+
+  // ---------- Multiple room photos (up to 5) ----------
+  const photoBlock=document.querySelector('#tab_object .photo-box')?.closest('.block');
+  if(photoBlock){
+    const gallery=document.createElement('div');
+    gallery.className='p55-block';
+    gallery.innerHTML=`
+      <div class="p55-title">📸 Фото поточної кімнати (до 5)</div>
+      <input id="roomMultiPhotoInput55" type="file" accept="image/*" multiple hidden>
+      <button class="btn outline btn-full" type="button" id="addRoomPhotos55">＋ Додати фото з галереї</button>
+      <div id="roomPhotoGrid55" class="room-photo-grid"></div>
+      <div class="p55-photo-caption">Натисніть на фото, щоб зробити його основним для AI. Усі фото зберігаються разом із кімнатою.</div>`;
+    photoBlock.appendChild(gallery);
+    document.getElementById('addRoomPhotos55').onclick=()=>document.getElementById('roomMultiPhotoInput55').click();
+    document.getElementById('roomMultiPhotoInput55').addEventListener('change',async e=>{
+      const files=[...(e.target.files||[])];
+      const free=Math.max(0,5-roomPhotos55.length);
+      for(const file of files.slice(0,free)){
+        try{roomPhotos55.push(await compressImage(file,1400,.72,650000))}
+        catch(err){alert('Не вдалося додати фото: '+err.message)}
+      }
+      if(!uploadedImageBase64&&roomPhotos55[0]){
+        uploadedImageBase64=roomPhotos55[0];
+        roomPreview.src=uploadedImageBase64;roomPreview.style.display='block';emptyPhoto.style.display='none';
+      }
+      renderRoomPhotos55();syncCanvasBackground55();syncActiveRoomFromUI(false);safeAutosave55();e.target.value='';
+    });
+  }
+
+  window.makePrimaryRoomPhoto55=function(index){
+    const img=roomPhotos55[index];if(!img)return;
+    uploadedImageBase64=img;
+    roomPreview.src=img;roomPreview.style.display='block';emptyPhoto.style.display='none';
+    renderRoomPhotos55();syncCanvasBackground55();
+    if(window.drawMarkupCanvas)window.drawMarkupCanvas();
+    syncActiveRoomFromUI(false);safeAutosave55();
+  };
+  window.deleteRoomPhoto55=function(index,event){
+    event?.stopPropagation();
+    const removed=roomPhotos55[index];roomPhotos55.splice(index,1);
+    if(removed===uploadedImageBase64){
+      uploadedImageBase64=roomPhotos55[0]||'';
+      if(uploadedImageBase64){roomPreview.src=uploadedImageBase64;roomPreview.style.display='block';emptyPhoto.style.display='none'}
+      else{roomPreview.src='';roomPreview.style.display='none';emptyPhoto.style.display='flex'}
+    }
+    renderRoomPhotos55();syncCanvasBackground55();syncActiveRoomFromUI(false);safeAutosave55();
+  };
+  function renderRoomPhotos55(){
+    const grid=document.getElementById('roomPhotoGrid55');if(!grid)return;
+    grid.innerHTML=roomPhotos55.map((src,i)=>`<div class="room-photo-item ${src===uploadedImageBase64?'primary':''}" onclick="makePrimaryRoomPhoto55(${i})"><img src="${src}" alt="Фото ${i+1}"><button type="button" onclick="deleteRoomPhoto55(${i},event)">×</button>${src===uploadedImageBase64?'<span class="p55-primary">Основне AI</span>':''}</div>`).join('');
+    renderPlannerPhotos55();
+  }
+
+  // ---------- Photos also visible under the plan ----------
+  const plannerMain=document.querySelector('#tab_planner main.planner-canvas');
+  if(plannerMain){
+    const planPhotos=document.createElement('div');
+    planPhotos.className='p55-block';
+    planPhotos.innerHTML=`<div class="p55-title">🖼 Фото кімнати до цього креслення</div><div id="plannerPhotoGrid55" class="room-photo-grid"></div>`;
+    plannerMain.appendChild(planPhotos);
+  }
+  function renderPlannerPhotos55(){
+    const grid=document.getElementById('plannerPhotoGrid55');if(!grid)return;
+    grid.innerHTML=roomPhotos55.length?roomPhotos55.map((src,i)=>`<div class="room-photo-item ${src===uploadedImageBase64?'primary':''}" onclick="makePrimaryRoomPhoto55(${i})"><img src="${src}" alt="Фото кімнати ${i+1}">${src===uploadedImageBase64?'<span class="p55-primary">Основне</span>':''}</div>`).join(''):'<div class="notice">Фото цієї кімнати ще не додані.</div>';
+  }
+
+  // Capture/restore photos and AI visualization inside each room.
+  const oldCapture55=window.captureCurrentRoom;
+  window.captureCurrentRoom=function(){
+    const r=oldCapture55();
+    r.photos=deepCopy(roomPhotos55.length?roomPhotos55:(uploadedImageBase64?[uploadedImageBase64]:[]));
+    r.photo=uploadedImageBase64||r.photos[0]||'';
+    r.aiResult=document.querySelector('#resultImageWrap img')?.src||r.aiResult||'';
+    r.planner=r.planner||{};
+    r.planner.note=document.getElementById('plannerNote55')?.value||'';
+    r.planner.order=document.getElementById('plannerOrder55')?.value||'';
+    return r;
+  };
+  const oldRestore55=window.restoreRoom;
+  window.restoreRoom=function(room){
+    oldRestore55(room);
+    roomPhotos55=deepCopy(room.photos?.length?room.photos:(room.photo?[room.photo]:[]));
+    uploadedImageBase64=room.photo||roomPhotos55[0]||'';
+    const note=document.getElementById('plannerNote55'),order=document.getElementById('plannerOrder55');
+    if(note)note.value=room.planner?.note||'';
+    if(order)order.value=room.planner?.order||'';
+    const ai=room.aiResult||'';
+    if(ai){
+      resultImageWrap.innerHTML=`<img src="${ai}" alt="Збережена AI-візуалізація">`;
+      downloadBtn.href=ai;
+      const ok=document.getElementById('aiSavedStatus55');if(ok){ok.style.display='block';ok.textContent='✅ Збережена візуалізація цієї кімнати відновлена.'}
+    }else{
+      resultImageWrap.textContent='Завантажте фото, оберіть матеріал і додаткові елементи, потім запустіть AI.';
+      downloadBtn.href='#';
+      const ok=document.getElementById('aiSavedStatus55');if(ok)ok.style.display='none';
+    }
+    renderRoomPhotos55();syncCanvasBackground55();
+    setTimeout(()=>window.drawMarkupCanvas?.(),50);
+  };
+  const oldResetRoom55=window.resetRoomWorkspace;
+  window.resetRoomWorkspace=function(name){
+    oldResetRoom55(name);roomPhotos55=[];renderRoomPhotos55();syncCanvasBackground55();
+    const note=document.getElementById('plannerNote55'),order=document.getElementById('plannerOrder55');
+    if(note)note.value='';if(order)order.value='';
+  };
+
+  // ---------- Save AI result into room ----------
+  const resultButtons=document.querySelector('#tab_ai .result-image')?.nextElementSibling?.nextElementSibling;
+  const aiStatus=document.createElement('div');
+  aiStatus.id='aiSavedStatus55';aiStatus.className='p55-result-saved';
+  document.getElementById('resultImageWrap')?.after(aiStatus);
+
+  const oldGenerate55=window.generateAI;
+  window.generateAI=async function(){
+    await oldGenerate55();
+    const src=document.querySelector('#resultImageWrap img')?.src;
+    if(src){
+      const r=activeRoom55();if(r)r.aiResult=src;
+      aiStatus.style.display='block';aiStatus.textContent='✅ AI-візуалізацію збережено в поточній кімнаті та об’єкті.';
+      syncActiveRoomFromUI(false);safeAutosave55();
+    }
+  };
+  const oldClearResult55=window.clearResult;
+  window.clearResult=function(){
+    oldClearResult55();const r=activeRoom55();if(r)r.aiResult='';aiStatus.style.display='none';syncActiveRoomFromUI(false);safeAutosave55();
+  };
+
+  // ---------- Ready-made templates for tracks and light lines ----------
+  const markupTools=document.querySelector('.ai-markup-block .markup-tools');
+  if(markupTools){
+    const box=document.createElement('div');
+    box.className='p55-block';
+    box.innerHTML=`
+      <div class="p55-title">📐 Готові шаблони треків і світлових ліній</div>
+      <select id="markupTemplateType55" class="p55-select">
+        <option value="track">Магнітний трек</option>
+        <option value="lightline">Світлова лінія</option>
+      </select>
+      <div class="p55-grid-4" style="margin-top:8px">
+        <button class="p55-template-btn" type="button" onclick="addMarkupTemplate55('square')">□ Квадрат</button>
+        <button class="p55-template-btn" type="button" onclick="addMarkupTemplate55('lshape')">⌞ Г-подібний</button>
+        <button class="p55-template-btn" type="button" onclick="addMarkupTemplate55('ushape')">П П-подібний</button>
+        <button class="p55-template-btn" type="button" onclick="addMarkupTemplate55('parallel')">＝ Паралельні</button>
+      </div>
+      <div class="p55-range-row"><input id="templateScale55" class="p55-range" type="range" min="50" max="180" value="100"><div id="templateScaleValue55" class="p55-range-value">100%</div></div>
+      <div class="p55-photo-caption">Після вставки масштабуйте весь шаблон повзунком. Окремі лінії також можна пересувати за краї.</div>`;
+    markupTools.after(box);
+    document.getElementById('templateScale55').addEventListener('input',e=>scaleMarkupTemplate55(Number(e.target.value)/100));
+  }
+
+  function templateLines55(kind,w,h){
+    const cx=w*.5,cy=h*.43,sx=w*.20,sy=h*.18;
+    if(kind==='square')return [[cx-sx,cy-sy,cx+sx,cy-sy],[cx+sx,cy-sy,cx+sx,cy+sy],[cx+sx,cy+sy,cx-sx,cy+sy],[cx-sx,cy+sy,cx-sx,cy-sy]];
+    if(kind==='lshape')return [[cx-sx,cy-sy,cx-sx,cy+sy],[cx-sx,cy+sy,cx+sx,cy+sy]];
+    if(kind==='ushape')return [[cx-sx,cy-sy,cx-sx,cy+sy],[cx-sx,cy+sy,cx+sx,cy+sy],[cx+sx,cy+sy,cx+sx,cy-sy]];
+    return [[cx-sx,cy-sy*.65,cx+sx,cy-sy*.65],[cx-sx,cy+sy*.65,cx+sx,cy+sy*.65]];
+  }
+  window.addMarkupTemplate55=function(kind){
+    if(!uploadedImageBase64)return alert('Спочатку завантажте фото кімнати.');
+    const c=document.getElementById('markupCanvas'),type=document.getElementById('markupTemplateType55').value;
+    const gid='tpl_'+Date.now();markupHistory.push(JSON.stringify(markupItems));
+    templateLines55(kind,c.width,c.height).forEach(v=>markupItems.push({type,x:v[0],y:v[1],x2:v[2],y2:v[3],groupId:gid}));
+    activeTemplateGroup55=gid;
+    templateSnapshot55=markupItems.filter(x=>x.groupId===gid).map(x=>deepCopy(x));
+    document.getElementById('templateScale55').value=100;document.getElementById('templateScaleValue55').textContent='100%';
+    saveMarkupToRoom();window.drawMarkupCanvas?.();safeAutosave55();
+  };
+  window.scaleMarkupTemplate55=function(scale){
+    document.getElementById('templateScaleValue55').textContent=Math.round(scale*100)+'%';
+    if(!activeTemplateGroup55||!templateSnapshot55.length)return;
+    const all=templateSnapshot55.flatMap(x=>[[x.x,x.y],[x.x2,x.y2]]),cx=all.reduce((s,p)=>s+p[0],0)/all.length,cy=all.reduce((s,p)=>s+p[1],0)/all.length;
+    const targets=markupItems.filter(x=>x.groupId===activeTemplateGroup55);
+    targets.forEach((it,i)=>{const o=templateSnapshot55[i];it.x=cx+(o.x-cx)*scale;it.y=cy+(o.y-cy)*scale;it.x2=cx+(o.x2-cx)*scale;it.y2=cy+(o.y2-cy)*scale});
+    saveMarkupToRoom();window.drawMarkupCanvas?.();safeAutosave55();
+  };
+
+  // Keep original photo visible while drawing (prevents white flashing).
+  const oldHandlePhoto55=window.handlePhotoInput;
+  window.handlePhotoInput=async function(input){
+    await oldHandlePhoto55(input);
+    if(uploadedImageBase64&&!roomPhotos55.includes(uploadedImageBase64)){
+      if(roomPhotos55.length<5)roomPhotos55.unshift(uploadedImageBase64);else roomPhotos55[0]=uploadedImageBase64;
+    }
+    renderRoomPhotos55();syncCanvasBackground55();window.drawMarkupCanvas?.();
+  };
+  syncCanvasBackground55();
+
+  // ---------- Duplicate planner values into calculator from AI ----------
+  const generateBtn=[...document.querySelectorAll('#tab_ai button')].find(b=>b.textContent.includes('Створити AI-візуалізацію'));
+  if(generateBtn){
+    const transfer=document.createElement('button');
+    transfer.type='button';transfer.className='btn outline btn-full mt';transfer.textContent='💰 Площа, периметр і елементи → калькулятор';
+    transfer.onclick=()=>applyPlannerToCalc();
+    generateBtn.after(transfer);
+  }
+
+  // ---------- Planner notes/order + PNG export ----------
+  const plannerButtons=[...document.querySelectorAll('#tab_planner .btn-row')].find(row=>row.textContent.includes('Зберегти план'));
+  if(plannerButtons){
+    const notes=document.createElement('div');
+    notes.className='p55-block';
+    notes.innerHTML=`
+      <div class="p55-title">📝 Доповнення до креслення і замовлення</div>
+      <textarea id="plannerNote55" class="p55-textarea" placeholder="Наприклад: кут D–E — 0,02 м, звернути увагу при розкрої; біля труби запас 3 см…" oninput="safePlannerSave55()"></textarea>
+      <textarea id="plannerOrder55" class="p55-textarea" style="margin-top:8px" placeholder="Замовлення: полотно, виробник, колір, фактура, профіль і метраж, карниз, вставка, комплектуючі…" oninput="safePlannerSave55()"></textarea>
+      <div class="p55-grid" style="margin-top:8px">
+        <button class="btn dark" type="button" onclick="downloadPlannerPNG55()">🖼 Креслення PNG</button>
+        <button class="btn outline" type="button" onclick="copyPlannerText55()">📋 Копіювати дані</button>
+      </div>`;
+    plannerButtons.after(notes);
+  }
+  window.safePlannerSave55=function(){syncActiveRoomFromUI(false);safeAutosave55()};
+  window.copyPlannerText55=async function(){
+    const r=activeRoom55(),m=polygonMetrics(),walls=segmentLengths.map((v,i)=>`${pointName(i)}–${pointName((i+1)%segmentLengths.length)}: ${Number(v).toFixed(2)} м`).join('\n');
+    const txt=`${r?.name||'Кімната'}\nПлоща: ${m.area.toFixed(2)} м²\nПериметр: ${m.perimeter.toFixed(2)} м\n\n${walls}\n\nДоповнення:\n${document.getElementById('plannerNote55')?.value||'—'}\n\nЗамовлення:\n${document.getElementById('plannerOrder55')?.value||'—'}`;
+    try{await navigator.clipboard.writeText(txt);alert('Дані креслення скопійовано.')}catch(e){alert(txt)}
+  };
+  window.downloadPlannerPNG55=async function(){
+    const svg=document.getElementById('plannerSvg'),clone=svg.cloneNode(true);
+    clone.setAttribute('width','1200');clone.setAttribute('height','900');clone.setAttribute('viewBox','0 0 800 600');
+    const xml=new XMLSerializer().serializeToString(clone);
+    const img=new Image();
+    await new Promise((res,rej)=>{img.onload=res;img.onerror=rej;img.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(xml)});
+    const canvas=document.createElement('canvas');canvas.width=1200;canvas.height=1250;
+    const ctx=canvas.getContext('2d');ctx.fillStyle='#fff';ctx.fillRect(0,0,canvas.width,canvas.height);ctx.drawImage(img,0,70,1200,900);
+    const room=activeRoom55(),m=polygonMetrics();ctx.fillStyle='#0f172a';ctx.font='bold 30px Arial';ctx.fillText(`Potolok.in.ua — ${room?.name||'Кімната'}`,40,42);
+    ctx.font='bold 22px Arial';ctx.fillText(`Площа: ${m.area.toFixed(2)} м²   Периметр: ${m.perimeter.toFixed(2)} м`,40,1000);
+    function lines(text,maxWidth){const words=(text||'—').split(/\s+/),out=[];let line='';for(const word of words){const test=line?line+' '+word:word;if(ctx.measureText(test).width>maxWidth&&line){out.push(line);line=word}else line=test}if(line)out.push(line);return out}
+    ctx.font='bold 20px Arial';ctx.fillText('Доповнення:',40,1040);ctx.font='18px Arial';let y=1070;
+    lines(document.getElementById('plannerNote55')?.value||'—',1120).slice(0,4).forEach(s=>{ctx.fillText(s,40,y);y+=25});
+    ctx.font='bold 20px Arial';ctx.fillText('Замовлення:',40,y+10);ctx.font='18px Arial';y+=40;
+    lines(document.getElementById('plannerOrder55')?.value||'—',1120).slice(0,4).forEach(s=>{ctx.fillText(s,40,y);y+=25});
+    const a=document.createElement('a');a.href=canvas.toDataURL('image/png');a.download=`plan-${(room?.name||'kimnata').replace(/\s+/g,'-')}.png`;a.click();
+  };
+
+  // Move dimensions of very short walls away from corner circles.
+  const oldRenderPlanner55=window.renderPlanner;
+  window.renderPlanner=function(){
+    oldRenderPlanner55();
+    const dims=[...document.querySelectorAll('#roomLayer .dimension-label')];
+    dims.forEach((el,i)=>{
+      const a=roomPoints[i],b=roomPoints[(i+1)%roomPoints.length];if(!a||!b)return;
+      const d=Math.hypot(b[0]-a[0],b[1]-a[1]);
+      if(d<90){
+        const mx=(a[0]+b[0])/2,my=(a[1]+b[1])/2,dx=b[0]-a[0],dy=b[1]-a[1],len=Math.max(1,Math.hypot(dx,dy));
+        el.setAttribute('x',mx-dy/len*34);el.setAttribute('y',my+dx/len*34);
+        el.setAttribute('font-size','13');el.setAttribute('fill','#dc2626');
+      }
+    });
+  };
+
+  // History: reliably open object and switch to its card.
+  const oldLoadObject55=window.loadObject;
+  window.loadObject=async function(id){
+    await oldLoadObject55(id);
+    const btn=[...document.querySelectorAll('.main-tab')].find(b=>b.textContent.includes('Об’єкт'));
+    if(btn)showMainTab('object',btn);
+    window.scrollTo({top:document.getElementById('app')?.offsetTop||0,behavior:'smooth'});
+  };
+
+  // Ensure current draft gets old single photo as gallery item.
+  setTimeout(()=>{
+    const r=activeRoom55();
+    roomPhotos55=deepCopy(r?.photos?.length?r.photos:(uploadedImageBase64?[uploadedImageBase64]:[]));
+    const note=document.getElementById('plannerNote55'),order=document.getElementById('plannerOrder55');
+    if(note)note.value=r?.planner?.note||'';if(order)order.value=r?.planner?.order||'';
+    renderRoomPhotos55();syncCanvasBackground55();window.renderPlanner?.();
+  },150);
+})();
+</script>
+
 </body>
 </html>
+
+
 
