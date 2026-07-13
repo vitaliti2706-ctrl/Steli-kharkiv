@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Potolok AI PRO — Pixel 5.2.3</title>
+<title>Potolok AI PRO — Pixel 5.3</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth}
@@ -123,12 +123,21 @@ th:nth-child(2),th:nth-child(3),th:nth-child(4),td:nth-child(2),td:nth-child(3),
 .resize-guide{stroke:#22c55e;stroke-width:2;stroke-dasharray:5 4;pointer-events:none}
 .rotate-handle:active,.resize-handle:active{cursor:grabbing}
 
+
+/* Pixel 5.3 */
+.markup-tools{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:9px}
+.markup-stage-wrap{margin-top:10px;border:1px solid #dbe3ef;border-radius:13px;overflow:hidden;background:#0f172a;min-height:220px;display:flex;align-items:center;justify-content:center}
+#markupCanvas{display:block;width:100%;height:auto;max-height:520px;touch-action:none;background:#eef5ff}
+.profile-upload{display:block;width:100%;margin-top:7px;border:1px dashed #93c5fd;background:#eff6ff;color:#075bff;border-radius:8px;padding:7px;font-size:9px;font-weight:900;text-align:center}
+.profile-img.has-custom:after{content:'Власне фото';position:absolute;right:5px;bottom:5px;background:rgba(7,20,40,.8);color:#fff;border-radius:999px;padding:3px 6px;font-size:7px}
+.history-status{font-size:9px;color:#64748b;margin-bottom:8px}
+@media(min-width:760px){.markup-tools{grid-template-columns:repeat(4,1fr)}}
 </style>
 </head>
 <body>
 <header class="header"><div class="wrap nav"><a class="logo" href="../index.html">Potolok<span>.in.ua</span></a><div class="menu"><a href="../index.html">Головна</a><a href="../gallery.html">Наші роботи</a><a href="#app">Pixel 5</a></div><a class="phone" href="tel:+380974546713">097 454 67 13</a><a class="tg-top" href="https://t.me/Potolok_in_ua">Фото в TG</a></div></header>
 
-<section class="hero"><div class="wrap"><div class="hero-box"><div class="hero-badge">✨ POTOLOK AI PRO — PIXEL 5.2.3</div><h1>Замір, AI-візуалізація, калькулятор і кошторис</h1><p>Один інструмент для роботи на замірі: фото, план кімнати, вибір матеріалів, додаткових елементів, детальна смета, PDF і збереження об’єкта.</p><div class="hero-points"><div class="hero-point">📐 План кімнати<span>периметр і площа</span></div><div class="hero-point">🎨 AI-проєкт<span>стеля та освітлення</span></div><div class="hero-point">📄 Кошторис PDF<span>для себе і клієнта</span></div></div></div></div></section>
+<section class="hero"><div class="wrap"><div class="hero-box"><div class="hero-badge">✨ POTOLOK AI PRO — PIXEL 5.3</div><h1>Замір, AI-візуалізація, калькулятор і кошторис</h1><p>Один інструмент для роботи на замірі: фото, план кімнати, вибір матеріалів, додаткових елементів, детальна смета, PDF і збереження об’єкта.</p><div class="hero-points"><div class="hero-point">📐 План кімнати<span>периметр і площа</span></div><div class="hero-point">🎨 AI-проєкт<span>стеля та освітлення</span></div><div class="hero-point">📄 Кошторис PDF<span>для себе і клієнта</span></div></div></div></div></section>
 
 <section id="app" class="app"><div class="wrap">
 <div class="tabs-main">
@@ -210,6 +219,24 @@ th:nth-child(2),th:nth-child(3),th:nth-child(4),td:nth-child(2),td:nth-child(3),
 </div><div id="palette" class="palette"></div></div>
 <div class="block"><div class="block-head"><h3>Фактура</h3></div><div class="texture-grid"><button class="texture-btn active" onclick="setTexture('matte',this)">Матова</button><button class="texture-btn" onclick="setTexture('satin',this)">Сатин</button><button class="texture-btn" onclick="setTexture('glossy',this)">Глянець</button></div></div>
 <div class="block"><div class="block-head"><h3>Що додати у проєкт?</h3><span class="tag">AI-опитування</span></div><div id="aiOptions" class="option-grid"></div></div>
+<div class="block ai-markup-block">
+<div class="block-head"><h3>Розмітка на фото</h3><span class="tag">точно по місцю</span></div>
+<div class="planner-hint">Позначте на фото місця світильників, треків, карниза або профілю. Для лінійного елемента натисніть початок і кінець.</div>
+<div class="markup-tools">
+<button class="tool-btn active" type="button" onclick="setMarkupTool('select',this)">☝ Вибір</button>
+<button class="tool-btn" type="button" onclick="setMarkupTool('spot',this)">● Світильник</button>
+<button class="tool-btn" type="button" onclick="setMarkupTool('chandelier',this)">✣ Люстра</button>
+<button class="tool-btn" type="button" onclick="setMarkupTool('track',this)">▬ Магн. трек</button>
+<button class="tool-btn" type="button" onclick="setMarkupTool('surfaceTrack',this)">═ Накл. трек</button>
+<button class="tool-btn" type="button" onclick="setMarkupTool('lightline',this)">━ Світлова лінія</button>
+<button class="tool-btn" type="button" onclick="setMarkupTool('cornice',this)">▱ Карниз</button>
+<button class="tool-btn" type="button" onclick="setMarkupTool('floating',this)">✦ Парящий</button>
+<button class="tool-btn" type="button" onclick="setMarkupTool('shadow',this)">▰ Тіньовий</button>
+</div>
+<div class="markup-stage-wrap"><canvas id="markupCanvas" width="800" height="520"></canvas></div>
+<div class="btn-row mt"><button class="btn outline" type="button" onclick="undoMarkup()">↶ Скасувати</button><button class="btn danger" type="button" onclick="clearMarkup()">🗑 Очистити</button></div>
+<div id="markupStatus" class="photo-meta">Завантажте фото кімнати, потім додайте розмітку.</div>
+</div>
 <div class="block"><div class="field"><label>Опишіть бажаний результат</label><textarea id="customPrompt" placeholder="Наприклад: чорний магнітний трек по центру, прихований карниз біля вікна, тепла LED-підсвітка..." oninput="autosave()"></textarea></div></div>
 <button class="btn blue btn-full" onclick="generateAI()">✨ Створити AI-візуалізацію</button><div id="loader" class="loader">Готуємо AI-візуалізацію...</div><div id="apiError" class="api-error"></div>
 </aside>
@@ -277,7 +304,14 @@ th:nth-child(2),th:nth-child(3),th:nth-child(4),td:nth-child(2),td:nth-child(3),
 <button class="tool-btn" onclick="setPlannerTool('track',this)">▬ Магн. трек</button>
 <button class="tool-btn" onclick="setPlannerTool('surfaceTrack',this)">═ Накл. трек</button>
 <button class="tool-btn" onclick="setPlannerTool('lightline',this)">━ Світлова лінія</button>
-<button class="tool-btn" onclick="setPlannerTool('cornice',this)">▱ Карниз</button>
+<button class="tool-btn" onclick="setPlannerTool('corniceWhite',this)">▱ Карниз білий</button>
+<button class="tool-btn" onclick="setPlannerTool('corniceBlack',this)">▰ Карниз чорний</button>
+<button class="tool-btn" onclick="setPlannerTool('corniceLed',this)">✦ Карниз LED</button>
+<button class="tool-btn" onclick="setPlannerTool('insertWhite',this)">━ Вставка біла</button>
+<button class="tool-btn" onclick="setPlannerTool('insertBlack',this)">━ Вставка чорна</button>
+<button class="tool-btn" onclick="setPlannerTool('shadowProfile',this)">▰ Тіньовий профіль</button>
+<button class="tool-btn" onclick="setPlannerTool('floatingWhite',this)">✦ Парящий білий</button>
+<button class="tool-btn" onclick="setPlannerTool('floatingBlack',this)">✦ Парящий чорний</button>
 </div>
 <div class="planner-tools-title">Будівельні конструкції</div>
 <div class="planner-toolbar wide">
@@ -302,7 +336,7 @@ th:nth-child(2),th:nth-child(3),th:nth-child(4),td:nth-child(2),td:nth-child(3),
 </div>
 <div class="btn-row"><button class="btn outline" onclick="undoPlanner()">↶ Скасувати останню</button><button class="btn outline" onclick="redoPlanner()">↷ Повернути</button><button class="btn danger" onclick="clearPlanner()">🗑 Очистити план</button></div>
 <div class="planner-info mt"><div class="metric"><span>Площа</span><b id="plannerArea">0 м²</b></div><div class="metric"><span>Периметр</span><b id="plannerPerimeter">0 м</b></div></div>
-<button class="btn blue btn-full mt" onclick="applyPlannerToCalc()">Передати в калькулятор</button>
+<div class="btn-row mt"><button class="btn green" type="button" onclick="savePlannerRoom()">💾 Зберегти план</button><button class="btn blue" type="button" onclick="applyPlannerToCalc()">Передати в калькулятор</button></div>
 </aside>
 <main class="planner-canvas">
 <div class="planner-zoom">
@@ -1154,6 +1188,170 @@ plannerSvg.addEventListener('pointerup',e=>{
 
 initManufacturers();renderAIOptions();renderProfileCards();renderCalcOptions();loadDraft();renderPalette();renderHistory();recalc();updateAISpec();renderRooms();if(!measureDate.value)measureDate.value=new Date().toISOString().slice(0,10);if(!segmentLengths.length){segmentLengths=templateDefaults('rect');renderSegmentInputs();buildRoomFromSegments(false)}customPointBox.classList.toggle('hidden',roomTemplate!=='custom');showObjectInspector();applyPlannerView();updateSummary();
 
+</script>
+
+<script>
+/* ================= PIXEL 5.3 OVERRIDES ================= */
+const PIXEL53_PROFILE_ITEMS=[
+{id:'shadowBlack',name:'Тіньовий профіль чорний',unit:'м.п.',price:250,desc:'Чорний тіньовий контур',tone:'black'},
+{id:'shadowWhite',name:'Тіньовий профіль білий',unit:'м.п.',price:250,desc:'Білий тіньовий контур',tone:'white'},
+{id:'floatingWhite',name:'Парящий профіль білий',unit:'м.п.',price:750,desc:'Білий профіль з LED-ефектом',tone:'white'},
+{id:'floatingBlack',name:'Парящий профіль чорний',unit:'м.п.',price:750,desc:'Чорний профіль з LED-ефектом',tone:'black'},
+{id:'corniceWhite',name:'Карниз білий',unit:'м.п.',price:1200,desc:'Вбудований білий карниз',tone:'white'},
+{id:'corniceBlack',name:'Карниз чорний',unit:'м.п.',price:1200,desc:'Вбудований чорний карниз',tone:'black'},
+{id:'corniceLed',name:'Карниз з підсвіткою',unit:'м.п.',price:1700,desc:'Карниз з інтегрованою LED',tone:'led'},
+{id:'trackSurface',name:'Накладний трек',unit:'м.п.',price:1500,desc:'Накладна трекова система',tone:'gray'},
+{id:'trackMagnetic',name:'Магнітний трек',unit:'м.п.',price:4500,desc:'Вбудована магнітна система',tone:'black'}
+];
+PROFILE_ITEMS.splice(0,PROFILE_ITEMS.length,...PIXEL53_PROFILE_ITEMS);
+EXTRA_ITEMS.splice(EXTRA_ITEMS.findIndex(x=>x.id==='insert'),1,
+{id:'insertWhite',name:'Декоративна вставка біла',unit:'м.п.',price:50},
+{id:'insertBlack',name:'Декоративна вставка чорна',unit:'м.п.',price:50});
+
+function profilePhotoKey(id){return 'potolok_profile_photo_'+id}
+function defaultProfileVisual(p){
+ const bg=p.tone==='black'?'linear-gradient(135deg,#020617,#334155)':p.tone==='led'?'linear-gradient(135deg,#fff,#fde68a,#f59e0b)':p.tone==='white'?'linear-gradient(135deg,#fff,#e2e8f0)':'linear-gradient(135deg,#cbd5e1,#64748b)';
+ return `<div style="width:100%;height:100%;background:${bg};display:flex;align-items:center;justify-content:center;color:${p.tone==='black'?'#fff':'#0f172a'};font-size:10px;text-align:center;padding:8px">${p.name}</div>`;
+}
+function renderProfileCards(){
+ profileCards.innerHTML=PROFILE_ITEMS.map(p=>{
+  const custom=localStorage.getItem(profilePhotoKey(p.id));
+  const media=custom?`<img src="${custom}" alt="${p.name}">`:defaultProfileVisual(p);
+  return `<div id="profile_${p.id}" class="profile-card"><div id="profileImg_${p.id}" class="profile-img ${custom?'has-custom':''}">${media}</div><div class="profile-body"><b>${p.name}</b><span>${p.desc}<br>${money(p.price)} / ${p.unit}</span><button type="button" onclick="toggleProfile('${p.id}')">Додати / прибрати</button><label class="profile-upload">📷 Додати фото профілю<input type="file" accept="image/*" hidden onchange="uploadProfilePhoto('${p.id}',this)"></label><div id="profileFields_${p.id}" class="option-fields hidden"><div class="field"><label>Кількість</label><input id="qty_profile_${p.id}" type="number" value="1" step="0.1" oninput="recalc();autosave()"></div><div class="field"><label>Од.</label><input value="${p.unit}" disabled></div></div></div></div>`;
+ }).join('');
+}
+async function uploadProfilePhoto(id,input){
+ const file=input.files&&input.files[0];if(!file)return;
+ try{const data=await compressImage(file,900,.76,350000);localStorage.setItem(profilePhotoKey(id),data);renderProfileCards();restoreProfileSelections();}
+ catch(e){alert('Не вдалося додати фото профілю: '+e.message)}finally{input.value=''}
+}
+let pixel53ProfileSnapshot={};
+function restoreProfileSelections(){Object.entries(pixel53ProfileSnapshot).forEach(([id,state])=>{const c=document.getElementById('profile_'+id),f=document.getElementById('profileFields_'+id),q=document.getElementById('qty_profile_'+id);if(c)c.classList.toggle('active',state.active);if(f)f.classList.toggle('hidden',!state.active);if(q)q.value=state.qty||1})}
+const _toggleProfile53=toggleProfile;
+toggleProfile=function(id){_toggleProfile53(id);pixel53ProfileSnapshot=profileState()};
+
+const _selectColor53=selectColor;
+selectColor=function(m,n){
+ selectedColor=COLORS.find(c=>c.manufacturer===m&&c.name===n)||COLORS[0];
+ colorSearch.value=selectedColor.name;
+ manufacturerFilter.value=selectedColor.manufacturer;
+ colorCategory.value='all';
+ renderPalette();updateAISpec();autosave();
+};
+
+// planner elements 5.3
+Object.assign(PLANNER_NAMES,{
+ corniceWhite:'Карниз білий',corniceBlack:'Карниз чорний',corniceLed:'Карниз з підсвіткою',
+ insertWhite:'Вставка біла',insertBlack:'Вставка чорна',shadowProfile:'Тіньовий профіль',
+ floatingWhite:'Парящий профіль білий',floatingBlack:'Парящий профіль чорний'
+});
+const _objectDefaults53=objectDefaults;
+objectDefaults=function(type,x,y){
+ const base=_objectDefaults53(type,x,y);
+ if(['corniceWhite','corniceBlack','corniceLed','insertWhite','insertBlack','shadowProfile','floatingWhite','floatingBlack'].includes(type))return{...base,type,length:2.5,width:type.includes('insert')?.06:.16};
+ return base;
+};
+const _drawPlannerObject53=drawPlannerObject;
+drawPlannerObject=function(o,i,scale){
+ if(!['corniceWhite','corniceBlack','corniceLed','insertWhite','insertBlack','shadowProfile','floatingWhite','floatingBlack'].includes(o.type))return _drawPlannerObject53(o,i,scale);
+ const g=svgEl('g',{'data-planner-object':i,transform:`translate(${o.x} ${o.y}) rotate(${o.rotation||0})`,class:i===selectedObjectIndex?'svg-selected':''});
+ g.style.cursor='move';g.addEventListener('pointerdown',e=>selectPlannerObject(i,e));
+ const L=Math.max(10,(o.length||1)*scale),W=Math.max(6,(o.width||.12)*scale);
+ let fill='#fff',stroke='#0f172a';
+ if(o.type==='corniceBlack'||o.type==='insertBlack'||o.type==='shadowProfile'||o.type==='floatingBlack')fill='#111827';
+ if(o.type==='corniceLed'){fill='#fff7cc';stroke='#f59e0b'}
+ if(o.type==='floatingWhite'||o.type==='floatingBlack'){stroke='#f59e0b'}
+ const r=svgEl('rect',{x:-L/2,y:-W/2,width:L,height:W,rx:Math.min(6,W/2),fill,stroke,'stroke-width':3});g.append(r);
+ if(o.type==='corniceLed'||o.type.startsWith('floating'))g.append(svgEl('line',{x1:-L/2+4,y1:W/2+4,x2:L/2-4,y2:W/2+4,stroke:'#facc15','stroke-width':5}));
+ if(o.label){const t=svgEl('text',{x:0,y:-W/2-8,'text-anchor':'middle','font-size':13,'font-weight':900,fill:'#0f172a'});t.textContent=o.label;g.append(t)}
+ addTransformHandles(g,o,i,L,W);objectLayer.appendChild(g);
+};
+
+function plannerObjectCounts(){
+ const c={lights:0,chandeliers:0,pipes:0,vents:0,windows:0,doors:0,corners:roomPoints.length};
+ plannerObjects.forEach(o=>{if(o.type==='light')c.lights++;if(o.type==='chandelier')c.chandeliers++;if(o.type==='pipe1')c.pipes++;if(o.type==='pipe2')c.pipes+=2;if(o.type==='vent')c.vents++;if(o.type==='window')c.windows++;if(o.type==='door')c.doors++});return c;
+}
+function applyPlannerToCalc(){
+ const m=polygonMetrics();if(!m.perimeter||!Number.isFinite(m.area))return alert('Спочатку задайте коректний контур і розміри кімнати.');
+ area.value=m.area.toFixed(2);perimeter.value=m.perimeter.toFixed(2);
+ const c=plannerObjectCounts();cornersCount.value=Math.max(3,c.corners||0);chandelierCount.value=c.chandeliers;
+ const spots=document.getElementById('check_spots'),spotsQty=document.getElementById('qty_spots');if(c.lights>0&&spots){spots.checked=true;document.getElementById('fields_spots')?.classList.remove('hidden');if(spotsQty)spotsQty.value=c.lights}
+ const pipe=document.getElementById('check_pipe'),pipeQty=document.getElementById('qty_pipe');if(c.pipes>0&&pipe){pipe.checked=true;document.getElementById('fields_pipe')?.classList.remove('hidden');if(pipeQty)pipeQty.value=c.pipes}
+ recalc();syncActiveRoomFromUI(false);autosave();
+ const calcBtn=[...document.querySelectorAll('.main-tab')].find(b=>b.textContent.includes('Калькулятор'));if(calcBtn)showMainTab('calc',calcBtn);
+ alert(`Передано: ${m.area.toFixed(2)} м², ${m.perimeter.toFixed(2)} м, кутів ${cornersCount.value}, світильників ${c.lights}.`);
+}
+function savePlannerRoom(){
+ const m=polygonMetrics();area.value=m.area.toFixed(2);perimeter.value=m.perimeter.toFixed(2);cornersCount.value=Math.max(3,roomPoints.length);recalc();syncActiveRoomFromUI(true);autosave();saveStatus.textContent='План кімнати збережено';alert('План, розміри та елементи збережено в поточній кімнаті.');
+}
+
+// AI photo markup
+let markupItems=[],markupTool='select',markupPending=null,markupHistory=[];
+function setMarkupTool(tool,btn){markupTool=tool;markupPending=null;document.querySelectorAll('.markup-tools .tool-btn').forEach(b=>b.classList.remove('active'));btn?.classList.add('active');drawMarkupCanvas()}
+function markupCanvasPoint(e){const r=markupCanvas.getBoundingClientRect();return{x:(e.clientX-r.left)*markupCanvas.width/r.width,y:(e.clientY-r.top)*markupCanvas.height/r.height}}
+function currentRoomMarkup(){const r=projectRooms.find(x=>x.id===activeRoomId);return r?.aiMarkup||[]}
+function saveMarkupToRoom(){const r=projectRooms.find(x=>x.id===activeRoomId);if(r)r.aiMarkup=deepCopy(markupItems)}
+function loadMarkupFromRoom(){markupItems=deepCopy(currentRoomMarkup());markupPending=null;drawMarkupCanvas()}
+function markupImage(){return uploadedImageBase64||''}
+function drawMarkupCanvas(){
+ if(typeof markupCanvas==='undefined'||!markupCanvas)return;const ctx=markupCanvas.getContext('2d');ctx.clearRect(0,0,markupCanvas.width,markupCanvas.height);
+ const src=markupImage();if(src){const im=new Image();im.onload=()=>{ctx.drawImage(im,0,0,markupCanvas.width,markupCanvas.height);drawMarkupItems(ctx)};im.src=src}else{ctx.fillStyle='#eef5ff';ctx.fillRect(0,0,markupCanvas.width,markupCanvas.height);ctx.fillStyle='#64748b';ctx.font='bold 24px Arial';ctx.textAlign='center';ctx.fillText('Завантажте фото кімнати',markupCanvas.width/2,markupCanvas.height/2)}
+}
+function drawMarkupItems(ctx){
+ const colors={spot:'#f59e0b',chandelier:'#7c3aed',track:'#111827',surfaceTrack:'#475569',lightline:'#facc15',cornice:'#0ea5e9',floating:'#22c55e',shadow:'#111827'};
+ markupItems.forEach((it,idx)=>{ctx.save();ctx.strokeStyle=colors[it.type]||'#075bff';ctx.fillStyle=colors[it.type]||'#075bff';ctx.lineWidth=8;ctx.lineCap='round';if(it.x2!=null){ctx.beginPath();ctx.moveTo(it.x,it.y);ctx.lineTo(it.x2,it.y2);ctx.stroke();ctx.fillStyle='#fff';ctx.font='bold 18px Arial';ctx.fillText(idx+1,(it.x+it.x2)/2,(it.y+it.y2)/2-10)}else{ctx.beginPath();ctx.arc(it.x,it.y,it.type==='chandelier'?18:11,0,Math.PI*2);ctx.fill();ctx.strokeStyle='#fff';ctx.lineWidth=3;ctx.stroke();ctx.fillStyle='#fff';ctx.font='bold 16px Arial';ctx.fillText(idx+1,it.x+16,it.y-12)}ctx.restore()});
+ markupStatus.textContent=markupItems.length?`Позначок: ${markupItems.length}. Вони будуть передані AI.`:'Розмітки поки немає.';
+}
+function addMarkupAt(e){
+ if(markupTool==='select')return;const p=markupCanvasPoint(e);markupHistory.push(JSON.stringify(markupItems));
+ if(['spot','chandelier'].includes(markupTool)){markupItems.push({type:markupTool,x:p.x,y:p.y});markupPending=null}
+ else if(!markupPending){markupPending={type:markupTool,x:p.x,y:p.y};markupStatus.textContent='Тепер натисніть кінцеву точку лінії.';return}
+ else{markupItems.push({...markupPending,x2:p.x,y2:p.y});markupPending=null}
+ saveMarkupToRoom();drawMarkupCanvas();autosave();
+}
+function undoMarkup(){if(markupPending){markupPending=null;drawMarkupCanvas();return}const s=markupHistory.pop();if(s!=null){markupItems=JSON.parse(s);saveMarkupToRoom();drawMarkupCanvas();autosave()}}
+function clearMarkup(){if(!markupItems.length)return;markupHistory.push(JSON.stringify(markupItems));markupItems=[];markupPending=null;saveMarkupToRoom();drawMarkupCanvas();autosave()}
+markupCanvas?.addEventListener('pointerdown',addMarkupAt);
+const _handlePhotoInput53=handlePhotoInput;
+handlePhotoInput=async function(input){await _handlePhotoInput53(input);drawMarkupCanvas()};
+const _restoreRoom53=restoreRoom;
+restoreRoom=function(room){_restoreRoom53(room);loadMarkupFromRoom()};
+const _captureCurrentRoom53=captureCurrentRoom;
+captureCurrentRoom=function(){const r=_captureCurrentRoom53();r.aiMarkup=deepCopy(markupItems);r.aiResult=document.querySelector('#resultImageWrap img')?.src||'';return r};
+const _generateAI53=generateAI;
+generateAI=async function(){
+ if(!uploadedImageBase64){alert('Спочатку завантажте фото кімнати.');return}
+ loader.style.display='block';apiError.style.display='none';
+ const options=AI_OPTIONS.filter(o=>document.getElementById('ai_'+o.id)?.checked).map(o=>o.name);
+ const annotated=markupItems.length?markupCanvas.toDataURL('image/jpeg',.78):uploadedImageBase64;
+ const markup=markupItems.map(it=>({type:it.type,x:+(it.x/markupCanvas.width).toFixed(4),y:+(it.y/markupCanvas.height).toFixed(4),x2:it.x2==null?null:+(it.x2/markupCanvas.width).toFixed(4),y2:it.y2==null?null:+(it.y2/markupCanvas.height).toFixed(4)}));
+ try{const response=await fetch('/api/ai-ceiling',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({imageBase64:uploadedImageBase64,annotatedImageBase64:annotated,markup,manufacturer:selectedColor.manufacturer,color:selectedColor.name,colorHex:selectedColor.hex,material:selectedTexture,options,customRequest:customPrompt.value.trim(),instruction:'Зберегти геометрію кімнати. Реалізувати всі позначені елементи точно у вказаних місцях. Номери та кольорові лінії є службовою розміткою і не повинні залишитися у фінальному зображенні. Змінювати лише стелю та вибрані елементи.'})});const data=await response.json().catch(()=>({}));if(!response.ok)throw new Error(data.error||'API '+response.status);if(!data.image)throw new Error('API не повернув поле image');resultImageWrap.innerHTML=`<img src="${data.image}" alt="AI result">`;downloadBtn.href=data.image;syncActiveRoomFromUI(false);autosave()}catch(e){apiError.textContent='AI не запущено: '+e.message+'. Розмітка збережена. Серверний /api/ai-ceiling повинен приймати поля annotatedImageBase64 і markup.';apiError.style.display='block'}finally{loader.style.display='none'}
+};
+
+// IndexedDB archive: history no longer disappears when localStorage is full
+const P53_DB='potolok_pixel53_db',P53_STORE='objects';
+function openP53DB(){return new Promise((res,rej)=>{const q=indexedDB.open(P53_DB,1);q.onupgradeneeded=()=>{if(!q.result.objectStoreNames.contains(P53_STORE))q.result.createObjectStore(P53_STORE,{keyPath:'id'})};q.onsuccess=()=>res(q.result);q.onerror=()=>rej(q.error)})}
+async function dbPutObject(o){const db=await openP53DB();return new Promise((res,rej)=>{const t=db.transaction(P53_STORE,'readwrite');t.objectStore(P53_STORE).put(o);t.oncomplete=()=>res();t.onerror=()=>rej(t.error)})}
+async function dbGetObjects(){const db=await openP53DB();return new Promise((res,rej)=>{const q=db.transaction(P53_STORE).objectStore(P53_STORE).getAll();q.onsuccess=()=>res(q.result||[]);q.onerror=()=>rej(q.error)})}
+async function dbGetObject(id){const db=await openP53DB();return new Promise((res,rej)=>{const q=db.transaction(P53_STORE).objectStore(P53_STORE).get(id);q.onsuccess=()=>res(q.result);q.onerror=()=>rej(q.error)})}
+async function dbDeleteObject(id){const db=await openP53DB();return new Promise((res,rej)=>{const t=db.transaction(P53_STORE,'readwrite');t.objectStore(P53_STORE).delete(id);t.oncomplete=()=>res();t.onerror=()=>rej(t.error)})}
+async function saveObject(){
+ const o=collectObject();activeObjectId=o.id;try{await dbPutObject(o);const meta=(await dbGetObjects()).map(x=>({id:x.id,clientName:x.clientName,address:x.address,date:x.date,area:x.area,total:x.total,roomsCount:x.rooms?.length||0,savedAt:x.savedAt}));localStorage.setItem('potolok_pixel53_history_meta',JSON.stringify(meta));saveStatus.textContent='Об’єкт збережено';await renderHistory();alert('Об’єкт і '+o.rooms.length+' кімн. збережено в архіві.')}catch(e){alert('Не вдалося зберегти об’єкт: '+e.message)}
+}
+async function renderHistory(){
+ if(!objectList)return;objectList.innerHTML='<div class="notice">Завантаження архіву…</div>';
+ try{let list=await dbGetObjects();if(!list.length){const legacy=JSON.parse(localStorage.getItem('potolok_pixel5_objects')||'[]').map(normalizeLegacyObject);for(const o of legacy)await dbPutObject(o);list=legacy}
+ list.sort((a,b)=>String(b.savedAt||'').localeCompare(String(a.savedAt||'')));
+ objectList.innerHTML=list.length?list.map(o=>`<div class="object-card"><b>${o.clientName||'Без імені'} — ${o.address||'Без адреси'}</b><span>${o.date||''} • ${(o.rooms||[]).length} кімн. • ${Number(o.area||0).toFixed(2)} м² • ${money(o.total||0)}</span><div class="object-actions"><button onclick="loadObject('${o.id}')">Відкрити</button><button onclick="deleteObject('${o.id}')">Видалити</button></div></div>`).join(''):'<div class="notice">Збережених об’єктів поки немає.</div>';
+ }catch(e){objectList.innerHTML='<div class="notice">Помилка архіву: '+e.message+'</div>'}
+}
+async function loadObject(id){const o=await dbGetObject(id);if(!o)return alert('Об’єкт не знайдено.');roomSyncLock=true;activeObjectId=o.id;clientName.value=o.clientName||'';clientPhone.value=o.clientPhone||'';objectAddress.value=o.address||'';measureDate.value=o.date||'';ceilingHeight.value=o.height||2.7;objectComment.value=o.comment||'';projectRooms=deepCopy(o.rooms||[]);activeRoomId=o.activeRoomId&&projectRooms.some(r=>r.id===o.activeRoomId)?o.activeRoomId:projectRooms[0]?.id;roomSyncLock=false;if(!projectRooms.length){newObject();return}restoreRoom(projectRooms.find(r=>r.id===activeRoomId)||projectRooms[0]);saveStatus.textContent='Об’єкт відкрито';window.scrollTo({top:0,behavior:'smooth'})}
+async function deleteObject(id){if(!confirm('Видалити об’єкт з архіву?'))return;await dbDeleteObject(id);renderHistory()}
+async function exportHistory(){const data=await dbGetObjects(),a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'}));a.download='potolok-objects-pixel53.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
+
+// initialize new structures after old startup
+renderCalcOptions();renderProfileCards();pixel53ProfileSnapshot=profileState();
+loadMarkupFromRoom();drawMarkupCanvas();renderHistory();
 </script>
 </body>
 </html>
