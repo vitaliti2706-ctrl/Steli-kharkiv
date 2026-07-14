@@ -2623,6 +2623,8 @@ loadMarkupFromRoom();drawMarkupCanvas();renderHistory();
     .p56-final-row button{height:36px;border:1px solid #bfdbfe;background:#fff;color:#075bff;border-radius:9px;font-size:18px;font-weight:950}
     .p56-final-row input{width:100%;margin:0}
     .p56-final-reset{width:100%;margin-top:9px;border:1px solid #075bff;background:#075bff;color:#fff;border-radius:9px;padding:9px;font-size:10px;font-weight:950}
+    .p56-final-control label span:first-child{max-width:72%}
+    @media(min-width:760px){.p56-template-controls{grid-template-columns:1fr 1fr}.p56-final-reset{grid-column:1/-1}}
   `;
   document.head.appendChild(style);
 
@@ -2671,7 +2673,9 @@ loadMarkupFromRoom();drawMarkupCanvas();renderHistory();
       scale:Number(scale.value)||100,
       angle:Number(angle.value)||0,
       perspective:Number(perspective.value)||0,
-      vertical:Number(vertical.value)||0
+      vertical:Number(vertical.value)||0,
+      front:Number(front.value)||0,
+      rear:Number(rear.value)||0
     };
     return true;
   }
@@ -2688,11 +2692,16 @@ loadMarkupFromRoom();drawMarkupCanvas();renderHistory();
     const angleDelta=((Number(angle.value)||0)-gesture.angle)*Math.PI/180;
     const perspectiveDelta=((Number(perspective.value)||0)-gesture.perspective)/100;
     const verticalDelta=(Number(vertical.value)||0)-gesture.vertical;
+    const frontDelta=(Number(front.value)||0)-gesture.front;
+    const rearDelta=(Number(rear.value)||0)-gesture.rear;
     const H=Math.max(80,(document.getElementById('markupCanvas')?.height||520)*.35);
+    const ys=pts.map(p=>p[1]),minY=Math.min(...ys),maxY=Math.max(...ys),spanY=Math.max(1,maxY-minY);
     function tr(x,y){
       let dx=(x-cx)*scaleFactor;
       let dy=(y-cy)*scaleFactor;
       dx*=1+perspectiveDelta*(dy/H);
+      const depth=Math.max(0,Math.min(1,(y-minY)/spanY));
+      dy+=rearDelta*(1-depth)+frontDelta*depth;
       const rx=dx*Math.cos(angleDelta)-dy*Math.sin(angleDelta);
       const ry=dx*Math.sin(angleDelta)+dy*Math.cos(angleDelta);
       return[cx+rx,cy+ry+verticalDelta];
@@ -2738,29 +2747,73 @@ loadMarkupFromRoom();drawMarkupCanvas();renderHistory();
   const updateScale=makeControl(scaleBox,scale,'Масштаб шаблону','templateScaleValue55','%');
   const updateAngle=makeControl(angleBox,angle,'Поворот шаблону','tplAngleValue56','°');
   const updatePerspective=makeControl(perspectiveBox,perspective,'Перспектива стелі','tplPerspectiveValue56','%');
-  const updateVertical=makeControl(verticalBox,vertical,'Положення шаблону: верх / вниз','tplVerticalValue56',' px');
-  function updateValues(){updateScale();updateAngle();updatePerspective();updateVertical()}
+  const frontBox=document.createElement('div');
+  const front=document.createElement('input');
+  front.id='tplFront56';front.type='range';front.min='-250';front.max='250';front.step='1';front.value='0';
+  verticalBox.insertAdjacentElement('afterend',frontBox);
+
+  const rearBox=document.createElement('div');
+  const rear=document.createElement('input');
+  rear.id='tplRear56';rear.type='range';rear.min='-250';rear.max='250';rear.step='1';rear.value='0';
+  frontBox.insertAdjacentElement('afterend',rearBox);
+
+  const updateVertical=makeControl(verticalBox,vertical,'Положення всього шаблону: верх / вниз','tplVerticalValue56',' px');
+  const updateFront=makeControl(frontBox,front,'Передній край: верх / вниз','tplFrontValue56',' px');
+  const updateRear=makeControl(rearBox,rear,'Задній край: верх / вниз','tplRearValue56',' px');
+  function updateValues(){updateScale();updateAngle();updatePerspective();updateVertical();updateFront();updateRear()}
   updateValues();
 
   const reset=document.createElement('button');
   reset.type='button';reset.className='p56-final-reset';reset.textContent='↺ Скинути все: 100% / 0° / 0% / центр';
   reset.onclick=()=>{
     if(!activeGroup())return alert('Спочатку додайте шаблон.');
-    beginGesture();scale.value='100';angle.value='0';perspective.value='0';vertical.value='0';applyTransform();
+    beginGesture();scale.value='100';angle.value='0';perspective.value='0';vertical.value='0';front.value='0';rear.value='0';applyTransform();
   };
-  verticalBox.insertAdjacentElement('afterend',reset);
+  rearBox.insertAdjacentElement('afterend',reset);
 
   // New template always starts from neutral controls.
   const oldAdd=window.addMarkupTemplate55;
   window.addMarkupTemplate55=function(kind){
     oldAdd(kind);
-    scale.value='100';angle.value='0';perspective.value='0';vertical.value='0';gesture=null;updateValues();
+    scale.value='100';angle.value='0';perspective.value='0';vertical.value='0';front.value='0';rear.value='0';gesture=null;updateValues();
   };
 })();
 </script>
 
 </body>
 </html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
