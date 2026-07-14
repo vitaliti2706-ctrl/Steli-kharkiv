@@ -2197,8 +2197,217 @@ loadMarkupFromRoom();drawMarkupCanvas();renderHistory();
 })();
 </script>
 
+<script>
+/* ================= POTOLOK AI PRO — PIXEL 5.6 ================= */
+(() => {
+  'use strict';
+
+  document.title='Potolok AI PRO — Pixel 5.6';
+  document.querySelectorAll('.hero-badge').forEach(el=>el.textContent='✨ POTOLOK AI PRO — PIXEL 5.6');
+
+  const style=document.createElement('style');
+  style.textContent=`
+    .p56-flow{display:grid;grid-template-columns:repeat(2,1fr);gap:7px;margin-top:10px}
+    .p56-flow button{border:1px solid #bfdbfe;background:#fff;color:#075bff;border-radius:10px;padding:10px 7px;font-size:9px;font-weight:950}
+    .p56-flow button.primary{background:#075bff;color:#fff;border-color:#075bff}
+    .p56-photo-actions{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:9px}
+    .p56-photo-actions button{min-height:38px;border-radius:9px;border:1px solid #dbe3ef;background:#fff;font-size:9px;font-weight:900}
+    .p56-photo-actions .camera56{background:#22c55e;color:#fff;border-color:#22c55e}
+    .p56-photo-actions .gallery56{background:#075bff;color:#fff;border-color:#075bff}
+    .p56-photo-actions .delete56{color:#dc2626;border-color:#fecaca}
+    .p56-card{margin-top:12px;padding:12px;border:1px solid #dbe3ef;border-radius:13px;background:#f8fbff}
+    .p56-title{font-size:12px;font-weight:950;margin-bottom:8px}
+    .p56-fields{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+    .p56-fields .full{grid-column:1/-1}
+    .p56-fields label{font-size:9px;font-weight:900;color:#334155;display:block;margin-bottom:4px}
+    .p56-fields input,.p56-fields select,.p56-fields textarea{width:100%;border:1px solid #dbe3ef;border-radius:9px;padding:9px;background:#fff;font-size:10px}
+    .p56-fields textarea{min-height:84px;resize:vertical}
+    .p56-help{font-size:9px;color:#64748b;line-height:1.5;margin-top:8px}
+    .p56-step{padding:11px;border:1px solid #dbe3ef;border-radius:11px;background:#fff;margin-top:8px}
+    .p56-step b{display:block;font-size:11px;margin-bottom:4px}.p56-step span{font-size:9px;color:#64748b;line-height:1.45}
+    .p56-template-controls{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
+    .p56-template-controls label{font-size:8px;font-weight:900;color:#334155}
+    .p56-template-controls input{width:100%}
+    .p56-feedback-status{margin-top:8px;font-size:9px;color:#15803d;font-weight:900}
+    .metric b.is-empty{color:#94a3b8}
+    #markupCanvas{background-repeat:no-repeat!important;background-position:0 0!important;background-size:100% 100%!important;background-color:#eef5ff!important}
+    @media(min-width:760px){.p56-flow{grid-template-columns:repeat(4,1fr)}.p56-photo-actions{grid-template-columns:repeat(3,1fr)}}
+  `;
+  document.head.appendChild(style);
+
+  function tabButton(name){return [...document.querySelectorAll('.main-tab')].find(b=>b.textContent.includes(name))}
+  function goTab(name){const map={object:'Об’єкт',planner:'План',ai:'AI',calc:'Калькулятор',history:'Історія',guide:'Інструкція',feedback:'Побажання'};const b=tabButton(map[name]);if(b)showMainTab(name,b);window.scrollTo({top:document.getElementById('app')?.offsetTop||0,behavior:'smooth'})}
+  window.goTab56=goTab;
+
+  // 1) New rooms start from zero, not from demo values.
+  function zeroRoomFields56(){
+    if(document.getElementById('area')) area.value=0;
+    if(document.getElementById('perimeter')) perimeter.value=0;
+    if(document.getElementById('cornersCount')) cornersCount.value=0;
+    if(document.getElementById('chandelierCount')) chandelierCount.value=0;
+    if(document.getElementById('plannerArea')) plannerArea.textContent='—';
+    if(document.getElementById('plannerPerimeter')) plannerPerimeter.textContent='—';
+  }
+  const oldResetRoom56=window.resetRoomWorkspace;
+  window.resetRoomWorkspace=function(name){oldResetRoom56(name);zeroRoomFields56();recalc();};
+  const oldNewObject56=window.newObject;
+  window.newObject=function(){oldNewObject56();zeroRoomFields56();recalc();};
+
+  const oldRenderPlanner56=window.renderPlanner;
+  window.renderPlanner=function(){
+    oldRenderPlanner56();
+    const m=polygonMetrics();
+    const a=document.getElementById('plannerArea'),p=document.getElementById('plannerPerimeter');
+    if(a){a.textContent=m.area>0?((m.approx?'≈ ':'')+m.area.toFixed(2)+' м²'):'—';a.classList.toggle('is-empty',!(m.area>0))}
+    if(p){p.textContent=m.perimeter>0?m.perimeter.toFixed(2)+' м':'—';p.classList.toggle('is-empty',!(m.perimeter>0))}
+  };
+
+  // 2) Preliminary room data in Object → then Plan.
+  const roomManager=document.querySelector('#tab_object .room-manager');
+  if(roomManager){
+    const prelim=document.createElement('div');prelim.className='p56-card';
+    prelim.innerHTML=`
+      <div class="p56-title">🧭 Попередні дані поточної кімнати</div>
+      <div class="p56-fields">
+        <div><label>Орієнтовна площа, м²</label><input id="preArea56" type="number" min="0" step="0.1" value="0"></div>
+        <div><label>Орієнтовний периметр, м</label><input id="prePerimeter56" type="number" min="0" step="0.1" value="0"></div>
+        <div><label>Фактура</label><select id="preTexture56"><option value="matte">Матова</option><option value="satin">Сатин</option><option value="glossy">Глянець</option></select></div>
+        <div><label>Освітлення</label><select id="preLight56"><option value="none">Не визначено</option><option value="spots">Точкові</option><option value="chandelier">Люстра</option><option value="track">Трек</option><option value="mixed">Комбіноване</option></select></div>
+        <div class="full"><label>Попередні побажання</label><textarea id="preWish56" placeholder="Карниз, профіль, світлові лінії, кількість точок, побажання клієнта…"></textarea></div>
+      </div>
+      <div class="p56-flow"><button class="primary" type="button" onclick="preliminaryToPlan56()">📐 Зберегти та перейти в план</button><button type="button" onclick="preliminaryToCalc56()">💰 Передати в калькулятор</button></div>
+      <div class="p56-help">Це попередні дані зі слів клієнта. Після точного заміру план замінить їх фактичними значеннями.</div>`;
+    roomManager.appendChild(prelim);
+  }
+  function activeRoom56(){return projectRooms.find(r=>r.id===activeRoomId)}
+  window.preliminaryToPlan56=function(){
+    const a=Number(document.getElementById('preArea56')?.value)||0,p=Number(document.getElementById('prePerimeter56')?.value)||0;
+    area.value=a;perimeter.value=p;selectedTexture=document.getElementById('preTexture56')?.value||'matte';
+    customPrompt.value=document.getElementById('preWish56')?.value||customPrompt.value;
+    const r=activeRoom56();if(r)r.preliminary={area:a,perimeter:p,texture:selectedTexture,lighting:document.getElementById('preLight56')?.value||'none',wish:document.getElementById('preWish56')?.value||''};
+    syncActiveRoomFromUI(false);autosave();goTab('planner');
+  };
+  window.preliminaryToCalc56=function(){
+    area.value=Number(document.getElementById('preArea56')?.value)||0;perimeter.value=Number(document.getElementById('prePerimeter56')?.value)||0;recalc();goTab('calc');
+  };
+
+  // Restore preliminary fields per room.
+  const oldRestoreRoom56=window.restoreRoom;
+  window.restoreRoom=function(room){oldRestoreRoom56(room);setTimeout(()=>{
+    const pre=room?.preliminary||{};
+    if(document.getElementById('preArea56'))preArea56.value=pre.area??room.area??0;
+    if(document.getElementById('prePerimeter56'))prePerimeter56.value=pre.perimeter??room.perimeter??0;
+    if(document.getElementById('preTexture56'))preTexture56.value=pre.texture||room.texture||'matte';
+    if(document.getElementById('preLight56'))preLight56.value=pre.lighting||'none';
+    if(document.getElementById('preWish56'))preWish56.value=pre.wish||'';
+  },0)};
+  const oldCaptureRoom56=window.captureCurrentRoom;
+  window.captureCurrentRoom=function(){const r=oldCaptureRoom56();r.preliminary={area:Number(document.getElementById('preArea56')?.value)||0,perimeter:Number(document.getElementById('prePerimeter56')?.value)||0,texture:document.getElementById('preTexture56')?.value||selectedTexture,lighting:document.getElementById('preLight56')?.value||'none',wish:document.getElementById('preWish56')?.value||''};return r};
+
+  // 3) Full photo controls directly in Plan: camera, gallery, delete, 3–5 photos.
+  const planPhotoBox=document.getElementById('plannerPhotoGrid55')?.closest('.p55-block');
+  if(planPhotoBox){
+    const controls=document.createElement('div');controls.className='p56-photo-actions';
+    controls.innerHTML=`<input id="plannerCamera56" type="file" accept="image/*" capture="environment" hidden><input id="plannerGallery56" type="file" accept="image/*" multiple hidden>
+      <button class="camera56" type="button" onclick="plannerCamera56.click()">📷 Зробити фото</button>
+      <button class="gallery56" type="button" onclick="plannerGallery56.click()">🖼 Додати з галереї</button>
+      <button class="delete56" type="button" onclick="deletePrimaryPlanPhoto56()">🗑 Видалити основне</button>`;
+    planPhotoBox.insertBefore(controls,document.getElementById('plannerPhotoGrid55'));
+    const process=async(input)=>{const files=[...(input.files||[])];const multi=document.getElementById('roomMultiPhotoInput55');if(multi){const dt=new DataTransfer();files.forEach(f=>dt.items.add(f));multi.files=dt.files;multi.dispatchEvent(new Event('change',{bubbles:true}))}input.value=''};
+    document.getElementById('plannerCamera56').addEventListener('change',e=>process(e.target));
+    document.getElementById('plannerGallery56').addEventListener('change',e=>process(e.target));
+  }
+  window.deletePrimaryPlanPhoto56=function(){
+    const grid=[...document.querySelectorAll('#plannerPhotoGrid55 .room-photo-item')];
+    const idx=grid.findIndex(x=>x.classList.contains('primary'));
+    if(idx<0)return alert('Основне фото не вибрано.');
+    if(confirm('Видалити основне фото цієї кімнати?'))window.deleteRoomPhoto55?.(idx,{stopPropagation(){}});
+  };
+
+  // 4) Stable canvas background while dragging: no white flash.
+  let cachedMarkupImage56=null,cachedMarkupSrc56='';
+  function ensureMarkupBackground56(){
+    const c=document.getElementById('markupCanvas');if(!c)return;
+    c.style.backgroundImage=uploadedImageBase64?`url("${uploadedImageBase64}")`:'none';
+    if(uploadedImageBase64&&uploadedImageBase64!==cachedMarkupSrc56){const im=new Image();im.onload=()=>{cachedMarkupImage56=im;cachedMarkupSrc56=uploadedImageBase64};im.src=uploadedImageBase64}
+  }
+  document.getElementById('markupCanvas')?.addEventListener('pointerdown',ensureMarkupBackground56,true);
+  document.getElementById('markupCanvas')?.addEventListener('pointermove',ensureMarkupBackground56,true);
+  const oldDrawMarkup56=window.drawMarkupCanvas;
+  window.drawMarkupCanvas=function(){ensureMarkupBackground56();oldDrawMarkup56?.();};
+
+  // 5) Group templates remain whole: move or scale all segments together.
+  let groupDrag56=null;
+  const mc=document.getElementById('markupCanvas');
+  function cp56(e){const r=mc.getBoundingClientRect();return{x:(e.clientX-r.left)*mc.width/r.width,y:(e.clientY-r.top)*mc.height/r.height}}
+  function distSeg56(p,a,b){const vx=b.x-a.x,vy=b.y-a.y,l=vx*vx+vy*vy;if(!l)return Math.hypot(p.x-a.x,p.y-a.y);let t=((p.x-a.x)*vx+(p.y-a.y)*vy)/l;t=Math.max(0,Math.min(1,t));return Math.hypot(p.x-a.x-vx*t,p.y-a.y-vy*t)}
+  mc?.addEventListener('pointerdown',e=>{
+    if(typeof markupTool!=='undefined'&&markupTool!=='select')return;
+    const p=cp56(e);let hit=null;
+    for(let i=markupItems.length-1;i>=0;i--){const it=markupItems[i];if(!it.groupId||it.x2==null)continue;const ds=Math.hypot(p.x-it.x,p.y-it.y),de=Math.hypot(p.x-it.x2,p.y-it.y2),db=distSeg56(p,{x:it.x,y:it.y},{x:it.x2,y:it.y2});if(ds<24||de<24||db<18){hit={index:i,part:ds<24?'start':de<24?'end':'body'};break}}
+    if(!hit)return;const anchor=markupItems[hit.index],items=markupItems.filter(x=>x.groupId===anchor.groupId),snap=items.map(x=>deepCopy(x));const pts=snap.flatMap(x=>[[x.x,x.y],[x.x2,x.y2]]),cx=pts.reduce((s,x)=>s+x[0],0)/pts.length,cy=pts.reduce((s,x)=>s+x[1],0)/pts.length;
+    groupDrag56={groupId:anchor.groupId,anchorIndex:items.indexOf(anchor),part:hit.part,start:p,snapshot:snap,cx,cy,startRadius:Math.max(1,Math.hypot(p.x-cx,p.y-cy))};
+  },true);
+  mc?.addEventListener('pointermove',e=>{
+    if(!groupDrag56)return;const p=cp56(e),targets=markupItems.filter(x=>x.groupId===groupDrag56.groupId),g=groupDrag56;
+    if(g.part==='body'){const dx=p.x-g.start.x,dy=p.y-g.start.y;targets.forEach((it,i)=>Object.assign(it,{x:g.snapshot[i].x+dx,y:g.snapshot[i].y+dy,x2:g.snapshot[i].x2+dx,y2:g.snapshot[i].y2+dy}))}
+    else{const scale=Math.max(.15,Math.hypot(p.x-g.cx,p.y-g.cy)/g.startRadius);targets.forEach((it,i)=>{const o=g.snapshot[i];it.x=g.cx+(o.x-g.cx)*scale;it.y=g.cy+(o.y-g.cy)*scale;it.x2=g.cx+(o.x2-g.cx)*scale;it.y2=g.cy+(o.y2-g.cy)*scale})}
+    saveMarkupToRoom?.();ensureMarkupBackground56();
+  },false);
+  ['pointerup','pointercancel'].forEach(ev=>mc?.addEventListener(ev,()=>{if(groupDrag56){groupDrag56=null;saveMarkupToRoom?.();autosave();window.drawMarkupCanvas?.()}},false));
+
+  // 6) Rotate and perspective-project current template parallel to ceiling.
+  const templateBox=document.getElementById('markupTemplateType55')?.closest('.p55-block');
+  if(templateBox){
+    const ctr=document.createElement('div');ctr.className='p56-template-controls';ctr.innerHTML=`
+      <div><label>Поворот шаблону: <span id="tplAngleValue56">0°</span></label><input id="tplAngle56" type="range" min="-180" max="180" value="0"></div>
+      <div><label>Перспектива стелі: <span id="tplPerspectiveValue56">0%</span></label><input id="tplPerspective56" type="range" min="-60" max="60" value="0"></div>`;
+    templateBox.appendChild(ctr);
+    let base56=[];
+    function activeGroup56(){const gids=markupItems.filter(x=>x.groupId).map(x=>x.groupId);return gids[gids.length-1]||null}
+    function snapshot56(){const gid=activeGroup56();base56=markupItems.filter(x=>x.groupId===gid).map(x=>deepCopy(x));return gid}
+    function transform56(){const gid=activeGroup56();if(!gid)return;if(!base56.length||base56.length!==markupItems.filter(x=>x.groupId===gid).length)snapshot56();const angle=Number(tplAngle56.value)*Math.PI/180,pers=Number(tplPerspective56.value)/100;tplAngleValue56.textContent=tplAngle56.value+'°';tplPerspectiveValue56.textContent=tplPerspective56.value+'%';const pts=base56.flatMap(x=>[[x.x,x.y],[x.x2,x.y2]]),cx=pts.reduce((s,p)=>s+p[0],0)/pts.length,cy=pts.reduce((s,p)=>s+p[1],0)/pts.length,targets=markupItems.filter(x=>x.groupId===gid);function tr(x,y){let dx=x-cx,dy=y-cy;dx*=1+pers*(dy/Math.max(80,mc.height*.35));const rx=dx*Math.cos(angle)-dy*Math.sin(angle),ry=dx*Math.sin(angle)+dy*Math.cos(angle);return[cx+rx,cy+ry]}targets.forEach((it,i)=>{const o=base56[i],a=tr(o.x,o.y),b=tr(o.x2,o.y2);Object.assign(it,{x:a[0],y:a[1],x2:b[0],y2:b[1]})});saveMarkupToRoom?.();window.drawMarkupCanvas?.();autosave()}
+    tplAngle56.addEventListener('pointerdown',snapshot56);tplPerspective56.addEventListener('pointerdown',snapshot56);tplAngle56.addEventListener('input',transform56);tplPerspective56.addEventListener('input',transform56);
+  }
+
+  // 7) Clear navigation chain.
+  function addFlow(container,html){if(!container)return;const f=document.createElement('div');f.className='p56-flow';f.innerHTML=html;container.appendChild(f)}
+  addFlow(document.querySelector('#tab_object main.panel'),'<button class="primary" onclick="goTab56(\'planner\')">Далі: план →</button><button onclick="goTab56(\'ai\')">AI-візуалізація</button><button onclick="goTab56(\'calc\')">Калькулятор</button>');
+  addFlow(document.querySelector('#tab_planner aside.panel'),'<button onclick="goTab56(\'object\')">← Об’єкт</button><button class="primary" onclick="savePlannerRoom();goTab56(\'ai\')">Зберегти та перейти в AI →</button><button onclick="applyPlannerToCalc()">План → калькулятор</button>');
+  addFlow(document.querySelector('#tab_ai main.panel'),'<button onclick="goTab56(\'planner\')">← План</button><button class="primary" onclick="goTab56(\'calc\')">Далі: калькулятор →</button>');
+  addFlow(document.querySelector('#tab_calc main'),'<button onclick="goTab56(\'ai\')">← AI</button><button class="primary" onclick="saveObject();goTab56(\'history\')">Зберегти об’єкт → історія</button>');
+
+  // 8) Instruction and feedback tabs at the end.
+  const tabs=document.querySelector('.tabs-main');
+  if(tabs){tabs.style.gridTemplateColumns='repeat(7,1fr)';tabs.insertAdjacentHTML('beforeend','<button class="main-tab" onclick="showMainTab(\'guide\',this)">📖 Інструкція</button><button class="main-tab" onclick="showMainTab(\'feedback\',this)">💡 Побажання</button>')}
+  const history=document.getElementById('tab_history');
+  history?.insertAdjacentHTML('afterend',`
+    <section id="tab_guide" class="page-section"><div class="panel main"><div class="block-head"><h2>Інструкція Pixel 5.6</h2><span class="tag">послідовність роботи</span></div>
+      <div class="p56-step"><b>1. Об’єкт</b><span>Заповніть клієнта, телефон, адресу, кількість кімнат і попередні дані зі слів замовника.</span></div>
+      <div class="p56-step"><b>2. Фото кімнати</b><span>Додайте 3–5 фото. Натисніть на потрібне фото, щоб зробити його основним для AI. Фото можна додати, зробити камерою або видалити також у розділі «План».</span></div>
+      <div class="p56-step"><b>3. План</b><span>Виберіть форму, внесіть довжини стін, розставте двері, вікна, труби, світильники, треки та карнизи. Після точного плану передайте дані в калькулятор.</span></div>
+      <div class="p56-step"><b>4. AI</b><span>Виберіть матеріал, фактуру та елементи. На фото можна малювати лінії або вставляти готові шаблони. Шаблон рухається і масштабується як єдине ціле.</span></div>
+      <div class="p56-step"><b>5. Калькулятор і кошторис</b><span>Перевірте перенесені площу, периметр і елементи, додайте потрібні позиції, збережіть PDF або надішліть кошторис.</span></div>
+      <div class="p56-step"><b>6. Історія</b><span>Збережений об’єкт містить усі кімнати, фото, плани, AI-візуалізації, кошториси та примітки.</span></div>
+    </div></section>
+    <section id="tab_feedback" class="page-section"><div class="panel main"><div class="block-head"><h2>Рекомендації та побажання</h2><span class="tag">для наступних версій</span></div>
+      <div class="p56-card"><div class="p56-fields"><div class="full"><label>Що покращити або виправити?</label><textarea id="feedbackText56" placeholder="Опишіть побажання, незручність або помилку…"></textarea></div><div><label>Розділ</label><select id="feedbackSection56"><option>Об’єкт</option><option>Фото</option><option>План</option><option>AI</option><option>Калькулятор</option><option>Історія</option><option>Інше</option></select></div><div><label>Важливість</label><select id="feedbackPriority56"><option>Побажання</option><option>Важливо</option><option>Критична помилка</option></select></div></div>
+      <div class="p56-flow"><button class="primary" onclick="saveFeedback56()">💾 Зберегти</button><button onclick="sendFeedback56()">📲 Відкрити в Telegram</button></div><div id="feedbackStatus56" class="p56-feedback-status"></div></div>
+    </div></section>`);
+  window.saveFeedback56=function(){const item={text:feedbackText56.value.trim(),section:feedbackSection56.value,priority:feedbackPriority56.value,date:new Date().toISOString()};if(!item.text)return alert('Напишіть побажання або опис помилки.');const list=JSON.parse(localStorage.getItem('potolok_pixel56_feedback')||'[]');list.unshift(item);localStorage.setItem('potolok_pixel56_feedback',JSON.stringify(list));feedbackStatus56.textContent='✅ Побажання збережено на цьому пристрої.'};
+  window.sendFeedback56=function(){const t=feedbackText56.value.trim();if(!t)return alert('Спочатку напишіть повідомлення.');const text=`Pixel 5.6 — ${feedbackPriority56.value}\nРозділ: ${feedbackSection56.value}\n\n${t}`;location.href='https://t.me/Potolok_in_ua?text='+encodeURIComponent(text)};
+
+  // initialize 5.6 state
+  setTimeout(()=>{ensureMarkupBackground56();window.renderPlanner?.();const r=activeRoom56(),pre=r?.preliminary||{};if(document.getElementById('preArea56'))preArea56.value=pre.area??r?.area??0;if(document.getElementById('prePerimeter56'))prePerimeter56.value=pre.perimeter??r?.perimeter??0;},200);
+})();
+</script>
+
 </body>
 </html>
+
+
+
+
 
 
 
