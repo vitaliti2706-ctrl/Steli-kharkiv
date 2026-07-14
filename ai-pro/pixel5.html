@@ -2402,8 +2402,223 @@ loadMarkupFromRoom();drawMarkupCanvas();renderHistory();
 })();
 </script>
 
+<script>
+/* ================= PIXEL 5.6 FINAL — agreed usability fixes ================= */
+(() => {
+  'use strict';
+
+  const extraStyle=document.createElement('style');
+  extraStyle.textContent=`
+    #markupCanvas{background-color:transparent!important}
+    .p56-ai-photo-box{margin:0 0 12px;padding:12px;border:1px solid #dbe3ef;border-radius:13px;background:#f8fbff}
+    .p56-ai-photo-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:9px}
+    .p56-ai-photo-grid .room-photo-item{cursor:zoom-in}
+    .p56-view-switch{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:10px}
+    .p56-view-switch button{border:1px solid #dbe3ef;background:#fff;border-radius:9px;padding:9px;font-size:10px;font-weight:900;color:#475569}
+    .p56-view-switch button.active{background:#075bff;color:#fff;border-color:#075bff}
+    .p56-range-line{display:grid;grid-template-columns:38px 1fr 38px;gap:7px;align-items:center;margin-top:5px}
+    .p56-range-step{height:36px;border:1px solid #bfdbfe;background:#fff;color:#075bff;border-radius:9px;font-size:18px;font-weight:950}
+    .p56-range-reset{width:100%;margin-top:6px;border:1px dashed #93c5fd;background:#eff6ff;color:#075bff;border-radius:8px;padding:7px;font-size:9px;font-weight:900}
+    .p56-lightbox{position:fixed;inset:0;z-index:9999;background:rgba(2,6,23,.96);display:none;align-items:center;justify-content:center;overflow:hidden;touch-action:none}
+    .p56-lightbox.open{display:flex}
+    .p56-lightbox img{max-width:none;max-height:none;width:auto;height:auto;transform-origin:center;user-select:none;-webkit-user-drag:none}
+    .p56-lightbox-close,.p56-lightbox-prev,.p56-lightbox-next{position:absolute;border:0;background:rgba(255,255,255,.14);color:#fff;border-radius:50%;font-weight:950;z-index:2}
+    .p56-lightbox-close{right:14px;top:14px;width:44px;height:44px;font-size:24px}
+    .p56-lightbox-prev,.p56-lightbox-next{top:50%;width:44px;height:44px;font-size:24px;transform:translateY(-50%)}
+    .p56-lightbox-prev{left:10px}.p56-lightbox-next{right:10px}
+    .p56-lightbox-count{position:absolute;left:50%;bottom:18px;transform:translateX(-50%);color:#fff;background:rgba(2,6,23,.7);border-radius:999px;padding:7px 12px;font-size:11px;font-weight:900}
+    @media(min-width:760px){.p56-ai-photo-grid{grid-template-columns:repeat(5,1fr)}}
+  `;
+  document.head.appendChild(extraStyle);
+
+  // ---------- AI: own photo controls and 5-photo strip ----------
+  const aiMarkupBlock=document.querySelector('#tab_ai .ai-markup-block');
+  if(aiMarkupBlock && !document.getElementById('aiPhotoGrid56')){
+    const box=document.createElement('div');
+    box.className='p56-ai-photo-box';
+    box.innerHTML=`
+      <div class="p56-title">📸 Фото поточної кімнати для AI (до 5)</div>
+      <input id="aiCamera56" type="file" accept="image/*" capture="environment" hidden>
+      <input id="aiGallery56" type="file" accept="image/*" multiple hidden>
+      <div class="p56-photo-actions">
+        <button class="camera56" type="button" onclick="aiCamera56.click()">📷 Зробити фото</button>
+        <button class="gallery56" type="button" onclick="aiGallery56.click()">🖼 Додати з галереї</button>
+        <button class="delete56" type="button" onclick="deletePrimaryAIPhoto56()">🗑 Видалити основне</button>
+      </div>
+      <div id="aiPhotoGrid56" class="p56-ai-photo-grid"></div>
+      <div class="p56-help">Натисніть на картку, щоб зробити фото основним. Натисніть саме на зображення — перегляд на весь екран.</div>`;
+    aiMarkupBlock.insertBefore(box,aiMarkupBlock.firstChild.nextSibling);
+
+    const passFiles=async input=>{
+      const files=[...(input.files||[])];
+      const target=document.getElementById('roomMultiPhotoInput55');
+      if(target&&files.length){
+        const dt=new DataTransfer();files.forEach(f=>dt.items.add(f));target.files=dt.files;
+        target.dispatchEvent(new Event('change',{bubbles:true}));
+      }
+      input.value='';
+    };
+    document.getElementById('aiCamera56').addEventListener('change',e=>passFiles(e.target));
+    document.getElementById('aiGallery56').addEventListener('change',e=>passFiles(e.target));
+  }
+
+  function syncAIPhotoGrid56(){
+    const source=document.getElementById('roomPhotoGrid55');
+    const target=document.getElementById('aiPhotoGrid56');
+    if(!source||!target)return;
+    target.innerHTML=source.innerHTML;
+  }
+  const sourceGrid56=document.getElementById('roomPhotoGrid55');
+  if(sourceGrid56)new MutationObserver(syncAIPhotoGrid56).observe(sourceGrid56,{childList:true,subtree:true,attributes:true});
+  setTimeout(syncAIPhotoGrid56,100);
+
+  window.deletePrimaryAIPhoto56=function(){
+    const cards=[...document.querySelectorAll('#roomPhotoGrid55 .room-photo-item')];
+    const idx=cards.findIndex(x=>x.classList.contains('primary'));
+    if(idx<0)return alert('Основне фото не вибрано.');
+    if(confirm('Видалити основне фото цієї кімнати?'))window.deleteRoomPhoto55?.(idx,{stopPropagation(){}});
+  };
+
+  // ---------- Full-screen photo viewer with swipe and pinch zoom ----------
+  const viewer=document.createElement('div');
+  viewer.className='p56-lightbox';viewer.id='photoViewer56';
+  viewer.innerHTML=`<button class="p56-lightbox-close" type="button">×</button><button class="p56-lightbox-prev" type="button">‹</button><img alt="Фото кімнати"><button class="p56-lightbox-next" type="button">›</button><div class="p56-lightbox-count"></div>`;
+  document.body.appendChild(viewer);
+  let viewerImages56=[],viewerIndex56=0,viewerScale56=1,viewerX56=0,viewerY56=0,viewerTouches56=null;
+  const viewerImg56=viewer.querySelector('img'),viewerCount56=viewer.querySelector('.p56-lightbox-count');
+  function applyViewerTransform56(){viewerImg56.style.transform=`translate(${viewerX56}px,${viewerY56}px) scale(${viewerScale56})`}
+  function showViewerImage56(){if(!viewerImages56.length)return;viewerIndex56=(viewerIndex56+viewerImages56.length)%viewerImages56.length;viewerImg56.src=viewerImages56[viewerIndex56];viewerScale56=1;viewerX56=viewerY56=0;applyViewerTransform56();viewerCount56.textContent=`${viewerIndex56+1} / ${viewerImages56.length}`}
+  function openViewer56(src){
+    const roomGrid=[...document.querySelectorAll('#roomPhotoGrid55 img')].map(x=>x.src);
+    viewerImages56=[...new Set(roomGrid.length?roomGrid:[src])];viewerIndex56=Math.max(0,viewerImages56.indexOf(src));viewer.classList.add('open');showViewerImage56();
+  }
+  function closeViewer56(){viewer.classList.remove('open')}
+  viewer.querySelector('.p56-lightbox-close').onclick=closeViewer56;
+  viewer.querySelector('.p56-lightbox-prev').onclick=e=>{e.stopPropagation();viewerIndex56--;showViewerImage56()};
+  viewer.querySelector('.p56-lightbox-next').onclick=e=>{e.stopPropagation();viewerIndex56++;showViewerImage56()};
+  viewer.addEventListener('click',e=>{if(e.target===viewer)closeViewer56()});
+  document.addEventListener('click',e=>{
+    const img=e.target.closest?.('#roomPhotoGrid55 img,#plannerPhotoGrid55 img,#aiPhotoGrid56 img');
+    if(!img)return;e.preventDefault();e.stopPropagation();openViewer56(img.src);
+  },true);
+  viewer.addEventListener('wheel',e=>{e.preventDefault();viewerScale56=Math.max(1,Math.min(5,viewerScale56+(e.deltaY<0?.2:-.2)));applyViewerTransform56()},{passive:false});
+  viewer.addEventListener('touchstart',e=>{
+    if(e.touches.length===1)viewerTouches56={x:e.touches[0].clientX,y:e.touches[0].clientY,baseX:viewerX56,baseY:viewerY56};
+    if(e.touches.length===2){const d=Math.hypot(e.touches[1].clientX-e.touches[0].clientX,e.touches[1].clientY-e.touches[0].clientY);viewerTouches56={distance:d,scale:viewerScale56}}
+  },{passive:false});
+  viewer.addEventListener('touchmove',e=>{
+    e.preventDefault();
+    if(e.touches.length===2&&viewerTouches56?.distance){const d=Math.hypot(e.touches[1].clientX-e.touches[0].clientX,e.touches[1].clientY-e.touches[0].clientY);viewerScale56=Math.max(1,Math.min(5,viewerTouches56.scale*d/viewerTouches56.distance));applyViewerTransform56()}
+    else if(e.touches.length===1&&viewerTouches56?.x!=null){viewerX56=viewerTouches56.baseX+e.touches[0].clientX-viewerTouches56.x;viewerY56=viewerTouches56.baseY+e.touches[0].clientY-viewerTouches56.y;applyViewerTransform56()}
+  },{passive:false});
+
+  // ---------- Planner: dragging points changes actual wall lengths ----------
+  const planner=document.getElementById('plannerSvg');
+  let plannerDragScale56=0,plannerDragged56=false;
+  planner?.addEventListener('pointerdown',e=>{
+    if(!e.target.classList?.contains('point-hit'))return;
+    const realPer=segmentLengths.reduce((s,v)=>s+(Number(v)||0),0);
+    const screenPer=screenPolygonPerimeter();
+    plannerDragScale56=realPer>0?screenPer/realPer:80;
+    plannerDragged56=true;
+  },true);
+  planner?.addEventListener('pointermove',()=>{
+    if(!plannerDragged56||dragIndex<0||!plannerDragScale56)return;
+    segmentLengths=roomPoints.map((p,i)=>{
+      const q=roomPoints[(i+1)%roomPoints.length];
+      return Math.max(.01,Math.round((Math.hypot(q[0]-p[0],q[1]-p[1])/plannerDragScale56)*100)/100);
+    });
+    roomTemplate='custom';customPointTotal=roomPoints.length;
+    if(document.getElementById('customPointCount'))customPointCount.value=roomPoints.length;
+    renderSegmentInputs();
+    const m=polygonMetrics();
+    if(document.getElementById('plannerArea'))plannerArea.textContent=(m.approx?'≈ ':'')+m.area.toFixed(2)+' м²';
+    if(document.getElementById('plannerPerimeter'))plannerPerimeter.textContent=m.perimeter.toFixed(2)+' м';
+  });
+  ['pointerup','pointercancel'].forEach(ev=>planner?.addEventListener(ev,()=>{if(plannerDragged56){plannerDragged56=false;plannerDragScale56=0;renderPlanner();syncActiveRoomFromUI(false);autosave()}},true));
+
+  // ---------- AI result: switch between clean visualization and saved markup ----------
+  const resultWrap=document.getElementById('resultImageWrap');
+  if(resultWrap&&!document.getElementById('viewSwitch56')){
+    const sw=document.createElement('div');sw.className='p56-view-switch';sw.id='viewSwitch56';
+    sw.innerHTML='<button class="active" type="button" data-view="ai">🖼 AI-візуалізація</button><button type="button" data-view="markup">📝 Розмітка</button>';
+    resultWrap.before(sw);
+    sw.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;showResultView56(b.dataset.view)});
+  }
+  let cleanAIResult56='';
+  function markupPreview56(){
+    const c=document.createElement('canvas'),source=document.getElementById('markupCanvas');c.width=source?.width||800;c.height=source?.height||520;const ctx=c.getContext('2d');
+    return new Promise(resolve=>{const im=new Image();im.onload=()=>{ctx.drawImage(im,0,0,c.width,c.height);const colors={spot:'#f59e0b',chandelier:'#7c3aed',track:'#111827',surfaceTrack:'#475569',lightline:'#facc15',cornice:'#0ea5e9',floating:'#22c55e',shadow:'#111827'};markupItems.forEach((it,i)=>{ctx.save();ctx.strokeStyle=ctx.fillStyle=colors[it.type]||'#075bff';ctx.lineWidth=8;ctx.lineCap='round';if(it.x2!=null){ctx.beginPath();ctx.moveTo(it.x,it.y);ctx.lineTo(it.x2,it.y2);ctx.stroke()}else{ctx.beginPath();ctx.arc(it.x,it.y,it.type==='chandelier'?18:11,0,Math.PI*2);ctx.fill()}ctx.fillStyle='#fff';ctx.font='bold 16px Arial';ctx.fillText(String(i+1),it.x+10,it.y-10);ctx.restore()});resolve(c.toDataURL('image/jpeg',.86))};im.onerror=()=>resolve('');im.src=uploadedImageBase64||''});
+  }
+  async function showResultView56(view){
+    document.querySelectorAll('#viewSwitch56 button').forEach(b=>b.classList.toggle('active',b.dataset.view===view));
+    if(view==='markup'){
+      const current=document.querySelector('#resultImageWrap img')?.src;if(current&&current!==cleanAIResult56)cleanAIResult56=current;
+      const src=await markupPreview56();resultWrap.innerHTML=src?`<img src="${src}" alt="Розмітка">`:'Немає фото або розмітки.';
+    }else{
+      const room=projectRooms.find(r=>r.id===activeRoomId);const src=cleanAIResult56||room?.aiResult||'';
+      resultWrap.innerHTML=src?`<img src="${src}" alt="AI result">`:'AI-візуалізацію ще не створено.';
+      if(src)downloadBtn.href=src;
+    }
+  }
+  const oldGenerateFinal56=window.generateAI;
+  window.generateAI=async function(){await oldGenerateFinal56();const src=document.querySelector('#resultImageWrap img')?.src||'';if(src)cleanAIResult56=src;document.querySelectorAll('#viewSwitch56 button').forEach(b=>b.classList.toggle('active',b.dataset.view==='ai'))};
+  const oldRestoreFinal56=window.restoreRoom;
+  window.restoreRoom=function(room){oldRestoreFinal56(room);cleanAIResult56=room?.aiResult||'';document.querySelectorAll('#viewSwitch56 button').forEach(b=>b.classList.toggle('active',b.dataset.view==='ai'));syncAIPhotoGrid56()};
+
+  // ---------- Keep grouped templates whole, blocking legacy single-segment drag ----------
+  const markupCanvas56=document.getElementById('markupCanvas');
+  let solidGroupDrag56=null;
+  function canvasP56(e){const r=markupCanvas56.getBoundingClientRect();return{x:(e.clientX-r.left)*markupCanvas56.width/r.width,y:(e.clientY-r.top)*markupCanvas56.height/r.height}}
+  function segDistance56(p,it){const vx=it.x2-it.x,vy=it.y2-it.y,l=vx*vx+vy*vy;if(!l)return 999;let t=((p.x-it.x)*vx+(p.y-it.y)*vy)/l;t=Math.max(0,Math.min(1,t));return Math.hypot(p.x-it.x-vx*t,p.y-it.y-vy*t)}
+  markupCanvas56?.addEventListener('pointerdown',e=>{
+    if(markupTool!=='select')return;const p=canvasP56(e);let hit=null;
+    for(let i=markupItems.length-1;i>=0;i--){const it=markupItems[i];if(it.groupId&&it.x2!=null&&(segDistance56(p,it)<20||Math.hypot(p.x-it.x,p.y-it.y)<24||Math.hypot(p.x-it.x2,p.y-it.y2)<24)){hit=it;break}}
+    if(!hit)return;
+    const items=markupItems.filter(x=>x.groupId===hit.groupId),snapshot=items.map(x=>deepCopy(x)),pts=snapshot.flatMap(x=>[[x.x,x.y],[x.x2,x.y2]]),cx=pts.reduce((s,p)=>s+p[0],0)/pts.length,cy=pts.reduce((s,p)=>s+p[1],0)/pts.length;
+    solidGroupDrag56={gid:hit.groupId,start:p,snapshot,cx,cy,scaleMode:Math.hypot(p.x-hit.x,p.y-hit.y)<24||Math.hypot(p.x-hit.x2,p.y-hit.y2)<24,startR:Math.max(1,Math.hypot(p.x-cx,p.y-cy))};
+    markupCanvas56.setPointerCapture?.(e.pointerId);e.preventDefault();e.stopImmediatePropagation();
+  },true);
+  markupCanvas56?.addEventListener('pointermove',e=>{
+    if(!solidGroupDrag56)return;const p=canvasP56(e),g=solidGroupDrag56,targets=markupItems.filter(x=>x.groupId===g.gid);
+    if(g.scaleMode){const s=Math.max(.15,Math.hypot(p.x-g.cx,p.y-g.cy)/g.startR);targets.forEach((it,i)=>{const o=g.snapshot[i];Object.assign(it,{x:g.cx+(o.x-g.cx)*s,y:g.cy+(o.y-g.cy)*s,x2:g.cx+(o.x2-g.cx)*s,y2:g.cy+(o.y2-g.cy)*s})})}
+    else{const dx=p.x-g.start.x,dy=p.y-g.start.y;targets.forEach((it,i)=>{const o=g.snapshot[i];Object.assign(it,{x:o.x+dx,y:o.y+dy,x2:o.x2+dx,y2:o.y2+dy})})}
+    window.drawMarkupCanvas?.();e.preventDefault();e.stopImmediatePropagation();
+  },true);
+  ['pointerup','pointercancel'].forEach(ev=>markupCanvas56?.addEventListener(ev,e=>{if(!solidGroupDrag56)return;solidGroupDrag56=null;saveMarkupToRoom();autosave();window.drawMarkupCanvas?.();e.preventDefault();e.stopImmediatePropagation()},true));
+
+  // ---------- Precise rotation/perspective controls: minus, slider, plus, reset ----------
+  function upgradeRange56(id,min,max,unit){
+    const input=document.getElementById(id);if(!input||input.dataset.final56)return;input.dataset.final56='1';input.min=min;input.max=max;input.step=1;
+    const parent=input.parentElement,label=parent.querySelector('label');
+    const line=document.createElement('div');line.className='p56-range-line';input.replaceWith(line);line.innerHTML='<button class="p56-range-step" type="button">−</button><span></span><button class="p56-range-step" type="button">＋</button>';line.children[1].appendChild(input);
+    const change=delta=>{input.value=Math.max(Number(input.min),Math.min(Number(input.max),Number(input.value)+delta));input.dispatchEvent(new Event('input',{bubbles:true}))};
+    line.children[0].onclick=()=>change(-1);line.children[2].onclick=()=>change(1);
+    let timer=null;[line.children[0],line.children[2]].forEach((b,i)=>{b.addEventListener('pointerdown',()=>{timer=setInterval(()=>change(i?-1*-1:-1),120)});['pointerup','pointerleave','pointercancel'].forEach(ev=>b.addEventListener(ev,()=>{clearInterval(timer);timer=null}))});
+    const reset=document.createElement('button');reset.type='button';reset.className='p56-range-reset';reset.textContent=`↺ Скинути ${unit} до 0`;reset.onclick=()=>{input.value=0;input.dispatchEvent(new Event('input',{bubbles:true}))};parent.appendChild(reset);
+    if(label)label.title=`Діапазон ${min}…${max}`;
+  }
+  upgradeRange56('tplAngle56',-180,180,'поворот');
+  upgradeRange56('tplPerspective56',-150,150,'перспективу');
+
+  // Refresh background and galleries after all older scripts finish.
+  setTimeout(()=>{
+    const c=document.getElementById('markupCanvas');if(c){c.style.backgroundColor='transparent';c.style.backgroundImage=uploadedImageBase64?`url("${uploadedImageBase64}")`:'none'}
+    syncAIPhotoGrid56();
+  },250);
+})();
+</script>
+
 </body>
 </html>
+
+
+
+
+
+
+
+
 
 
 
