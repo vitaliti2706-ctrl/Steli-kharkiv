@@ -1323,9 +1323,26 @@ generateAI=async function(){
  if(!uploadedImageBase64){alert('Спочатку завантажте фото кімнати.');return}
  loader.style.display='block';apiError.style.display='none';
  const options=AI_OPTIONS.filter(o=>document.getElementById('ai_'+o.id)?.checked).map(o=>o.name);
- const annotated=markupItems.length?markupCanvas.toDataURL('image/jpeg',.78):uploadedImageBase64;
+ const annotated=markupItems.length?markupCanvas.toDataURL('image/jpeg',.86):uploadedImageBase64;
  const markup=markupItems.map(it=>({type:it.type,x:+(it.x/markupCanvas.width).toFixed(4),y:+(it.y/markupCanvas.height).toFixed(4),x2:it.x2==null?null:+(it.x2/markupCanvas.width).toFixed(4),y2:it.y2==null?null:+(it.y2/markupCanvas.height).toFixed(4)}));
- try{const response=await fetch('/api/ai-ceiling',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({imageBase64:uploadedImageBase64,annotatedImageBase64:annotated,markup,manufacturer:selectedColor.manufacturer,color:selectedColor.name,colorHex:selectedColor.hex,material:selectedTexture,options,customRequest:customPrompt.value.trim(),instruction:'Зберегти геометрію кімнати. Реалізувати всі позначені елементи точно у вказаних місцях. Номери та кольорові лінії є службовою розміткою і не повинні залишитися у фінальному зображенні. Змінювати лише стелю та вибрані елементи.'})});const data=await response.json().catch(()=>({}));if(!response.ok)throw new Error(data.error||'API '+response.status);if(!data.image)throw new Error('API не повернув поле image');resultImageWrap.innerHTML=`<img src="${data.image}" alt="AI result">`;downloadBtn.href=data.image;syncActiveRoomFromUI(false);autosave()}catch(e){apiError.textContent='AI не запущено: '+e.message+'. Розмітка збережена. Серверний /api/ai-ceiling повинен приймати поля annotatedImageBase64 і markup.';apiError.style.display='block'}finally{loader.style.display='none'}
+ const markupNames={spot:'точковий світильник',chandelier:'люстра',track:'чорний магнітний трек',surfaceTrack:'накладний трек',lightline:'світлова лінія',cornice:'вбудований карниз',floating:'парящий профіль',shadow:'тіньовий профіль'};
+ const markupText=markupItems.map((it,i)=>`${i+1}. ${markupNames[it.type]||it.type}`).join('; ');
+ const userRequest=[customPrompt.value.trim(),markupText?`Розмітка на фото: ${markupText}. Розташувати елементи точно по намальованих лініях і точках.`:''].filter(Boolean).join(' ');
+ try{const response=await fetch('/api/ai-ceiling',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
+   // Старий сервер читає imageBase64, тому при наявності розмітки
+   // передаємо в нього саме анотоване фото.
+   imageBase64:annotated,
+   originalImageBase64:uploadedImageBase64,
+   annotatedImageBase64:annotated,
+   markup,
+   manufacturer:selectedColor.manufacturer,
+   color:selectedColor.name,
+   colorHex:selectedColor.hex,
+   material:selectedTexture,
+   options,
+   customRequest:userRequest,
+   instruction:'Вхідне фото може містити службову кольорову розмітку. Реалізувати всі позначені елементи точно по намальованих лініях і точках. Чорні лінії означають магнітні треки. Жовті лінії означають світлові лінії. Номери, маркери, підписи та кольорові службові лінії прибрати з фінального зображення. Зберегти геометрію кімнати, стіни, підлогу, двері та перспективу. Змінювати лише стелю та вибрані елементи.'
+ })});const data=await response.json().catch(()=>({}));if(!response.ok)throw new Error(data.error||'API '+response.status);if(!data.image)throw new Error('API не повернув поле image');resultImageWrap.innerHTML=`<img src="${data.image}" alt="AI result">`;downloadBtn.href=data.image;syncActiveRoomFromUI(false);autosave()}catch(e){apiError.textContent='AI не запущено: '+e.message+'. Розмітка збережена. Серверний /api/ai-ceiling повинен приймати поля annotatedImageBase64 і markup.';apiError.style.display='block'}finally{loader.style.display='none'}
 };
 
 // IndexedDB archive: history no longer disappears when localStorage is full
@@ -2850,6 +2867,39 @@ loadMarkupFromRoom();drawMarkupCanvas();renderHistory();
 
 </body>
 </html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
