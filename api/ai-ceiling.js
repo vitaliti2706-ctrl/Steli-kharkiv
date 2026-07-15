@@ -44,6 +44,40 @@ function inc(map, key) {
   map.set(key, getCount(map, key) + 1);
 }
 
+function markupName(type) {
+  const names = {
+    spot: "recessed spot light",
+    chandelier: "chandelier",
+    track: "black recessed magnetic track",
+    surfaceTrack: "surface-mounted track",
+    lightline: "linear LED light line",
+    cornice: "hidden curtain cornice",
+    floating: "floating ceiling profile with LED glow",
+    shadow: "black shadow-gap ceiling profile",
+  };
+  return names[type] || type || "ceiling element";
+}
+
+function buildMarkupText(markup) {
+  if (!Array.isArray(markup) || !markup.length) return "";
+
+  return markup
+    .map((item, index) => {
+      const start =
+        Number.isFinite(Number(item.x)) && Number.isFinite(Number(item.y))
+          ? `start at normalized position (${Number(item.x).toFixed(3)}, ${Number(item.y).toFixed(3)})`
+          : "";
+
+      const end =
+        Number.isFinite(Number(item.x2)) && Number.isFinite(Number(item.y2))
+          ? `end at normalized position (${Number(item.x2).toFixed(3)}, ${Number(item.y2).toFixed(3)})`
+          : "";
+
+      return `${index + 1}. ${markupName(item.type)}${start ? `, ${start}` : ""}${end ? `, ${end}` : ""}`;
+    })
+    .join("\n");
+}
+
 export default async function handler(req, res) {
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Only POST allowed" });
@@ -52,13 +86,29 @@ export default async function handler(req, res) {
   try {
     const {
       imageBase64,
+      annotatedImageBase64,
+      originalImageBase64,
       phone,
+      manufacturer,
       color,
+      colorHex,
       material,
+      options = [],
+      customRequest = "",
+      instruction = "",
+      markup = [],
+
+      // Старые параметры оставлены для совместимости
       keepLight,
       shadowProfile,
       ledLine,
     } = req.body || {};
+
+    // При наличии разметки используем именно размеченное фото.
+    const sourceImage =
+      annotatedImageBase64 ||
+      imageBase64 ||
+      originalImageBase64;
 
     const ip = getClientIp(req);
     const day = todayKey();
@@ -80,7 +130,8 @@ export default async function handler(req, res) {
 
     if (getCount(limits.ip, ipKey) >= IP_LIMIT) {
       return res.status(429).json({
-        error: "Ліміт AI-візуалізацій з цього пристрою на сьогодні вичерпано. Напишіть нам у Telegram.",
+        error:
+          "Ліміт AI-візуалізацій з цього пристрою на сьогодні вичерпано. Напишіть нам у Telegram.",
       });
     }
 
@@ -90,23 +141,24 @@ export default async function handler(req, res) {
           error: "Для додаткових AI-візуалізацій введіть номер телефону.",
         });
       }
-    } else {
-      if (getCount(limits.phone, phoneKey) >= PHONE_LIMIT) {
-        return res.status(429).json({
-          error: "Ви використали безкоштовний ліміт AI-візуалізацій. Напишіть нам у Telegram для консультації.",
-        });
-      }
+    } else if (getCount(limits.phone, phoneKey) >= PHONE_LIMIT) {
+      return res.status(429).json({
+        error:
+          "Ви використали безкоштовний ліміт AI-візуалізацій. Напишіть нам у Telegram для консультації.",
+      });
     }
 
-    if (!imageBase64) {
+    if (!sourceImage) {
       return res.status(400).json({ error: "Фото не отримано" });
     }
 
     if (!process.env.OPENAI_API_KEY) {
-      return res.status(500).json({ error: "OPENAI_API_KEY не додано у Vercel" });
+      return res
+        .status(500)
+        .json({ error: "OPENAI_API_KEY не додано у Vercel" });
     }
 
-    const match = imageBase64.match(/^data:(image\/\w+);base64,(.+)$/);
+    const match = sourceImage.match(/^data:(image\/[\w.+-]+);base64,(.+)$/);
 
     if (!match) {
       return res.status(400).json({ error: "Невірний формат фото" });
@@ -125,32 +177,66 @@ export default async function handler(req, res) {
     const base64Data = match[2];
     const imageBuffer = Buffer.from(base64Data, "base64");
 
-    let extras = "";
+    const selectedOptions = Array.isArray(options)
+      ? options.filter(Boolean).join(", ")
+      : String(options || "");
 
+    const markupText = buildMarkupText(markup);
+
+    let legacyExtras = "";
     if (keepLight) {
-      extras += "Keep existing chandelier, lamps and lighting fixtures unchanged. ";
+      legacyExtras +=
+        "Keep the existing chandelier, lamps and lighting fixtures unchanged.\n";
     }
-
     if (shadowProfile) {
-      extras += "Add a clean black shadow profile around the ceiling perimeter. ";
+      legacyExtras +=
+        "Add a clean black shadow profile around the ceiling perimeter.\n";
     }
-
     if (ledLine) {
-      extras += "Add soft warm LED ambient lighting around the ceiling perimeter. ";
+      legacyExtras +=
+        "Add soft warm LED ambient lighting around the ceiling perimeter.\n";
     }
 
     const prompt = `
-Edit this real room photo.
-Replace ONLY the ceiling with a ${color} ${material} stretch ceiling.
-Keep walls, floor, doors, windows, furniture and room geometry exactly the same.
-Do not redesign the room.
-Do not change perspective.
-Do not change wall color.
-Do not change floor color.
-Do not remove or add furniture.
-Make the result photorealistic, clean and natural.
-${extras}
-`;
+Edit this real room photo as a professional stretch-ceiling visualization.
+
+CEILING MATERIAL:
+- Manufacturer: ${manufacturer || "not specified"}
+- Color: ${color || "white"}
+- Color reference: ${colorHex || "not specified"}
+- Texture: ${material || "matte"}
+
+STRICT ROOM PRESERVATION:
+- Keep the walls, floor, doors, windows, furniture and room geometry unchanged.
+- Keep the original camera viewpoint and perspective.
+- Do not redesign the room.
+- Modify only the ceiling and requested ceiling elements.
+
+MARKUP RULES:
+- The input image may contain dark or colored guide lines, numbered labels and round handles.
+- These markings are instructions, not final decoration.
+- Convert every marked line into the requested real ceiling element at the same position, angle, length and perspective.
+- Remove all guide lines, numbers, labels, circles and handles from the final image.
+- Do not ignore the markup.
+
+MARKED ELEMENTS:
+${markupText || "No drawn markup was provided."}
+
+SELECTED OPTIONS:
+${selectedOptions || "No additional checkbox options selected."}
+
+CUSTOM REQUEST:
+${customRequest || "No additional request."}
+
+ADDITIONAL INSTRUCTION:
+${instruction || "Create a photorealistic result."}
+
+${legacyExtras}
+
+IMPORTANT:
+If the photo contains a trapezoid, square, L-shape, U-shape or parallel lines drawn on the ceiling, reproduce that exact arrangement as real ceiling tracks or light lines. Do not replace it with a plain empty ceiling.
+Make the result photorealistic, clean and suitable for showing a client.
+`.trim();
 
     const formData = new FormData();
 
@@ -198,7 +284,6 @@ ${extras}
         ? Math.max(0, PHONE_LIMIT - getCount(limits.phone, phoneKey))
         : 0,
     });
-
   } catch (error) {
     return res.status(500).json({
       error: "Помилка сервера",
@@ -206,3 +291,4 @@ ${extras}
     });
   }
 }
+
