@@ -145,6 +145,24 @@ th:nth-child(2),th:nth-child(3),th:nth-child(4),td:nth-child(2),td:nth-child(3),
 .legend-dot{width:11px;height:11px;border-radius:50%;display:inline-block;border:1px solid #94a3b8}
 .legend-h{background:#075bff}.legend-p{background:#a16207}.legend-white{background:#fff}.legend-black{background:#111827}.legend-led{background:#facc15}.legend-track{background:#7c3aed}
 
+
+.points-plan-grid{display:grid;grid-template-columns:1fr;gap:10px}
+.mini-plan-card{border:1px solid #bfdbfe;background:#fff;border-radius:12px;padding:8px;position:sticky;top:58px}
+.mini-plan-head{display:flex;justify-content:space-between;align-items:center;font-size:9px;color:#334155;margin-bottom:6px}
+#plannerMiniSvg{width:100%;height:250px;display:block;border:1px solid #e5e7eb;border-radius:10px;background:repeating-linear-gradient(0deg,#f8fafc,#f8fafc 19px,#edf2f7 20px),repeating-linear-gradient(90deg,transparent,transparent 19px,#edf2f7 20px)}
+.plan-transform-controls{margin-top:8px}
+.plan-transform-controls label{display:flex;justify-content:space-between;font-size:9px;font-weight:900;color:#334155}
+.plan-transform-controls input[type=range]{width:100%;margin:8px 0;accent-color:#075bff}
+.compact-segments{grid-template-columns:1fr 1fr;gap:7px}
+.compact-segments .segment-row{grid-template-columns:52px 1fr 20px;gap:5px}
+.compact-segments .segment-name{padding:9px 4px;font-size:10px}
+.compact-segments .segment-row input{padding:9px 6px}
+@media(min-width:760px){
+  .points-plan-grid{grid-template-columns:1fr}
+  #plannerMiniSvg{height:220px}
+  .mini-plan-card{position:static}
+}
+
 </style>
 </head>
 <body>
@@ -305,7 +323,27 @@ th:nth-child(2),th:nth-child(3),th:nth-child(4),td:nth-child(2),td:nth-child(3),
 </div>
 <div class="btn-row mt"><button class="btn outline" type="button" onclick="addContourPoint()">＋ Точка</button><button class="btn outline" type="button" onclick="removeContourPoint()">− Точка</button></div>
 <div class="planner-hint">Для прямокутної та Г-подібної кімнати розрахунок точний. Для довільної форми задайте кількість кутів, пересуньте точки за реальною формою і внесіть довжини стін. Для максимально точної площі складної кімнати пізніше додамо діагоналі.</div></div>
-<div class="block"><div class="block-head"><h3>Довжини між точками</h3><span class="tag">метри</span></div><div id="segmentInputs" class="segment-list"></div><div id="closureStatus" class="planner-hint"></div></div>
+<div class="block planner-points-block"><div class="block-head"><h3>Довжини між точками</h3><span class="tag">метри</span></div>
+<div class="points-plan-grid">
+  <div>
+    <div id="segmentInputs" class="segment-list compact-segments"></div>
+    <div id="closureStatus" class="planner-hint"></div>
+  </div>
+  <div class="mini-plan-card">
+    <div class="mini-plan-head"><b>План поруч із точками</b><span id="miniPlanAngleLabel">0°</span></div>
+    <svg id="plannerMiniSvg" viewBox="0 0 800 600"><g id="miniRoomLayer"></g><g id="miniObjectLayer"></g><g id="miniNodeLayer"></g></svg>
+    <div class="plan-transform-controls">
+      <label>Поворот кімнати <span id="rotatePlanValue">0°</span></label>
+      <input id="rotatePlanRange" type="range" min="-180" max="180" step="1" value="0" oninput="rotatePlannerTo(this.value)">
+      <div class="btn-row">
+        <button class="btn outline" type="button" onclick="mirrorPlanner('x')">↔ Дзеркально</button>
+        <button class="btn outline" type="button" onclick="mirrorPlanner('y')">↕ Перевернути</button>
+        <button class="btn outline" type="button" onclick="resetPlannerTransform()">⟳ Скинути</button>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
 <div class="block"><div class="block-head"><h3>Елементи плану</h3><span class="tag">вигляд зверху</span></div>
 <div class="planner-tools-title">Отвори та технічні точки</div>
 <div class="planner-toolbar wide">
@@ -3348,8 +3386,255 @@ setTimeout(()=>{
 },0);
 </script>
 
+
+<script>
+/* ================= PIXEL 6.2 COMPACT PLANNER ================= */
+let plannerRotation62=0;
+
+function plannerCenter62(){
+  if(!roomPoints.length)return [400,300];
+  const xs=roomPoints.map(p=>p[0]),ys=roomPoints.map(p=>p[1]);
+  return [(Math.min(...xs)+Math.max(...xs))/2,(Math.min(...ys)+Math.max(...ys))/2];
+}
+function rotatePoint62(x,y,cx,cy,deg){
+  const a=deg*Math.PI/180,dx=x-cx,dy=y-cy;
+  return [cx+dx*Math.cos(a)-dy*Math.sin(a),cy+dx*Math.sin(a)+dy*Math.cos(a)];
+}
+function rotatePlannerTo(value){
+  const target=Number(value)||0,delta=target-plannerRotation62;
+  if(!delta){syncPlannerTransformLabels62();return}
+  const [cx,cy]=plannerCenter62();
+  roomPoints=roomPoints.map(([x,y])=>rotatePoint62(x,y,cx,cy,delta));
+  plannerObjects=plannerObjects.map(o=>{
+    const [x,y]=rotatePoint62(o.x,o.y,cx,cy,delta);
+    return {...o,x,y,rotation:(Number(o.rotation)||0)+delta};
+  });
+  plannerRotation62=target;
+  syncPlannerTransformLabels62();
+  renderPlanner();syncActiveRoomFromUI(false);autosave();
+}
+function mirrorPlanner(axis){
+  if(!roomPoints.length)return;
+  pushPlanner();
+  const [cx,cy]=plannerCenter62();
+  roomPoints=roomPoints.map(([x,y])=>axis==='x'?[2*cx-x,y]:[x,2*cy-y]);
+  plannerObjects=plannerObjects.map(o=>({
+    ...o,
+    x:axis==='x'?2*cx-o.x:o.x,
+    y:axis==='y'?2*cy-o.y:o.y,
+    rotation:axis==='x'?180-(Number(o.rotation)||0):-(Number(o.rotation)||0)
+  }));
+  renderPlanner();syncActiveRoomFromUI(false);autosave();
+}
+function resetPlannerTransform(){
+  const delta=-plannerRotation62;
+  if(delta){
+    const [cx,cy]=plannerCenter62();
+    roomPoints=roomPoints.map(([x,y])=>rotatePoint62(x,y,cx,cy,delta));
+    plannerObjects=plannerObjects.map(o=>{
+      const [x,y]=rotatePoint62(o.x,o.y,cx,cy,delta);
+      return {...o,x,y,rotation:(Number(o.rotation)||0)+delta};
+    });
+  }
+  plannerRotation62=0;
+  if(document.getElementById('rotatePlanRange'))rotatePlanRange.value=0;
+  syncPlannerTransformLabels62();renderPlanner();syncActiveRoomFromUI(false);autosave();
+}
+function syncPlannerTransformLabels62(){
+  const v=Math.round(plannerRotation62)+'°';
+  if(document.getElementById('rotatePlanValue'))rotatePlanValue.textContent=v;
+  if(document.getElementById('miniPlanAngleLabel'))miniPlanAngleLabel.textContent=v;
+  if(document.getElementById('rotatePlanRange'))rotatePlanRange.value=Math.round(plannerRotation62);
+}
+function syncMiniPlanner62(){
+  const mini=document.getElementById('plannerMiniSvg');if(!mini)return;
+  const main=document.getElementById('plannerSvg');if(!main)return;
+  const view=main.getAttribute('viewBox')||'0 0 800 600';
+  mini.setAttribute('viewBox',view);
+  const pairs=[['roomLayer','miniRoomLayer'],['objectLayer','miniObjectLayer'],['nodeLayer','miniNodeLayer']];
+  pairs.forEach(([srcId,dstId])=>{
+    const s=document.getElementById(srcId),d=document.getElementById(dstId);
+    if(!s||!d)return;
+    d.innerHTML=s.innerHTML;
+    d.querySelectorAll('*').forEach(el=>{
+      el.style.pointerEvents='none';
+      el.removeAttribute('tabindex');
+    });
+  });
+  syncPlannerTransformLabels62();
+}
+
+const _renderPlanner62=renderPlanner;
+renderPlanner=function(){
+  _renderPlanner62();
+  requestAnimationFrame(syncMiniPlanner62);
+};
+
+const _captureCurrentRoom62=captureCurrentRoom;
+captureCurrentRoom=function(){
+  const r=_captureCurrentRoom62();
+  r.plannerRotation=plannerRotation62;
+  return r;
+};
+
+const _restoreRoom62=restoreRoom;
+restoreRoom=function(room){
+  plannerRotation62=Number(room?.plannerRotation)||0;
+  _restoreRoom62(room);
+  syncPlannerTransformLabels62();
+  setTimeout(syncMiniPlanner62,0);
+};
+
+const _resetRoomWorkspace62=resetRoomWorkspace;
+resetRoomWorkspace=function(name='Нова кімната'){
+  plannerRotation62=0;
+  _resetRoomWorkspace62(name);
+  syncPlannerTransformLabels62();
+};
+
+setTimeout(()=>{syncPlannerTransformLabels62();syncMiniPlanner62()},50);
+</script>
+
 </body>
 </html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
