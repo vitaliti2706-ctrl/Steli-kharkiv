@@ -133,6 +133,18 @@ th:nth-child(2),th:nth-child(3),th:nth-child(4),td:nth-child(2),td:nth-child(3),
 .profile-img.has-custom:after{content:'Власне фото';position:absolute;right:5px;bottom:5px;background:rgba(7,20,40,.8);color:#fff;border-radius:999px;padding:3px 6px;font-size:7px}
 .history-status{font-size:9px;color:#64748b;margin-bottom:8px}
 @media(min-width:760px){.markup-tools{grid-template-columns:repeat(4,1fr)}}
+
+.room-materials-panel{border:1px solid #bfdbfe;background:#f8fbff;border-radius:13px;padding:11px}
+.room-materials-summary{display:grid;gap:7px}
+.material-row{display:grid;grid-template-columns:12px 1fr auto;gap:8px;align-items:center;background:#fff;border:1px solid #e5e7eb;border-radius:9px;padding:8px}
+.material-row i{width:10px;height:10px;border-radius:50%;display:block;border:1px solid rgba(15,23,42,.2)}
+.material-row b{display:block;font-size:10px}.material-row span{display:block;font-size:8px;color:#64748b;margin-top:2px}
+.material-row strong{font-size:9px;color:#075bff;text-align:right}
+.materials-legend{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:9px;font-size:8px;color:#475569}
+.materials-legend div{display:flex;align-items:center;gap:6px}
+.legend-dot{width:11px;height:11px;border-radius:50%;display:inline-block;border:1px solid #94a3b8}
+.legend-h{background:#075bff}.legend-p{background:#a16207}.legend-white{background:#fff}.legend-black{background:#111827}.legend-led{background:#facc15}.legend-track{background:#7c3aed}
+
 </style>
 </head>
 <body>
@@ -264,8 +276,12 @@ th:nth-child(2),th:nth-child(3),th:nth-child(4),td:nth-child(2),td:nth-child(3),
 <div class="field"><label>Кути, шт</label><input id="cornersCount" type="number" value="4" oninput="recalc();autosave()"></div>
 <div class="field"><label>Люстри, шт</label><input id="chandelierCount" type="number" value="1" oninput="recalc();autosave()"></div>
 <div class="field"><label>Виробник полотна</label><select id="calcManufacturer" onchange="recalc();autosave()"><option>MSD Premium</option><option>MSD Classic</option><option>MSD Premium Exclusive</option><option>BAUF</option><option>Pongs</option><option>Teqtum</option><option>Descor</option><option>Інший</option></select></div>
-<div class="field"><label>Фактура полотна</label><select id="calcTexture" onchange="recalc();autosave()"><option value="matte">Матове — 500 грн/м²</option><option value="satin">Сатин — 550 грн/м²</option><option value="glossy">Лак / глянець — 600 грн/м²</option></select></div>
-</div></div>
+<div class="field"><label>Фактура полотна</label><select id="calcTexture" onchange="syncCeilingPackage()"><option value="matte">Матове — 500 грн/м²</option><option value="satin">Сатин — 550 грн/м²</option><option value="glossy">Лак / глянець — 600 грн/м²</option></select></div>
+<div class="field"><label>Основний профіль</label><select id="calcBaseProfile" onchange="syncCeilingPackage()"><option value="h">Алюмінієвий H-подібний</option><option value="p">Алюмінієвий П-подібний</option></select></div>
+<div class="field"><label>Декоративна вставка</label><select id="calcInsert" onchange="syncCeilingPackage()"><option value="none">Без вставки</option><option value="white">Біла — 50 грн/м.п.</option><option value="black">Чорна — 50 грн/м.п.</option></select></div>
+</div>
+<div class="planner-hint">Базова ціна включає полотно, алюмінієвий H- або П-подібний профіль і монтаж. Декоративна вставка рахується окремо.</div>
+</div>
 <div class="block"><div class="block-head"><h3>Профілі та конструкції</h3><span class="tag">з фото</span></div><div id="profileCards" class="profile-grid"></div></div>
 <div class="block"><div class="block-head"><h3>Додаткові позиції</h3></div><div id="calcOptions" class="option-grid"></div></div>
 <div class="price-box"><span>Орієнтовна вартість</span><b id="priceValue">0 грн</b><div id="priceDetails" class="price-detail"></div></div>
@@ -336,6 +352,20 @@ th:nth-child(2),th:nth-child(3),th:nth-child(4),td:nth-child(2),td:nth-child(3),
   </div>
   <div class="inspector-actions"><button class="btn outline" type="button" onclick="duplicateSelectedObject()">⧉ Копіювати</button><button class="btn danger" type="button" onclick="deleteSelectedObject()">🗑 Видалити</button></div>
 </div>
+</div>
+<div class="block room-materials-panel">
+<div class="block-head"><h3>Матеріали поточної кімнати</h3><span class="tag">комплект</span></div>
+<div id="roomMaterialsSummary" class="room-materials-summary"></div>
+<div class="materials-legend">
+  <div><i class="legend-dot legend-h"></i> H-профіль</div>
+  <div><i class="legend-dot legend-p"></i> П-профіль</div>
+  <div><i class="legend-dot legend-white"></i> Біла вставка</div>
+  <div><i class="legend-dot legend-black"></i> Чорна вставка</div>
+  <div><i class="legend-dot legend-led"></i> LED / світлова лінія</div>
+  <div><i class="legend-dot legend-track"></i> Магнітний трек</div>
+</div>
+<button class="btn blue btn-full mt" type="button" onclick="bindPackageToPerimeter()">↔ Прив’язати комплект до периметра</button>
+<div class="plan-note">Основний профіль позначається кольором контуру кімнати. Вставка — додатковою лінією по периметру.</div>
 </div>
 <div class="btn-row"><button class="btn outline" onclick="undoPlanner()">↶ Скасувати останню</button><button class="btn outline" onclick="redoPlanner()">↷ Повернути</button><button class="btn danger" onclick="clearPlanner()">🗑 Очистити план</button></div>
 <div class="planner-info mt"><div class="metric"><span>Площа</span><b id="plannerArea">0 м²</b></div><div class="metric"><span>Периметр</span><b id="plannerPerimeter">0 м</b></div></div>
@@ -3131,8 +3161,333 @@ loadMarkupFromRoom();drawMarkupCanvas();renderHistory();
 })();
 </script>
 
+
+<script>
+/* ================= PIXEL 6.1 CEILING PACKAGE ================= */
+function baseProfileLabel(){
+  return document.getElementById('calcBaseProfile')?.value==='p'
+    ? 'Алюмінієвий П-подібний'
+    : 'Алюмінієвий H-подібний';
+}
+function insertPackageLabel(){
+  const v=document.getElementById('calcInsert')?.value||'none';
+  return v==='white'?'Декоративна вставка біла':v==='black'?'Декоративна вставка чорна':'Без вставки';
+}
+function syncCeilingPackage(){
+  const insert=document.getElementById('calcInsert')?.value||'none';
+  ['White','Black'].forEach(t=>{
+    const id='insert'+t;
+    const check=document.getElementById('check_'+id);
+    const fields=document.getElementById('fields_'+id);
+    const qty=document.getElementById('qty_'+id);
+    const active=(insert==='white'&&t==='White')||(insert==='black'&&t==='Black');
+    if(check)check.checked=active;
+    if(fields)fields.classList.toggle('hidden',!active);
+    if(qty&&active)qty.value=num('perimeter');
+  });
+  recalc();
+  renderRoomMaterials();
+  renderPlanner();
+}
+function bindPackageToPerimeter(){
+  const p=num('perimeter')||polygonMetrics().perimeter||0;
+  if(!p)return alert('Спочатку задайте периметр кімнати.');
+  perimeter.value=Number(p).toFixed(2);
+  const insert=document.getElementById('calcInsert')?.value||'none';
+  if(insert!=='none'){
+    const id=insert==='white'?'insertWhite':'insertBlack';
+    const check=document.getElementById('check_'+id);
+    const fields=document.getElementById('fields_'+id);
+    const qty=document.getElementById('qty_'+id);
+    if(check)check.checked=true;
+    if(fields)fields.classList.remove('hidden');
+    if(qty)qty.value=Number(p).toFixed(2);
+  }
+  recalc();syncActiveRoomFromUI(false);renderRoomMaterials();renderPlanner();autosave();
+  alert('Основний профіль і вибрана вставка прив’язані до периметра кімнати.');
+}
+
+const _currentRows61=currentRows;
+currentRows=function(){
+  const rows=_currentRows61();
+  const base=rows.find(r=>r.id==='base');
+  if(base){
+    base.name=`Комплект: ${calcManufacturerLabel()} — ${calcTextureLabel()} — ${baseProfileLabel()}`;
+    base.note='Полотно, алюмінієвий профіль і монтаж';
+  }
+  return rows;
+};
+
+const _captureCurrentRoom61=captureCurrentRoom;
+captureCurrentRoom=function(){
+  const r=_captureCurrentRoom61();
+  r.baseProfile=document.getElementById('calcBaseProfile')?.value||'h';
+  r.insertPackage=document.getElementById('calcInsert')?.value||'none';
+  return r;
+};
+
+const _restoreRoom61=restoreRoom;
+restoreRoom=function(room){
+  _restoreRoom61(room);
+  if(document.getElementById('calcBaseProfile'))calcBaseProfile.value=room?.baseProfile||'h';
+  if(document.getElementById('calcInsert'))calcInsert.value=room?.insertPackage||inferInsertFromRoom(room);
+  syncCeilingPackage();
+  renderRoomMaterials();
+};
+
+function inferInsertFromRoom(room){
+  if(room?.extras?.checked?.insertBlack)return'black';
+  if(room?.extras?.checked?.insertWhite)return'white';
+  return'none';
+}
+
+const _resetRoomWorkspace61=resetRoomWorkspace;
+resetRoomWorkspace=function(name='Нова кімната'){
+  _resetRoomWorkspace61(name);
+  if(document.getElementById('calcBaseProfile'))calcBaseProfile.value='h';
+  if(document.getElementById('calcInsert'))calcInsert.value='none';
+  renderRoomMaterials();
+};
+
+function plannerMaterialTotals(){
+  const totals={};
+  plannerObjects.forEach(o=>{
+    const key=o.type;
+    if(!totals[key])totals[key]={count:0,length:0};
+    totals[key].count++;
+    totals[key].length+=Number(o.length)||0;
+  });
+  return totals;
+}
+function materialRow(color,title,subtitle,value=''){
+  return `<div class="material-row"><i style="background:${color}"></i><div><b>${title}</b><span>${subtitle}</span></div><strong>${value}</strong></div>`;
+}
+function renderRoomMaterials(){
+  const box=document.getElementById('roomMaterialsSummary');if(!box)return;
+  const totals=plannerMaterialTotals();
+  const insert=document.getElementById('calcInsert')?.value||'none';
+  const profile=document.getElementById('calcBaseProfile')?.value||'h';
+  const perimeter=num('perimeter')||polygonMetrics().perimeter||0;
+  const rows=[
+    materialRow('#dbeafe',`Полотно ${calcManufacturerLabel()}`,`${calcTextureLabel()} • ${money(calcTexturePrice())}/м²`,`${num('area').toFixed(2)} м²`),
+    materialRow(profile==='p'?'#a16207':'#075bff',baseProfileLabel(),'Входить у базову вартість',`${Number(perimeter).toFixed(2)} м`),
+    materialRow(insert==='black'?'#111827':'#ffffff',insertPackageLabel(),insert==='none'?'Не вибрано':'50 грн/м.п.',insert==='none'?'—':`${Number(perimeter).toFixed(2)} м`)
+  ];
+  const map=[
+    ['shadowProfile','#111827','Тіньовий профіль'],
+    ['floatingWhite','#38bdf8','Парящий профіль білий'],
+    ['floatingBlack','#0f172a','Парящий профіль чорний'],
+    ['corniceWhite','#f8fafc','Карниз білий'],
+    ['corniceBlack','#111827','Карниз чорний'],
+    ['corniceLed','#f59e0b','Карниз LED'],
+    ['lightline','#facc15','Світлова лінія'],
+    ['track','#7c3aed','Магнітний трек'],
+    ['surfaceTrack','#64748b','Накладний трек'],
+    ['light','#ef4444','Світильники'],
+    ['chandelier','#ec4899','Люстри']
+  ];
+  map.forEach(([type,color,title])=>{
+    const x=totals[type];if(!x)return;
+    const val=['light','chandelier'].includes(type)?`${x.count} шт`:`${x.length.toFixed(2)} м`;
+    rows.push(materialRow(color,title,'Додано на план',val));
+  });
+  box.innerHTML=rows.join('');
+}
+
+const _renderPlanner61=renderPlanner;
+renderPlanner=function(){
+  _renderPlanner61();
+  const polygon=roomLayer.querySelector('polygon');
+  if(polygon){
+    const profile=document.getElementById('calcBaseProfile')?.value||'h';
+    polygon.setAttribute('stroke',profile==='p'?'#a16207':'#075bff');
+    polygon.setAttribute('stroke-width','5');
+    const insert=document.getElementById('calcInsert')?.value||'none';
+    if(insert!=='none'){
+      const overlay=polygon.cloneNode(false);
+      overlay.setAttribute('fill','none');
+      overlay.setAttribute('stroke',insert==='black'?'#111827':'#ffffff');
+      overlay.setAttribute('stroke-width','10');
+      overlay.setAttribute('stroke-dasharray','14 8');
+      overlay.setAttribute('stroke-linecap','round');
+      overlay.style.pointerEvents='none';
+      roomLayer.insertBefore(overlay,polygon.nextSibling);
+    }
+  }
+  renderRoomMaterials();
+};
+
+const _applyPlannerToCalc61=applyPlannerToCalc;
+applyPlannerToCalc=function(){
+  _applyPlannerToCalc61();
+  setTimeout(()=>{syncCeilingPackage();renderRoomMaterials()},0);
+};
+
+const _toggleExtra61=toggleExtra;
+toggleExtra=function(id){
+  _toggleExtra61(id);
+  if(id==='insertWhite'&&document.getElementById('check_insertWhite')?.checked){
+    if(document.getElementById('check_insertBlack'))check_insertBlack.checked=false;
+    if(document.getElementById('fields_insertBlack'))fields_insertBlack.classList.add('hidden');
+    if(document.getElementById('calcInsert'))calcInsert.value='white';
+  }else if(id==='insertBlack'&&document.getElementById('check_insertBlack')?.checked){
+    if(document.getElementById('check_insertWhite'))check_insertWhite.checked=false;
+    if(document.getElementById('fields_insertWhite'))fields_insertWhite.classList.add('hidden');
+    if(document.getElementById('calcInsert'))calcInsert.value='black';
+  }else if((id==='insertWhite'||id==='insertBlack')&&!document.getElementById('check_insertWhite')?.checked&&!document.getElementById('check_insertBlack')?.checked){
+    if(document.getElementById('calcInsert'))calcInsert.value='none';
+  }
+  renderRoomMaterials();renderPlanner();
+};
+
+setTimeout(()=>{
+  const room=projectRooms.find(r=>r.id===activeRoomId);
+  if(document.getElementById('calcBaseProfile'))calcBaseProfile.value=room?.baseProfile||'h';
+  if(document.getElementById('calcInsert'))calcInsert.value=room?.insertPackage||inferInsertFromRoom(room);
+  syncCeilingPackage();renderRoomMaterials();renderPlanner();
+},0);
+</script>
+
 </body>
 </html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
