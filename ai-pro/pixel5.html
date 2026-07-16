@@ -4,7 +4,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Potolok AI PRO — Pixel 5.6 FINAL</title>
+<title>Potolok AI PRO — Pixel 6.0 CALC</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth}
@@ -138,7 +138,7 @@ th:nth-child(2),th:nth-child(3),th:nth-child(4),td:nth-child(2),td:nth-child(3),
 <body>
 <header class="header"><div class="wrap nav"><a class="logo" href="../index.html">Potolok<span>.in.ua</span></a><div class="menu"><a href="../index.html">Головна</a><a href="../gallery.html">Наші роботи</a><a href="#app">Pixel 5</a></div><a class="phone" href="tel:+380974546713">097 454 67 13</a><a class="tg-top" href="https://t.me/Potolok_in_ua">Фото в TG</a></div></header>
 
-<section class="hero"><div class="wrap"><div class="hero-box"><div class="hero-badge">✨ POTOLOK AI PRO — PIXEL 5.6 FINAL</div><h1>Замір, AI-візуалізація, калькулятор і кошторис</h1><p>Один інструмент для роботи на замірі: фото, план кімнати, вибір матеріалів, додаткових елементів, детальна смета, PDF і збереження об’єкта.</p><div class="hero-points"><div class="hero-point">📐 План кімнати<span>периметр і площа</span></div><div class="hero-point">🎨 AI-проєкт<span>стеля та освітлення</span></div><div class="hero-point">📄 Кошторис PDF<span>для себе і клієнта</span></div></div></div></div></section>
+<section class="hero"><div class="wrap"><div class="hero-box"><div class="hero-badge">✨ POTOLOK AI PRO — PIXEL 6.0</div><h1>Замір, AI-візуалізація, калькулятор і кошторис</h1><p>Один інструмент для роботи на замірі: фото, план кімнати, вибір матеріалів, додаткових елементів, детальна смета, PDF і збереження об’єкта.</p><div class="hero-points"><div class="hero-point">📐 План кімнати<span>периметр і площа</span></div><div class="hero-point">🎨 AI-проєкт<span>стеля та освітлення</span></div><div class="hero-point">📄 Кошторис PDF<span>для себе і клієнта</span></div></div></div></div></section>
 
 <section id="app" class="app"><div class="wrap">
 <div class="tabs-main">
@@ -250,7 +250,7 @@ th:nth-child(2),th:nth-child(3),th:nth-child(4),td:nth-child(2),td:nth-child(3),
 <div class="spec"><span>♟</span><div><b>Фактура:</b> <span id="specTexture">Матова</span></div></div>
 <div class="spec"><span>💡</span><div><b>Елементи:</b> <span id="specElements">не вибрано</span></div></div>
 </div>
-<div class="btn-row"><a id="downloadBtn" class="btn dark" href="#" download="potolok-ai.png">💾 Зберегти AI-зображення</a><button class="btn green" onclick="sendToTelegram()">📲 Надіслати клієнту</button></div>
+<div class="btn-row"><a id="downloadBtn" class="btn dark" href="#" download="potolok-ai.png">💾 Зберегти AI-зображення</a><button class="btn green" onclick="shareAIToClient()">📲 Надіслати AI клієнту</button></div>
 </main>
 </div>
 </section>
@@ -263,6 +263,8 @@ th:nth-child(2),th:nth-child(3),th:nth-child(4),td:nth-child(2),td:nth-child(3),
 <div class="field"><label>Периметр, м.п.</label><input id="perimeter" type="number" value="18" step="0.1" oninput="recalc();autosave()"></div>
 <div class="field"><label>Кути, шт</label><input id="cornersCount" type="number" value="4" oninput="recalc();autosave()"></div>
 <div class="field"><label>Люстри, шт</label><input id="chandelierCount" type="number" value="1" oninput="recalc();autosave()"></div>
+<div class="field"><label>Виробник полотна</label><select id="calcManufacturer" onchange="recalc();autosave()"><option>MSD Premium</option><option>MSD Classic</option><option>MSD Premium Exclusive</option><option>BAUF</option><option>Pongs</option><option>Teqtum</option><option>Descor</option><option>Інший</option></select></div>
+<div class="field"><label>Фактура полотна</label><select id="calcTexture" onchange="recalc();autosave()"><option value="matte">Матове — 500 грн/м²</option><option value="satin">Сатин — 550 грн/м²</option><option value="glossy">Лак / глянець — 600 грн/м²</option></select></div>
 </div></div>
 <div class="block"><div class="block-head"><h3>Профілі та конструкції</h3><span class="tag">з фото</span></div><div id="profileCards" class="profile-grid"></div></div>
 <div class="block"><div class="block-head"><h3>Додаткові позиції</h3></div><div id="calcOptions" class="option-grid"></div></div>
@@ -270,7 +272,7 @@ th:nth-child(2),th:nth-child(3),th:nth-child(4),td:nth-child(2),td:nth-child(3),
 </aside>
 <main>
 <div class="mini-panel"><h3>Детальна смета</h3><table><thead><tr><th>Позиція</th><th>К-сть</th><th>Ціна</th><th>Сума</th></tr></thead><tbody id="estimateBody"></tbody></table><div id="estimateTotal" class="total-line">Разом: 0 грн</div></div>
-<div class="bottom-grid"><div class="mini-panel"><h3>Підсумок</h3><div id="bottomPrice" class="total-price">0 грн</div><div class="notice">Ціна попередня. Остаточна вартість після заміру.</div><button class="btn blue btn-full mt" onclick="sendToTelegram()">📨 Надіслати кошторис</button></div>
+<div class="bottom-grid"><div class="mini-panel"><h3>Підсумок</h3><div id="bottomPrice" class="total-price">0 грн</div><div class="notice">Ціна попередня. Остаточна вартість після заміру.</div><button class="btn blue btn-full mt" onclick="sendToTelegram()">📨 Надіслати собі в Telegram</button><button class="btn green btn-full mt" onclick="shareEstimateWithClient()">📲 Надіслати клієнту</button><button class="btn outline btn-full mt" onclick="copyEstimateText()">📋 Копіювати кошторис</button></div>
 <div class="mini-panel"><h3>Документи</h3><button class="btn outline btn-full" onclick="downloadPDF()">📄 Зберегти кошторис PDF</button><button class="btn outline btn-full mt" onclick="saveObject()">💾 Зберегти в історію</button></div></div>
 </main>
 </div>
@@ -381,6 +383,10 @@ const EXTRA_ITEMS=[
 {id:'chandelier',name:'Люстра',unit:'шт',price:400,always:true,qty:'chandelierCount'},
 {id:'pipe',name:'Обвід труби',unit:'шт',price:200},
 {id:'corners',name:'Кути',unit:'шт',price:70,always:true,qty:'cornersCount'},
+{id:'cornerWork',name:'Обробка кута',unit:'шт',price:200},
+{id:'cable',name:'Монтаж кабелю',unit:'м.п.',price:50},
+{id:'ledStrip',name:'LED-стрічка',unit:'м.п.',price:200},
+{id:'powerSupply',name:'Блок живлення',unit:'шт',price:300},
 {id:'ventBasic',name:'Вентиляційна решітка',unit:'шт',price:400},
 {id:'ventMagnetic',name:'Магнітна вентрешітка',unit:'шт',price:900},
 {id:'ventShadow',name:'Тіньова витяжка',unit:'шт',price:1500},
@@ -412,12 +418,15 @@ function renderPalette(){const q=colorSearch.value.toLowerCase(),m=manufacturerF
 function selectColor(m,n){selectedColor=COLORS.find(c=>c.manufacturer===m&&c.name===n)||COLORS[0];renderPalette();updateAISpec();autosave()}
 function setTexture(t,btn){selectedTexture=t;document.querySelectorAll('.texture-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');updateAISpec();autosave()}
 function textureLabel(){return selectedTexture==='glossy'?'Глянець':selectedTexture==='satin'?'Сатин':'Матова'}
+function calcTexturePrice(){const t=document.getElementById('calcTexture')?.value||'matte';return t==='glossy'?600:t==='satin'?550:500}
+function calcTextureLabel(){const t=document.getElementById('calcTexture')?.value||'matte';return t==='glossy'?'Лак / глянець':t==='satin'?'Сатин':'Матове'}
+function calcManufacturerLabel(){return document.getElementById('calcManufacturer')?.value||'MSD Premium'}
 function renderAIOptions(){aiOptions.innerHTML=AI_OPTIONS.map(o=>`<div class="option-card"><label class="option-check"><input id="ai_${o.id}" type="checkbox" onchange="updateAISpec();autosave()"> ${o.name}</label></div>`).join('')}
 function renderProfileCards(){profileCards.innerHTML=PROFILE_ITEMS.map(p=>`<div id="profile_${p.id}" class="profile-card"><div class="profile-img"><img src="${p.img}" alt="${p.name}" onerror="this.style.display='none';this.parentElement.innerHTML='Фото профілю'"></div><div class="profile-body"><b>${p.name}</b><span>${p.desc}<br>${money(p.price)} / ${p.unit}</span><button onclick="toggleProfile('${p.id}')">Додати / прибрати</button><div id="profileFields_${p.id}" class="option-fields hidden"><div class="field"><label>Кількість</label><input id="qty_profile_${p.id}" type="number" value="1" step="0.1" oninput="recalc()"></div><div class="field"><label>Од.</label><input value="${p.unit}" disabled></div></div></div></div>`).join('')}
 function toggleProfile(id){const card=document.getElementById('profile_'+id),f=document.getElementById('profileFields_'+id),active=!card.classList.contains('active');card.classList.toggle('active',active);f.classList.toggle('hidden',!active);if(active&&['shadow','floating'].includes(id))document.getElementById('qty_profile_'+id).value=num('perimeter');recalc();autosave()}
 function renderCalcOptions(){calcOptions.innerHTML=EXTRA_ITEMS.filter(i=>!i.always).map(i=>`<div class="option-card"><div class="option-top"><label class="option-check"><input id="check_${i.id}" type="checkbox" onchange="toggleExtra('${i.id}')">${i.name}</label><span class="price-label">${money(i.price)} / ${i.unit}</span></div><div id="fields_${i.id}" class="option-fields hidden"><div class="field"><label>Кількість</label><input id="qty_${i.id}" type="number" value="1" step="0.1" oninput="recalc()"></div><div class="field"><label>Од.</label><input value="${i.unit}" disabled></div></div></div>`).join('')}
-function toggleExtra(id){const c=document.getElementById('check_'+id),f=document.getElementById('fields_'+id);f.classList.toggle('hidden',!c.checked);if(c.checked){if(['insert','film'].includes(id))document.getElementById('qty_'+id).value=num('perimeter');if(['demontage','height'].includes(id))document.getElementById('qty_'+id).value=num('area');if(id==='spots')document.getElementById('qty_'+id).value=6}recalc();autosave()}
-function currentRows(){const rows=[];EXTRA_ITEMS.forEach(i=>{let active=i.always||document.getElementById('check_'+i.id)?.checked;if(!active)return;let q=i.qty?num(i.qty):num('qty_'+i.id);if(q>0)rows.push({...i,qty:q,sum:q*i.price})});PROFILE_ITEMS.forEach(p=>{if(document.getElementById('profile_'+p.id)?.classList.contains('active')){const q=num('qty_profile_'+p.id);if(q>0)rows.push({...p,qty:q,sum:q*p.price})}});return rows}
+function toggleExtra(id){const c=document.getElementById('check_'+id),f=document.getElementById('fields_'+id);f.classList.toggle('hidden',!c.checked);if(c.checked){if(['insert','film'].includes(id))document.getElementById('qty_'+id).value=num('perimeter');if(['demontage','height'].includes(id))document.getElementById('qty_'+id).value=num('area');if(['cable','ledStrip'].includes(id))document.getElementById('qty_'+id).value=num('perimeter');if(id==='cornerWork')document.getElementById('qty_'+id).value=num('cornersCount');if(id==='spots')document.getElementById('qty_'+id).value=6}recalc();autosave()}
+function currentRows(){const rows=[];EXTRA_ITEMS.forEach(i=>{let active=i.always||document.getElementById('check_'+i.id)?.checked;if(!active)return;let q=i.qty?num(i.qty):num('qty_'+i.id);if(q<=0)return;let item={...i};if(i.id==='base'){item.price=calcTexturePrice();item.name=`Полотно ${calcManufacturerLabel()} — ${calcTextureLabel()}`;}rows.push({...item,qty:q,sum:q*item.price})});PROFILE_ITEMS.forEach(p=>{if(document.getElementById('profile_'+p.id)?.classList.contains('active')){const q=num('qty_profile_'+p.id);if(q>0)rows.push({...p,qty:q,sum:q*p.price})}});return rows}
 function recalc(){const rows=currentRows(),calculated=rows.reduce((s,r)=>s+r.sum,0),total=Math.max(calculated,5000);priceValue.textContent=money(total);bottomPrice.textContent=money(total);priceDetails.innerHTML=`<b>Розраховано:</b> ${money(calculated)}<br><b>Мінімальне замовлення:</b> 5 000 грн${calculated<5000?'<br><b>До сплати:</b> 5 000 грн':''}`;estimateBody.innerHTML=rows.map(r=>`<tr><td>${r.name}</td><td>${r.qty}</td><td>${money(r.price)}</td><td>${money(r.sum)}</td></tr>`).join('');if(calculated<5000)estimateBody.innerHTML+=`<tr><td><b>Доплата до мінімального замовлення</b></td><td>1</td><td>${money(5000-calculated)}</td><td>${money(5000-calculated)}</td></tr>`;estimateTotal.textContent='Разом до сплати: '+money(total);summaryArea.textContent=num('area')+' м²';summaryPerimeter.textContent=num('perimeter')+' м';autosave()}
 function updateAISpec(){specManufacturer.textContent=selectedColor.manufacturer;specColor.textContent=selectedColor.name;specTexture.textContent=textureLabel();const a=AI_OPTIONS.filter(o=>document.getElementById('ai_'+o.id)?.checked).map(o=>o.name);specElements.textContent=a.length?a.join(', '):'не вибрано'}
 async function handlePhotoInput(input){
@@ -531,6 +540,8 @@ function captureCurrentRoom(){
     height:num('ceilingHeight'),
     color:deepCopy(selectedColor),
     texture:selectedTexture,
+    calcManufacturer:calcManufacturerLabel(),
+    calcTexture:document.getElementById('calcTexture')?.value||'matte',
     prompt:customPrompt.value||'',
     planner:{
       points:deepCopy(roomPoints),
@@ -583,7 +594,7 @@ function resetRoomWorkspace(name='Нова кімната'){
   emptyPhoto.style.display='flex';
   photoMeta.textContent='Фото автоматично стискається перед відправкою в AI.';
   area.value=17.5;perimeter.value=18;cornersCount.value=4;chandelierCount.value=1;
-  selectedColor=COLORS[0];selectedTexture='matte';customPrompt.value='';
+  selectedColor=COLORS[0];selectedTexture='matte';customPrompt.value='';if(document.getElementById('calcManufacturer'))calcManufacturer.value='MSD Premium';if(document.getElementById('calcTexture'))calcTexture.value='matte';
   clearDynamicSelections();
   document.querySelectorAll('.texture-btn').forEach((b,i)=>b.classList.toggle('active',i===0));
   roomTemplate='rect';segmentLengths=templateDefaults('rect');plannerObjects=[];
@@ -600,7 +611,7 @@ function restoreRoom(room){
   else{roomPreview.src='';roomPreview.style.display='none';emptyPhoto.style.display='flex'}
   area.value=room.area||0;perimeter.value=room.perimeter||0;cornersCount.value=room.corners||0;chandelierCount.value=room.chandeliers||0;
   if(room.height)ceilingHeight.value=room.height;
-  selectedColor=room.color||COLORS[0];selectedTexture=room.texture||'matte';customPrompt.value=room.prompt||'';
+  selectedColor=room.color||COLORS[0];selectedTexture=room.texture||'matte';customPrompt.value=room.prompt||'';if(document.getElementById('calcManufacturer'))calcManufacturer.value=room.calcManufacturer||'MSD Premium';if(document.getElementById('calcTexture'))calcTexture.value=room.calcTexture||'matte';
   clearDynamicSelections();
   Object.entries(room.extras?.checked||{}).forEach(([id,on])=>{
     const c=document.getElementById('check_'+id),f=document.getElementById('fields_'+id);
@@ -792,11 +803,41 @@ function loadDraft(){
     restoreRoom(projectRooms.find(r=>r.id===activeRoomId)||projectRooms[0]);
   }catch(e){newObject()}
 }
-function sendToTelegram(){
+function buildEstimateText(){
   const o=collectObject();
-  const roomText=o.rooms.map((r,i)=>`\n${i+1}. ${r.name}\nПлоща: ${Number(r.area||0).toFixed(2)} м²\nПериметр: ${Number(r.perimeter||0).toFixed(2)} м.п.\n${(r.rows||[]).map(x=>`${x.name}: ${x.qty} ${x.unit} = ${money(x.sum)}`).join('\n')}`).join('\n');
-  const text=`Добрий день! Кошторис Potolok.in.ua\n\nКлієнт: ${o.clientName||'—'}\nТелефон: ${o.clientPhone||'—'}\nАдреса: ${o.address||'—'}\nКімнат: ${o.rooms.length}\nЗагальна площа: ${o.area.toFixed(2)} м²\nЗагальний периметр: ${o.perimeter.toFixed(2)} м.п.\n${roomText}\n\nРазом по об’єкту: ${money(o.total)}`;
+  const roomText=o.rooms.map((r,i)=>{
+    const rows=(r.rows||[]).map(x=>`${x.name}: ${x.qty} ${x.unit} × ${money(x.price)} = ${money(x.sum)}`).join('\n');
+    return `\n${i+1}. ${r.name||'Кімната'}\nПлоща: ${Number(r.area||0).toFixed(2)} м²\nПериметр: ${Number(r.perimeter||0).toFixed(2)} м.п.${rows?'\n'+rows:''}`;
+  }).join('\n');
+  return `Добрий день! Кошторис Potolok.in.ua\n\nКлієнт: ${o.clientName||'—'}\nТелефон: ${o.clientPhone||'—'}\nАдреса: ${o.address||'—'}\nКімнат: ${o.rooms.length}\nЗагальна площа: ${o.area.toFixed(2)} м²\nЗагальний периметр: ${o.perimeter.toFixed(2)} м.п.\n${roomText}\n\nРазом по об’єкту: ${money(o.total)}\n\nЦіна попередня. Остаточна вартість після заміру.`;
+}
+function sendToTelegram(){
+  const text=buildEstimateText();
   window.location.href='https://t.me/Potolok_in_ua?url=&text='+encodeURIComponent(text);
+}
+async function copyEstimateText(){
+  const text=buildEstimateText();
+  try{await navigator.clipboard.writeText(text);alert('Кошторис скопійовано. Тепер вставте його у Telegram, Viber або WhatsApp.');}
+  catch(e){prompt('Скопіюйте кошторис:',text)}
+}
+async function shareEstimateWithClient(){
+  const text=buildEstimateText();
+  if(navigator.share){
+    try{await navigator.share({title:'Кошторис Potolok.in.ua',text});return}catch(e){if(e.name==='AbortError')return}
+  }
+  try{await navigator.clipboard.writeText(text);alert('Кошторис скопійовано. Відкрийте месенджер клієнта та вставте повідомлення.');}
+  catch(e){prompt('Скопіюйте кошторис:',text)}
+}
+async function shareAIToClient(){
+  const img=document.querySelector('#resultImageWrap img');
+  if(!img?.src)return alert('Спочатку створіть AI-візуалізацію.');
+  try{
+    const blob=await (await fetch(img.src)).blob();
+    const file=new File([blob],'potolok-ai.png',{type:blob.type||'image/png'});
+    if(navigator.share&&navigator.canShare?.({files:[file]})){await navigator.share({title:'AI-візуалізація Potolok.in.ua',text:'Варіант натяжної стелі від Potolok.in.ua',files:[file]});return}
+  }catch(e){if(e.name==='AbortError')return}
+  downloadBtn.click();
+  alert('Зображення збережено. Надішліть його клієнту через потрібний месенджер.');
 }
 async function downloadPDF(){
   if(!window.jspdf){alert('Бібліотека PDF не завантажилась. Відкрийте сторінку у Chrome та повторіть.');return}
@@ -3092,6 +3133,7 @@ loadMarkupFromRoom();drawMarkupCanvas();renderHistory();
 
 </body>
 </html>
+
 
 
 
