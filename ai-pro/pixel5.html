@@ -2865,8 +2865,292 @@ loadMarkupFromRoom();drawMarkupCanvas();renderHistory();
 })();
 </script>
 
+
+<script>
+/* Pixel 5.6 — unified reliable object history */
+(() => {
+  'use strict';
+
+  const FALLBACK_KEY = 'potolok_pixel56_objects_fallback';
+
+  function readFallbackObjects() {
+    try {
+      const value = JSON.parse(localStorage.getItem(FALLBACK_KEY) || '[]');
+      return Array.isArray(value) ? value : [];
+    } catch {
+      return [];
+    }
+  }
+
+  function writeFallbackObjects(list) {
+    localStorage.setItem(FALLBACK_KEY, JSON.stringify(list));
+  }
+
+  function historyCard56(o) {
+    const rooms = Array.isArray(o.rooms) ? o.rooms.length : 0;
+    return `
+      <div class="object-card">
+        <b>${o.clientName || 'Без імені'} — ${o.address || 'Без адреси'}</b>
+        <span>${o.date || ''} • ${rooms} кімн. • ${Number(o.area || 0).toFixed(2)} м² • ${money(o.total || 0)}</span>
+        <div class="object-actions">
+          <button type="button" onclick="loadObject('${o.id}')">Відкрити</button>
+          <button type="button" onclick="deleteObject('${o.id}')">Видалити</button>
+        </div>
+      </div>`;
+  }
+
+  async function getUnifiedObjects56() {
+    let dbObjects = [];
+    try {
+      dbObjects = await dbGetObjects();
+    } catch (error) {
+      console.warn('IndexedDB read error:', error);
+    }
+
+    const fallbackObjects = readFallbackObjects();
+    const merged = new Map();
+
+    [...fallbackObjects, ...dbObjects].forEach(item => {
+      if (item && item.id) merged.set(item.id, item);
+    });
+
+    return [...merged.values()].sort((a, b) =>
+      String(b.savedAt || '').localeCompare(String(a.savedAt || ''))
+    );
+  }
+
+  window.saveObject = async function saveObject56() {
+    const object = collectObject();
+    activeObjectId = object.id;
+
+    let savedToDb = false;
+    let dbError = null;
+
+    try {
+      await dbPutObject(object);
+      const check = await dbGetObject(object.id);
+      savedToDb = !!check;
+      if (!savedToDb) throw new Error('перевірка запису не пройдена');
+    } catch (error) {
+      dbError = error;
+      console.warn('IndexedDB save error:', error);
+    }
+
+    if (!savedToDb) {
+      try {
+        const list = readFallbackObjects();
+        const index = list.findIndex(item => item.id === object.id);
+        if (index >= 0) list[index] = object;
+        else list.unshift(object);
+        writeFallbackObjects(list);
+      } catch (fallbackError) {
+        alert(
+          'Не вдалося зберегти об’єкт.\n' +
+          'Архів: ' + (dbError?.message || 'помилка') + '\n' +
+          'Резерв: ' + fallbackError.message
+        );
+        return;
+      }
+    }
+
+    saveStatus.textContent = savedToDb
+      ? 'Об’єкт збережено'
+      : 'Об’єкт збережено резервно';
+
+    await window.renderHistory();
+
+    alert(
+      `Об’єкт і ${(object.rooms || []).length} кімн. збережено` +
+      (savedToDb ? ' в історії.' : ' у резервному сховищі.')
+    );
+  };
+
+  window.renderHistory = async function renderHistory56() {
+    if (!window.objectList) return;
+
+    objectList.innerHTML = '<div class="notice">Завантаження історії…</div>';
+
+    try {
+      const list = await getUnifiedObjects56();
+      objectList.innerHTML = list.length
+        ? list.map(historyCard56).join('')
+        : '<div class="notice">Збережених об’єктів поки немає. Натисніть «Зберегти об’єкт» у вкладці «Об’єкт».</div>';
+    } catch (error) {
+      objectList.innerHTML =
+        '<div class="notice">Помилка історії: ' + error.message + '</div>';
+    }
+  };
+
+  window.loadObject = async function loadObject56(id) {
+    let object = null;
+
+    try {
+      object = await dbGetObject(id);
+    } catch (error) {
+      console.warn('IndexedDB load error:', error);
+    }
+
+    if (!object) {
+      object = readFallbackObjects().find(item => item.id === id);
+    }
+
+    if (!object) {
+      alert('Об’єкт не знайдено.');
+      return;
+    }
+
+    roomSyncLock = true;
+    activeObjectId = object.id;
+    clientName.value = object.clientName || '';
+    clientPhone.value = object.clientPhone || '';
+    objectAddress.value = object.address || '';
+    measureDate.value = object.date || '';
+    ceilingHeight.value = object.height || 2.7;
+    objectComment.value = object.comment || '';
+    projectRooms = deepCopy(object.rooms || []);
+    activeRoomId =
+      object.activeRoomId &&
+      projectRooms.some(room => room.id === object.activeRoomId)
+        ? object.activeRoomId
+        : projectRooms[0]?.id;
+    roomSyncLock = false;
+
+    if (!projectRooms.length) {
+      newObject();
+      return;
+    }
+
+    restoreRoom(
+      projectRooms.find(room => room.id === activeRoomId) || projectRooms[0]
+    );
+    saveStatus.textContent = 'Об’єкт відкрито';
+
+    const objectTab = document.querySelector(
+      '.main-tab[onclick*="object"]'
+    );
+    if (objectTab) showMainTab('object', objectTab);
+
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  window.deleteObject = async function deleteObject56(id) {
+    if (!confirm('Видалити об’єкт з історії?')) return;
+
+    try {
+      await dbDeleteObject(id);
+    } catch (error) {
+      console.warn('IndexedDB delete error:', error);
+    }
+
+    try {
+      writeFallbackObjects(
+        readFallbackObjects().filter(item => item.id !== id)
+      );
+    } catch (error) {
+      console.warn('Fallback delete error:', error);
+    }
+
+    await window.renderHistory();
+  };
+
+  window.exportHistory = async function exportHistory56() {
+    const data = await getUnifiedObjects56();
+
+    if (!data.length) {
+      alert('Історія порожня. Спочатку натисніть «Зберегти об’єкт».');
+      return;
+    }
+
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(
+      new Blob([JSON.stringify(data, null, 2)], {
+        type: 'application/json'
+      })
+    );
+    link.download = 'potolok-objects-pixel56.json';
+    link.click();
+    setTimeout(() => URL.revokeObjectURL(link.href), 1000);
+  };
+
+  const originalShowMainTab56 = window.showMainTab;
+  window.showMainTab = function showMainTab56(name, button) {
+    originalShowMainTab56(name, button);
+    if (name === 'history') window.renderHistory();
+  };
+
+  window.renderHistory();
+})();
+</script>
+
 </body>
 </html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
