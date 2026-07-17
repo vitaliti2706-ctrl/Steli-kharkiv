@@ -163,6 +163,18 @@ th:nth-child(2),th:nth-child(3),th:nth-child(4),td:nth-child(2),td:nth-child(3),
   .mini-plan-card{position:static}
 }
 
+
+.perimeter-bind-panel{border:1px solid #bfdbfe;background:#f8fbff;border-radius:13px;padding:11px}
+.bind-actions{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:9px}
+.bind-actions .danger{grid-column:1/-1}
+.point-bind-summary{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.point-bind-summary span{background:#fff;border:1px solid #e5e7eb;border-radius:9px;padding:8px;font-size:9px}
+.point-bind-summary b{color:#075bff}
+.bound-segment-hit{stroke:transparent;stroke-width:30;pointer-events:stroke;cursor:pointer}
+.bound-segment-line{stroke-linecap:round;pointer-events:none}
+.bound-segment-label{font-size:12px;font-weight:950;paint-order:stroke;stroke:#fff;stroke-width:4px;pointer-events:none}
+@media(min-width:760px){.bind-actions{grid-template-columns:repeat(3,1fr)}.bind-actions .danger{grid-column:auto}}
+
 </style>
 </head>
 <body>
@@ -391,6 +403,44 @@ th:nth-child(2),th:nth-child(3),th:nth-child(4),td:nth-child(2),td:nth-child(3),
   <div class="inspector-actions"><button class="btn outline" type="button" onclick="duplicateSelectedObject()">⧉ Копіювати</button><button class="btn danger" type="button" onclick="deleteSelectedObject()">🗑 Видалити</button></div>
 </div>
 </div>
+
+<div class="block perimeter-bind-panel">
+  <div class="block-head"><h3>Прив’язка матеріалів</h3><span class="tag">периметр і точки</span></div>
+
+  <div class="field full">
+    <label>Матеріал для контуру</label>
+    <select id="bindMaterial">
+      <option value="baseH">Основний H-профіль</option>
+      <option value="baseP">Основний П-профіль</option>
+      <option value="insertWhite">Вставка біла</option>
+      <option value="insertBlack">Вставка чорна</option>
+      <option value="shadow">Тіньовий профіль</option>
+      <option value="floating">Парящий профіль</option>
+      <option value="cornice">Вбудований карниз</option>
+      <option value="corniceLed">Карниз з підсвіткою</option>
+      <option value="ledStrip">LED-стрічка</option>
+    </select>
+  </div>
+
+  <div class="bind-actions">
+    <button class="btn blue" type="button" onclick="bindMaterialAll()">↔ На весь периметр</button>
+    <button id="bindSidesBtn" class="btn outline" type="button" onclick="toggleBindSides()">☝ По окремих сторонах</button>
+    <button class="btn danger" type="button" onclick="clearBindings()">🧹 Очистити</button>
+  </div>
+
+  <div id="bindStatus" class="planner-hint">Оберіть матеріал. Для окремих стін увімкніть режим і торкайтесь сторін A–B, B–C тощо.</div>
+
+  <div class="planner-tools-title">Точки з плану</div>
+  <div class="point-bind-summary">
+    <span>Світильники: <b id="bindLightsCount">0</b></span>
+    <span>Люстри: <b id="bindChandeliersCount">0</b></span>
+    <span>Труби: <b id="bindPipesCount">0</b></span>
+    <span>Вентиляція: <b id="bindVentsCount">0</b></span>
+  </div>
+
+  <button class="btn green btn-full mt" type="button" onclick="applyBindingsToCalculator()">💰 Передати в калькулятор</button>
+</div>
+
 <div class="block room-materials-panel">
 <div class="block-head"><h3>Матеріали поточної кімнати</h3><span class="tag">комплект</span></div>
 <div id="roomMaterialsSummary" class="room-materials-summary"></div>
@@ -3495,8 +3545,642 @@ resetRoomWorkspace=function(name='Нова кімната'){
 setTimeout(()=>{syncPlannerTransformLabels62();syncMiniPlanner62()},50);
 </script>
 
+
+<script>
+/* ===== PIXEL 6.3: ПРИВ'ЯЗКА ДО ПЕРИМЕТРУ І ТОЧОК ===== */
+const BIND_TYPES={
+  baseH:{name:'H-профіль',color:'#075bff'},
+  baseP:{name:'П-профіль',color:'#a16207'},
+  insertWhite:{name:'Вставка біла',color:'#ffffff'},
+  insertBlack:{name:'Вставка чорна',color:'#111827'},
+  shadow:{name:'Тіньовий',color:'#111827'},
+  floating:{name:'Парящий',color:'#38bdf8'},
+  cornice:{name:'Карниз',color:'#f59e0b'},
+  corniceLed:{name:'Карниз LED',color:'#f97316'},
+  ledStrip:{name:'LED',color:'#facc15'}
+};
+
+let perimeterBindings=[];
+let bindSidesMode=false;
+
+function ensureBindings(){
+  while(perimeterBindings.length<roomPoints.length)perimeterBindings.push([]);
+  if(perimeterBindings.length>roomPoints.length)perimeterBindings=perimeterBindings.slice(0,roomPoints.length);
+  perimeterBindings=perimeterBindings.map(x=>Array.isArray(x)?x:[]);
+}
+function selectedBindType(){return document.getElementById('bindMaterial')?.value||'baseH'}
+function sameGroup(a,b){
+  const groups=[
+    ['baseH','baseP'],
+    ['insertWhite','insertBlack'],
+    ['shadow'],
+    ['floating'],
+    ['cornice','corniceLed'],
+    ['ledStrip']
+  ];
+  return groups.some(g=>g.includes(a)&&g.includes(b));
+}
+function bindMaterialAll(){
+  ensureBindings();
+  const type=selectedBindType();
+  perimeterBindings=perimeterBindings.map(list=>{
+    const next=list.filter(x=>!sameGroup(x,type));
+    next.push(type);
+    return next;
+  });
+  syncMainPackageFromBindings();
+  renderPlanner();syncActiveRoomFromUI(false);autosave();
+  bindStatus.textContent=BIND_TYPES[type].name+' застосовано до всього периметра.';
+}
+function toggleBindSides(){
+  bindSidesMode=!bindSidesMode;
+  bindSidesBtn.classList.toggle('blue',bindSidesMode);
+  bindSidesBtn.classList.toggle('outline',!bindSidesMode);
+  bindSidesBtn.textContent=bindSidesMode?'✅ Торкайтесь сторін':'☝ По окремих сторонах';
+  bindStatus.textContent=bindSidesMode
+    ?'Режим активний: торкніться потрібної сторони. Повторне натискання прибирає матеріал.'
+    :'Режим вибору сторін вимкнено.';
+}
+function toggleBoundSide(index){
+  if(!bindSidesMode)return;
+  ensureBindings();
+  const type=selectedBindType();
+  const list=perimeterBindings[index]||[];
+  const exists=list.includes(type);
+  let next=list.filter(x=>!sameGroup(x,type));
+  if(!exists)next.push(type);
+  perimeterBindings[index]=next;
+  syncMainPackageFromBindings();
+  renderPlanner();syncActiveRoomFromUI(false);autosave();
+}
+function clearBindings(){
+  ensureBindings();
+  perimeterBindings=perimeterBindings.map(()=>[]);
+  renderPlanner();syncActiveRoomFromUI(false);autosave();
+  bindStatus.textContent='Усі прив’язки контуру очищено.';
+}
+function bindingLengths(){
+  ensureBindings();
+  const out={};
+  perimeterBindings.forEach((list,i)=>{
+    const len=Number(segmentLengths[i])||0;
+    list.forEach(type=>out[type]=(out[type]||0)+len);
+  });
+  return out;
+}
+function syncMainPackageFromBindings(){
+  const l=bindingLengths();
+  if(document.getElementById('calcBaseProfile')){
+    if(l.baseP>0)calcBaseProfile.value='p';
+    else if(l.baseH>0)calcBaseProfile.value='h';
+  }
+  if(document.getElementById('calcInsert')){
+    if(l.insertBlack>0)calcInsert.value='black';
+    else if(l.insertWhite>0)calcInsert.value='white';
+    else calcInsert.value='none';
+  }
+}
+function renderPerimeterBindings(){
+  ensureBindings();
+  if(!roomPoints.length)return;
+  roomPoints.forEach((p,i)=>{
+    const q=roomPoints[(i+1)%roomPoints.length];
+    const list=perimeterBindings[i]||[];
+    list.forEach((type,idx)=>{
+      const meta=BIND_TYPES[type];if(!meta)return;
+      const dx=q[0]-p[0],dy=q[1]-p[1],len=Math.hypot(dx,dy)||1;
+      const nx=-dy/len,ny=dx/len,off=(idx-(list.length-1)/2)*8;
+      const line=svgEl('line',{
+        x1:p[0]+nx*off,y1:p[1]+ny*off,x2:q[0]+nx*off,y2:q[1]+ny*off,
+        stroke:meta.color,'stroke-width':type.startsWith('base')?7:5,class:'bound-segment-line'
+      });
+      if(type==='insertWhite')line.setAttribute('style','filter:drop-shadow(0 0 2px #64748b)');
+      roomLayer.appendChild(line);
+    });
+    const hit=svgEl('line',{x1:p[0],y1:p[1],x2:q[0],y2:q[1],class:'bound-segment-hit'});
+    hit.addEventListener('click',e=>{e.stopPropagation();toggleBoundSide(i)});
+    roomLayer.appendChild(hit);
+
+    if(list.length){
+      const label=svgEl('text',{
+        x:(p[0]+q[0])/2,y:(p[1]+q[1])/2+18,
+        'text-anchor':'middle',fill:'#0f172a',class:'bound-segment-label'
+      });
+      label.textContent=list.map(x=>BIND_TYPES[x]?.name||x).join(' + ');
+      roomLayer.appendChild(label);
+    }
+  });
+}
+function countPlannerPoints63(){
+  const c={lights:0,chandeliers:0,pipes:0,vents:0};
+  plannerObjects.forEach(o=>{
+    if(o.type==='light')c.lights++;
+    if(o.type==='chandelier')c.chandeliers++;
+    if(o.type==='pipe1'||o.type==='pipe2')c.pipes++;
+    if(o.type==='vent')c.vents++;
+  });
+  bindLightsCount.textContent=c.lights;
+  bindChandeliersCount.textContent=c.chandeliers;
+  bindPipesCount.textContent=c.pipes;
+  bindVentsCount.textContent=c.vents;
+  return c;
+}
+function activateExtra63(id,qty){
+  const c=document.getElementById('check_'+id);
+  const f=document.getElementById('fields_'+id);
+  const q=document.getElementById('qty_'+id);
+  if(!c||qty<=0)return;
+  c.checked=true;if(f)f.classList.remove('hidden');if(q)q.value=Number(qty).toFixed(2).replace(/\.00$/,'');
+}
+function activateProfile63(id,qty){
+  const card=document.getElementById('profile_'+id);
+  const f=document.getElementById('profileFields_'+id);
+  const q=document.getElementById('qty_profile_'+id);
+  if(!card||qty<=0)return;
+  card.classList.add('active');if(f)f.classList.remove('hidden');if(q)q.value=Number(qty).toFixed(2).replace(/\.00$/,'');
+}
+function applyBindingsToCalculator(){
+  const metrics=polygonMetrics();
+  if(!metrics.perimeter||!Number.isFinite(metrics.area))return alert('Спочатку створіть коректний контур кімнати.');
+
+  area.value=metrics.area.toFixed(2);
+  perimeter.value=metrics.perimeter.toFixed(2);
+  cornersCount.value=roomPoints.length;
+
+  const counts=countPlannerPoints63();
+  chandelierCount.value=counts.chandeliers;
+  if(counts.lights)activateExtra63('spots',counts.lights);
+  if(counts.pipes)activateExtra63('pipe',counts.pipes);
+  if(counts.vents)activateExtra63('ventBasic',counts.vents);
+
+  const l=bindingLengths();
+
+  if(l.insertWhite>0||l.insertBlack>0){
+    calcInsert.value=l.insertBlack>0?'black':'white';
+    activateExtra63('insert',Math.max(l.insertWhite||0,l.insertBlack||0));
+  }
+  if(l.shadow>0)activateProfile63('shadow',l.shadow);
+  if(l.floating>0)activateProfile63('floating',l.floating);
+  if(l.cornice>0)activateProfile63('cornice',l.cornice);
+  if(l.corniceLed>0)activateProfile63('corniceLed',l.corniceLed);
+  if(l.ledStrip>0)activateExtra63('ledStrip',l.ledStrip);
+
+  calcBaseProfile.value=l.baseP>0?'p':'h';
+
+  recalc();syncActiveRoomFromUI(false);autosave();
+  const calcTab=[...document.querySelectorAll('.main-tab')].find(b=>b.textContent.includes('Калькулятор'));
+  if(calcTab)showMainTab('calc',calcTab);
+  alert('Периметр, кути та точки передано в калькулятор.');
+}
+
+/* збереження окремо для кожної кімнати */
+const captureCurrentRoom63=captureCurrentRoom;
+captureCurrentRoom=function(){
+  const room=captureCurrentRoom63();
+  room.perimeterBindings=deepCopy(perimeterBindings);
+  return room;
+};
+const restoreRoom63=restoreRoom;
+restoreRoom=function(room){
+  perimeterBindings=deepCopy(room?.perimeterBindings||[]);
+  restoreRoom63(room);
+  ensureBindings();renderPlanner();
+};
+const resetRoomWorkspace63=resetRoomWorkspace;
+resetRoomWorkspace=function(name='Нова кімната'){
+  perimeterBindings=[];
+  resetRoomWorkspace63(name);
+  ensureBindings();renderPlanner();
+};
+
+/* підмішуємо кольорові сторони у звичайний рендер */
+const renderPlanner63=renderPlanner;
+renderPlanner=function(){
+  renderPlanner63();
+  renderPerimeterBindings();
+  countPlannerPoints63();
+  requestAnimationFrame(syncMiniPlanner62);
+};
+
+setTimeout(()=>{ensureBindings();renderPlanner();countPlannerPoints63()},80);
+</script>
+
 </body>
 </html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
