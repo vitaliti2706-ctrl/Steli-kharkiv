@@ -4,7 +4,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Potolok AI PRO — Pixel 6.0 CALC</title>
+<title>Potolok AI PRO — Pixel 6.5</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth}
@@ -175,12 +175,28 @@ th:nth-child(2),th:nth-child(3),th:nth-child(4),td:nth-child(2),td:nth-child(3),
 .bound-segment-label{font-size:12px;font-weight:950;paint-order:stroke;stroke:#fff;stroke-width:4px;pointer-events:none}
 @media(min-width:760px){.bind-actions{grid-template-columns:repeat(3,1fr)}.bind-actions .danger{grid-column:auto}}
 
+
+/* Pixel 6.5 — unified room materials */
+.unified-materials-panel{border-color:#93c5fd;background:linear-gradient(180deg,#f8fbff,#fff)}
+.unified-package-grid{margin-bottom:2px}
+.wall-bind-details{border:1px solid #dbeafe;border-radius:11px;background:#fff;overflow:hidden}
+.wall-bind-details summary{padding:11px;font-size:10px;font-weight:950;color:#075bff;cursor:pointer;background:#eff6ff}
+.wall-bind-body{padding:10px}
+.wall-material-table-wrap{border:1px solid #e5e7eb;border-radius:10px;overflow:hidden;background:#fff}
+.wall-material-table th,.wall-material-table td{padding:8px 7px}
+.wall-material-table th:nth-child(2),.wall-material-table td:nth-child(2){text-align:left}
+.wall-material-table th:last-child,.wall-material-table td:last-child{text-align:right;white-space:nowrap}
+.wall-tags{display:flex;gap:4px;flex-wrap:wrap}
+.wall-tag{display:inline-flex;align-items:center;gap:4px;border:1px solid #e5e7eb;border-radius:999px;padding:3px 6px;font-size:8px;font-weight:850;background:#f8fafc}
+.wall-tag i{width:8px;height:8px;border-radius:50%;border:1px solid rgba(15,23,42,.18)}
+.wall-empty{color:#94a3b8;font-size:8px}
+
 </style>
 </head>
 <body>
 <header class="header"><div class="wrap nav"><a class="logo" href="../index.html">Potolok<span>.in.ua</span></a><div class="menu"><a href="../index.html">Головна</a><a href="../gallery.html">Наші роботи</a><a href="#app">Pixel 5</a></div><a class="phone" href="tel:+380974546713">097 454 67 13</a><a class="tg-top" href="https://t.me/Potolok_in_ua">Фото в TG</a></div></header>
 
-<section class="hero"><div class="wrap"><div class="hero-box"><div class="hero-badge">✨ POTOLOK AI PRO — PIXEL 6.0</div><h1>Замір, AI-візуалізація, калькулятор і кошторис</h1><p>Один інструмент для роботи на замірі: фото, план кімнати, вибір матеріалів, додаткових елементів, детальна смета, PDF і збереження об’єкта.</p><div class="hero-points"><div class="hero-point">📐 План кімнати<span>периметр і площа</span></div><div class="hero-point">🎨 AI-проєкт<span>стеля та освітлення</span></div><div class="hero-point">📄 Кошторис PDF<span>для себе і клієнта</span></div></div></div></div></section>
+<section class="hero"><div class="wrap"><div class="hero-box"><div class="hero-badge">✨ POTOLOK AI PRO — PIXEL 6.5</div><h1>Замір, AI-візуалізація, калькулятор і кошторис</h1><p>Один інструмент для роботи на замірі: фото, план кімнати, вибір матеріалів, додаткових елементів, детальна смета, PDF і збереження об’єкта.</p><div class="hero-points"><div class="hero-point">📐 План кімнати<span>периметр і площа</span></div><div class="hero-point">🎨 AI-проєкт<span>стеля та освітлення</span></div><div class="hero-point">📄 Кошторис PDF<span>для себе і клієнта</span></div></div></div></div></section>
 
 <section id="app" class="app"><div class="wrap">
 <div class="tabs-main">
@@ -404,31 +420,74 @@ th:nth-child(2),th:nth-child(3),th:nth-child(4),td:nth-child(2),td:nth-child(3),
 </div>
 </div>
 
-<div class="block perimeter-bind-panel">
-  <div class="block-head"><h3>Прив’язка матеріалів</h3><span class="tag">периметр і точки</span></div>
+<div class="block room-materials-panel unified-materials-panel">
+  <div class="block-head"><h3>Матеріали поточної кімнати</h3><span class="tag">єдиний комплект</span></div>
 
-  <div class="field full">
-    <label>Матеріал для контуру</label>
-    <select id="bindMaterial">
-      <option value="baseH">Основний H-профіль</option>
-      <option value="baseP">Основний П-профіль</option>
-      <option value="insertWhite">Вставка біла</option>
-      <option value="insertBlack">Вставка чорна</option>
-      <option value="shadow">Тіньовий профіль</option>
-      <option value="floating">Парящий профіль</option>
-      <option value="cornice">Вбудований карниз</option>
-      <option value="corniceLed">Карниз з підсвіткою</option>
-      <option value="ledStrip">LED-стрічка</option>
-    </select>
+  <div class="field-grid unified-package-grid">
+    <div class="field">
+      <label>Основний H/П профіль</label>
+      <select id="roomPackageProfile" onchange="setUnifiedPackageProfile(this.value)">
+        <option value="h">Алюмінієвий H-подібний</option>
+        <option value="p">Алюмінієвий П-подібний</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Декоративна вставка</label>
+      <select id="roomPackageInsert" onchange="setUnifiedPackageInsert(this.value)">
+        <option value="none">Без вставки</option>
+        <option value="white">Біла вставка</option>
+        <option value="black">Чорна вставка</option>
+      </select>
+    </div>
   </div>
 
-  <div class="bind-actions">
-    <button class="btn blue" type="button" onclick="bindMaterialAll()">↔ На весь периметр</button>
-    <button id="bindSidesBtn" class="btn outline" type="button" onclick="toggleBindSides()">☝ По окремих сторонах</button>
-    <button class="btn danger" type="button" onclick="clearBindings()">🧹 Очистити</button>
+  <button class="btn blue btn-full mt" type="button" onclick="bindPackageToPerimeter()">↔ Прив’язати комплект до периметра</button>
+  <div class="plan-note">Кнопка прив’язує основний профіль і вибрану вставку до всіх стін, синхронізує кімнату та калькулятор.</div>
+
+  <div id="roomMaterialsSummary" class="room-materials-summary mt"></div>
+
+  <div class="materials-legend">
+    <div><i class="legend-dot legend-h"></i> H-профіль</div>
+    <div><i class="legend-dot legend-p"></i> П-профіль</div>
+    <div><i class="legend-dot legend-white"></i> Біла вставка</div>
+    <div><i class="legend-dot legend-black"></i> Чорна вставка</div>
+    <div><i class="legend-dot legend-led"></i> LED</div>
+    <div><i class="legend-dot legend-track"></i> Магнітний трек</div>
   </div>
 
-  <div id="bindStatus" class="planner-hint">Оберіть матеріал. Для окремих стін увімкніть режим і торкайтесь сторін A–B, B–C тощо.</div>
+  <details class="wall-bind-details mt">
+    <summary>Додаткові прив’язки до окремих стін</summary>
+    <div class="wall-bind-body">
+      <div class="field full">
+        <label>Матеріал для вибраних стін</label>
+        <select id="bindMaterial">
+          <option value="baseH">Основний H-профіль</option>
+          <option value="baseP">Основний П-профіль</option>
+          <option value="insertWhite">Вставка біла</option>
+          <option value="insertBlack">Вставка чорна</option>
+          <option value="shadow">Тіньовий профіль</option>
+          <option value="floating">Парящий профіль</option>
+          <option value="cornice">Вбудований карниз</option>
+          <option value="corniceLed">Карниз з підсвіткою</option>
+          <option value="ledStrip">LED-стрічка</option>
+        </select>
+      </div>
+      <div class="bind-actions">
+        <button class="btn outline" type="button" onclick="bindMaterialAll()">↔ На весь периметр</button>
+        <button id="bindSidesBtn" class="btn outline" type="button" onclick="toggleBindSides()">☝ По окремих сторонах</button>
+        <button class="btn danger" type="button" onclick="clearBindings()">🧹 Очистити прив’язки</button>
+      </div>
+      <div id="bindStatus" class="planner-hint">Оберіть матеріал. У режимі окремих сторін торкайтесь відрізків A–B, B–C тощо.</div>
+    </div>
+  </details>
+
+  <div class="planner-tools-title">Матеріали по стінах</div>
+  <div class="wall-material-table-wrap">
+    <table class="wall-material-table">
+      <thead><tr><th>Стіна</th><th>Матеріал</th><th>Довжина</th></tr></thead>
+      <tbody id="wallMaterialsBody"></tbody>
+    </table>
+  </div>
 
   <div class="planner-tools-title">Точки з плану</div>
   <div class="point-bind-summary">
@@ -438,22 +497,7 @@ th:nth-child(2),th:nth-child(3),th:nth-child(4),td:nth-child(2),td:nth-child(3),
     <span>Вентиляція: <b id="bindVentsCount">0</b></span>
   </div>
 
-  <button class="btn green btn-full mt" type="button" onclick="applyBindingsToCalculator()">💰 Передати в калькулятор</button>
-</div>
-
-<div class="block room-materials-panel">
-<div class="block-head"><h3>Матеріали поточної кімнати</h3><span class="tag">комплект</span></div>
-<div id="roomMaterialsSummary" class="room-materials-summary"></div>
-<div class="materials-legend">
-  <div><i class="legend-dot legend-h"></i> H-профіль</div>
-  <div><i class="legend-dot legend-p"></i> П-профіль</div>
-  <div><i class="legend-dot legend-white"></i> Біла вставка</div>
-  <div><i class="legend-dot legend-black"></i> Чорна вставка</div>
-  <div><i class="legend-dot legend-led"></i> LED / світлова лінія</div>
-  <div><i class="legend-dot legend-track"></i> Магнітний трек</div>
-</div>
-<button class="btn blue btn-full mt" type="button" onclick="bindPackageToPerimeter()">↔ Прив’язати комплект до периметра</button>
-<div class="plan-note">Основний профіль позначається кольором контуру кімнати. Вставка — додатковою лінією по периметру.</div>
+  <button class="btn green btn-full mt" type="button" onclick="applyBindingsToCalculator()">💰 Передати все в калькулятор</button>
 </div>
 <div class="btn-row"><button class="btn outline" onclick="undoPlanner()">↶ Скасувати останню</button><button class="btn outline" onclick="redoPlanner()">↷ Повернути</button><button class="btn danger" onclick="clearPlanner()">🗑 Очистити план</button></div>
 <div class="planner-info mt"><div class="metric"><span>Площа</span><b id="plannerArea">0 м²</b></div><div class="metric"><span>Периметр</span><b id="plannerPerimeter">0 м</b></div></div>
@@ -3765,8 +3809,950 @@ renderPlanner=function(){
 setTimeout(()=>{ensureBindings();renderPlanner();countPlannerPoints63()},80);
 </script>
 
+<script>
+/* ================= PIXEL 6.5 UNIFIED MATERIALS ================= */
+function wallName65(i){
+  const alpha=n=>{
+    let x=n+1,r='';
+    while(x){x--;r=String.fromCharCode(65+x%26)+r;x=Math.floor(x/26)}
+    return r;
+  };
+  return alpha(i)+'–'+alpha((i+1)%Math.max(roomPoints.length,1));
+}
+function syncUnifiedPackageControls65(){
+  const p=document.getElementById('roomPackageProfile');
+  const i=document.getElementById('roomPackageInsert');
+  if(p)p.value=document.getElementById('calcBaseProfile')?.value||'h';
+  if(i)i.value=document.getElementById('calcInsert')?.value||'none';
+}
+function setUnifiedPackageProfile(value){
+  if(document.getElementById('calcBaseProfile'))calcBaseProfile.value=value==='p'?'p':'h';
+  syncCeilingPackage();
+  syncActiveRoomFromUI(false);autosave();
+}
+function setUnifiedPackageInsert(value){
+  if(document.getElementById('calcInsert'))calcInsert.value=['white','black'].includes(value)?value:'none';
+  syncCeilingPackage();
+  syncActiveRoomFromUI(false);autosave();
+}
+
+/* Повна заміна старої логіки кнопки комплекту */
+bindPackageToPerimeter=function(){
+  const metrics=polygonMetrics();
+  if(!roomPoints.length||!metrics.perimeter)return alert('Спочатку створіть коректний контур кімнати.');
+  ensureBindings();
+  const profile=document.getElementById('roomPackageProfile')?.value||document.getElementById('calcBaseProfile')?.value||'h';
+  const insert=document.getElementById('roomPackageInsert')?.value||document.getElementById('calcInsert')?.value||'none';
+  const profileType=profile==='p'?'baseP':'baseH';
+  const insertType=insert==='white'?'insertWhite':insert==='black'?'insertBlack':null;
+
+  perimeterBindings=perimeterBindings.map(list=>{
+    const keep=(Array.isArray(list)?list:[]).filter(x=>!['baseH','baseP','insertWhite','insertBlack'].includes(x));
+    keep.unshift(profileType);
+    if(insertType)keep.push(insertType);
+    return keep;
+  });
+
+  if(document.getElementById('calcBaseProfile'))calcBaseProfile.value=profile;
+  if(document.getElementById('calcInsert'))calcInsert.value=insert;
+  if(document.getElementById('perimeter'))perimeter.value=metrics.perimeter.toFixed(2);
+  syncCeilingPackage();
+  renderPlanner();renderWallMaterials65();syncActiveRoomFromUI(false);autosave();
+  const st=document.getElementById('bindStatus');
+  if(st)st.textContent='Комплект прив’язано: '+baseProfileLabel()+(insert==='none'?' без вставки':' + '+insertPackageLabel())+'.';
+};
+
+function renderWallMaterials65(){
+  const body=document.getElementById('wallMaterialsBody');if(!body)return;
+  ensureBindings();
+  if(!roomPoints.length){body.innerHTML='<tr><td colspan="3" class="wall-empty">Спочатку створіть контур кімнати</td></tr>';return}
+  body.innerHTML=roomPoints.map((p,i)=>{
+    const list=perimeterBindings[i]||[];
+    const tags=list.length?'<div class="wall-tags">'+list.map(type=>{
+      const m=BIND_TYPES[type]||{name:type,color:'#94a3b8'};
+      return '<span class="wall-tag"><i style="background:'+m.color+'"></i>'+m.name+'</span>';
+    }).join('')+'</div>':'<span class="wall-empty">Не призначено</span>';
+    return '<tr><td><b>'+wallName65(i)+'</b></td><td>'+tags+'</td><td>'+Number(segmentLengths[i]||0).toFixed(2)+' м</td></tr>';
+  }).join('');
+}
+
+const renderRoomMaterials65Base=renderRoomMaterials;
+renderRoomMaterials=function(){
+  renderRoomMaterials65Base();
+  syncUnifiedPackageControls65();
+  renderWallMaterials65();
+};
+
+const renderPlanner65Base=renderPlanner;
+renderPlanner=function(){
+  renderPlanner65Base();
+  renderWallMaterials65();
+  syncUnifiedPackageControls65();
+};
+
+const restoreRoom65Base=restoreRoom;
+restoreRoom=function(room){
+  restoreRoom65Base(room);
+  syncUnifiedPackageControls65();renderWallMaterials65();
+};
+
+const resetRoomWorkspace65Base=resetRoomWorkspace;
+resetRoomWorkspace=function(name='Нова кімната'){
+  resetRoomWorkspace65Base(name);
+  syncUnifiedPackageControls65();renderWallMaterials65();
+};
+
+/* Синхронізація селекторів калькулятора з єдиною панеллю */
+const syncCeilingPackage65Base=syncCeilingPackage;
+syncCeilingPackage=function(){
+  syncCeilingPackage65Base();
+  syncUnifiedPackageControls65();
+  renderWallMaterials65();
+};
+
+/* Передача враховує комплект навіть без ручної прив'язки додаткових матеріалів */
+const applyBindingsToCalculator65Base=applyBindingsToCalculator;
+applyBindingsToCalculator=function(){
+  const metrics=polygonMetrics();
+  if(!metrics.perimeter||!Number.isFinite(metrics.area))return alert('Спочатку створіть коректний контур кімнати.');
+  const hasBase=perimeterBindings.some(x=>(x||[]).some(t=>t==='baseH'||t==='baseP'));
+  if(!hasBase)bindPackageToPerimeter();
+  applyBindingsToCalculator65Base();
+};
+
+setTimeout(()=>{syncUnifiedPackageControls65();renderWallMaterials65();renderPlanner()},120);
+</script>
+
 </body>
 </html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
