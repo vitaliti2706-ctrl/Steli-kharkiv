@@ -259,6 +259,30 @@ th:nth-child(2),th:nth-child(3),th:nth-child(4),td:nth-child(2),td:nth-child(3),
 @media(max-width:430px){.auto-tool-grid{grid-template-columns:repeat(3,1fr)}.auto-more-wrap{grid-template-columns:repeat(3,1fr)}.edit-mode-banner b{font-size:12px}}
 @media(min-width:760px){.auto-tool-grid{grid-template-columns:repeat(4,1fr)}.auto-more-wrap{grid-template-columns:repeat(4,1fr)}}
 
+
+/* AI consultation/request block */
+.ai-request-section{padding:0 0 26px}
+.ai-request-card{background:linear-gradient(135deg,#071428,#0b2a63 58%,#075bff);color:#fff;border-radius:20px;padding:18px;box-shadow:0 18px 44px rgba(7,91,255,.22)}
+.ai-request-card h2{font-size:20px;line-height:1.15;margin-bottom:8px}
+.ai-request-card p{font-size:11px;line-height:1.5;color:#dbeafe;max-width:850px}
+.ai-request-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px}
+.ai-request-grid .field.full{grid-column:1/-1}
+.ai-request-card .field label{color:#e2e8f0}
+.ai-request-card .field input,.ai-request-card .field textarea{background:#fff;color:#0f172a}
+.ai-request-methods{display:grid;grid-template-columns:repeat(5,1fr);gap:7px;margin-top:12px}
+.ai-request-method{border:1px solid rgba(255,255,255,.22);background:rgba(255,255,255,.09);color:#fff;border-radius:10px;padding:9px 5px;font-size:9px;font-weight:900;transition:.2s ease}
+.ai-request-method.active{background:#fff;color:#075bff;border-color:#fff;box-shadow:0 8px 20px rgba(7,91,255,.2)}
+.ai-request-submit{position:relative;overflow:hidden;width:100%;min-height:48px;margin-top:12px;border:0;border-radius:12px;background:linear-gradient(135deg,#075bff,#2563eb,#0ea5e9);background-size:180% 180%;color:#fff;font-size:12px;font-weight:950;box-shadow:0 12px 28px rgba(7,91,255,.32);animation:aiRequestGradient 8s ease infinite}
+.ai-request-submit:before{content:'';position:absolute;inset:-120% -30%;background:linear-gradient(110deg,transparent 38%,rgba(255,255,255,.3) 50%,transparent 62%);transform:translateX(-80%);animation:aiRequestShine 9s ease-in-out infinite}
+.ai-request-submit span{position:relative;z-index:1}
+.ai-request-status{display:none;margin-top:10px;border-radius:10px;padding:10px;font-size:9px;font-weight:850;line-height:1.4}
+.ai-request-status.show{display:block}.ai-request-status.ok{background:#ecfdf5;color:#047857}.ai-request-status.error{background:#fff1f2;color:#b91c1c}
+.ai-request-note{margin-top:9px;font-size:9px;color:#bfdbfe}
+@keyframes aiRequestGradient{0%,100%{background-position:0 50%}50%{background-position:100% 50%}}
+@keyframes aiRequestShine{0%,72%,100%{transform:translateX(-80%)}82%{transform:translateX(80%)}}
+@media(max-width:520px){.ai-request-methods{grid-template-columns:repeat(2,1fr)}.ai-request-method:first-child{grid-column:1/-1}.ai-request-grid{grid-template-columns:1fr}.ai-request-grid .field.full{grid-column:auto}}
+@media(prefers-reduced-motion:reduce){.ai-request-submit,.ai-request-submit:before{animation:none}}
+
 </style>
 </head>
 <body>
@@ -646,6 +670,34 @@ th:nth-child(2),th:nth-child(3),th:nth-child(4),td:nth-child(2),td:nth-child(3),
 </section>
 
 </div></section>
+
+<section class="ai-request-section">
+  <div class="wrap">
+    <div class="ai-request-card">
+      <h2>Потрібна точна вартість?</h2>
+      <p><b>AI показав попередній результат.</b> Для точного розрахунку залиште заявку або надішліть фото й розміри кімнати. Ми перевіримо всі параметри, підберемо найкраще рішення та зв’яжемося з вами зручним способом.</p>
+
+      <div class="ai-request-grid">
+        <div class="field"><label>Ім’я</label><input id="aiRequestName" autocomplete="name" placeholder="Ваше ім’я"></div>
+        <div class="field"><label>Телефон</label><input id="aiRequestPhone" type="tel" inputmode="tel" autocomplete="tel" placeholder="+380..."></div>
+        <div class="field full"><label>Коментар або заміри</label><textarea id="aiRequestComment" placeholder="Площа, периметр, тип стелі, побажання..."></textarea></div>
+      </div>
+
+      <div class="ai-request-methods" aria-label="Бажаний спосіб зв’язку">
+        <button type="button" class="ai-request-method active" data-ai-contact="Телефон">📞 Телефон</button>
+        <button type="button" class="ai-request-method" data-ai-contact="Viber">💜 Viber</button>
+        <button type="button" class="ai-request-method" data-ai-contact="WhatsApp">🟢 WhatsApp</button>
+        <button type="button" class="ai-request-method" data-ai-contact="Telegram">✈️ Telegram</button>
+        <button type="button" class="ai-request-method" data-ai-contact="SMS">💬 SMS</button>
+      </div>
+
+      <button id="aiRequestSubmit" class="ai-request-submit" type="button" onclick="sendAiRequest()"><span>📨 Отримати точний розрахунок</span></button>
+      <div id="aiRequestStatus" class="ai-request-status" role="status" aria-live="polite"></div>
+      <div class="ai-request-note">Безкоштовна консультація та перевірка попереднього AI-розрахунку.</div>
+    </div>
+  </div>
+</section>
+
 <footer class="footer">© 2026 Potolok.in.ua • 097 454 67 13</footer>
 
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
@@ -4403,8 +4455,105 @@ function toggleAutoMoreTools68(){
 })();
 </script>
 
+
+<script id="ai-request-block-script">
+let aiPreferredContact='Телефон';
+
+document.addEventListener('DOMContentLoaded',function(){
+  const existingName=document.getElementById('clientName');
+  const existingPhone=document.getElementById('clientPhone');
+  const requestName=document.getElementById('aiRequestName');
+  const requestPhone=document.getElementById('aiRequestPhone');
+  if(requestName && existingName && existingName.value) requestName.value=existingName.value;
+  if(requestPhone && existingPhone && existingPhone.value) requestPhone.value=existingPhone.value;
+
+  document.querySelectorAll('.ai-request-method').forEach(function(button){
+    button.addEventListener('click',function(){
+      document.querySelectorAll('.ai-request-method').forEach(function(item){item.classList.remove('active')});
+      this.classList.add('active');
+      aiPreferredContact=this.dataset.aiContact || 'Телефон';
+    });
+  });
+});
+
+function setAiRequestStatus(message,type){
+  const box=document.getElementById('aiRequestStatus');
+  if(!box)return;
+  box.textContent=message;
+  box.className='ai-request-status show '+type;
+}
+
+async function sendAiRequest(){
+  const name=(document.getElementById('aiRequestName')?.value || '').trim();
+  const phone=(document.getElementById('aiRequestPhone')?.value || '').trim();
+  const comment=(document.getElementById('aiRequestComment')?.value || '').trim();
+  const button=document.getElementById('aiRequestSubmit');
+
+  if(!phone || phone.replace(/\D/g,'').length<9){
+    setAiRequestStatus('Вкажіть коректний номер телефону.','error');
+    document.getElementById('aiRequestPhone')?.focus();
+    return;
+  }
+
+  const area=document.getElementById('area')?.value || '';
+  const perimeter=document.getElementById('perimeter')?.value || '';
+  const price=document.getElementById('priceValue')?.textContent || '';
+
+  const text=
+    'Нова заявка з Potolok AI\n\n'+
+    'Імʼя: '+(name || 'не вказано')+'\n'+
+    'Телефон: '+phone+'\n'+
+    'Зв’язатися через: '+aiPreferredContact+'\n'+
+    (area ? 'Площа: '+area+' м²\n' : '')+
+    (perimeter ? 'Периметр: '+perimeter+' м\n' : '')+
+    (price ? 'Попередня вартість: '+price+'\n' : '')+
+    'Коментар: '+(comment || 'без коментаря');
+
+  const payload={
+    name:name,
+    phone:phone,
+    contact:aiPreferredContact,
+    messenger:aiPreferredContact,
+    message:comment,
+    clientName:name,
+    clientPhone:phone,
+    comment:comment,
+    source:'Potolok AI — точний розрахунок',
+    page:location.href,
+    createdAt:new Date().toISOString(),
+    area:area,
+    perimeter:perimeter,
+    estimatedPrice:price,
+    text:text
+  };
+
+  button.disabled=true;
+  button.querySelector('span').textContent='Надсилаємо…';
+  setAiRequestStatus('Відправляємо заявку…','ok');
+
+  try{
+    const response=await fetch('/api/telegram-submit',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(payload)
+    });
+    if(!response.ok)throw new Error('HTTP '+response.status);
+
+    setAiRequestStatus('Дякуємо! Заявку надіслано. Ми зв’яжемося з вами зручним способом.','ok');
+    document.getElementById('aiRequestComment').value='';
+  }catch(error){
+    console.error('AI request submit error:',error);
+    setAiRequestStatus('Не вдалося автоматично надіслати заявку. Зателефонуйте: 097 454 67 13 або скористайтеся контактами у шапці.','error');
+  }finally{
+    button.disabled=false;
+    button.querySelector('span').textContent='📨 Отримати точний розрахунок';
+  }
+}
+</script>
+
 </body>
 </html>
+
 
 
 
