@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Potolok.in.ua — натяжні стелі у Харкові</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:Arial,Helvetica,sans-serif;background:#f4f7fb;color:#0f172a;overflow-x:hidden}
+a{text-decoration:none;color:inherit}
+.wrap{max-width:1180px;margin:auto;padding:0 14px}
+
+.header{height:50px;background:#fff;border-bottom:1px solid #e5e7eb;display:flex;align-items:center;position:sticky;top:0;z-index:20}
+.nav{display:flex;align-items:center;justify-content:space-between;width:100%;gap:10px}
+.logo{font-size:22px;font-weight:950;letter-spacing:-1px;white-space:nowrap}
+.logo span{color:#075bff}
+.menu{display:none}
+.phone{font-size:14px;font-weight:900;white-space:nowrap}
+.tg-top{display:none}
+
+.hero{background:#fff}
+.hero-box{display:grid;grid-template-columns:40% 60%;align-items:center;gap:6px;padding:14px 0 24px 20px;overflow:hidden}
+.badge{display:inline-block;font-size:8px;color:#075bff;background:#eef5ff;border:1px solid #dbeafe;border-radius:20px;padding:4px 7px;margin-bottom:6px;font-weight:900}
+h1{font-size:20px;line-height:.9;letter-spacing:-1.2px;margin-bottom:7px}
+.subtitle{font-size:12px;font-weight:900;color:#075bff;margin-bottom:5px}
+.desc{font-size:8px;color:#475569;margin-bottom:7px;line-height:1.35}
+.price-label{font-size:8px;color:#64748b}
+.price{font-size:20px;font-weight:950;line-height:1}
+.min{font-size:7px;color:#64748b;margin:3px 0 8px}
+.btn-row{display:flex;gap:6px;flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;justify-content:center;border-radius:9px;font-size:9px;font-weight:900;padding:8px 13px;min-height:30px}
+.blue{background:#075bff;color:#fff;box-shadow:0 10px 22px rgba(7,91,255,.22)}
+.outline{background:#fff;color:#075bff;border:1px solid #075bff}
+.hero-img img{width:100%;height:235px;object-fit:cover;display:block}
+
+.benefits{margin-top:-26px;position:relative;z-index:2}
+.benefits-box{background:#fff;border:1px solid #e5e7eb;border-radius:14px;box-shadow:0 10px 28px rgba(15,23,42,.11);display:grid;grid-template-columns:repeat(4,1fr);overflow:hidden}
+.benefit{padding:11px 4px;text-align:center;border-right:1px solid #e5e7eb}
+.benefit:last-child{border-right:0}
+.benefit b{font-size:10px;display:block;line-height:1.15}
+.benefit span{font-size:7px;color:#64748b}
+
+section{padding:16px 0}
+.section-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+h2{font-size:20px;letter-spacing:-.5px}
+.more{font-size:9px;color:#075bff;font-weight:900}
+
+.works{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}
+.card{background:#fff;border:1px solid #e5e7eb;border-radius:12px;overflow:hidden;box-shadow:0 8px 20px rgba(15,23,42,.08)}
+.card img{width:100%;height:82px;object-fit:cover;display:block}
+.info{padding:7px}
+.info h3{font-size:9px;margin-bottom:2px;line-height:1.15}
+.info p{font-size:7px;color:#64748b;line-height:1.2}
+.card h3{font-size:12px;line-height:1.2;margin:0 0 6px;padding:10px 10px 0}
+.card p{font-size:9px;line-height:1.35;color:#64748b;padding:0 10px 10px}
+.calc-box,.lead-box,.reviews-box{background:#fff;border:1px solid #e5e7eb;border-radius:16px;padding:14px;box-shadow:0 10px 24px rgba(15,23,42,.08)}
+.calc-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:10px}
+.field{display:flex;flex-direction:column;gap:4px}
+.field label{font-size:9px;font-weight:800;color:#334155}
+.field input,.field select,.field textarea{width:100%;border:1px solid #dbe3ef;border-radius:9px;padding:9px;font-size:10px;background:#f8fafc;color:#0f172a}
+.field textarea{min-height:70px;resize:none}
+.calc-note{font-size:9px;color:#64748b;margin-top:8px;line-height:1.35}
+
+.lead-box{background:#071428;color:#fff}
+.lead-box h2{color:#fff}
+.lead-box p{font-size:11px;color:#cbd5e1;margin:6px 0 12px;line-height:1.4}
+.lead-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.lead-box .field label{color:#e2e8f0}
+.lead-box .field input,.lead-box .field textarea{background:#fff}
+.big-phone{font-size:22px;font-weight:950;margin:10px 0}
+
+.solutions{background:#fff}
+.solution-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:9px}
+.solution{background:#f8fafc;border:1px solid #e5e7eb;border-radius:13px;padding:11px;box-shadow:0 6px 16px rgba(15,23,42,.05)}
+.solution b{display:block;font-size:10px;margin-bottom:5px}
+.solution p{font-size:8px;color:#64748b;line-height:1.3}
+
+.reviews-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-top:10px}
+.review{background:#f8fafc;border:1px solid #e5e7eb;border-radius:13px;padding:12px}
+.review b{font-size:11px}
+.review p{font-size:9px;color:#475569;line-height:1.4;margin-top:6px}
+.stars{color:#f59e0b;font-size:12px;margin-top:5px}
+
+.footer{padding:18px;text-align:center;color:#64748b;font-size:10px}
+
+@media(min-width:760px){
+.wrap{padding:0 22px}
+.header{height:56px}
+.logo{font-size:26px}
+.menu{display:flex;gap:20px;font-size:12px;font-weight:800;color:#334155}
+.phone{font-size:15px}
+.tg-top{display:inline-flex;background:#075bff;color:#fff;padding:8px 12px;border-radius:8px;font-size:11px;font-weight:900}
+.hero-box{grid-template-columns:38% 62%;gap:16px;padding:18px 0 34px}
+.badge{font-size:10px}
+h1{font-size:43px}
+.subtitle{font-size:17px}
+.desc{font-size:12px}
+.price{font-size:34px}
+.min{font-size:10px}
+.btn{font-size:11px;padding:10px 16px}
+.hero-img img{height:360px}
+.benefits{margin-top:-40px}
+.benefit{padding:15px}
+.benefit b{font-size:14px}
+.benefit span{font-size:10px}
+section{padding:22px 0}
+h2{font-size:25px}
+.more{font-size:11px}
+.works{grid-template-columns:repeat(6,1fr);gap:11px}
+.card img{height:110px}
+.info h3{font-size:11px}
+.info p{font-size:9px}
+.calc-grid{grid-template-columns:repeat(4,1fr)}
+.lead-grid{grid-template-columns:1fr 1fr 2fr}
+.solution b{font-size:13px}
+.solution p{font-size:11px}
+}
+.lightbox{display:none;position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:999;align-items:center;justify-content:center;padding:18px}
+.lightbox img{max-width:100%;max-height:86vh;border-radius:12px;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+.lightbox.active{display:flex}
+.lightbox-close{position:absolute;top:14px;right:18px;color:#fff;font-size:34px;font-weight:900;cursor:pointer}
+.card img{cursor:pointer}
+
+/* Universal contact form */
+.contact-methods{display:grid;grid-template-columns:repeat(5,1fr);gap:7px;margin-top:12px}
+.contact-method{border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.08);color:#fff;border-radius:11px;padding:9px 6px;font-size:9px;font-weight:900;line-height:1.2;transition:.2s ease}
+.contact-method.active{background:#fff;color:#075bff;border-color:#fff;box-shadow:0 8px 20px rgba(7,91,255,.22)}
+.contact-method:active{transform:scale(.98)}
+.lead-submit{position:relative;overflow:hidden;width:100%;min-height:46px;border:0;border-radius:12px;background:linear-gradient(135deg,#075bff,#1d4ed8,#0ea5e9);background-size:180% 180%;color:#fff;font-size:12px;font-weight:950;box-shadow:0 12px 30px rgba(7,91,255,.28);animation:leadGradient 8s ease infinite}
+.lead-submit:before{content:'';position:absolute;inset:-120% -30%;background:linear-gradient(110deg,transparent 38%,rgba(255,255,255,.30) 50%,transparent 62%);transform:translateX(-70%);animation:leadShine 9s ease-in-out infinite;pointer-events:none}
+.lead-submit span{position:relative;z-index:1}
+.lead-submit:active{transform:scale(.985)}
+.lead-status{display:none;margin-top:10px;border-radius:10px;padding:10px;font-size:10px;font-weight:850;line-height:1.4}
+.lead-status.show{display:block}
+.lead-status.ok{background:#ecfdf5;color:#047857;border:1px solid #a7f3d0}
+.lead-status.error{background:#fff1f2;color:#b91c1c;border:1px solid #fecdd3}
+@keyframes leadGradient{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
+@keyframes leadShine{0%,72%,100%{transform:translateX(-80%)}82%{transform:translateX(80%)}}
+@media(max-width:520px){.contact-methods{grid-template-columns:repeat(2,1fr)}.contact-method:first-child{grid-column:1/-1}}
+@media(prefers-reduced-motion:reduce){.lead-submit,.lead-submit:before{animation:none}}
+
+</style>
+</head>
+
+<body>
+
+<header class="header">
+<div class="wrap nav">
+<div class="logo">Potolok<span>.in.ua</span></div>
+<div class="menu">
+<a href="#home">Головна</a>
+<a href="#solutions">Наші рішення</a>
+<a href="#works">Наші роботи</a>
+<a href="#calc">Калькулятор</a>
+<a href="#reviews">Відгуки</a>
+<a href="#contacts">Контакти</a>
+</div>
+<a class="phone" href="tel:+380974546713">097 454 67 13</a>
+<a class="phone" href="tg://resolve?phone=380974546713">TG</a>
+<a class="tg-top" href="tg://resolve?phone=380974546713">Фото в TG</a>
+</div>
+</header>
+
+<section class="hero" id="home">
+<div class="wrap hero-box">
+<div>
+<a class="btn blue" href="https://t.me/Potolok_in_ua" style="margin-bottom:10px;">
+📩 Telegram
+</a><div class="badge">№1 у Харкові та області</div>
+<h1>НАТЯЖНІ СТЕЛІ<br>У ХАРКОВІ</h1>
+<div class="subtitle">Стелі, які виглядають дорого</div>
+<p class="desc">Тіньові стелі • Світлові лінії • Магнітні треки • Приховані карнизи</p>
+<div class="price-label">від</div>
+<div class="price">500 грн/м²</div>
+<div class="min">Мінімальне замовлення — 5000 грн</div>
+<div class="btn-row">
+<a class="btn blue" href="#calc">Розрахувати</a>
+</div>
+</div>
+<div class="hero-img">
+<img src="file_00000000e3e8720a9866b77c2a8715e9.png" alt="Стелі Харків">
+</div>
+</div>
+</section>
+
+<div class="benefits">
+<div class="wrap benefits-box">
+<div class="benefit"><b>1000+ об'єктів</b><span>успішно реалізовано</span></div>
+<div class="benefit"><b>10 років гарантії</b><span>на всі види робіт</span></div>
+<div class="benefit"><b>Безкоштовний замір</b><span>у зручний час</span></div>
+<div class="benefit"><b>Монтаж за 1 день</b><span>швидко та акуратно</span></div>
+</div>
+</div>
+<section class="wrap" style="margin:35px auto;">
+  <div style="
+    background:linear-gradient(135deg,#071428,#075bff);
+    color:#fff;
+    border-radius:28px;
+    padding:34px 24px;
+    text-align:center;
+    box-shadow:0 20px 50px rgba(7,91,255,.25);
+  ">
+
+    <div style="
+      display:inline-block;
+      background:rgba(255,255,255,.14);
+      border:1px solid rgba(255,255,255,.25);
+      border-radius:999px;
+      padding:8px 14px;
+      font-size:13px;
+      font-weight:900;
+      margin-bottom:18px;
+    ">
+      ✨ НОВИНКА
+    </div>
+
+    <h2 style="font-size:38px;line-height:1.05;margin-bottom:14px;">
+      Potolok <span style="color:#7dd3fc;">AI</span>
+    </h2>
+
+    <p style="font-size:18px;line-height:1.5;max-width:760px;margin:0 auto 24px;color:#eaf2ff;">
+      Завантажте фото кімнати, оберіть колір стелі та підготуйте AI-візуалізацію майбутнього результату.
+    </p>
+
+    <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-bottom:22px;">
+      <a href="/ai-pro/pixel5.html" style="
+        background:#fff;
+        color:#075bff;
+        padding:16px 26px;
+        border-radius:16px;
+        font-weight:950;
+        font-size:17px;
+        text-decoration:none;
+        box-shadow:0 12px 28px rgba(255,255,255,.18);
+      ">
+        ✨ Відкрити Potolok AI
+      </a>
+
+      <a href="https://t.me/Potolok_in_ua" style="
+        background:rgba(255,255,255,.13);
+        color:#fff;
+        padding:16px 26px;
+        border-radius:16px;
+        font-weight:950;
+        font-size:17px;
+        text-decoration:none;
+        border:1px solid rgba(255,255,255,.28);
+      ">
+        📷 Фото в Telegram
+      </a>
+    </div>
+
+    <div style="
+      display:grid;
+      grid-template-columns:repeat(3,1fr);
+      gap:10px;
+      max-width:760px;
+      margin:auto;
+    ">
+      <div style="background:rgba(255,255,255,.12);border-radius:16px;padding:14px 10px;font-weight:900;">
+        ⚡ 10–20 секунд<br>
+        <span style="font-size:12px;color:#cfe3ff;font-weight:700;">швидкий запит</span>
+      </div>
+
+      <div style="background:rgba(255,255,255,.12);border-radius:16px;padding:14px 10px;font-weight:900;">
+        🎨 Тільки стеля<br>
+        <span style="font-size:12px;color:#cfe3ff;font-weight:700;">без змін кімнати</span>
+      </div>
+
+      <div style="background:rgba(255,255,255,.12);border-radius:16px;padding:14px 10px;font-weight:900;">
+        📱 З телефону<br>
+        <span style="font-size:12px;color:#cfe3ff;font-weight:700;">зручно клієнту</span>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+
+
+
+<section id="works">
+<div class="wrap">
+<div class="section-head">
+<h2>Наші роботи</h2>
+<a class="more" href="gallery.html">Дивитись всі роботи →</a>
+</div>
+
+<div class="works">
+
+<div class="card"><img src="file_00000000e3e8720a9866b77c2a8715e9.png"><div class="info"><h3>Кільцева люстра та магнітний трек</h3><p>Парящий профіль та світлова лінія</p></div></div>
+
+<div class="card"><img src="IMG_20250916_154231.jpg"><div class="info"><h3>Біла матова стеля з чорним накладним треком</h3><p>Сучасне освітлення кухні</p></div></div>
+
+<div class="card"><img src="IMG_20250916_154311.jpg"><div class="info"><h3>Біла матова стеля з магнітним треком</h3><p>Тіньовий профіль та сучасний дизайн</p></div></div>
+
+<div class="card"><img src="1758027449029.jpg"><div class="info"><h3>Біла матова стеля зі світловою лінією</h3><p>Накладний трек та сучасне освітлення</p></div></div>
+
+<div class="card"><img src="1758027449069.jpg"><div class="info"><h3>Біла матова стеля</h3><p>Накладний трек та декоративні підвіси</p></div></div>
+
+<div class="card"><img src="2026-02-23-205547199(1).jpg"><div class="info"><h3>Світлові лінії у формі квадрата</h3><p>Сучасне LED-рішення</p></div></div>
+
+<div class="card"><img src="20260611_205550(8)(1).jpg"><div class="info"><h3>Біла матова стеля</h3><p>Карниз з підсвіткою та люстра на підвісах</p></div></div>
+
+<div class="card"><img src="IMG_20250916_154446.jpg"><div class="info"><h3>Біла матова стеля</h3><p>Біла вставка та вбудовані світильники</p></div></div>
+
+<div class="card"><img src="IMG_20250916_155016.jpg"><div class="info"><h3>Біла матова стеля</h3><p>Біла вставка та сучасна люстра</p></div></div>
+
+<div class="card"><img src="IMG_20260618_122616_028(1).jpg"><div class="info"><h3>Сучасне рішення</h3><p>Чорна вставка та карниз з підсвіткою</p></div></div>
+
+<div class="card"><img src="img22.jpg"><div class="info"><h3>Біла матова стеля у ванній</h3><p>Тіньовий профіль</p></div></div>
+
+<div class="card"><img src="img27.jpg"><div class="info"><h3>Коридор зі світловими лініями</h3><p>Сучасне LED-освітлення</p></div></div>
+
+<div class="card"><img src="photo_03.jpg"><div class="info"><h3>Світлова лінія з переходом на стіну</h3><p>Точкові світильники та LED-підсвітка</p></div></div>
+<div class="card"><img src="20260121_210130.jpg"><div class="info"><h3>Біла глянцева стеля</h3><p>Точкові світильники та дзеркальний ефект</p></div></div>
+
+<div class="card"><img src="20260121_210215.jpg"><div class="info"><h3>Біла глянцева стеля</h3><p>Сучасна люстра та дзеркальний ефект</p></div></div>
+<div class="card"><img src="20260623_143240.jpg"><div class="info"><h3>Біла матова стеля з тіньовим примиканням</h3><p>Точкові світильники та сучасний дизайн коридору</p></div></div>
+
+<div class="card"><img src="20260623_143257.jpg"><div class="info"><h3>Тіньова стеля у ванній кімнаті</h3><p>Біле матове полотно та точкове освітлення</p></div></div>
+
+<div class="card"><img src="20260623_143839.jpg"><div class="info"><h3>Сучасна ванна з тіньовим профілем</h3><p>Точна геометрія та бездоганне примикання до плитки</p></div></div>
+
+<div class="card"><img src="20260623_143331.jpg"><div class="info"><h3>Паряща стеля з тіньовим профілем</h3><p>Біле матове полотно та ефект легкості</p></div></div>
+
+<div class="card"><img src="20260623_143548.jpg"><div class="info"><h3>Біла матова стеля у спальні</h3><p>Тіньове примикання та рівні лінії по периметру</p></div></div>
+
+<div class="card"><img src="20260623_143416.jpg"><div class="info"><h3>Класична матова стеля</h3><p>Тіньовий профіль та мінімалістичний дизайн</p></div></div>
+
+<div class="card"><img src="20260623_143726.jpg"><div class="info"><h3>Хол другого поверху</h3><p>Тіньовий профіль та точкове освітлення</p></div></div>
+
+<div class="card"><img src="20260623_143701.jpg"><div class="info"><h3>Другий ракурс коридору</h3><p>Тіньовий профіль та рівні лінії по периметру</p></div></div>
+
+<div class="card"><img src="20260623_143707.jpg"><div class="info"><h3>Тіньовий профіль на зовнішньому куті</h3><p>Чіткі лінії та бездоганне примикання</p></div></div>
+
+<div class="card"><img src="20260623_143856.jpg"><div class="info"><h3>Преміальне тіньове примикання</h3><p>Поєднання стелі та великоформатного керамограніту</p></div></div>
+
+<div class="card"><img src="20260623_143539.jpg"><div class="info"><h3>Вбудований карниз для штор</h3><p>Прихований карниз інтегрований у натяжну стелю</p></div></div>
+
+<div class="card"><img src="20260623_143755.jpg"><div class="info"><h3>Ідеальна геометрія стелі</h3><p>Запорука якісного тіньового примикання</p></div></div></div>
+
+<section id="calc">
+<div class="wrap">
+<div class="calc-box">
+<h2>Калькулятор вартості</h2>
+<p class="calc-note">Попередній розрахунок натяжної стелі у Харкові.</p>
+
+<div class="calc-grid"><div class="field">
+<label>Ім'я</label>
+<input id="clientName" type="text" placeholder="Ваше ім'я">
+</div>
+
+<div class="field">
+<label>Телефон</label>
+<input id="clientPhone" type="tel" placeholder="Ваш телефон">
+</div>
+<div class="field">
+<label>Площа, м²</label>
+<input id="area" type="number" value="10">
+</div>
+
+<div class="field">
+<label>Периметр, м.п.</label>
+<input id="perimeter" type="number" value="14">
+</div>
+
+<div class="field">
+<label>Пакет</label>
+<select id="package">
+<option value="500">Стандарт — 500 грн/м²</option>
+<option value="600">Преміум — 600 грн/м²</option>
+<option value="700">Еліт — 700 грн/м²</option>
+</select>
+</div>
+
+<div class="field">
+<label>Профіль</label>
+<select id="profile">
+<option value="0">Звичайний</option>
+<option value="150">Тіньовий +150 грн/м.п.</option>
+<option value="550">Парящий +550 грн/м.п.</option>
+</select>
+</div>
+
+<div class="field">
+<label>Світильники, шт</label>
+<input id="lights" type="number" value="0">
+</div>
+
+<div class="field">
+<label>Люстри, шт</label>
+<input id="chandeliers" type="number" value="0">
+</div>
+
+<div class="field">
+<label>Кути, шт</label>
+<input id="corners" type="number" value="4">
+</div>
+
+<div class="field">
+<label>Труби, шт</label>
+<input id="pipes" type="number" value="0">
+</div>
+</div>
+
+<div style="margin-top:14px;background:#f8fafc;border:1px solid #dbe3ef;border-radius:14px;padding:14px">
+<div style="font-size:13px;color:#64748b">Попередня вартість:</div>
+<div id="totalPrice" style="font-size:30px;font-weight:950;color:#075bff;margin-top:4px">0 грн</div>
+<div id="calcDetails" style="font-size:12px;color:#64748b;margin-top:6px"></div>
+</div>
+
+<div class="btn-row" style="margin-top:12px">
+<button class="btn blue" onclick="calculateCeiling()">Розрахувати</button>
+<button id="telegramCalc" class="btn outline" onclick="sendCalcToTelegram()">Надіслати в Telegram</button>
+<a class="btn outline" href="https://t.me/Potolok_in_ua">📷 Надіслати фото</a>
+<a class="btn outline" href="tel:+380974546713">📞 Замовити дзвінок</a>
+
+</div>
+</div>
+</div>
+<script>
+function calculateCeiling(){
+  const area = Number(document.getElementById('area').value) || 0;
+  const perimeter = Number(document.getElementById('perimeter').value) || 0;
+  const pack = Number(document.getElementById('package').value) || 0;
+  const profile = Number(document.getElementById('profile').value) || 0;
+  const lights = Number(document.getElementById('lights').value) || 0;
+  const chandeliers = Number(document.getElementById('chandeliers').value) || 0;
+  const corners = Number(document.getElementById('corners').value) || 0;
+  const pipes = Number(document.getElementById('pipes').value) || 0;
+
+  let total = area * pack;
+  total += perimeter * profile;
+  total += lights * 150;
+  total += chandeliers * 400;
+  total += corners * 50;
+  total += pipes * 300;
+
+  if(total < 5000) total = 5000;
+
+  document.getElementById('totalPrice').innerText = total.toLocaleString('uk-UA') + ' грн';
+  document.getElementById('calcDetails').innerText =
+    'Площа: ' + area + ' м² • Периметр: ' + perimeter + ' м.п. • Мінімальне замовлення: 5000 грн';
+}
+
+function sendCalcToTelegram(){
+  calculateCeiling();
+
+  const area = document.getElementById('area').value;
+  const perimeter = document.getElementById('perimeter').value;
+  const total = document.getElementById('totalPrice').innerText;
+  const name = document.getElementById('clientName').value;
+const phone = document.getElementById('clientPhone').value;
+
+  const pack = document.getElementById('package');
+const profile = document.getElementById('profile');
+const lights = document.getElementById('lights').value;
+const chandeliers = document.getElementById('chandeliers').value;
+const corners = document.getElementById('corners').value;
+const pipes = document.getElementById('pipes').value;
+
+const msg = encodeURIComponent(
+  'Добрий день! Хочу розрахунок стелі.\n\n' +
+  'Імʼя: ' + name + '\n' +
+'Телефон: ' + phone + '\n\n' +
+  'Площа: ' + area + ' м²\n' +
+  'Периметр: ' + perimeter + ' м.п.\n' +
+  'Пакет: ' + pack.options[pack.selectedIndex].text + '\n' +
+  'Профіль: ' + profile.options[profile.selectedIndex].text + '\n' +
+  'Світильники: ' + lights + ' шт\n' +
+  'Люстри: ' + chandeliers + ' шт\n' +
+  'Кути: ' + corners + ' шт\n' +
+  'Труби: ' + pipes + ' шт\n\n' +
+  'Попередня сума: ' + total
+);
+
+  window.location.href = 'https://t.me/Potolok_in_ua?url=&text=' + msg;
+}
+
+calculateCeiling();
+</script>
+</section>
+
+<section class="solutions" id="solutions">
+<div class="wrap">
+<div class="section-head"><h2>Наші рішення</h2></div>
+<div class="solution-grid">
+<div class="solution"><b>Тіньовий профіль</b><p>Преміальний чорний контур</p></div>
+<div class="solution"><b>Світлові лінії</b><p>LED-рішення під інтер’єр</p></div>
+<div class="solution"><b>Магнітні треки</b><p>Сучасне освітлення</p></div>
+<div class="solution"><b>Класична стеля</b><p>Білий мат, сатин, глянець</p></div>
+</div>
+</div>
+</section>
+<section class="wrap" style="margin-top:30px">
+<h2>Наші переваги</h2>
+
+<div class="works">
+
+<div class="card">
+<h3>✅ Безкоштовний замір</h3>
+<p>Виїзд майстра у зручний для вас час.</p>
+</div>
+
+<div class="card">
+<h3>✅ Гарантія 10 років</h3>
+<p>Гарантія на матеріали та виконані роботи.</p>
+</div>
+
+<div class="card">
+<h3>✅ Монтаж за 1 день</h3>
+<p>Більшість об'єктів виконуємо за один день.</p>
+</div>
+
+<div class="card">
+<h3>✅ Оплата після монтажу</h3>
+<p>Спочатку результат — потім оплата.</p>
+</div>
+
+<div class="card">
+<h3>✅ Якісні матеріали</h3>
+<p>Перевірені полотна та комплектуючі.</p>
+</div>
+
+<div class="card">
+<h3>✅ Понад 1000 встановлених стель</h3>
+<p>Досвід, перевірений роками та клієнтами.</p>
+</div>
+
+</div>
+</section>
+
+<section id="reviews">
+<div class="wrap">
+<div class="reviews-box">
+<h2>Відгуки клієнтів</h2>
+<div class="reviews-grid">
+<div class="review"><b>Олена, Харків</b><div class="stars">★★★★★</div><p>Зробили акуратно, швидко і без зайвого бруду. Стеля виглядає дорого.</p></div>
+<div class="review"><b>Андрій, Салтівка</b><div class="stars">★★★★★</div><p>Порахували по фото, приїхали на замір, монтаж зайняв один день.</p></div>
+<div class="review"><b>Марина, Холодна Гора</b><div class="stars">★★★★★</div><p>Сподобались світлові лінії та тіньовий профіль. Рекомендую.</p></div>
+</div>
+</div>
+</div>
+</section>
+
+<section id="contacts">
+<div class="wrap">
+<div class="lead-box">
+<h2>Залишити заявку</h2>
+<p>Надішліть розміри кімнати, план приміщення або креслення — зробимо попередній розрахунок вартості.</p>
+
+<div class="lead-grid">
+<div class="field">
+<label>Ім’я</label>
+<input id="leadName" autocomplete="name" placeholder="Ваше ім’я">
+</div>
+
+<div class="field">
+<label>Телефон</label>
+<input id="leadPhone" type="tel" inputmode="tel" autocomplete="tel" placeholder="+380...">
+</div>
+
+<div class="field">
+<label>Коментар</label>
+<textarea id="leadComment" placeholder="Площа, кімната, що потрібно зробити"></textarea>
+</div>
+</div>
+
+<div class="contact-methods" aria-label="Бажаний спосіб зв’язку">
+<button type="button" class="contact-method active" data-contact="Телефон">📞 Телефон</button>
+<button type="button" class="contact-method" data-contact="Viber">💜 Viber</button>
+<button type="button" class="contact-method" data-contact="WhatsApp">🟢 WhatsApp</button>
+<button type="button" class="contact-method" data-contact="Telegram">✈️ Telegram</button>
+<button type="button" class="contact-method" data-contact="SMS">💬 SMS</button>
+</div>
+
+<div style="margin-top:12px">
+<button id="leadSubmitBtn" class="lead-submit" type="button" onclick="sendUniversalLead()"><span>📨 Надіслати заявку</span></button>
+</div>
+<div id="leadStatus" class="lead-status" role="status" aria-live="polite"></div>
+
+</div>
+</div>
+</section>
+
+<footer class="footer">
+© 2026 Potolok.in.ua • 097 454 67 13
+</footer>
+<div id="lightbox" class="lightbox" onclick="closePhoto()">
+<span class="lightbox-close">×</span>
+<img id="lightboxImg" src="">
+</div>
+
+<script>
+document.querySelectorAll('#works .card img').forEach(function(img){
+  img.addEventListener('click', function(){
+    document.getElementById('lightboxImg').src = this.src;
+    document.getElementById('lightbox').classList.add('active');
+  });
+});
+
+function closePhoto(){
+  document.getElementById('lightbox').classList.remove('active');
+}
+</script>
+<script>
+let preferredContact = 'Телефон';
+
+document.querySelectorAll('.contact-method').forEach(function(button){
+  button.addEventListener('click', function(){
+    document.querySelectorAll('.contact-method').forEach(function(item){ item.classList.remove('active'); });
+    this.classList.add('active');
+    preferredContact = this.dataset.contact || 'Телефон';
+  });
+});
+
+function setLeadStatus(message, type){
+  const box = document.getElementById('leadStatus');
+  box.textContent = message;
+  box.className = 'lead-status show ' + type;
+}
+
+async function sendUniversalLead(){
+  const name = document.getElementById('leadName').value.trim();
+  const phone = document.getElementById('leadPhone').value.trim();
+  const comment = document.getElementById('leadComment').value.trim();
+  const button = document.getElementById('leadSubmitBtn');
+
+  if(!phone || phone.replace(/\D/g,'').length < 9){
+    setLeadStatus('Вкажіть коректний номер телефону.', 'error');
+    document.getElementById('leadPhone').focus();
+    return;
+  }
+
+  const text =
+    'Нова заявка з головної сторінки Potolok.in.ua\n\n' +
+    'Імʼя: ' + (name || 'не вказано') + '\n' +
+    'Телефон: ' + phone + '\n' +
+    'Зв’язатися через: ' + preferredContact + '\n' +
+    'Коментар: ' + (comment || 'без коментаря');
+
+  const payload = {
+    name: name,
+    phone: phone,
+    contact: preferredContact,
+    messenger: preferredContact,
+    message: comment,
+    clientName: name,
+    clientPhone: phone,
+    comment: comment,
+    source: 'Головна сторінка Potolok.in.ua',
+    page: window.location.href,
+    createdAt: new Date().toISOString(),
+    text: text
+  };
+
+  button.disabled = true;
+  button.querySelector('span').textContent = 'Надсилаємо…';
+  setLeadStatus('Відправляємо заявку…', 'ok');
+
+  try{
+    const response = await fetch('/api/telegram-submit', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify(payload)
+    });
+
+    if(!response.ok) throw new Error('HTTP ' + response.status);
+
+    setLeadStatus('Дякуємо! Заявку надіслано. Ми зв’яжемося з вами найближчим часом.', 'ok');
+    document.getElementById('leadName').value = '';
+    document.getElementById('leadPhone').value = '';
+    document.getElementById('leadComment').value = '';
+  }catch(error){
+    console.error('Lead submit error:', error);
+    setLeadStatus('Не вдалося автоматично надіслати заявку. Оберіть потрібний спосіб зв’язку вище або зателефонуйте за номером 097 454 67 13.', 'error');
+  }finally{
+    button.disabled = false;
+    button.querySelector('span').textContent = '📨 Надіслати заявку';
+  }
+}
+</script>  
+</body>
+</html>
+
+
+
+
+
+
+
