@@ -140,6 +140,23 @@ h2{font-size:25px}
 @media(max-width:520px){.contact-methods{grid-template-columns:repeat(2,1fr)}.contact-method:first-child{grid-column:1/-1}}
 @media(prefers-reduced-motion:reduce){.lead-submit,.lead-submit:before{animation:none}}
 
+
+/* Photo / plan attachment form */
+.lead-photo-field{grid-column:auto}
+.lead-photo-box{height:100%;min-height:118px;border:1px dashed rgba(255,255,255,.35);border-radius:12px;background:rgba(255,255,255,.07);padding:10px;display:flex;flex-direction:column;justify-content:center}
+.lead-photo-btn{width:100%;min-height:42px;border:1px solid rgba(255,255,255,.28);border-radius:10px;background:rgba(255,255,255,.12);color:#fff;font-size:10px;font-weight:900}
+.lead-photo-note{font-size:8px;color:#bfdbfe;margin-top:7px;line-height:1.35}
+.lead-photo-list{display:grid;grid-template-columns:1fr;gap:8px;margin-top:10px}
+.lead-photo-item{display:grid;grid-template-columns:66px 1fr auto;gap:8px;align-items:start;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);border-radius:11px;padding:8px}
+.lead-photo-thumb{width:66px;height:66px;border-radius:9px;object-fit:cover;background:#fff}
+.lead-photo-meta{min-width:0}
+.lead-photo-name{font-size:8px;color:#dbeafe;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:5px}
+.lead-photo-caption{width:100%;border:1px solid rgba(255,255,255,.18);border-radius:8px;padding:7px;font-size:9px;background:#fff;color:#0f172a}
+.lead-photo-remove{width:28px;height:28px;border:1px solid rgba(255,255,255,.2);border-radius:8px;background:rgba(255,255,255,.08);color:#fff;font-size:15px;font-weight:900}
+.lead-photo-counter{font-size:8px;color:#bfdbfe;margin-top:7px}
+@media(min-width:760px){.lead-grid{grid-template-columns:1fr 1fr 2fr 2fr}}
+@media(max-width:759px){.lead-photo-field{grid-column:1/-1}}
+
 </style>
 </head>
 
@@ -566,7 +583,19 @@ calculateCeiling();
 <label>Коментар</label>
 <textarea id="leadComment" placeholder="Площа, кімната, що потрібно зробити"></textarea>
 </div>
+
+<div class="field lead-photo-field">
+<label>Фото / план з примітками</label>
+<div class="lead-photo-box">
+<input id="leadPhotos" type="file" accept="image/jpeg,image/png,image/webp" multiple hidden>
+<button class="lead-photo-btn" type="button" onclick="document.getElementById('leadPhotos').click()">📷 Додати фото або план</button>
+<div class="lead-photo-note">До 5 зображень. Фото автоматично стискаються перед відправленням.</div>
+<div id="leadPhotoCounter" class="lead-photo-counter">Файли не вибрано</div>
 </div>
+</div>
+</div>
+
+<div id="leadPhotoList" class="lead-photo-list"></div>
 
 <div class="contact-methods" aria-label="Бажаний спосіб зв’язку">
 <button type="button" class="contact-method active" data-contact="Телефон">📞 Телефон</button>
@@ -607,6 +636,9 @@ function closePhoto(){
 </script>
 <script>
 let preferredContact = 'Телефон';
+let leadPhotoItems = [];
+const MAX_LEAD_PHOTOS = 5;
+const MAX_TOTAL_BASE64_LENGTH = 3400000;
 
 document.querySelectorAll('.contact-method').forEach(function(button){
   button.addEventListener('click', function(){
@@ -615,6 +647,116 @@ document.querySelectorAll('.contact-method').forEach(function(button){
     preferredContact = this.dataset.contact || 'Телефон';
   });
 });
+
+document.getElementById('leadPhotos').addEventListener('change', async function(event){
+  const incoming = Array.from(event.target.files || []);
+  event.target.value = '';
+  if(!incoming.length) return;
+
+  const freeSlots = MAX_LEAD_PHOTOS - leadPhotoItems.length;
+  const selected = incoming.slice(0, Math.max(0, freeSlots));
+
+  if(!selected.length){
+    setLeadStatus('Можна додати не більше 5 зображень.', 'error');
+    return;
+  }
+
+  setLeadStatus('Готуємо фото до відправлення…', 'ok');
+
+  try{
+    for(const file of selected){
+      if(!/^image\/(jpeg|png|webp)$/i.test(file.type)) continue;
+      const prepared = await prepareLeadImage(file);
+      leadPhotoItems.push({
+        id: Date.now().toString(36) + Math.random().toString(36).slice(2),
+        name: file.name || 'photo.jpg',
+        dataUrl: prepared,
+        caption: ''
+      });
+    }
+    renderLeadPhotos();
+    setLeadStatus('Фото готові до відправлення.', 'ok');
+  }catch(error){
+    console.error('Photo prepare error:', error);
+    setLeadStatus('Не вдалося обробити одне з фото. Спробуйте інше зображення.', 'error');
+  }
+});
+
+function prepareLeadImage(file){
+  return new Promise(function(resolve, reject){
+    const reader = new FileReader();
+    reader.onerror = function(){ reject(new Error('File read failed')); };
+    reader.onload = function(){
+      const image = new Image();
+      image.onerror = function(){ reject(new Error('Image decode failed')); };
+      image.onload = function(){
+        const maxSide = 1400;
+        let width = image.naturalWidth || image.width;
+        let height = image.naturalHeight || image.height;
+        if(width > maxSide || height > maxSide){
+          const ratio = Math.min(maxSide / width, maxSide / height);
+          width = Math.round(width * ratio);
+          height = Math.round(height * ratio);
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d', {alpha:false});
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0,0,width,height);
+        ctx.drawImage(image,0,0,width,height);
+        resolve(canvas.toDataURL('image/jpeg',0.76));
+      };
+      image.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+function renderLeadPhotos(){
+  const list = document.getElementById('leadPhotoList');
+  const counter = document.getElementById('leadPhotoCounter');
+  list.innerHTML = '';
+  counter.textContent = leadPhotoItems.length ? 'Додано: ' + leadPhotoItems.length + ' із 5' : 'Файли не вибрано';
+
+  leadPhotoItems.forEach(function(item,index){
+    const row = document.createElement('div');
+    row.className = 'lead-photo-item';
+
+    const img = document.createElement('img');
+    img.className = 'lead-photo-thumb';
+    img.src = item.dataUrl;
+
+    const meta = document.createElement('div');
+    meta.className = 'lead-photo-meta';
+
+    const name = document.createElement('div');
+    name.className = 'lead-photo-name';
+    name.textContent = (index+1) + '. ' + item.name;
+
+    const caption = document.createElement('input');
+    caption.className = 'lead-photo-caption';
+    caption.placeholder = 'Примітка до фото або плану';
+    caption.value = item.caption;
+    caption.addEventListener('input', function(){ item.caption = this.value.slice(0,500); });
+
+    const remove = document.createElement('button');
+    remove.className = 'lead-photo-remove';
+    remove.type = 'button';
+    remove.textContent = '×';
+    remove.onclick = function(){
+      leadPhotoItems = leadPhotoItems.filter(function(photo){ return photo.id !== item.id; });
+      renderLeadPhotos();
+    };
+
+    meta.appendChild(name);
+    meta.appendChild(caption);
+    row.appendChild(img);
+    row.appendChild(meta);
+    row.appendChild(remove);
+    list.appendChild(row);
+  });
+}
 
 function setLeadStatus(message, type){
   const box = document.getElementById('leadStatus');
@@ -634,48 +776,58 @@ async function sendUniversalLead(){
     return;
   }
 
+  const totalImageLength = leadPhotoItems.reduce(function(sum,item){ return sum + item.dataUrl.length; },0);
+  if(totalImageLength > MAX_TOTAL_BASE64_LENGTH){
+    setLeadStatus('Фото завеликі. Видаліть одне фото або додайте менші зображення.', 'error');
+    return;
+  }
+
   const text =
     'Нова заявка з головної сторінки Potolok.in.ua\n\n' +
     'Імʼя: ' + (name || 'не вказано') + '\n' +
     'Телефон: ' + phone + '\n' +
     'Зв’язатися через: ' + preferredContact + '\n' +
-    'Коментар: ' + (comment || 'без коментаря');
+    'Коментар: ' + (comment || 'без коментаря') + '\n' +
+    'Фото / план: ' + (leadPhotoItems.length ? leadPhotoItems.length + ' шт.' : 'не додано');
 
   const payload = {
-    name: name,
-    phone: phone,
-    contact: preferredContact,
-    messenger: preferredContact,
-    message: comment,
-    clientName: name,
-    clientPhone: phone,
-    comment: comment,
+    name, phone, contact: preferredContact, messenger: preferredContact,
+    message: comment, clientName: name, clientPhone: phone, comment,
     source: 'Головна сторінка Potolok.in.ua',
     page: window.location.href,
     createdAt: new Date().toISOString(),
-    text: text
+    text,
+    photos: leadPhotoItems.map(function(item,index){
+      return {
+        name: item.name,
+        caption: item.caption.trim() || ('Фото / план ' + (index+1)),
+        dataUrl: item.dataUrl
+      };
+    })
   };
 
   button.disabled = true;
-  button.querySelector('span').textContent = 'Надсилаємо…';
-  setLeadStatus('Відправляємо заявку…', 'ok');
+  button.querySelector('span').textContent = leadPhotoItems.length ? 'Надсилаємо заявку і фото…' : 'Надсилаємо…';
+  setLeadStatus('Відправляємо заявку' + (leadPhotoItems.length ? ' та фото' : '') + '…','ok');
 
   try{
-    const response = await fetch('/api/telegram-submit', {
-      method: 'POST',
-      headers: {'Content-Type':'application/json'},
-      body: JSON.stringify(payload)
+    const response = await fetch('/api/telegram-submit',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(payload)
     });
+    const result = await response.json().catch(function(){ return null; });
+    if(!response.ok || !result?.ok) throw new Error(result?.error || ('HTTP ' + response.status));
 
-    if(!response.ok) throw new Error('HTTP ' + response.status);
-
-    setLeadStatus('Дякуємо! Заявку надіслано. Ми зв’яжемося з вами найближчим часом.', 'ok');
+    setLeadStatus('Дякуємо! Заявку надіслано.' + (leadPhotoItems.length ? ' Фото та примітки також надіслано.' : '') + ' Ми зв’яжемося з вами найближчим часом.','ok');
     document.getElementById('leadName').value = '';
     document.getElementById('leadPhone').value = '';
     document.getElementById('leadComment').value = '';
+    leadPhotoItems = [];
+    renderLeadPhotos();
   }catch(error){
     console.error('Lead submit error:', error);
-    setLeadStatus('Не вдалося автоматично надіслати заявку. Оберіть потрібний спосіб зв’язку вище або зателефонуйте за номером 097 454 67 13.', 'error');
+    setLeadStatus('Не вдалося автоматично надіслати заявку. Спробуйте ще раз або зателефонуйте за номером 097 454 67 13.','error');
   }finally{
     button.disabled = false;
     button.querySelector('span').textContent = '📨 Надіслати заявку';
@@ -684,6 +836,14 @@ async function sendUniversalLead(){
 </script>  
 </body>
 </html>
+
+
+
+
+
+
+
+
 
 
 
