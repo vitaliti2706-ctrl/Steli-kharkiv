@@ -411,7 +411,10 @@ th:nth-child(2),th:nth-child(3),th:nth-child(4),td:nth-child(2),td:nth-child(3),
 <div class="block"><div class="block-head"><h2>Основні параметри</h2></div><div class="field-grid">
 <div class="field"><label>Площа, м²</label><input id="area" type="number" value="17.5" step="0.1" oninput="recalc();autosave()"></div>
 <div class="field"><label>Периметр, м.п.</label><input id="perimeter" type="number" value="18" step="0.1" oninput="recalc();autosave()"></div>
-<div class="field"><label>Кути, шт</label><input id="cornersCount" type="number" value="4" oninput="recalc();autosave()"></div>
+<div class="field"><label>Внутрішні кути, шт</label><input id="internalCornersCount" type="number" value="4" min="0" oninput="manualCornerEdit42()"></div>
+<div class="field"><label>Зовнішні кути, шт</label><input id="externalCornersCount" type="number" value="0" min="0" oninput="manualCornerEdit42()"></div>
+<div class="field"><label>Усього кутів, шт</label><input id="cornersCount" type="number" value="4" min="0" readonly></div>
+<div class="field"><label>Розрахунок кутів</label><select id="cornerMode42" onchange="setCornerMode42(this.value)"><option value="auto">Автоматично з плану</option><option value="manual">Ручне редагування</option></select></div>
 <div class="field"><label>Люстри, шт</label><input id="chandelierCount" type="number" value="1" oninput="recalc();autosave()"></div>
 <div class="field"><label>Виробник полотна</label><select id="calcManufacturer" onchange="recalc();autosave()"><option>MSD Premium</option><option>MSD Classic</option><option>MSD Premium Exclusive</option><option>BAUF</option><option>Pongs</option><option>Teqtum</option><option>Descor</option><option>Інший</option></select></div>
 <div class="field"><label>Фактура полотна</label><select id="calcTexture" onchange="syncCeilingPackage()"><option value="matte">Матове — 500 грн/м²</option><option value="satin">Сатин — 550 грн/м²</option><option value="glossy">Лак / глянець — 600 грн/м²</option></select></div>
@@ -4551,8 +4554,163 @@ async function sendAiRequest(){
 }
 </script>
 
+
+<script>
+/* Pixel 6.9 — точні кути та мінімальне замовлення один раз на об'єкт */
+(function(){
+  const MIN_OBJECT_ORDER_69=5000;
+
+  function n69(id){return Number(document.getElementById(id)?.value)||0}
+  function set69(id,v){const el=document.getElementById(id);if(el)el.value=String(Math.max(0,Math.round(Number(v)||0)))}
+
+  window.roomCornerMetrics69=function(points=window.roomPoints){
+    const pts=Array.isArray(points)?points:[];
+    if(pts.length<3)return{internal:0,external:0,total:0};
+    let signed=0;
+    for(let i=0;i<pts.length;i++){
+      const a=pts[i],b=pts[(i+1)%pts.length];
+      signed+=a[0]*b[1]-b[0]*a[1];
+    }
+    const orientation=signed>=0?1:-1;
+    let internal=0,external=0;
+    for(let i=0;i<pts.length;i++){
+      const prev=pts[(i-1+pts.length)%pts.length],cur=pts[i],next=pts[(i+1)%pts.length];
+      const cross=(cur[0]-prev[0])*(next[1]-cur[1])-(cur[1]-prev[1])*(next[0]-cur[0]);
+      if(Math.abs(cross)<0.0001)continue;
+      if(cross*orientation>0)internal++; else external++;
+    }
+    return{internal,external,total:internal+external};
+  };
+
+  window.syncCornerTotal42=function(){
+    const total=n69('internalCornersCount')+n69('externalCornersCount');
+    set69('cornersCount',total);
+    return total;
+  };
+
+  window.manualCornerEdit42=function(){
+    const mode=document.getElementById('cornerMode42');if(mode)mode.value='manual';
+    syncCornerTotal42();
+    window.recalc?.();window.syncActiveRoomFromUI?.(false);window.autosave?.();
+  };
+
+  window.setCornerMode42=function(mode){
+    if(mode==='auto')applyAutoCorners42();
+    else{syncCornerTotal42();window.recalc?.();window.autosave?.()}
+  };
+
+  window.applyAutoCorners42=function(force=false){
+    const mode=document.getElementById('cornerMode42');
+    if(!force&&mode&&mode.value==='manual')return;
+    const c=roomCornerMetrics69(window.roomPoints);
+    set69('internalCornersCount',c.internal);
+    set69('externalCornersCount',c.external);
+    set69('cornersCount',c.total);
+    if(mode)mode.value='auto';
+  };
+
+  const oldApply=window.applyPlannerToCalc;
+  if(typeof oldApply==='function')window.applyPlannerToCalc=function(){
+    applyAutoCorners42(true);
+    const result=oldApply.apply(this,arguments);
+    applyAutoCorners42(true);window.recalc?.();window.syncActiveRoomFromUI?.(false);return result;
+  };
+
+  const oldApplyBindings=window.applyBindingsToCalculator;
+  if(typeof oldApplyBindings==='function')window.applyBindingsToCalculator=function(){
+    applyAutoCorners42(true);
+    const result=oldApplyBindings.apply(this,arguments);
+    applyAutoCorners42(true);window.recalc?.();window.syncActiveRoomFromUI?.(false);return result;
+  };
+
+  const oldSavePlan=window.savePlannerRoom;
+  if(typeof oldSavePlan==='function')window.savePlannerRoom=function(){applyAutoCorners42(true);return oldSavePlan.apply(this,arguments)};
+
+  const oldCapture=window.captureCurrentRoom;
+  if(typeof oldCapture==='function')window.captureCurrentRoom=function(){
+    syncCornerTotal42();
+    const r=oldCapture.apply(this,arguments);
+    r.internalCorners=n69('internalCornersCount');
+    r.externalCorners=n69('externalCornersCount');
+    r.cornerMode=document.getElementById('cornerMode42')?.value||'auto';
+    r.corners=r.internalCorners+r.externalCorners;
+    r.calculated=Array.isArray(r.rows)?r.rows.reduce((s,x)=>s+(Number(x.sum)||0),0):(Number(r.calculated)||0);
+    r.total=r.calculated; // мінімалка не застосовується до окремої кімнати
+    return r;
+  };
+
+  const oldRestore=window.restoreRoom;
+  if(typeof oldRestore==='function')window.restoreRoom=function(room){
+    const result=oldRestore.apply(this,arguments);
+    const mode=room?.cornerMode||'auto';
+    const modeEl=document.getElementById('cornerMode42');if(modeEl)modeEl.value=mode;
+    if(mode==='manual'){
+      set69('internalCornersCount',room?.internalCorners ?? room?.corners ?? 0);
+      set69('externalCornersCount',room?.externalCorners ?? 0);
+      syncCornerTotal42();
+    }else applyAutoCorners42(true);
+    window.recalc?.();return result;
+  };
+
+  const oldReset=window.resetRoomWorkspace;
+  if(typeof oldReset==='function')window.resetRoomWorkspace=function(){
+    const result=oldReset.apply(this,arguments);
+    const mode=document.getElementById('cornerMode42');if(mode)mode.value='auto';
+    set69('internalCornersCount',0);set69('externalCornersCount',0);set69('cornersCount',0);
+    return result;
+  };
+
+  const oldRenderPlanner=window.renderPlanner;
+  if(typeof oldRenderPlanner==='function')window.renderPlanner=function(){
+    const result=oldRenderPlanner.apply(this,arguments);
+    applyAutoCorners42(false);return result;
+  };
+
+  // Кошторис кімнати показує фактичну суму; мінімалка додається тільки в підсумку об'єкта.
+  window.recalc=function(){
+    const rows=window.currentRows?currentRows():[];
+    const calculated=rows.reduce((s,r)=>s+(Number(r.sum)||0),0);
+    const currentRoomTotal=calculated;
+    if(window.priceValue)priceValue.textContent=money(currentRoomTotal);
+    if(window.bottomPrice)bottomPrice.textContent=money(currentRoomTotal);
+    if(window.priceDetails)priceDetails.innerHTML=`<b>Кімната:</b> ${money(calculated)}<br><b>Мінімальне замовлення:</b> застосовується один раз до всього об’єкта`;
+    if(window.estimateBody)estimateBody.innerHTML=rows.map(r=>`<tr><td>${r.name}</td><td>${r.qty}</td><td>${money(r.price)}</td><td>${money(r.sum)}</td></tr>`).join('');
+    if(window.estimateTotal)estimateTotal.textContent='Разом по кімнаті: '+money(currentRoomTotal);
+    if(window.summaryArea)summaryArea.textContent=n69('area')+' м²';
+    if(window.summaryPerimeter)summaryPerimeter.textContent=n69('perimeter')+' м';
+    if(typeof window.autosave==='function'&&!window.roomSyncLock)window.autosave();
+  };
+
+  const oldMetrics=window.objectMetricsNoSync;
+  if(typeof oldMetrics==='function')window.objectMetricsNoSync=function(){
+    const m=oldMetrics.apply(this,arguments);
+    const calculated=Array.isArray(window.projectRooms)?projectRooms.reduce((s,r)=>s+(Number(r.calculated)||Number(r.total)||0),0):Number(m.calculated)||0;
+    return{...m,calculated,total:Math.max(calculated,MIN_OBJECT_ORDER_69)};
+  };
+
+  // Оновлюємо картки кімнат: без фальшивої мінімалки 5000 на кожній.
+  const oldRenderRooms=window.renderRooms;
+  if(typeof oldRenderRooms==='function')window.renderRooms=function(){
+    const result=oldRenderRooms.apply(this,arguments);
+    document.querySelectorAll('.room-card').forEach((card,index)=>{
+      const room=window.projectRooms?.[index];
+      const span=card.querySelector('span');
+      if(room&&span)span.textContent=`${Number(room.area||0).toFixed(2)} м² • ${Number(room.perimeter||0).toFixed(2)} м • ${money(Number(room.calculated)||Number(room.total)||0)}`;
+    });
+    return result;
+  };
+
+  setTimeout(()=>{
+    const current=n69('cornersCount');
+    if(!n69('internalCornersCount')&&!n69('externalCornersCount')&&current)set69('internalCornersCount',current);
+    applyAutoCorners42(false);syncCornerTotal42();window.recalc?.();window.renderRooms?.();
+  },250);
+})();
+</script>
+
 </body>
 </html>
+
 
 
 
