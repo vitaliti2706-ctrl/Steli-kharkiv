@@ -135,12 +135,9 @@ h2{font-size:25px}
 .lead-status.show{display:block}
 .lead-status.ok{background:#ecfdf5;color:#047857;border:1px solid #a7f3d0}
 .lead-status.error{background:#fff1f2;color:#b91c1c;border:1px solid #fecdd3}
-.contact-shortcuts{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-top:10px}
-.contact-shortcuts a{display:flex;align-items:center;justify-content:center;min-height:40px;border-radius:10px;border:1px solid rgba(255,255,255,.20);background:rgba(255,255,255,.08);color:#fff;font-size:9px;font-weight:900}
-.contact-shortcuts a:active{transform:scale(.98)}
 @keyframes leadGradient{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
 @keyframes leadShine{0%,72%,100%{transform:translateX(-80%)}82%{transform:translateX(80%)}}
-@media(max-width:520px){.contact-methods{grid-template-columns:repeat(2,1fr)}.contact-method:first-child{grid-column:1/-1}.contact-shortcuts{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:520px){.contact-methods{grid-template-columns:repeat(2,1fr)}.contact-method:first-child{grid-column:1/-1}}
 @media(prefers-reduced-motion:reduce){.lead-submit,.lead-submit:before{animation:none}}
 
 </style>
@@ -584,12 +581,6 @@ calculateCeiling();
 </div>
 <div id="leadStatus" class="lead-status" role="status" aria-live="polite"></div>
 
-<div class="contact-shortcuts">
-<a href="tel:+380974546713">📞 Подзвонити</a>
-<a href="viber://chat?number=%2B380974546713">💜 Viber</a>
-<a href="https://wa.me/380974546713">🟢 WhatsApp</a>
-<a href="https://t.me/Potolok_in_ua">✈️ Telegram</a>
-</div>
 </div>
 </div>
 </section>
@@ -684,7 +675,7 @@ async function sendUniversalLead(){
     document.getElementById('leadComment').value = '';
   }catch(error){
     console.error('Lead submit error:', error);
-    setLeadStatus('Не вдалося автоматично надіслати заявку. Скористайтеся кнопкою Viber, WhatsApp, Telegram або зателефонуйте.', 'error');
+    setLeadStatus('Не вдалося автоматично надіслати заявку. Оберіть потрібний спосіб зв’язку вище або зателефонуйте за номером 097 454 67 13.', 'error');
   }finally{
     button.disabled = false;
     button.querySelector('span').textContent = '📨 Надіслати заявку';
@@ -693,6 +684,10 @@ async function sendUniversalLead(){
 </script>  
 </body>
 </html>
+
+
+
+
 
 
 
