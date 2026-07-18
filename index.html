@@ -121,6 +121,28 @@ h2{font-size:25px}
 .lightbox.active{display:flex}
 .lightbox-close{position:absolute;top:14px;right:18px;color:#fff;font-size:34px;font-weight:900;cursor:pointer}
 .card img{cursor:pointer}
+
+/* Universal contact form */
+.contact-methods{display:grid;grid-template-columns:repeat(5,1fr);gap:7px;margin-top:12px}
+.contact-method{border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.08);color:#fff;border-radius:11px;padding:9px 6px;font-size:9px;font-weight:900;line-height:1.2;transition:.2s ease}
+.contact-method.active{background:#fff;color:#075bff;border-color:#fff;box-shadow:0 8px 20px rgba(7,91,255,.22)}
+.contact-method:active{transform:scale(.98)}
+.lead-submit{position:relative;overflow:hidden;width:100%;min-height:46px;border:0;border-radius:12px;background:linear-gradient(135deg,#075bff,#1d4ed8,#0ea5e9);background-size:180% 180%;color:#fff;font-size:12px;font-weight:950;box-shadow:0 12px 30px rgba(7,91,255,.28);animation:leadGradient 8s ease infinite}
+.lead-submit:before{content:'';position:absolute;inset:-120% -30%;background:linear-gradient(110deg,transparent 38%,rgba(255,255,255,.30) 50%,transparent 62%);transform:translateX(-70%);animation:leadShine 9s ease-in-out infinite;pointer-events:none}
+.lead-submit span{position:relative;z-index:1}
+.lead-submit:active{transform:scale(.985)}
+.lead-status{display:none;margin-top:10px;border-radius:10px;padding:10px;font-size:10px;font-weight:850;line-height:1.4}
+.lead-status.show{display:block}
+.lead-status.ok{background:#ecfdf5;color:#047857;border:1px solid #a7f3d0}
+.lead-status.error{background:#fff1f2;color:#b91c1c;border:1px solid #fecdd3}
+.contact-shortcuts{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-top:10px}
+.contact-shortcuts a{display:flex;align-items:center;justify-content:center;min-height:40px;border-radius:10px;border:1px solid rgba(255,255,255,.20);background:rgba(255,255,255,.08);color:#fff;font-size:9px;font-weight:900}
+.contact-shortcuts a:active{transform:scale(.98)}
+@keyframes leadGradient{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
+@keyframes leadShine{0%,72%,100%{transform:translateX(-80%)}82%{transform:translateX(80%)}}
+@media(max-width:520px){.contact-methods{grid-template-columns:repeat(2,1fr)}.contact-method:first-child{grid-column:1/-1}.contact-shortcuts{grid-template-columns:repeat(2,1fr)}}
+@media(prefers-reduced-motion:reduce){.lead-submit,.lead-submit:before{animation:none}}
+
 </style>
 </head>
 
@@ -535,12 +557,12 @@ calculateCeiling();
 <div class="lead-grid">
 <div class="field">
 <label>Ім’я</label>
-<input id="leadName" placeholder="Ваше ім’я">
+<input id="leadName" autocomplete="name" placeholder="Ваше ім’я">
 </div>
 
 <div class="field">
 <label>Телефон</label>
-<input id="leadPhone" placeholder="Ваш номер">
+<input id="leadPhone" type="tel" inputmode="tel" autocomplete="tel" placeholder="+380...">
 </div>
 
 <div class="field">
@@ -548,12 +570,25 @@ calculateCeiling();
 <textarea id="leadComment" placeholder="Площа, кімната, що потрібно зробити"></textarea>
 </div>
 </div>
-<div class="btn-row" style="margin-top:12px">
-<button class="btn blue" style="width:100%;background:#22c55e;border:0" onclick="sendLeadToTelegram()">📨 Надіслати заявку</button>
 
-<a class="btn blue" style="flex:1" href="tel:+380974546713">📞 Подзвонити</a>
+<div class="contact-methods" aria-label="Бажаний спосіб зв’язку">
+<button type="button" class="contact-method active" data-contact="Телефон">📞 Телефон</button>
+<button type="button" class="contact-method" data-contact="Viber">💜 Viber</button>
+<button type="button" class="contact-method" data-contact="WhatsApp">🟢 WhatsApp</button>
+<button type="button" class="contact-method" data-contact="Telegram">✈️ Telegram</button>
+<button type="button" class="contact-method" data-contact="SMS">💬 SMS</button>
+</div>
 
-<a class="btn outline" style="flex:1" href="https://t.me/Potolok_in_ua">Telegram</a>
+<div style="margin-top:12px">
+<button id="leadSubmitBtn" class="lead-submit" type="button" onclick="sendUniversalLead()"><span>📨 Надіслати заявку</span></button>
+</div>
+<div id="leadStatus" class="lead-status" role="status" aria-live="polite"></div>
+
+<div class="contact-shortcuts">
+<a href="tel:+380974546713">📞 Подзвонити</a>
+<a href="viber://chat?number=%2B380974546713">💜 Viber</a>
+<a href="https://wa.me/380974546713">🟢 WhatsApp</a>
+<a href="https://t.me/Potolok_in_ua">✈️ Telegram</a>
 </div>
 </div>
 </div>
@@ -580,21 +615,84 @@ function closePhoto(){
 }
 </script>
 <script>
-function sendLeadToTelegram(){
-  const name = document.getElementById('leadName').value;
-  const phone = document.getElementById('leadPhone').value;
-  const comment = document.getElementById('leadComment').value;
+let preferredContact = 'Телефон';
 
-  const msg = encodeURIComponent(
-    'Добрий день! Хочу залишити заявку.\n\n' +
-    'Імʼя: ' + name + '\n' +
-    'Телефон: ' + phone + '\n\n' +
-    'Коментар: ' + comment
-  );
+document.querySelectorAll('.contact-method').forEach(function(button){
+  button.addEventListener('click', function(){
+    document.querySelectorAll('.contact-method').forEach(function(item){ item.classList.remove('active'); });
+    this.classList.add('active');
+    preferredContact = this.dataset.contact || 'Телефон';
+  });
+});
 
-  window.location.href = 'https://t.me/Potolok_in_ua?url=&text=' + msg;
+function setLeadStatus(message, type){
+  const box = document.getElementById('leadStatus');
+  box.textContent = message;
+  box.className = 'lead-status show ' + type;
+}
+
+async function sendUniversalLead(){
+  const name = document.getElementById('leadName').value.trim();
+  const phone = document.getElementById('leadPhone').value.trim();
+  const comment = document.getElementById('leadComment').value.trim();
+  const button = document.getElementById('leadSubmitBtn');
+
+  if(!phone || phone.replace(/\D/g,'').length < 9){
+    setLeadStatus('Вкажіть коректний номер телефону.', 'error');
+    document.getElementById('leadPhone').focus();
+    return;
+  }
+
+  const text =
+    'Нова заявка з головної сторінки Potolok.in.ua\n\n' +
+    'Імʼя: ' + (name || 'не вказано') + '\n' +
+    'Телефон: ' + phone + '\n' +
+    'Зв’язатися через: ' + preferredContact + '\n' +
+    'Коментар: ' + (comment || 'без коментаря');
+
+  const payload = {
+    name: name,
+    phone: phone,
+    contact: preferredContact,
+    messenger: preferredContact,
+    message: comment,
+    clientName: name,
+    clientPhone: phone,
+    comment: comment,
+    source: 'Головна сторінка Potolok.in.ua',
+    page: window.location.href,
+    createdAt: new Date().toISOString(),
+    text: text
+  };
+
+  button.disabled = true;
+  button.querySelector('span').textContent = 'Надсилаємо…';
+  setLeadStatus('Відправляємо заявку…', 'ok');
+
+  try{
+    const response = await fetch('/api/telegram-submit', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify(payload)
+    });
+
+    if(!response.ok) throw new Error('HTTP ' + response.status);
+
+    setLeadStatus('Дякуємо! Заявку надіслано. Ми зв’яжемося з вами найближчим часом.', 'ok');
+    document.getElementById('leadName').value = '';
+    document.getElementById('leadPhone').value = '';
+    document.getElementById('leadComment').value = '';
+  }catch(error){
+    console.error('Lead submit error:', error);
+    setLeadStatus('Не вдалося автоматично надіслати заявку. Скористайтеся кнопкою Viber, WhatsApp, Telegram або зателефонуйте.', 'error');
+  }finally{
+    button.disabled = false;
+    button.querySelector('span').textContent = '📨 Надіслати заявку';
+  }
 }
 </script>  
 </body>
 </html>
+
+
 
