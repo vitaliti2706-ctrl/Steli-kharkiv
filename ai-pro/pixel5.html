@@ -4,7 +4,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Potolok AI PRO — Pixel 6.8</title>
+<title>Potolok AI PRO — v29 FIXED</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth}
@@ -75,7 +75,6 @@ th:nth-child(2),th:nth-child(3),th:nth-child(4),td:nth-child(2),td:nth-child(3),
 .result-image{min-height:470px}.specs{grid-template-columns:1fr 1fr;gap:10px 24px}.spec{font-size:11px}.bottom-grid{grid-template-columns:1.2fr .8fr}.planner-layout{grid-template-columns:260px 1fr}.planner-canvas svg{height:520px}.planner-info{grid-template-columns:repeat(4,1fr)}
 }
 
-
 .room-manager{border:1px solid #dbe3ef;background:#f8fbff;border-radius:14px;padding:12px}
 .room-manager-top{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:end}
 .room-list{display:grid;gap:8px;margin-top:10px}
@@ -93,7 +92,6 @@ th:nth-child(2),th:nth-child(3),th:nth-child(4),td:nth-child(2),td:nth-child(3),
 .room-empty{font-size:9px;color:#64748b;padding:9px;border:1px dashed #cbd5e1;border-radius:9px;text-align:center}
 @media(min-width:760px){.object-totals{grid-template-columns:repeat(4,1fr)}}
 
-
 .photo-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
 .photo-actions .btn{margin:0}
 .custom-points{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:end;margin-top:10px}
@@ -109,7 +107,6 @@ th:nth-child(2),th:nth-child(3),th:nth-child(4),td:nth-child(2),td:nth-child(3),
 .svg-selected{filter:drop-shadow(0 0 5px rgba(7,91,255,.75))}
 @media(min-width:760px){.planner-toolbar.wide{grid-template-columns:repeat(4,1fr)}}
 
-
 .planner-zoom{display:flex;gap:7px;justify-content:flex-end;margin-bottom:8px;position:sticky;top:58px;z-index:4}
 .zoom-btn{min-width:42px;height:38px;border:1px solid #dbe3ef;background:#fff;border-radius:9px;font-weight:950;color:#075bff;box-shadow:0 5px 14px rgba(15,23,42,.08)}
 .zoom-label{min-width:62px}
@@ -117,13 +114,11 @@ th:nth-child(2),th:nth-child(3),th:nth-child(4),td:nth-child(2),td:nth-child(3),
 .point-hit{fill:transparent;stroke:transparent;pointer-events:all;cursor:grab}
 .point-hit:active{cursor:grabbing}
 
-
 .rotate-handle{fill:#fff;stroke:#075bff;stroke-width:4;cursor:grab;filter:drop-shadow(0 3px 5px rgba(7,91,255,.25))}
 .rotate-guide{stroke:#075bff;stroke-width:2;stroke-dasharray:5 4;pointer-events:none}
 .resize-handle{fill:#fff;stroke:#22c55e;stroke-width:4;cursor:ew-resize;filter:drop-shadow(0 3px 5px rgba(34,197,94,.25))}
 .resize-guide{stroke:#22c55e;stroke-width:2;stroke-dasharray:5 4;pointer-events:none}
 .rotate-handle:active,.resize-handle:active{cursor:grabbing}
-
 
 /* Pixel 5.5 */
 .markup-tools{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:9px}
@@ -145,7 +140,6 @@ th:nth-child(2),th:nth-child(3),th:nth-child(4),td:nth-child(2),td:nth-child(3),
 .legend-dot{width:11px;height:11px;border-radius:50%;display:inline-block;border:1px solid #94a3b8}
 .legend-h{background:#075bff}.legend-p{background:#a16207}.legend-white{background:#fff}.legend-black{background:#111827}.legend-led{background:#facc15}.legend-track{background:#7c3aed}
 
-
 .points-plan-grid{display:grid;grid-template-columns:1fr;gap:10px}
 .mini-plan-card{border:1px solid #bfdbfe;background:#fff;border-radius:12px;padding:8px;position:sticky;top:58px}
 .mini-plan-head{display:flex;justify-content:space-between;align-items:center;font-size:9px;color:#334155;margin-bottom:6px}
@@ -163,7 +157,6 @@ th:nth-child(2),th:nth-child(3),th:nth-child(4),td:nth-child(2),td:nth-child(3),
   .mini-plan-card{position:static}
 }
 
-
 .perimeter-bind-panel{border:1px solid #bfdbfe;background:#f8fbff;border-radius:13px;padding:11px}
 .bind-actions{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:9px}
 .bind-actions .danger{grid-column:1/-1}
@@ -174,7 +167,6 @@ th:nth-child(2),th:nth-child(3),th:nth-child(4),td:nth-child(2),td:nth-child(3),
 .bound-segment-line{stroke-linecap:round;pointer-events:none}
 .bound-segment-label{font-size:12px;font-weight:950;paint-order:stroke;stroke:#fff;stroke-width:4px;pointer-events:none}
 @media(min-width:760px){.bind-actions{grid-template-columns:repeat(3,1fr)}.bind-actions .danger{grid-column:auto}}
-
 
 /* Pixel 6.5 — unified room materials */
 .unified-materials-panel{border-color:#93c5fd;background:linear-gradient(180deg,#f8fbff,#fff)}
@@ -191,7 +183,6 @@ th:nth-child(2),th:nth-child(3),th:nth-child(4),td:nth-child(2),td:nth-child(3),
 .wall-tag i{width:8px;height:8px;border-radius:50%;border:1px solid rgba(15,23,42,.18)}
 .wall-empty{color:#94a3b8;font-size:8px}
 
-
 /* Pixel 6.7 — planner display modes and ordered labels */
 .plan-view-modes{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:9px;position:sticky;top:58px;z-index:5;background:rgba(255,255,255,.94);padding:6px;border:1px solid #dbe3ef;border-radius:12px;backdrop-filter:blur(6px)}
 .plan-view-btn{border:1px solid #dbe3ef;background:#fff;color:#334155;border-radius:9px;min-height:40px;padding:7px 5px;font-size:9px;font-weight:950;line-height:1.2}
@@ -201,7 +192,6 @@ th:nth-child(2),th:nth-child(3),th:nth-child(4),td:nth-child(2),td:nth-child(3),
 .segment-material-label{font-size:10px;font-weight:900;fill:#0f172a;paint-order:stroke;stroke:#fff;stroke-width:4px;pointer-events:none}
 .segment-material-label.measure-hidden{display:none}
 @media(min-width:760px){.plan-view-modes{position:static}.plan-view-btn{font-size:10px}}
-
 
 /* Pixel 6.7 — save/share plan snapshots */
 .plan-export-bar{display:flex;justify-content:flex-end;margin:9px 0 4px}
@@ -225,7 +215,6 @@ th:nth-child(2),th:nth-child(3),th:nth-child(4),td:nth-child(2),td:nth-child(3),
 .plan-export-status.show{display:block}
 @media(min-width:760px){.plan-export-modal{align-items:center}.plan-export-grid{grid-template-columns:1fr 1fr}}
 
-
 /* Pixel 6.8 FINAL — visible export, single-wall clearing and mini-plan scale */
 .plan-export-bar{display:block!important;width:100%!important;margin:10px 0 12px!important;visibility:visible!important;opacity:1!important;position:relative!important;z-index:9!important}
 .plan-export-main{display:flex!important;width:100%!important;min-height:50px!important;align-items:center!important;justify-content:center!important;background:linear-gradient(135deg,#071428,#075bff)!important;color:#fff!important;border:0!important;border-radius:12px!important;padding:12px 14px!important;font-size:12px!important;font-weight:950!important;box-shadow:0 10px 22px rgba(7,91,255,.25)!important;visibility:visible!important;opacity:1!important}
@@ -234,7 +223,6 @@ th:nth-child(2),th:nth-child(3),th:nth-child(4),td:nth-child(2),td:nth-child(3),
 .mini-scale-row label{display:flex;justify-content:space-between;font-size:9px;font-weight:900;color:#334155}
 .mini-scale-row input{width:100%;margin:8px 0 2px;accent-color:#075bff}
 @media(max-width:759px){.plan-export-main{font-size:11px!important;line-height:1.25!important}}
-
 
 /* Pixel 6.8.1 — швидке керування матеріалами біля плану */
 .plan-material-actions{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px;margin:0 0 10px}
@@ -248,8 +236,6 @@ th:nth-child(2),th:nth-child(3),th:nth-child(4),td:nth-child(2),td:nth-child(3),
   .plan-material-actions{grid-template-columns:1fr 1fr}
   .plan-material-action:first-child{grid-column:1/-1}
 }
-
-
 
 /* Pixel 6.8.2 — чітке розділення ручного та автоматичного редагування */
 .edit-mode-banner{display:flex;align-items:center;gap:11px;border-radius:14px;padding:12px 13px;margin:0 0 12px;box-shadow:0 8px 20px rgba(15,23,42,.08)}
@@ -278,7 +264,7 @@ th:nth-child(2),th:nth-child(3),th:nth-child(4),td:nth-child(2),td:nth-child(3),
 <body>
 <header class="header"><div class="wrap nav"><a class="logo" href="../index.html">Potolok<span>.in.ua</span></a><div class="menu"><a href="../index.html">Головна</a><a href="../gallery.html">Наші роботи</a><a href="#app">Pixel 5</a></div><a class="phone" href="tel:+380974546713">097 454 67 13</a><a class="tg-top" href="https://t.me/Potolok_in_ua">Фото в TG</a></div></header>
 
-<section class="hero"><div class="wrap"><div class="hero-box"><div class="hero-badge">✨ POTOLOK AI PRO — PIXEL 6.8</div><h1>Замір, AI-візуалізація, калькулятор і кошторис</h1><p>Один інструмент для роботи на замірі: фото, план кімнати, вибір матеріалів, додаткових елементів, детальна смета, PDF і збереження об’єкта.</p><div class="hero-points"><div class="hero-point">📐 План кімнати<span>периметр і площа</span></div><div class="hero-point">🎨 AI-проєкт<span>стеля та освітлення</span></div><div class="hero-point">📄 Кошторис PDF<span>для себе і клієнта</span></div></div></div></div></section>
+<section class="hero"><div class="wrap"><div class="hero-box"><div class="hero-badge">✨ POTOLOK AI PRO — v29 FIXED</div><h1>Замір, AI-візуалізація, калькулятор і кошторис</h1><p>Один інструмент для роботи на замірі: фото, план кімнати, вибір матеріалів, додаткових елементів, детальна смета, PDF і збереження об’єкта.</p><div class="hero-points"><div class="hero-point">📐 План кімнати<span>периметр і площа</span></div><div class="hero-point">🎨 AI-проєкт<span>стеля та освітлення</span></div><div class="hero-point">📄 Кошторис PDF<span>для себе і клієнта</span></div></div></div></div></section>
 
 <section id="app" class="app"><div class="wrap">
 <div class="tabs-main">
@@ -319,8 +305,8 @@ th:nth-child(2),th:nth-child(3),th:nth-child(4),td:nth-child(2),td:nth-child(3),
 <input id="cameraInput" type="file" accept="image/*" capture="environment" hidden>
 <input id="galleryInput" type="file" accept="image/*" hidden>
 <div class="photo-actions">
-  <button class="btn green" type="button" onclick="cameraInput.click()">📷 Зробити фото</button>
-  <button class="btn blue" type="button" onclick="galleryInput.click()">🖼 Обрати з галереї</button>
+  <button class="btn green" type="button" onclick="document.getElementById('cameraInput')?.click()">📷 Зробити фото</button>
+  <button class="btn blue" type="button" onclick="document.getElementById('galleryInput')?.click()">🖼 Обрати з галереї</button>
 </div>
 <div id="photoMeta" class="photo-meta">Фото автоматично стискається та зберігається в поточній кімнаті.</div></div>
 <div class="btn-row"><button class="btn green" onclick="saveObject()">💾 Зберегти об’єкт</button><button class="btn outline" onclick="newObject()">＋ Новий</button></div>
@@ -800,7 +786,6 @@ plannerSvg.addEventListener('pointermove',e=>{if(dragIndex<0)return;const [x,y]=
 function applyPlannerToCalc(){const m=polygonMetrics();area.value=m.area.toFixed(2);perimeter.value=m.perimeter.toFixed(2);recalc();alert('Площа і периметр передані в калькулятор')}
 function loadDraft(){const raw=localStorage.getItem('potolok_pixel5_draft');if(!raw)return;try{const o=JSON.parse(raw);activeObjectId=o.id||null;clientName.value=o.clientName||'';clientPhone.value=o.clientPhone||'';objectAddress.value=o.address||'';measureDate.value=o.date||new Date().toISOString().slice(0,10);ceilingHeight.value=o.height||2.7;objectComment.value=o.comment||'';area.value=o.area||17.5;perimeter.value=o.perimeter||18;cornersCount.value=o.corners||4;chandelierCount.value=o.chandeliers||1;uploadedImageBase64=o.photo||'';if(uploadedImageBase64){roomPreview.src=uploadedImageBase64;roomPreview.style.display='block';emptyPhoto.style.display='none'}selectedColor=o.color||COLORS[0];selectedTexture=o.texture||'matte';customPrompt.value=o.prompt||'';roomTemplate=o.planner?.template||'rect';segmentLengths=o.planner?.segments||templateDefaults(roomTemplate);renderSegmentInputs();buildRoomFromSegments(false);plannerObjects=o.planner?.objects||[];renderPlanner()}catch(e){}}
 
-
 function uid(prefix='id'){return prefix+'_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,7)}
 function deepCopy(v){return JSON.parse(JSON.stringify(v))}
 function checkedMap(prefix,items){
@@ -1166,7 +1151,6 @@ async function downloadPDF(){
   doc.text('Potolok.in.ua • 097 454 67 13 • Харків та область',14,y+13);
   doc.save(`Koshtorys-Potolok-${(o.clientName||'client').replace(/\s+/g,'-')}.pdf`);
 }
-
 
 const PLANNER_NAMES={
 door:'Двері',window:'Вікно',pipe1:'Обвід труби 1×',pipe2:'Обвід труби 2×',vent:'Вентиляція',
@@ -1540,7 +1524,6 @@ plannerSvg.addEventListener('pointerup',e=>{
 });
 
 initManufacturers();renderAIOptions();renderProfileCards();renderCalcOptions();loadDraft();renderPalette();renderHistory();recalc();updateAISpec();renderRooms();if(!measureDate.value)measureDate.value=new Date().toISOString().slice(0,10);if(!segmentLengths.length){segmentLengths=templateDefaults('rect');renderSegmentInputs();buildRoomFromSegments(false)}customPointBox.classList.toggle('hidden',roomTemplate!=='custom');showObjectInspector();applyPlannerView();updateSummary();
-
 
 /* ================= PIXEL 6.7 SAVE / SHARE PLAN ================= */
 function openPlanExportMenu67(){
@@ -3049,7 +3032,6 @@ loadMarkupFromRoom();drawMarkupCanvas();renderHistory();
 })();
 </script>
 
-
 <script>
 /* ================= PIXEL 5.6 FINAL — scale + vertical position ================= */
 (() => {
@@ -3288,7 +3270,6 @@ loadMarkupFromRoom();drawMarkupCanvas();renderHistory();
 })();
 </script>
 
-
 <script>
 /* Pixel 5.6 — unified reliable object history */
 (() => {
@@ -3505,7 +3486,6 @@ loadMarkupFromRoom();drawMarkupCanvas();renderHistory();
 })();
 </script>
 
-
 <script>
 /* ================= PIXEL 6.1 CEILING PACKAGE ================= */
 function baseProfileLabel(){
@@ -3692,7 +3672,6 @@ setTimeout(()=>{
 },0);
 </script>
 
-
 <script>
 /* ================= PIXEL 6.2 COMPACT PLANNER ================= */
 let plannerRotation62=0;
@@ -3819,7 +3798,6 @@ resetRoomWorkspace=function(name='Нова кімната'){
 
 setTimeout(()=>{syncPlannerTransformLabels62();syncMiniPlanner62()},50);
 </script>
-
 
 <script>
 /* ===== PIXEL 6.3: ПРИВ'ЯЗКА ДО ПЕРИМЕТРУ І ТОЧОК ===== */
@@ -4362,7 +4340,6 @@ setTimeout(()=>{syncPlanViewButtons66();renderPlanner()},180);
   </div>
 </div>
 
-
 <script>
 function toggleAutoMoreTools68(){
   const box=document.getElementById('autoMoreTools');
@@ -4373,8 +4350,62 @@ function toggleAutoMoreTools68(){
 }
 </script>
 
+
+<script id="v29-runtime-fixes">
+/* v29 FIXED — browser compatibility and button fallbacks */
+(function(){
+  'use strict';
+  const byId=(id)=>document.getElementById(id);
+  const message=(text)=>{ try{ window.alert(String(text)); }catch(e){ console.log(text); } };
+
+  window.safeCopyText = async function(text){
+    text=String(text??'');
+    try{
+      if(navigator.clipboard && window.isSecureContext){ await navigator.clipboard.writeText(text); return true; }
+      const ta=document.createElement('textarea');
+      ta.value=text; ta.setAttribute('readonly','');
+      ta.style.position='fixed'; ta.style.opacity='0';
+      document.body.appendChild(ta); ta.select();
+      const ok=document.execCommand('copy'); ta.remove(); return !!ok;
+    }catch(e){ console.warn('Copy failed',e); return false; }
+  };
+
+  // Reliable "copy link" button on HTTP, HTTPS and local HTML.
+  window.shareCurrent = async function(){
+    const ok=await window.safeCopyText(location.href);
+    message(ok?'Посилання скопійовано':'Не вдалося скопіювати посилання.');
+  };
+
+  // Prevent download links with an empty # address from jumping to page top.
+  document.addEventListener('click',function(ev){
+    const a=ev.target.closest && ev.target.closest('a[download]');
+    if(a && (!a.getAttribute('href') || a.getAttribute('href')==='#')){
+      ev.preventDefault();
+      message('Спочатку створіть або завантажте зображення.');
+    }
+  },true);
+
+  // Convert all action buttons to non-submit buttons. Safe even if a form is added later.
+  document.addEventListener('DOMContentLoaded',function(){
+    document.querySelectorAll('button:not([type])').forEach(b=>b.type='button');
+    const camera=byId('cameraInput'), gallery=byId('galleryInput');
+    if(camera && !camera.accept) camera.accept='image/*';
+    if(gallery && !gallery.accept) gallery.accept='image/*';
+  });
+
+  // Visible diagnostics in console instead of silent dead buttons.
+  window.addEventListener('error',function(e){
+    console.error('[v29 runtime]',e.message,e.filename,e.lineno,e.colno);
+  });
+  window.addEventListener('unhandledrejection',function(e){
+    console.error('[v29 promise]',e.reason);
+  });
+})();
+</script>
+
 </body>
 </html>
+
 
 
 
