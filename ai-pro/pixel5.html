@@ -283,6 +283,10 @@ th:nth-child(2),th:nth-child(3),th:nth-child(4),td:nth-child(2),td:nth-child(3),
 @media(max-width:520px){.ai-request-methods{grid-template-columns:repeat(2,1fr)}.ai-request-method:first-child{grid-column:1/-1}.ai-request-grid{grid-template-columns:1fr}.ai-request-grid .field.full{grid-column:auto}}
 @media(prefers-reduced-motion:reduce){.ai-request-submit,.ai-request-submit:before{animation:none}}
 
+
+.room-base-card{margin:16px 0;padding:16px;border:1px solid #bfdbfe;border-radius:20px;background:linear-gradient(180deg,#f8fbff,#fff)}
+.room-base-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}.room-base-head b{font-size:18px}.room-base-head span{font-size:12px;color:#64748b}
+.room-base-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.room-base-item,.room-base-field{padding:12px;border:1px solid #dbe4f0;border-radius:14px;background:#fff}.room-base-item span,.room-base-field span{display:block;font-size:12px;color:#64748b;margin-bottom:6px}.room-base-item b{font-size:24px;color:#075bff}.room-base-field input,.room-base-field select{width:100%;border:0;background:#f6f8fc;border-radius:10px;padding:10px;font-weight:700;color:#0f172a}.room-base-wide{grid-column:1/-1}.room-base-result{margin-top:10px;padding:10px 12px;border-radius:12px;background:#eff6ff;color:#334155}.room-base-result b{color:#075bff}@media(max-width:520px){.room-base-head{align-items:flex-start;flex-direction:column}.room-base-grid{grid-template-columns:1fr 1fr}}
 </style>
 </head>
 <body>
@@ -345,13 +349,29 @@ th:nth-child(2),th:nth-child(3),th:nth-child(4),td:nth-child(2),td:nth-child(3),
 <div class="spec"><span>📅</span><div><b>Дата:</b> <span id="summaryDate">—</span></div></div>
 <div class="spec"><span>📐</span><div><b>Площа:</b> <span id="summaryArea">—</span></div></div>
 <div class="spec"><span>↔</span><div><b>Периметр:</b> <span id="summaryPerimeter">—</span></div></div>
+<div class="spec"><span>⌜</span><div><b>Зовнішні кути:</b> <span id="summaryOuterCorners">—</span></div></div>
+<div class="spec"><span>⌞</span><div><b>Внутрішні кути:</b> <span id="summaryInnerCorners">—</span></div></div>
+<div class="spec"><span>━</span><div><b>Вставка:</b> <span id="summaryInsert">—</span></div></div>
 </div>
 
 <div class="current-room-chip">📁 Поточна кімната: <span id="currentRoomLabel">—</span></div>
+<div class="room-base-card">
+  <div class="room-base-head"><b>Стандартна база підрахунку</b><span>автоматично з плану</span></div>
+  <div class="room-base-grid">
+    <div class="room-base-item"><span>Зовнішні кути (авто)</span><b id="roomOuterAuto">0</b></div>
+    <div class="room-base-item"><span>Внутрішні кути (авто)</span><b id="roomInnerAuto">0</b></div>
+    <label class="room-base-field"><span>Зовнішні — вручну</span><input id="roomOuterManual" type="number" min="0" step="1" placeholder="авто" oninput="updateRoomBase47()"></label>
+    <label class="room-base-field"><span>Внутрішні — вручну</span><input id="roomInnerManual" type="number" min="0" step="1" placeholder="авто" oninput="updateRoomBase47()"></label>
+    <label class="room-base-field room-base-wide"><span>Декоративна вставка</span><select id="objectInsert47" onchange="updateRoomInsert47(this.value)"><option value="none">Відсутня</option><option value="white">Біла</option><option value="black">Чорна</option></select></label>
+  </div>
+  <div class="room-base-result">У розрахунок: <b id="roomCornersFinal">0 кутів</b> • <b id="roomInsertFinal">без вставки</b></div>
+</div>
 <div class="object-totals">
   <div class="object-total"><span>Кімнат</span><b id="objectRoomsTotal">0</b></div>
   <div class="object-total"><span>Загальна площа</span><b id="objectAreaTotal">0 м²</b></div>
   <div class="object-total"><span>Загальний периметр</span><b id="objectPerimeterTotal">0 м</b></div>
+  <div class="object-total"><span>Зовнішні кути</span><b id="objectOuterTotal">0</b></div>
+  <div class="object-total"><span>Внутрішні кути</span><b id="objectInnerTotal">0</b></div>
   <div class="object-total"><span>Вартість об’єкта</span><b id="objectPriceTotal">0 грн</b></div>
 </div>
 <div class="notice">Кожна кімната має власний план, фото, параметри, кошторис та AI-налаштування. Усі кімнати зберігаються всередині одного об’єкта за адресою.</div>
@@ -4593,8 +4613,93 @@ async function sendAiRequest(){
 }
 </script>
 
+
+<script>
+/* ================= PIXEL 6.9 КУТИ + ВСТАВКА В КАРТЦІ ОБ’ЄКТА ================= */
+function insertLabel47(v){return v==='white'?'біла':v==='black'?'чорна':'відсутня'}
+function rawPoints47(template,segments){
+  const seg=(segments||[]).map(Number).filter(Number.isFinite);if(seg.length<3)return[];
+  const dirs=templateDirections(template||'rect'),pts=[[0,0]];
+  for(let i=0;i<seg.length-1;i++){const p=pts[pts.length-1],d=dirs[i]||[1,0];pts.push([p[0]+d[0]*seg[i],p[1]+d[1]*seg[i]])}
+  return pts;
+}
+function classifyCorners47(template,segments){
+  const pts=rawPoints47(template,segments);if(pts.length<3)return{outer:0,inner:0};
+  let signed=0;for(let i=0;i<pts.length;i++){const a=pts[i],b=pts[(i+1)%pts.length];signed+=a[0]*b[1]-b[0]*a[1]}
+  const orient=signed>=0?1:-1;let outer=0,inner=0;
+  for(let i=0;i<pts.length;i++){
+    const a=pts[(i-1+pts.length)%pts.length],b=pts[i],c=pts[(i+1)%pts.length];
+    const cross=(b[0]-a[0])*(c[1]-b[1])-(b[1]-a[1])*(c[0]-b[0]);
+    if(Math.abs(cross)<1e-7)continue;
+    if(cross*orient>0)outer++;else inner++;
+  }
+  return{outer,inner};
+}
+function roomCornerData47(room){
+  const auto=classifyCorners47(room?.planner?.template||'rect',room?.planner?.segments||templateDefaults(room?.planner?.template||'rect'));
+  const om=room?.outerCornersManual;const im=room?.innerCornersManual;
+  const outer=(om===''||om==null)?auto.outer:Math.max(0,Number(om)||0);
+  const inner=(im===''||im==null)?auto.inner:Math.max(0,Number(im)||0);
+  return{autoOuter:auto.outer,autoInner:auto.inner,outer,inner,total:outer+inner};
+}
+function updateRoomBaseUI47(){
+  const room=projectRooms.find(r=>r.id===activeRoomId);if(!room)return;
+  const d=roomCornerData47(room),insert=room.insertPackage||document.getElementById('calcInsert')?.value||'none';
+  const set=(id,val)=>{const e=document.getElementById(id);if(e)e.textContent=val};
+  set('roomOuterAuto',d.autoOuter);set('roomInnerAuto',d.autoInner);set('roomCornersFinal',d.total+' кутів');set('roomInsertFinal',insert==='none'?'без вставки':insertLabel47(insert)+' вставка');
+  const om=document.getElementById('roomOuterManual'),im=document.getElementById('roomInnerManual'),sel=document.getElementById('objectInsert47');
+  if(om&&document.activeElement!==om)om.value=room.outerCornersManual??'';
+  if(im&&document.activeElement!==im)im.value=room.innerCornersManual??'';
+  if(sel)sel.value=insert;
+  if(document.getElementById('cornersCount'))cornersCount.value=d.total;
+}
+function updateRoomBase47(){
+  const room=projectRooms.find(r=>r.id===activeRoomId);if(!room)return;
+  const om=document.getElementById('roomOuterManual'),im=document.getElementById('roomInnerManual');
+  room.outerCornersManual=om?.value===''?null:Math.max(0,Number(om.value)||0);
+  room.innerCornersManual=im?.value===''?null:Math.max(0,Number(im.value)||0);
+  const d=roomCornerData47(room);room.outerCornersAuto=d.autoOuter;room.innerCornersAuto=d.autoInner;room.outerCorners=d.outer;room.innerCorners=d.inner;room.corners=d.total;
+  if(document.getElementById('cornersCount'))cornersCount.value=d.total;
+  recalc();syncActiveRoomFromUI(false);updateSummary();autosave();updateRoomBaseUI47();
+}
+function updateRoomInsert47(value){
+  const v=['white','black'].includes(value)?value:'none';
+  if(document.getElementById('calcInsert'))calcInsert.value=v;
+  if(document.getElementById('roomPackageInsert'))roomPackageInsert.value=v;
+  const room=projectRooms.find(r=>r.id===activeRoomId);if(room)room.insertPackage=v;
+  if(typeof syncCeilingPackage==='function')syncCeilingPackage();recalc();syncActiveRoomFromUI(false);updateSummary();autosave();updateRoomBaseUI47();
+}
+const captureCurrentRoom47=captureCurrentRoom;
+captureCurrentRoom=function(){
+  const r=captureCurrentRoom47(),old=projectRooms.find(x=>x.id===activeRoomId)||{};
+  const auto=classifyCorners47(r.planner?.template||roomTemplate,r.planner?.segments||segmentLengths);
+  const om=document.getElementById('roomOuterManual')?.value,im=document.getElementById('roomInnerManual')?.value;
+  r.outerCornersManual=om===undefined?(old.outerCornersManual??null):(om===''?null:Math.max(0,Number(om)||0));
+  r.innerCornersManual=im===undefined?(old.innerCornersManual??null):(im===''?null:Math.max(0,Number(im)||0));
+  r.outerCornersAuto=auto.outer;r.innerCornersAuto=auto.inner;
+  r.outerCorners=r.outerCornersManual==null?auto.outer:r.outerCornersManual;
+  r.innerCorners=r.innerCornersManual==null?auto.inner:r.innerCornersManual;
+  r.corners=r.outerCorners+r.innerCorners;
+  r.insertPackage=document.getElementById('objectInsert47')?.value||document.getElementById('calcInsert')?.value||old.insertPackage||'none';
+  return r;
+};
+const restoreRoom47=restoreRoom;
+restoreRoom=function(room){restoreRoom47(room);requestAnimationFrame(()=>{updateRoomBaseUI47();updateSummary()})};
+const resetRoomWorkspace47=resetRoomWorkspace;
+resetRoomWorkspace=function(name='Нова кімната'){resetRoomWorkspace47(name);const r=projectRooms.find(x=>x.id===activeRoomId);if(r){r.outerCornersManual=null;r.innerCornersManual=null;r.insertPackage='none'}requestAnimationFrame(updateRoomBaseUI47)};
+const renderRooms47=renderRooms;
+renderRooms=function(){renderRooms47();let outer=0,inner=0;projectRooms.forEach(r=>{const d=roomCornerData47(r);outer+=d.outer;inner+=d.inner});const eo=document.getElementById('objectOuterTotal'),ei=document.getElementById('objectInnerTotal');if(eo)eo.textContent=outer;if(ei)ei.textContent=inner;updateRoomBaseUI47()};
+const updateSummary47=updateSummary;
+updateSummary=function(){updateSummary47();let outer=0,inner=0;projectRooms.forEach(r=>{const d=roomCornerData47(r);outer+=d.outer;inner+=d.inner});const cur=projectRooms.find(r=>r.id===activeRoomId),ins=cur?.insertPackage||document.getElementById('calcInsert')?.value||'none';const so=document.getElementById('summaryOuterCorners'),si=document.getElementById('summaryInnerCorners'),ss=document.getElementById('summaryInsert');if(so)so.textContent=outer;if(si)si.textContent=inner;if(ss)ss.textContent=insertLabel47(ins);};
+const renderPlanner47=renderPlanner;
+renderPlanner=function(){renderPlanner47();const room=projectRooms.find(r=>r.id===activeRoomId);if(room){const a=classifyCorners47(roomTemplate,segmentLengths);room.outerCornersAuto=a.outer;room.innerCornersAuto=a.inner}requestAnimationFrame(updateRoomBaseUI47)};
+const setUnifiedPackageInsert47=setUnifiedPackageInsert;
+setUnifiedPackageInsert=function(value){setUnifiedPackageInsert47(value);const s=document.getElementById('objectInsert47');if(s)s.value=['white','black'].includes(value)?value:'none';const r=projectRooms.find(x=>x.id===activeRoomId);if(r)r.insertPackage=s?.value||'none';updateRoomBaseUI47()};
+setTimeout(()=>{updateRoomBaseUI47();updateSummary();renderRooms()},120);
+</script>
+
 </body>
-  </html>
+</html>
 
 
 
