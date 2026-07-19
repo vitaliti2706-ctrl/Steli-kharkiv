@@ -107,7 +107,7 @@ th:nth-child(2),th:nth-child(3),th:nth-child(4),td:nth-child(2),td:nth-child(3),
 .svg-selected{filter:drop-shadow(0 0 5px rgba(7,91,255,.75))}
 @media(min-width:760px){.planner-toolbar.wide{grid-template-columns:repeat(4,1fr)}}
 
-.planner-zoom{display:flex;gap:7px;justify-content:flex-end;margin-bottom:8px;position:sticky;top:58px;z-index:4}
+.planner-zoom{display:flex;gap:7px;justify-content:flex-end;align-items:center;margin-bottom:8px;position:sticky;top:58px;z-index:4}.planner-zoom .jump-top{margin-right:auto}
 .zoom-btn{min-width:42px;height:38px;border:1px solid #dbe3ef;background:#fff;border-radius:9px;font-weight:950;color:#075bff;box-shadow:0 5px 14px rgba(15,23,42,.08)}
 .zoom-label{min-width:62px}
 .planner-canvas{position:relative}
@@ -303,7 +303,7 @@ th:nth-child(2),th:nth-child(3),th:nth-child(4),td:nth-child(2),td:nth-child(3),
 <div class="grid">
 <aside class="panel controls">
 <div class="block"><div class="block-head"><h2>Картка об’єкта</h2><span class="tag">Автозбереження</span></div>
-<div class="v45-start-new"><button type="button" onclick="startCleanObject44(true)">＋ Розпочати інший об’єкт / план</button><small>Створить чистий об’єкт і новий порожній план. Збережені об’єкти не видаляються.</small></div>
+<button class="btn blue btn-full" type="button" style="margin-bottom:12px" onclick="startAnotherObject()">＋ Розпочати інший об’єкт / план</button>
 <div class="field-grid">
 <div class="field"><label>Клієнт</label><input id="clientName" placeholder="Ім’я клієнта" oninput="autosave()"></div>
 <div class="field"><label>Телефон</label><input id="clientPhone" placeholder="+380..." oninput="autosave()"></div>
@@ -334,7 +334,7 @@ th:nth-child(2),th:nth-child(3),th:nth-child(4),td:nth-child(2),td:nth-child(3),
   <button class="btn blue" type="button" onclick="document.getElementById('galleryInput')?.click()">🖼 Обрати з галереї</button>
 </div>
 <div id="photoMeta" class="photo-meta">Фото автоматично стискається та зберігається в поточній кімнаті.</div></div>
-<div class="btn-row"><button class="btn green" onclick="saveObject()">💾 Зберегти об’єкт</button><button class="btn outline" onclick="startCleanObject44(true)">＋ Інший об’єкт / план</button></div>
+<div class="btn-row"><button class="btn green" onclick="saveObject()">💾 Зберегти об’єкт</button><button class="btn outline" onclick="startAnotherObject()">＋ Новий об’єкт</button></div>
 </aside>
 <main class="panel main">
 <div class="block-head"><h2>Поточний об’єкт</h2><span id="saveStatus" class="tag">Не збережено</span></div>
@@ -412,10 +412,7 @@ th:nth-child(2),th:nth-child(3),th:nth-child(4),td:nth-child(2),td:nth-child(3),
 <div class="block"><div class="block-head"><h2>Основні параметри</h2></div><div class="field-grid">
 <div class="field"><label>Площа, м²</label><input id="area" type="number" value="17.5" step="0.1" oninput="recalc();autosave()"></div>
 <div class="field"><label>Периметр, м.п.</label><input id="perimeter" type="number" value="18" step="0.1" oninput="recalc();autosave()"></div>
-<div class="field"><label>Внутрішні кути, шт</label><input id="internalCornersCount" type="number" value="4" min="0" oninput="manualCornerEdit42()"></div>
-<div class="field"><label>Зовнішні кути, шт</label><input id="externalCornersCount" type="number" value="0" min="0" oninput="manualCornerEdit42()"></div>
-<div class="field"><label>Усього кутів, шт</label><input id="cornersCount" type="number" value="4" min="0" readonly></div>
-<div class="field"><label>Розрахунок кутів</label><select id="cornerMode42" onchange="setCornerMode42(this.value)"><option value="auto">Автоматично з плану</option><option value="manual">Ручне редагування</option></select></div>
+<div class="field"><label>Кути, шт</label><input id="cornersCount" type="number" value="4" oninput="recalc();autosave()"></div>
 <div class="field"><label>Люстри, шт</label><input id="chandelierCount" type="number" value="1" oninput="recalc();autosave()"></div>
 <div class="field"><label>Виробник полотна</label><select id="calcManufacturer" onchange="recalc();autosave()"><option>MSD Premium</option><option>MSD Classic</option><option>MSD Premium Exclusive</option><option>BAUF</option><option>Pongs</option><option>Teqtum</option><option>Descor</option><option>Інший</option></select></div>
 <div class="field"><label>Фактура полотна</label><select id="calcTexture" onchange="syncCeilingPackage()"><option value="matte">Матове — 500 грн/м²</option><option value="satin">Сатин — 550 грн/м²</option><option value="glossy">Лак / глянець — 600 грн/м²</option></select></div>
@@ -454,7 +451,7 @@ th:nth-child(2),th:nth-child(3),th:nth-child(4),td:nth-child(2),td:nth-child(3),
     <div id="closureStatus" class="planner-hint"></div>
   </div>
   <div class="mini-plan-card">
-    <div class="mini-plan-head"><b>План поруч із точками</b><span id="miniPlanAngleLabel">0°</span></div>
+    <div class="mini-plan-head"><b>План поруч із точками</b><button class="plan-jump-btn" type="button" onclick="jumpToLowerPlan()">⬇ Нижній план</button><span id="miniPlanAngleLabel">0°</span></div>
     <svg id="plannerMiniSvg" viewBox="0 0 800 600"><g id="miniRoomLayer"></g><g id="miniObjectLayer"></g><g id="miniNodeLayer"></g></svg>
     <div class="plan-transform-controls">
       <label>Поворот кімнати <span id="rotatePlanValue">0°</span></label>
@@ -661,6 +658,7 @@ th:nth-child(2),th:nth-child(3),th:nth-child(4),td:nth-child(2),td:nth-child(3),
 </div>
 <div id="planClearHint" class="plan-clear-hint">👉 Торкніться потрібної стіни на плані</div>
 <div class="planner-zoom">
+  <button class="plan-jump-btn jump-top" type="button" onclick="jumpToUpperPlan()">⬆ Верхній план</button>
   <button class="zoom-btn" type="button" onclick="zoomPlanner(-1)">−</button>
   <button id="zoomLabel" class="zoom-btn zoom-label" type="button" onclick="resetPlannerZoom()">100%</button>
   <button class="zoom-btn" type="button" onclick="zoomPlanner(1)">＋</button>
@@ -1101,6 +1099,46 @@ function saveObject(){
   try{localStorage.setItem('potolok_pixel5_objects',JSON.stringify(list))}
   catch(e){alert('Не вдалося зберегти: пам’ять браузера заповнена. Експортуйте архів і видаліть зайві фото.');return}
   activeObjectId=o.id;saveStatus.textContent='Об’єкт збережено';renderHistory();alert('Об’єкт і '+o.rooms.length+' кімн. збережено');
+}
+function hasCurrentObjectData(){
+  const hasClient=(clientName.value||clientPhone.value||objectAddress.value||objectComment.value).trim().length>0;
+  const hasRoom=projectRooms.some(r=>Number(r.area)>0||Number(r.perimeter)>0||(r.photo||'').length>0||(r.rows||[]).length>0||((r.planner?.objects)||[]).length>0);
+  return hasClient||hasRoom;
+}
+function archiveCurrentObject(){
+  if(!hasCurrentObjectData())return false;
+  syncActiveRoomFromUI(false);
+  const o=collectObject();
+  o.id=activeObjectId||o.id||uid('object');
+  o.archivedAt=new Date().toISOString();
+  const list=JSON.parse(localStorage.getItem('potolok_pixel5_objects')||'[]');
+  const idx=list.findIndex(x=>x.id===o.id);
+  if(idx>=0)list[idx]=o;else list.unshift(o);
+  localStorage.setItem('potolok_pixel5_objects',JSON.stringify(list));
+  activeObjectId=o.id;
+  renderHistory();
+  return true;
+}
+function startAnotherObject(){
+  const hasData=hasCurrentObjectData();
+  const message=hasData
+    ?'Поточний об’єкт буде автоматично збережено в архів. Розпочати новий об’єкт і чистий план?'
+    :'Розпочати новий об’єкт і чистий план?';
+  if(!confirm(message))return;
+  try{if(hasData)archiveCurrentObject();}catch(e){alert('Не вдалося перенести об’єкт в архів. Перевірте пам’ять браузера.');return;}
+  localStorage.removeItem('potolok_pixel51_draft');
+  localStorage.removeItem('potolok_pixel5_draft');
+  newObject();
+  showMainTab('object',document.querySelector('.main-tab'));
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function jumpToLowerPlan(){
+  const el=document.getElementById('plannerSvg');
+  if(el)el.scrollIntoView({behavior:'smooth',block:'center'});
+}
+function jumpToUpperPlan(){
+  const el=document.getElementById('plannerMiniSvg');
+  if(el)el.scrollIntoView({behavior:'smooth',block:'center'});
 }
 function newObject(){
   activeObjectId=null;projectRooms=[];activeRoomId=null;
@@ -4555,233 +4593,8 @@ async function sendAiRequest(){
 }
 </script>
 
-
-<script>
-/* Pixel 6.9 — точні кути та мінімальне замовлення один раз на об'єкт */
-(function(){
-  const MIN_OBJECT_ORDER_69=5000;
-
-  function n69(id){return Number(document.getElementById(id)?.value)||0}
-  function set69(id,v){const el=document.getElementById(id);if(el)el.value=String(Math.max(0,Math.round(Number(v)||0)))}
-
-  window.roomCornerMetrics69=function(points=window.roomPoints){
-    const pts=Array.isArray(points)?points:[];
-    if(pts.length<3)return{internal:0,external:0,total:0};
-    let signed=0;
-    for(let i=0;i<pts.length;i++){
-      const a=pts[i],b=pts[(i+1)%pts.length];
-      signed+=a[0]*b[1]-b[0]*a[1];
-    }
-    const orientation=signed>=0?1:-1;
-    let internal=0,external=0;
-    for(let i=0;i<pts.length;i++){
-      const prev=pts[(i-1+pts.length)%pts.length],cur=pts[i],next=pts[(i+1)%pts.length];
-      const cross=(cur[0]-prev[0])*(next[1]-cur[1])-(cur[1]-prev[1])*(next[0]-cur[0]);
-      if(Math.abs(cross)<0.0001)continue;
-      if(cross*orientation>0)internal++; else external++;
-    }
-    return{internal,external,total:internal+external};
-  };
-
-  window.syncCornerTotal42=function(){
-    const total=n69('internalCornersCount')+n69('externalCornersCount');
-    set69('cornersCount',total);
-    return total;
-  };
-
-  window.manualCornerEdit42=function(){
-    const mode=document.getElementById('cornerMode42');if(mode)mode.value='manual';
-    syncCornerTotal42();
-    window.recalc?.();window.syncActiveRoomFromUI?.(false);window.autosave?.();
-  };
-
-  window.setCornerMode42=function(mode){
-    if(mode==='auto')applyAutoCorners42();
-    else{syncCornerTotal42();window.recalc?.();window.autosave?.()}
-  };
-
-  window.applyAutoCorners42=function(force=false){
-    const mode=document.getElementById('cornerMode42');
-    if(!force&&mode&&mode.value==='manual')return;
-    const c=roomCornerMetrics69(window.roomPoints);
-    set69('internalCornersCount',c.internal);
-    set69('externalCornersCount',c.external);
-    set69('cornersCount',c.total);
-    if(mode)mode.value='auto';
-  };
-
-  const oldApply=window.applyPlannerToCalc;
-  if(typeof oldApply==='function')window.applyPlannerToCalc=function(){
-    applyAutoCorners42(true);
-    const result=oldApply.apply(this,arguments);
-    applyAutoCorners42(true);window.recalc?.();window.syncActiveRoomFromUI?.(false);return result;
-  };
-
-  const oldApplyBindings=window.applyBindingsToCalculator;
-  if(typeof oldApplyBindings==='function')window.applyBindingsToCalculator=function(){
-    applyAutoCorners42(true);
-    const result=oldApplyBindings.apply(this,arguments);
-    applyAutoCorners42(true);window.recalc?.();window.syncActiveRoomFromUI?.(false);return result;
-  };
-
-  const oldSavePlan=window.savePlannerRoom;
-  if(typeof oldSavePlan==='function')window.savePlannerRoom=function(){applyAutoCorners42(true);return oldSavePlan.apply(this,arguments)};
-
-  const oldCapture=window.captureCurrentRoom;
-  if(typeof oldCapture==='function')window.captureCurrentRoom=function(){
-    syncCornerTotal42();
-    const r=oldCapture.apply(this,arguments);
-    r.internalCorners=n69('internalCornersCount');
-    r.externalCorners=n69('externalCornersCount');
-    r.cornerMode=document.getElementById('cornerMode42')?.value||'auto';
-    r.corners=r.internalCorners+r.externalCorners;
-    r.calculated=Array.isArray(r.rows)?r.rows.reduce((s,x)=>s+(Number(x.sum)||0),0):(Number(r.calculated)||0);
-    r.total=r.calculated; // мінімалка не застосовується до окремої кімнати
-    return r;
-  };
-
-  const oldRestore=window.restoreRoom;
-  if(typeof oldRestore==='function')window.restoreRoom=function(room){
-    const result=oldRestore.apply(this,arguments);
-    const mode=room?.cornerMode||'auto';
-    const modeEl=document.getElementById('cornerMode42');if(modeEl)modeEl.value=mode;
-    if(mode==='manual'){
-      set69('internalCornersCount',room?.internalCorners ?? room?.corners ?? 0);
-      set69('externalCornersCount',room?.externalCorners ?? 0);
-      syncCornerTotal42();
-    }else applyAutoCorners42(true);
-    window.recalc?.();return result;
-  };
-
-  const oldReset=window.resetRoomWorkspace;
-  if(typeof oldReset==='function')window.resetRoomWorkspace=function(){
-    const result=oldReset.apply(this,arguments);
-    const mode=document.getElementById('cornerMode42');if(mode)mode.value='auto';
-    set69('internalCornersCount',0);set69('externalCornersCount',0);set69('cornersCount',0);
-    return result;
-  };
-
-  const oldRenderPlanner=window.renderPlanner;
-  if(typeof oldRenderPlanner==='function')window.renderPlanner=function(){
-    const result=oldRenderPlanner.apply(this,arguments);
-    applyAutoCorners42(false);return result;
-  };
-
-  // Кошторис кімнати показує фактичну суму; мінімалка додається тільки в підсумку об'єкта.
-  window.recalc=function(){
-    const rows=window.currentRows?currentRows():[];
-    const calculated=rows.reduce((s,r)=>s+(Number(r.sum)||0),0);
-    const currentRoomTotal=calculated;
-    if(window.priceValue)priceValue.textContent=money(currentRoomTotal);
-    if(window.bottomPrice)bottomPrice.textContent=money(currentRoomTotal);
-    if(window.priceDetails)priceDetails.innerHTML=`<b>Кімната:</b> ${money(calculated)}<br><b>Мінімальне замовлення:</b> застосовується один раз до всього об’єкта`;
-    if(window.estimateBody)estimateBody.innerHTML=rows.map(r=>`<tr><td>${r.name}</td><td>${r.qty}</td><td>${money(r.price)}</td><td>${money(r.sum)}</td></tr>`).join('');
-    if(window.estimateTotal)estimateTotal.textContent='Разом по кімнаті: '+money(currentRoomTotal);
-    if(window.summaryArea)summaryArea.textContent=n69('area')+' м²';
-    if(window.summaryPerimeter)summaryPerimeter.textContent=n69('perimeter')+' м';
-    if(typeof window.autosave==='function'&&!window.roomSyncLock)window.autosave();
-  };
-
-  const oldMetrics=window.objectMetricsNoSync;
-  if(typeof oldMetrics==='function')window.objectMetricsNoSync=function(){
-    const m=oldMetrics.apply(this,arguments);
-    const calculated=Array.isArray(window.projectRooms)?projectRooms.reduce((s,r)=>s+(Number(r.calculated)||Number(r.total)||0),0):Number(m.calculated)||0;
-    return{...m,calculated,total:Math.max(calculated,MIN_OBJECT_ORDER_69)};
-  };
-
-  // Оновлюємо картки кімнат: без фальшивої мінімалки 5000 на кожній.
-  const oldRenderRooms=window.renderRooms;
-  if(typeof oldRenderRooms==='function')window.renderRooms=function(){
-    const result=oldRenderRooms.apply(this,arguments);
-    document.querySelectorAll('.room-card').forEach((card,index)=>{
-      const room=window.projectRooms?.[index];
-      const span=card.querySelector('span');
-      if(room&&span)span.textContent=`${Number(room.area||0).toFixed(2)} м² • ${Number(room.perimeter||0).toFixed(2)} м • ${money(Number(room.calculated)||Number(room.total)||0)}`;
-    });
-    return result;
-  };
-
-  setTimeout(()=>{
-    const current=n69('cornersCount');
-    if(!n69('internalCornersCount')&&!n69('externalCornersCount')&&current)set69('internalCornersCount',current);
-    applyAutoCorners42(false);syncCornerTotal42();window.recalc?.();window.renderRooms?.();
-  },250);
-})();
-</script>
-
-
-
-<style id="v44-new-calculation-style">
-.v44-new-calc{margin:0 0 14px;padding:14px;border:1px solid #bfdbfe;border-radius:18px;background:#eff6ff}
-.v44-new-calc button{width:100%;min-height:52px;border:0;border-radius:14px;background:#075bff;color:#fff;font-size:16px;font-weight:900;box-shadow:0 8px 20px rgba(7,91,255,.2)}
-.v44-new-calc small{display:block;margin-top:8px;color:#64748b;text-align:center;font-weight:700}
-
-/* v45: prominent start-another-object/plan action */
-.v45-start-new{margin:14px 0 18px;padding:14px;border:1px solid #bfd4ff;border-radius:18px;background:linear-gradient(135deg,#f4f8ff,#eef7ff);box-shadow:0 10px 28px rgba(18,91,210,.10)}
-.v45-start-new button{width:100%;min-height:58px;border:0;border-radius:16px;background:#1465f5;color:#fff;font-size:17px;font-weight:900;box-shadow:0 10px 22px rgba(20,101,245,.24)}
-.v45-start-new small{display:block;margin-top:8px;text-align:center;color:#617087;font-weight:700;line-height:1.35}
-</style>
-<script id="v44-new-calculation-fix">
-(() => {
-  'use strict';
-
-  function startCleanObject44(ask=true){
-    if(ask && !confirm('Почати новий об’єкт? Поточний незбережений розрахунок буде очищено.')) return;
-
-    /* Remove only the working draft. Saved objects/history remain untouched. */
-    try{
-      localStorage.removeItem('potolok_pixel51_draft');
-      localStorage.removeItem('potolok_pixel5_draft');
-    }catch(e){}
-
-    activeObjectId=null;
-    projectRooms=[];
-    activeRoomId=null;
-    roomSyncLock=true;
-
-    ['clientName','clientPhone','objectAddress','objectComment'].forEach(id=>{
-      const el=document.getElementById(id); if(el) el.value='';
-    });
-    if(window.measureDate) measureDate.value=new Date().toISOString().slice(0,10);
-    if(window.ceilingHeight) ceilingHeight.value=2.7;
-
-    const first={id:uid('room'),name:'Кімната 1'};
-    projectRooms=[first];
-    activeRoomId=first.id;
-    roomSyncLock=false;
-
-    resetRoomWorkspace(first.name);
-    syncActiveRoomFromUI(false);
-    renderRooms();
-    updateSummary();
-    if(window.saveStatus) saveStatus.textContent='Новий об’єкт — чистий розрахунок';
-    autosave();
-    recalc();
-  }
-
-  window.startCleanObject44=startCleanObject44;
-  window.newObject=function(){ startCleanObject44(true); };
-
-  function addButton44(){
-    const calc=document.getElementById('tab_calc');
-    if(!calc || document.getElementById('newCalculation44')) return;
-    const box=document.createElement('div');
-    box.className='v44-new-calc';
-    box.id='newCalculation44';
-    box.innerHTML='<button type="button">＋ Розпочати інший об’єкт / план</button><small>Новий чистий об’єкт і порожній план. Збережені об’єкти залишаться в історії.</small>';
-    box.querySelector('button').onclick=()=>startCleanObject44(true);
-    const target=calc.querySelector('main')||calc.firstElementChild||calc;
-    target.insertBefore(box,target.firstChild);
-  }
-
-  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',addButton44);
-  else addButton44();
-})();
-</script>
 </body>
-                                             </html>
-
-
+  </html>
 
 
 
