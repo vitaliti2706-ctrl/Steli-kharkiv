@@ -159,6 +159,63 @@ export default async function handler(req, res) {
         return json(res, 200, { object: row.client_view });
       }
 
+      const actionName = String(body.action || '');
+      const actionCloudId = String(body.cloudId || '').trim();
+
+      if (['updateStatus', 'clientData', 'regenerateAccessKey', 'addScheduleEvent', 'deleteScheduleEvent'].includes(actionName)) {
+        if (!actionCloudId) return json(res, 400, { error: 'cloudId is required' });
+        const current = await getRow(actionCloudId);
+        if (!current) return json(res, 404, { error: 'Object not found' });
+        const currentObject = current.object_data && typeof current.object_data === 'object' ? current.object_data : {};
+
+        if (actionName === 'updateStatus') {
+          const nextStatus = String(body.status || 'new');
+          const nextObject = { ...currentObject, cloudStatus: nextStatus };
+          const row = await patchRow(actionCloudId, {
+            status: nextStatus,
+            object_data: nextObject,
+            client_view: current.client_view ? publicView(nextObject, current.object_number, nextStatus) : null,
+          });
+          return json(res, 200, { object: row });
+        }
+
+        if (actionName === 'clientData') {
+          return json(res, 200, {
+            objectNumber: current.object_number,
+            accessKey: currentObject._clientAccessKey || '',
+            published: !!current.client_view,
+          });
+        }
+
+        if (actionName === 'regenerateAccessKey') {
+          const accessKey = makeAccessKey();
+          const nextObject = { ...currentObject, _clientAccessKey: accessKey };
+          const row = await patchRow(actionCloudId, {
+            access_key_hash: hashAccessKey(accessKey),
+            object_data: nextObject,
+            client_view: publicView(nextObject, current.object_number, current.status || 'new'),
+          });
+          return json(res, 200, { accessKey, object: row });
+        }
+
+        if (actionName === 'addScheduleEvent') {
+          const event = body.event && typeof body.event === 'object' ? body.event : null;
+          if (!event || !event.date) return json(res, 400, { error: 'Valid event is required' });
+          const schedule = Array.isArray(currentObject.schedule) ? currentObject.schedule : [];
+          const nextObject = { ...currentObject, schedule: [...schedule, event] };
+          const row = await patchRow(actionCloudId, { object_data: nextObject });
+          return json(res, 200, { object: row });
+        }
+
+        if (actionName === 'deleteScheduleEvent') {
+          const eventId = String(body.eventId || '');
+          const schedule = (Array.isArray(currentObject.schedule) ? currentObject.schedule : []).filter(event => String(event.id) !== eventId);
+          const nextObject = { ...currentObject, schedule };
+          const row = await patchRow(actionCloudId, { object_data: nextObject });
+          return json(res, 200, { object: row });
+        }
+      }
+
       const object = body.object;
       if (!object || typeof object !== 'object') {
         return json(res, 400, { error: 'object is required' });
@@ -213,7 +270,7 @@ export default async function handler(req, res) {
             accessKeyHash = hashAccessKey(accessKey);
           }
 
-          const updatedObject = { ...object, objectNumber };
+          const updatedObject = { ...object, objectNumber, ...(accessKey ? { _clientAccessKey: accessKey } : {}), ...(current.object_data?._clientAccessKey ? { _clientAccessKey: current.object_data._clientAccessKey } : {}) };
 
           const row = await patchRow(cloudId, {
             ...baseFields(updatedObject, status),
@@ -231,7 +288,7 @@ export default async function handler(req, res) {
         objectNumber = objectNumber || await nextObjectNumber();
         accessKey = makeAccessKey();
         accessKeyHash = hashAccessKey(accessKey);
-        const updatedObject = { ...object, objectNumber };
+        const updatedObject = { ...object, objectNumber, _clientAccessKey: accessKey };
 
         const row = await insertRow({
           object_number: objectNumber,
@@ -265,4 +322,4 @@ export default async function handler(req, res) {
     console.error('objects API error:', error);
     return json(res, 500, { error: error.message || 'Server error' });
   }
-}
+          }
