@@ -290,6 +290,45 @@ th:nth-child(2),th:nth-child(3),th:nth-child(4),td:nth-child(2),td:nth-child(3),
 .room-base-card{margin:16px 0;padding:16px;border:1px solid #bfdbfe;border-radius:20px;background:linear-gradient(180deg,#f8fbff,#fff)}
 .room-base-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}.room-base-head b{font-size:18px}.room-base-head span{font-size:12px;color:#64748b}
 .room-base-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.room-base-item,.room-base-field{padding:12px;border:1px solid #dbe4f0;border-radius:14px;background:#fff}.room-base-item span,.room-base-field span{display:block;font-size:12px;color:#64748b;margin-bottom:6px}.room-base-item b{font-size:24px;color:#075bff}.room-base-field input,.room-base-field select{width:100%;border:0;background:#f6f8fc;border-radius:10px;padding:10px;font-weight:700;color:#0f172a}.room-base-wide{grid-column:1/-1}.room-base-result{margin-top:10px;padding:10px 12px;border-radius:12px;background:#eff6ff;color:#334155}.room-base-result b{color:#075bff}@media(max-width:520px){.room-base-head{align-items:flex-start;flex-direction:column}.room-base-grid{grid-template-columns:1fr 1fr}}
+
+/* Pixel 5.6 — особиста картка клієнта */
+.tabs-main{grid-template-columns:repeat(6,1fr)}
+.client-publish-status56{display:none;margin-top:9px;padding:10px;border-radius:10px;font-size:9px;font-weight:850;line-height:1.45}
+.client-publish-status56.show{display:block}
+.client-publish-status56.ok{background:#ecfdf5;color:#047857;border:1px solid #a7f3d0}
+.client-publish-status56.error{background:#fff1f2;color:#b91c1c;border:1px solid #fecdd3}
+.client-card-shell56{max-width:720px;margin:0 auto}
+.client-login-card56,.client-object-card56{background:#fff;border:1px solid #dbe3ef;border-radius:18px;padding:16px;box-shadow:0 12px 30px rgba(15,23,42,.08)}
+.client-login-icon56{width:58px;height:58px;border-radius:16px;background:linear-gradient(135deg,#071428,#075bff);color:#fff;display:flex;align-items:center;justify-content:center;font-size:28px;margin-bottom:12px}
+.client-login-card56 h2,.client-object-card56 h2{font-size:20px;margin-bottom:7px}
+.client-login-card56>p{font-size:10px;color:#64748b;line-height:1.5;margin-bottom:14px}
+.client-login-grid56{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.client-login-grid56 .field.full{grid-column:1/-1}
+.client-login-status56{display:none;margin-top:10px;border-radius:10px;padding:10px;font-size:10px;font-weight:850}
+.client-login-status56.show{display:block}
+.client-login-status56.error{background:#fff1f2;color:#b91c1c;border:1px solid #fecdd3}
+.client-login-status56.ok{background:#ecfdf5;color:#047857;border:1px solid #a7f3d0}
+.client-object-card56{display:none}
+.client-object-card56.show{display:block}
+.client-object-head56{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:13px}
+.client-object-number56{font-size:11px;color:#075bff;font-weight:950;margin-bottom:4px}
+.client-status-pill56{border-radius:999px;padding:7px 10px;font-size:9px;font-weight:950;background:#eef5ff;color:#075bff;white-space:nowrap}
+.client-info-grid56{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0}
+.client-info-box56{border:1px solid #e5e7eb;background:#f8fafc;border-radius:11px;padding:10px}
+.client-info-box56 span{display:block;font-size:8px;color:#64748b}
+.client-info-box56 b{display:block;font-size:12px;margin-top:4px;overflow-wrap:anywhere}
+.client-room-list56{display:grid;gap:8px;margin-top:10px}
+.client-room-card56{border:1px solid #e5e7eb;border-radius:11px;padding:10px;background:#fff}
+.client-room-card56 b{font-size:11px}
+.client-room-card56 span{display:block;font-size:8px;color:#64748b;margin-top:3px}
+.client-actions56{display:flex;gap:8px;margin-top:12px}
+.client-actions56 .btn{flex:1}
+@media(max-width:620px){
+  .tabs-main{grid-template-columns:repeat(6,minmax(92px,1fr))}
+  .client-login-grid56,.client-info-grid56{grid-template-columns:1fr}
+  .client-login-grid56 .field.full{grid-column:auto}
+}
+
 </style>
 </head>
 <body>
@@ -300,6 +339,7 @@ th:nth-child(2),th:nth-child(3),th:nth-child(4),td:nth-child(2),td:nth-child(3),
 <section id="app" class="app"><div class="wrap">
 <div class="tabs-main">
 <button class="main-tab active" onclick="showMainTab('object',this)">🏠 Об’єкт</button>
+<button class="main-tab" onclick="showMainTab('clientcard',this)">🔐 Особиста картка</button>
 <button class="main-tab" onclick="showMainTab('ai',this)">✨ AI</button>
 <button class="main-tab" onclick="showMainTab('calc',this)">💰 Калькулятор</button>
 <button class="main-tab" onclick="showMainTab('planner',this)">📐 План</button>
@@ -342,6 +382,8 @@ th:nth-child(2),th:nth-child(3),th:nth-child(4),td:nth-child(2),td:nth-child(3),
 </div>
 <div id="photoMeta" class="photo-meta">Фото автоматично стискається та зберігається в поточній кімнаті.</div></div>
 <div class="btn-row"><button class="btn green" onclick="saveObject()">💾 Зберегти об’єкт</button><button class="btn outline" onclick="startAnotherObject()">＋ Новий об’єкт</button></div>
+<button id="publishClientCardBtn56" class="btn blue btn-full mt" type="button" onclick="publishClientCard56()">☁️ Зберегти в особисту картку</button>
+<div id="publishClientCardStatus56" class="client-publish-status56"></div>
 </aside>
 <main class="panel main">
 <div class="block-head"><h2>Поточний об’єкт</h2><span id="saveStatus" class="tag">Не збережено</span></div>
@@ -381,6 +423,55 @@ th:nth-child(2),th:nth-child(3),th:nth-child(4),td:nth-child(2),td:nth-child(3),
 
 </main>
 </div>
+</section>
+
+
+<section id="tab_clientcard" class="page-section">
+  <div class="client-card-shell56">
+    <div id="clientLoginCard56" class="client-login-card56">
+      <div class="client-login-icon56">🔐</div>
+      <h2>Особиста картка об’єкта</h2>
+      <p>Введіть номер об’єкта та персональний ключ, отриманий від майстра. Доступ відкриється тільки до вашого об’єкта.</p>
+      <div class="client-login-grid56">
+        <div class="field">
+          <label>Номер об’єкта</label>
+          <input id="clientObjectNumber56" autocomplete="off" placeholder="P-2026-0001">
+        </div>
+        <div class="field">
+          <label>Ключ доступу</label>
+          <input id="clientAccessKey56" autocomplete="off" autocapitalize="characters" placeholder="ABCD-2345">
+        </div>
+        <div class="field full">
+          <button id="clientOpenBtn56" class="btn blue btn-full" type="button" onclick="openClientObject56()">Відкрити картку</button>
+        </div>
+      </div>
+      <div id="clientLoginStatus56" class="client-login-status56"></div>
+    </div>
+
+    <div id="clientObjectCard56" class="client-object-card56">
+      <div class="client-object-head56">
+        <div>
+          <div id="clientViewNumber56" class="client-object-number56">—</div>
+          <h2 id="clientViewTitle56">Об’єкт</h2>
+        </div>
+        <span id="clientViewStatus56" class="client-status-pill56">Новий</span>
+      </div>
+      <div class="client-info-grid56">
+        <div class="client-info-box56"><span>Клієнт</span><b id="clientViewName56">—</b></div>
+        <div class="client-info-box56"><span>Адреса</span><b id="clientViewAddress56">—</b></div>
+        <div class="client-info-box56"><span>Дата заміру</span><b id="clientViewDate56">—</b></div>
+        <div class="client-info-box56"><span>Вартість</span><b id="clientViewTotal56">—</b></div>
+        <div class="client-info-box56"><span>Загальна площа</span><b id="clientViewArea56">—</b></div>
+        <div class="client-info-box56"><span>Периметр</span><b id="clientViewPerimeter56">—</b></div>
+      </div>
+      <div class="block-head"><h3>Кімнати об’єкта</h3><span id="clientRoomCount56" class="tag">0 кімн.</span></div>
+      <div id="clientRoomList56" class="client-room-list56"></div>
+      <div class="client-actions56">
+        <button class="btn outline" type="button" onclick="closeClientObject56()">← Інший об’єкт</button>
+        <button class="btn dark" type="button" onclick="window.print()">🖨 Друк</button>
+      </div>
+    </div>
+  </div>
 </section>
 
 <section id="tab_ai" class="page-section">
@@ -5622,6 +5713,144 @@ setTimeout(()=>{updateRoomBaseUI47();updateSummary();renderRooms()},120);
   setTimeout(() => window.renderHistory?.(), 500);
 })();
 </script>
+
+<script>
+/* Pixel 5.6 — окреме локальне збереження та публікація в особисту картку */
+(() => {
+  'use strict';
+  const API56='/api/objects';
+  const META56='potolok_pixel54_cloud_meta';
+
+  function metaRead56(){try{return JSON.parse(localStorage.getItem(META56)||'{}')||{}}catch{return{}}}
+  function metaWrite56(v){localStorage.setItem(META56,JSON.stringify(v||{}))}
+  async function request56(url,options={}){
+    const response=await fetch(url,{...options,headers:{'Content-Type':'application/json',...(options.headers||{})}});
+    const data=await response.json().catch(()=>({}));
+    if(!response.ok)throw new Error(data.error||`API ${response.status}`);
+    return data;
+  }
+  function showPublish56(message,type='ok'){
+    const box=document.getElementById('publishClientCardStatus56');
+    if(!box)return;
+    box.textContent=message;
+    box.className='client-publish-status56 show '+type;
+  }
+
+  /* Звичайна кнопка зберігає резервну копію тільки на пристрої. */
+  window.saveObject=async function saveObjectLocal56(){
+    const object=collectObject();
+    activeObjectId=object.id;
+    try{
+      await dbPutObject(object);
+      saveStatus.textContent='Збережено локально';
+      await window.renderHistory?.();
+      alert('Об’єкт збережено на пристрої.');
+    }catch(error){
+      alert('Не вдалося зберегти об’єкт: '+error.message);
+    }
+  };
+
+  /* Окрема кнопка публікує/оновлює дані, які бачить клієнт. */
+  window.publishClientCard56=async function(){
+    const btn=document.getElementById('publishClientCardBtn56');
+    const object=collectObject();
+    activeObjectId=object.id;
+    const meta=metaRead56();
+    const known=meta[object.id]||{};
+    if(btn){btn.disabled=true;btn.textContent='Публікуємо…'}
+    showPublish56('Збереження в особисту картку…','ok');
+
+    try{
+      const result=await request56(API56,{
+        method:'POST',
+        body:JSON.stringify({
+          object:{...object,objectNumber:known.objectNumber||object.objectNumber},
+          cloudId:known.cloudId||object.cloudId||'',
+          status:known.status||object.cloudStatus||'new'
+        })
+      });
+      const row=result.object||{};
+      const saved={...object,cloudId:row.id,objectNumber:row.object_number,cloudStatus:row.status||'new'};
+      meta[object.id]={cloudId:row.id,objectNumber:row.object_number,status:row.status||'new'};
+      metaWrite56(meta);
+      await dbPutObject(saved).catch(()=>{});
+      saveStatus.textContent=`🔐 ${row.object_number||'Картку оновлено'}`;
+      await window.renderHistory?.();
+
+      if(result.created&&result.accessKey){
+        const message=`Картку створено.\nНомер: ${row.object_number}\nКлюч: ${result.accessKey}`;
+        showPublish56(message.replace(/\n/g,' • '),'ok');
+        alert(`${message}\n\nЗбережіть або передайте ці дані клієнту.`);
+      }else{
+        showPublish56(`Особисту картку ${row.object_number||''} оновлено.`,'ok');
+        alert(`Особисту картку ${row.object_number||''} оновлено.`);
+      }
+    }catch(error){
+      showPublish56('Помилка: '+error.message,'error');
+      alert('Не вдалося оновити особисту картку: '+error.message);
+    }finally{
+      if(btn){btn.disabled=false;btn.textContent='☁️ Зберегти в особисту картку'}
+    }
+  };
+
+  const labels56={
+    new:'Новий',measurement:'Замір',calculation:'Прорахунок',approval:'Узгодження',
+    contract:'Договір',installation_planned:'Монтаж заплановано',
+    installation:'Монтаж',completed:'Завершено',cancelled:'Відмова'
+  };
+  function el56(id){return document.getElementById(id)}
+  function set56(id,value){const n=el56(id);if(n)n.textContent=value??'—'}
+  function money56(value){return new Intl.NumberFormat('uk-UA',{maximumFractionDigits:0}).format(Number(value||0))+' грн'}
+  function loginStatus56(message,type='error'){
+    const n=el56('clientLoginStatus56');if(!n)return;
+    n.textContent=message;n.className='client-login-status56 show '+type;
+  }
+
+  window.openClientObject56=async function(){
+    const objectNumber=String(el56('clientObjectNumber56')?.value||'').trim().toUpperCase();
+    const accessKey=String(el56('clientAccessKey56')?.value||'').trim().toUpperCase();
+    if(!objectNumber||!accessKey)return loginStatus56('Введіть номер об’єкта та ключ доступу.');
+    const btn=el56('clientOpenBtn56');
+    if(btn){btn.disabled=true;btn.textContent='Перевіряємо…'}
+    try{
+      const result=await request56(API56,{
+        method:'POST',
+        body:JSON.stringify({action:'clientLogin',objectNumber,accessKey})
+      });
+      const v=result.object||{};
+      set56('clientViewNumber56',v.objectNumber||objectNumber);
+      set56('clientViewTitle56',v.address||'Об’єкт');
+      set56('clientViewStatus56',labels56[v.status]||v.status||'Новий');
+      set56('clientViewName56',v.clientName||'—');
+      set56('clientViewAddress56',v.address||'—');
+      set56('clientViewDate56',v.date||'—');
+      set56('clientViewTotal56',money56(v.total));
+      set56('clientViewArea56',Number(v.area||0).toFixed(2)+' м²');
+      set56('clientViewPerimeter56',Number(v.perimeter||0).toFixed(2)+' м');
+      const rooms=Array.isArray(v.rooms)?v.rooms:[];
+      set56('clientRoomCount56',rooms.length+' кімн.');
+      const list=el56('clientRoomList56');
+      if(list)list.innerHTML=rooms.length?rooms.map((room,index)=>{
+        const name=room.name||room.roomName||('Кімната '+(index+1));
+        const area=Number(room.area||room.metrics?.area||0);
+        const perimeter=Number(room.perimeter||room.metrics?.perimeter||0);
+        return `<div class="client-room-card56"><b>${name}</b><span>${area.toFixed(2)} м² • ${perimeter.toFixed(2)} м</span></div>`;
+      }).join(''):'<div class="notice">Кімнати ще не додані.</div>';
+      el56('clientLoginCard56')?.classList.add('hidden');
+      el56('clientObjectCard56')?.classList.add('show');
+    }catch(error){loginStatus56(error.message||'Невірний номер або ключ.')}
+    finally{if(btn){btn.disabled=false;btn.textContent='Відкрити картку'}}
+  };
+
+  window.closeClientObject56=function(){
+    el56('clientObjectCard56')?.classList.remove('show');
+    el56('clientLoginCard56')?.classList.remove('hidden');
+    if(el56('clientAccessKey56'))el56('clientAccessKey56').value='';
+    const s=el56('clientLoginStatus56');if(s){s.className='client-login-status56';s.textContent=''}
+  };
+})();
+</script>
+
 </body>
 </html>
 
