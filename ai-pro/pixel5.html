@@ -303,6 +303,7 @@ th:nth-child(2),th:nth-child(3),th:nth-child(4),td:nth-child(2),td:nth-child(3),
 <div class="grid">
 <aside class="panel controls">
 <div class="block"><div class="block-head"><h2>Картка об’єкта</h2><span class="tag">Автозбереження</span></div>
+<div class="v45-start-new"><button type="button" onclick="startCleanObject44(true)">＋ Розпочати інший об’єкт / план</button><small>Створить чистий об’єкт і новий порожній план. Збережені об’єкти не видаляються.</small></div>
 <div class="field-grid">
 <div class="field"><label>Клієнт</label><input id="clientName" placeholder="Ім’я клієнта" oninput="autosave()"></div>
 <div class="field"><label>Телефон</label><input id="clientPhone" placeholder="+380..." oninput="autosave()"></div>
@@ -333,7 +334,7 @@ th:nth-child(2),th:nth-child(3),th:nth-child(4),td:nth-child(2),td:nth-child(3),
   <button class="btn blue" type="button" onclick="document.getElementById('galleryInput')?.click()">🖼 Обрати з галереї</button>
 </div>
 <div id="photoMeta" class="photo-meta">Фото автоматично стискається та зберігається в поточній кімнаті.</div></div>
-<div class="btn-row"><button class="btn green" onclick="saveObject()">💾 Зберегти об’єкт</button><button class="btn outline" onclick="newObject()">＋ Новий</button></div>
+<div class="btn-row"><button class="btn green" onclick="saveObject()">💾 Зберегти об’єкт</button><button class="btn outline" onclick="startCleanObject44(true)">＋ Інший об’єкт / план</button></div>
 </aside>
 <main class="panel main">
 <div class="block-head"><h2>Поточний об’єкт</h2><span id="saveStatus" class="tag">Не збережено</span></div>
@@ -4714,6 +4715,11 @@ async function sendAiRequest(){
 .v44-new-calc{margin:0 0 14px;padding:14px;border:1px solid #bfdbfe;border-radius:18px;background:#eff6ff}
 .v44-new-calc button{width:100%;min-height:52px;border:0;border-radius:14px;background:#075bff;color:#fff;font-size:16px;font-weight:900;box-shadow:0 8px 20px rgba(7,91,255,.2)}
 .v44-new-calc small{display:block;margin-top:8px;color:#64748b;text-align:center;font-weight:700}
+
+/* v45: prominent start-another-object/plan action */
+.v45-start-new{margin:14px 0 18px;padding:14px;border:1px solid #bfd4ff;border-radius:18px;background:linear-gradient(135deg,#f4f8ff,#eef7ff);box-shadow:0 10px 28px rgba(18,91,210,.10)}
+.v45-start-new button{width:100%;min-height:58px;border:0;border-radius:16px;background:#1465f5;color:#fff;font-size:17px;font-weight:900;box-shadow:0 10px 22px rgba(20,101,245,.24)}
+.v45-start-new small{display:block;margin-top:8px;text-align:center;color:#617087;font-weight:700;line-height:1.35}
 </style>
 <script id="v44-new-calculation-fix">
 (() => {
@@ -4762,7 +4768,7 @@ async function sendAiRequest(){
     const box=document.createElement('div');
     box.className='v44-new-calc';
     box.id='newCalculation44';
-    box.innerHTML='<button type="button">＋ Новий об’єкт — рахувати з нуля</button><small>Попередній збережений об’єкт залишиться в історії</small>';
+    box.innerHTML='<button type="button">＋ Розпочати інший об’єкт / план</button><small>Новий чистий об’єкт і порожній план. Збережені об’єкти залишаться в історії.</small>';
     box.querySelector('button').onclick=()=>startCleanObject44(true);
     const target=calc.querySelector('main')||calc.firstElementChild||calc;
     target.insertBefore(box,target.firstChild);
@@ -4773,7 +4779,7 @@ async function sendAiRequest(){
 })();
 </script>
 </body>
-</html>
+                                             </html>
 
 
 
