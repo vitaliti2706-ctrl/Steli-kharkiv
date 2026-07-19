@@ -58,6 +58,54 @@ function publicView(object, objectNumber, status) {
   };
 }
 
+async function getRow(id) {
+  const response = await fetch(
+    `${SUPABASE_URL}/rest/v1/objects?id=eq.${encodeURIComponent(id)}&select=*&limit=1`,
+    { headers: headers() }
+  );
+  if (!response.ok) throw new Error(await response.text());
+  const rows = await response.json();
+  return rows?.[0] || null;
+}
+
+async function patchRow(id, patch) {
+  const response = await fetch(
+    `${SUPABASE_URL}/rest/v1/objects?id=eq.${encodeURIComponent(id)}`,
+    {
+      method: 'PATCH',
+      headers: headers({ Prefer: 'return=representation' }),
+      body: JSON.stringify(patch),
+    }
+  );
+  if (!response.ok) throw new Error(await response.text());
+  const rows = await response.json();
+  return rows?.[0] || null;
+}
+
+async function insertRow(row) {
+  const response = await fetch(`${SUPABASE_URL}/rest/v1/objects`, {
+    method: 'POST',
+    headers: headers({ Prefer: 'return=representation' }),
+    body: JSON.stringify(row),
+  });
+  if (!response.ok) throw new Error(await response.text());
+  const rows = await response.json();
+  return rows?.[0] || null;
+}
+
+function baseFields(object, status) {
+  return {
+    client_name: object.clientName || null,
+    client_phone: object.clientPhone || null,
+    address: object.address || null,
+    measurement_date: object.date || null,
+    ceiling_height: Number(object.height || 0) || null,
+    status,
+    internal_comment: object.comment || null,
+    object_data: object,
+  };
+}
+
 export default async function handler(req, res) {
   if (!SUPABASE_URL || !SUPABASE_SECRET_KEY) {
     return json(res, 500, { error: 'Supabase environment variables are missing' });
@@ -69,9 +117,11 @@ export default async function handler(req, res) {
       const url = id
         ? `${SUPABASE_URL}/rest/v1/objects?id=eq.${encodeURIComponent(id)}&select=*`
         : `${SUPABASE_URL}/rest/v1/objects?select=*&order=updated_at.desc`;
+
       const response = await fetch(url, { headers: headers() });
       if (!response.ok) throw new Error(await response.text());
       const rows = await response.json();
+
       return json(res, 200, id ? { object: rows[0] || null } : { objects: rows });
     }
 
@@ -81,6 +131,7 @@ export default async function handler(req, res) {
       if (body.action === 'clientLogin') {
         const objectNumber = String(body.objectNumber || '').trim().toUpperCase();
         const accessKey = String(body.accessKey || '').trim().toUpperCase();
+
         if (!objectNumber || !accessKey) {
           return json(res, 400, { error: 'Вкажіть номер об’єкта та ключ доступу.' });
         }
@@ -90,82 +141,120 @@ export default async function handler(req, res) {
           { headers: headers() }
         );
         if (!response.ok) throw new Error(await response.text());
+
         const rows = await response.json();
         const row = rows?.[0];
-
         const suppliedHash = hashAccessKey(accessKey);
         const storedHash = String(row?.access_key_hash || '');
+
         const valid = !!row &&
           storedHash.length === suppliedHash.length &&
           storedHash.length > 0 &&
           crypto.timingSafeEqual(Buffer.from(storedHash), Buffer.from(suppliedHash));
 
-        if (!valid) {
+        if (!valid || !row.client_view) {
           return json(res, 401, { error: 'Невірний номер об’єкта або ключ доступу.' });
         }
-        return json(res, 200, { object: row.client_view || {} });
+
+        return json(res, 200, { object: row.client_view });
       }
 
       const object = body.object;
-      if (!object || typeof object !== 'object') return json(res, 400, { error: 'object is required' });
+      if (!object || typeof object !== 'object') {
+        return json(res, 400, { error: 'object is required' });
+      }
 
+      const action = String(body.action || 'publishClient');
       const cloudId = String(body.cloudId || object.cloudId || '').trim();
       const status = String(body.status || object.cloudStatus || 'new');
 
-      if (cloudId) {
-        const patch = {
-          client_name: object.clientName || null,
-          client_phone: object.clientPhone || null,
-          address: object.address || null,
-          measurement_date: object.date || null,
-          ceiling_height: Number(object.height || 0) || null,
-          status,
-          internal_comment: object.comment || null,
-          object_data: object,
-          client_view: publicView(object, object.objectNumber || '', status),
-        };
-        const response = await fetch(`${SUPABASE_URL}/rest/v1/objects?id=eq.${encodeURIComponent(cloudId)}`, {
-          method: 'PATCH',
-          headers: headers({ Prefer: 'return=representation' }),
-          body: JSON.stringify(patch),
+      if (action === 'historySave') {
+        if (cloudId) {
+          const current = await getRow(cloudId);
+          if (!current) return json(res, 404, { error: 'Object not found' });
+
+          const objectNumber = current.object_number || object.objectNumber || await nextObjectNumber();
+          const updatedObject = { ...object, objectNumber };
+
+          const row = await patchRow(cloudId, {
+            ...baseFields(updatedObject, status),
+            client_view: current.client_view || null,
+          });
+
+          return json(res, 200, { created: false, published: !!row?.client_view, object: row });
+        }
+
+        const objectNumber = object.objectNumber || await nextObjectNumber();
+        const updatedObject = { ...object, objectNumber };
+
+        const row = await insertRow({
+          object_number: objectNumber,
+          access_key_hash: null,
+          ...baseFields(updatedObject, status),
+          client_view: null,
         });
-        if (!response.ok) throw new Error(await response.text());
-        const rows = await response.json();
-        return json(res, 200, { created: false, object: rows[0] || null });
+
+        return json(res, 201, { created: true, published: false, object: row });
       }
 
-      const objectNumber = await nextObjectNumber();
-      const accessKey = makeAccessKey();
-      const row = {
-        object_number: objectNumber,
-        access_key_hash: hashAccessKey(accessKey),
-        client_name: object.clientName || null,
-        client_phone: object.clientPhone || null,
-        address: object.address || null,
-        measurement_date: object.date || null,
-        ceiling_height: Number(object.height || 0) || null,
-        status,
-        internal_comment: object.comment || null,
-        object_data: { ...object, objectNumber },
-        client_view: publicView(object, objectNumber, status),
-      };
-      const response = await fetch(`${SUPABASE_URL}/rest/v1/objects`, {
-        method: 'POST',
-        headers: headers({ Prefer: 'return=representation' }),
-        body: JSON.stringify(row),
-      });
-      if (!response.ok) throw new Error(await response.text());
-      const rows = await response.json();
-      return json(res, 201, { created: true, accessKey, object: rows[0] || null });
+      if (action === 'publishClient') {
+        let accessKey = '';
+        let accessKeyHash = '';
+        let objectNumber = object.objectNumber || '';
+
+        if (cloudId) {
+          const current = await getRow(cloudId);
+          if (!current) return json(res, 404, { error: 'Object not found' });
+
+          objectNumber = current.object_number || objectNumber || await nextObjectNumber();
+
+          if (!current.access_key_hash) {
+            accessKey = makeAccessKey();
+            accessKeyHash = hashAccessKey(accessKey);
+          }
+
+          const updatedObject = { ...object, objectNumber };
+
+          const row = await patchRow(cloudId, {
+            ...baseFields(updatedObject, status),
+            ...(accessKeyHash ? { access_key_hash: accessKeyHash } : {}),
+            client_view: publicView(updatedObject, objectNumber, status),
+          });
+
+          return json(res, 200, {
+            created: false,
+            accessKey: accessKey || undefined,
+            object: row,
+          });
+        }
+
+        objectNumber = objectNumber || await nextObjectNumber();
+        accessKey = makeAccessKey();
+        accessKeyHash = hashAccessKey(accessKey);
+        const updatedObject = { ...object, objectNumber };
+
+        const row = await insertRow({
+          object_number: objectNumber,
+          access_key_hash: accessKeyHash,
+          ...baseFields(updatedObject, status),
+          client_view: publicView(updatedObject, objectNumber, status),
+        });
+
+        return json(res, 201, { created: true, accessKey, object: row });
+      }
+
+      return json(res, 400, { error: 'Unknown action' });
     }
 
     if (req.method === 'DELETE') {
       const id = String(req.query?.id || '').trim();
       if (!id) return json(res, 400, { error: 'id is required' });
-      const response = await fetch(`${SUPABASE_URL}/rest/v1/objects?id=eq.${encodeURIComponent(id)}`, {
-        method: 'DELETE',
-        headers: headers(),
-      });
+
+      const response = await fetch(
+        `${SUPABASE_URL}/rest/v1/objects?id=eq.${encodeURIComponent(id)}`,
+        { method: 'DELETE', headers: headers() }
+      );
+
       if (!response.ok) throw new Error(await response.text());
       return json(res, 200, { ok: true });
     }
