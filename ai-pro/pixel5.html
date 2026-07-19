@@ -251,6 +251,9 @@ th:nth-child(2),th:nth-child(3),th:nth-child(4),td:nth-child(2),td:nth-child(3),
 .auto-tool-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
 .auto-tool-btn{min-height:42px;border:1px solid #dbe3ef;background:#fff;border-radius:10px;padding:7px 4px;font-size:8px;font-weight:950;color:#334155;line-height:1.2}
 .auto-tool-btn:active{transform:scale(.98)}
+.auto-tool-btn.active{background:#075bff;color:#fff;border-color:#075bff;box-shadow:0 5px 14px rgba(7,91,255,.25)}
+.plan-undo-btn{white-space:nowrap;min-height:36px;padding:7px 10px;border:1px solid #075bff;background:#fff;color:#075bff;border-radius:10px;font-weight:900;font-size:12px}
+.plan-undo-btn:active{transform:scale(.98)}
 .auto-more-wrap{display:none;grid-column:1/-1;grid-template-columns:repeat(3,1fr);gap:7px}
 .auto-more-wrap.open{display:grid}
 .auto-more-btn{grid-column:1/-1;min-height:40px;border:1px dashed #10b981;background:#ecfdf5;color:#047857;border-radius:10px;font-size:9px;font-weight:950}
@@ -471,7 +474,7 @@ th:nth-child(2),th:nth-child(3),th:nth-child(4),td:nth-child(2),td:nth-child(3),
     <div id="closureStatus" class="planner-hint"></div>
   </div>
   <div class="mini-plan-card">
-    <div class="mini-plan-head"><b>План поруч із точками</b><button class="plan-jump-btn" type="button" onclick="jumpToLowerPlan()">⬇ Нижній план</button><span id="miniPlanAngleLabel">0°</span></div>
+    <div class="mini-plan-head"><b>План поруч із точками</b><button class="plan-undo-btn" type="button" onclick="undoPlanner()">↩ Скасувати останню</button><button class="plan-jump-btn" type="button" onclick="jumpToLowerPlan()">⬇ Нижній план</button><span id="miniPlanAngleLabel">0°</span></div>
     <svg id="plannerMiniSvg" viewBox="0 0 800 600"><g id="miniRoomLayer"></g><g id="miniObjectLayer"></g><g id="miniNodeLayer"></g></svg>
     <div class="plan-transform-controls">
       <label>Поворот кімнати <span id="rotatePlanValue">0°</span></label>
@@ -678,6 +681,7 @@ th:nth-child(2),th:nth-child(3),th:nth-child(4),td:nth-child(2),td:nth-child(3),
 </div>
 <div id="planClearHint" class="plan-clear-hint">👉 Торкніться потрібної стіни на плані</div>
 <div class="planner-zoom">
+  <button class="plan-undo-btn" type="button" onclick="undoPlanner()">↩ Скасувати останню</button>
   <button class="plan-jump-btn jump-top" type="button" onclick="jumpToUpperPlan()">⬆ Верхній план</button>
   <button class="zoom-btn" type="button" onclick="zoomPlanner(-1)">−</button>
   <button id="zoomLabel" class="zoom-btn zoom-label" type="button" onclick="resetPlannerZoom()">100%</button>
@@ -1429,7 +1433,7 @@ function polygonMetrics(){
 }
 function setPlannerTool(t,btn){
   plannerTool=t;
-  document.querySelectorAll('#tab_planner .tool-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('#tab_planner .tool-btn, #tab_planner .auto-tool-btn').forEach(b=>b.classList.remove('active'));
   if(btn)btn.classList.add('active');
 }
 function objectDefaults(type,x,y){
