@@ -4404,7 +4404,8 @@ renderPerimeterBindings=function(){
 
 function applyPlanViewVisibility66(){
   if(!window.objectLayer)return;
-  objectLayer.style.display=planViewMode==='mount'?'':'none';
+  /* Pixel 5.2: об'єкти мають бути однаково видимі на верхньому і нижньому планах. */
+  objectLayer.style.display='';
   /* Node handles remain visible for editing in every mode. */
   syncPlanViewButtons66();
 }
@@ -5071,6 +5072,7 @@ setTimeout(()=>{updateRoomBaseUI47();updateSummary();renderRooms()},120);
 .dimension-toggle52{display:flex;width:100%;align-items:center;justify-content:center;gap:7px;min-height:44px;margin:10px 0;border:1px solid #a9c8ff;border-radius:11px;background:#edf4ff;color:#075bff;font-size:10px;font-weight:950;transition:.18s ease}
 .dimension-toggle52.active{background:#075bff;color:#fff;border-color:#075bff;box-shadow:0 8px 18px rgba(7,91,255,.22)}
 .dimension-toggle52:active{transform:scale(.99)}
+.dimension-toggle52.top52{margin:8px 0 10px;min-height:40px}
 .planner-status52{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin:0 0 9px;padding:9px 11px;border:1px solid #dbe3ef;border-radius:11px;background:#f8fafc;color:#334155;font-size:9px;font-weight:900}
 .planner-status52 b{color:#075bff}
 
@@ -5117,6 +5119,14 @@ setTimeout(()=>{updateRoomBaseUI47();updateSummary();renderRooms()},120);
   dimBtn.innerHTML='📏 <span>Показати розміри світильників</span>';
   dimBtn.addEventListener('click',()=>toggleLightDimensions52());
   if(status)status.insertAdjacentElement('afterend',dimBtn);
+
+  /* Такий самий перемикач безпосередньо біля верхнього міні-плану. */
+  const topDimBtn=document.createElement('button');
+  topDimBtn.id='dimensionToggleTop52';topDimBtn.className='dimension-toggle52 top52';topDimBtn.type='button';
+  topDimBtn.innerHTML='📏 <span>Показати розміри світильників</span>';
+  topDimBtn.addEventListener('click',()=>toggleLightDimensions52());
+  const miniPlan=document.getElementById('plannerMiniSvg');
+  if(miniPlan)miniPlan.insertAdjacentElement('beforebegin',topDimBtn);
 
   const lockNote=document.createElement('div');
   lockNote.id='planLockNote52';lockNote.className='plan-lock-note52';
@@ -5180,8 +5190,12 @@ setTimeout(()=>{updateRoomBaseUI47();updateSummary();renderRooms()},120);
 
   window.toggleLightDimensions52=function(force){
     dimensionsVisible52=typeof force==='boolean'?force:!dimensionsVisible52;
-    dimBtn.classList.toggle('active',dimensionsVisible52);
-    dimBtn.querySelector('span').textContent=dimensionsVisible52?'Сховати розміри світильників':'Показати розміри світильників';
+    [dimBtn,topDimBtn].forEach(btn=>{
+      if(!btn)return;
+      btn.classList.toggle('active',dimensionsVisible52);
+      const label=btn.querySelector('span');
+      if(label)label.textContent=dimensionsVisible52?'Сховати розміри світильників':'Показати розміри світильників';
+    });
     renderPlanner();
   };
 
