@@ -4702,6 +4702,121 @@ setUnifiedPackageInsert=function(value){setUnifiedPackageInsert47(value);const s
 setTimeout(()=>{updateRoomBaseUI47();updateSummary();renderRooms()},120);
 </script>
 
+
+
+<!-- PIXEL 4.9: повна робота елементів на нижньому міні-плані -->
+<script>
+(function(){
+  const mini = document.getElementById('plannerMiniSvg');
+  if(!mini || mini.dataset.interactive49==='1') return;
+  mini.dataset.interactive49='1';
+  mini.style.touchAction='none';
+
+  let mode49 = null; // node | object
+  let index49 = -1;
+  let offset49 = [0,0];
+  let moved49 = false;
+
+  function miniPoint49(evt){
+    const pt=mini.createSVGPoint();
+    pt.x=evt.clientX; pt.y=evt.clientY;
+    const m=mini.getScreenCTM();
+    if(!m) return [0,0];
+    const p=pt.matrixTransform(m.inverse());
+    return [p.x,p.y];
+  }
+  function hitRadius49(){
+    const vb=mini.viewBox.baseVal;
+    const rect=mini.getBoundingClientRect();
+    return Math.max(24, 38*(vb.width/Math.max(rect.width,1)));
+  }
+  function nearest49(list,x,y,r){
+    let best=-1,dist=r;
+    list.forEach((p,i)=>{
+      const px=Array.isArray(p)?p[0]:p.x;
+      const py=Array.isArray(p)?p[1]:p.y;
+      const d=Math.hypot(px-x,py-y);
+      if(d<dist){dist=d;best=i;}
+    });
+    return best;
+  }
+  function finish49(){
+    if(mode49){
+      mode49=null; index49=-1;
+      try{mini.releasePointerCapture(event.pointerId)}catch(_){ }
+      if(typeof showObjectInspector==='function')showObjectInspector();
+      if(typeof syncActiveRoomFromUI==='function')syncActiveRoomFromUI(false);
+      if(typeof autosave==='function')autosave();
+    }
+  }
+
+  mini.addEventListener('pointerdown',function(e){
+    e.preventDefault(); e.stopPropagation();
+    const [x,y]=miniPoint49(e), r=hitRadius49();
+
+    // Видалення елемента на нижньому плані.
+    if(plannerTool==='delete'){
+      const oi=nearest49(plannerObjects,x,y,r);
+      if(oi>=0){
+        pushPlanner(); plannerObjects.splice(oi,1); selectedObjectIndex=-1;
+        renderPlanner(); showObjectInspector(); autosave();
+      }
+      return;
+    }
+
+    // У режимі вибору можна рухати як точки контуру, так і встановлені елементи.
+    if(plannerTool==='select'){
+      const ni=nearest49(roomPoints,x,y,r*.8);
+      if(ni>=0){
+        pushPlanner(); mode49='node'; index49=ni; moved49=false;
+        mini.setPointerCapture(e.pointerId); return;
+      }
+      const oi=nearest49(plannerObjects,x,y,r);
+      if(oi>=0){
+        pushPlanner(); selectedObjectIndex=oi; mode49='object'; index49=oi;
+        offset49=[x-plannerObjects[oi].x,y-plannerObjects[oi].y]; moved49=false;
+        mini.setPointerCapture(e.pointerId); renderPlanner(); showObjectInspector(); return;
+      }
+      selectedObjectIndex=-1; renderPlanner(); showObjectInspector();
+      return;
+    }
+
+    // Будь-який вибраний інструмент ставить елемент прямо на нижній план.
+    pushPlanner();
+    plannerObjects.push(objectDefaults(plannerTool,x,y));
+    selectedObjectIndex=plannerObjects.length-1;
+    renderPlanner(); showObjectInspector(); autosave();
+  },{passive:false});
+
+  mini.addEventListener('pointermove',function(e){
+    if(!mode49 || index49<0)return;
+    e.preventDefault();
+    const [x,y]=miniPoint49(e); moved49=true;
+    if(mode49==='node' && roomPoints[index49]){
+      roomPoints[index49]=[Math.max(20,Math.min(780,x)),Math.max(20,Math.min(580,y))];
+    }else if(mode49==='object' && plannerObjects[index49]){
+      plannerObjects[index49].x=x-offset49[0];
+      plannerObjects[index49].y=y-offset49[1];
+    }
+    renderPlanner();
+  },{passive:false});
+
+  mini.addEventListener('pointerup',function(e){
+    if(!mode49)return;
+    e.preventDefault();
+    mode49=null; index49=-1;
+    try{mini.releasePointerCapture(e.pointerId)}catch(_){ }
+    showObjectInspector();
+    if(typeof syncActiveRoomFromUI==='function')syncActiveRoomFromUI(false);
+    autosave();
+  },{passive:false});
+  mini.addEventListener('pointercancel',function(e){
+    mode49=null; index49=-1;
+    try{mini.releasePointerCapture(e.pointerId)}catch(_){ }
+  });
+})();
+</script>
+
 </body>
 </html>
 
