@@ -5052,6 +5052,212 @@ setTimeout(()=>{updateRoomBaseUI47();updateSummary();renderRooms()},120);
   renderPlanner();
 })();
 </script>
+
+
+<!-- PIXEL 5.2: режими редагування, toggle-інструменти та розміри світильників -->
+<style>
+/* Режими редагування: неактивний — блідий, активний — насичений. */
+.edit-mode-banner{cursor:pointer;user-select:none;transition:background .18s ease,border-color .18s ease,box-shadow .18s ease,opacity .18s ease,transform .12s ease}
+.edit-mode-banner:active{transform:scale(.99)}
+.edit-mode-banner.manual{background:#eaf2ff;color:#075bff;border:1px solid #a9c8ff;box-shadow:none}
+.edit-mode-banner.manual.active52{background:linear-gradient(135deg,#075bff,#1d4ed8);color:#fff;border-color:#60a5fa;box-shadow:0 10px 24px rgba(7,91,255,.25)}
+.edit-mode-banner.auto{background:#eafaf1;color:#047857;border:1px solid #9de5bf;box-shadow:none}
+.edit-mode-banner.auto.active52{background:linear-gradient(135deg,#047857,#10b981);color:#fff;border-color:#6ee7b7;box-shadow:0 10px 24px rgba(16,185,129,.24)}
+.edit-mode-banner:not(.active52) .edit-icon{background:rgba(255,255,255,.72)}
+.manual-tools-card.mode-muted52,.auto-workspace.mode-muted52{opacity:.82}
+.manual-tools-card.mode-muted52 .planner-toolbar,.auto-workspace.mode-muted52 .plan-view-modes,.auto-workspace.mode-muted52 .auto-actions-row,.auto-workspace.mode-muted52 .auto-tool-grid{filter:saturate(.65)}
+
+/* Окремий перемикач розмірів. */
+.dimension-toggle52{display:flex;width:100%;align-items:center;justify-content:center;gap:7px;min-height:44px;margin:10px 0;border:1px solid #a9c8ff;border-radius:11px;background:#edf4ff;color:#075bff;font-size:10px;font-weight:950;transition:.18s ease}
+.dimension-toggle52.active{background:#075bff;color:#fff;border-color:#075bff;box-shadow:0 8px 18px rgba(7,91,255,.22)}
+.dimension-toggle52:active{transform:scale(.99)}
+.planner-status52{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin:0 0 9px;padding:9px 11px;border:1px solid #dbe3ef;border-radius:11px;background:#f8fafc;color:#334155;font-size:9px;font-weight:900}
+.planner-status52 b{color:#075bff}
+
+/* Розмірні лінії світильників. */
+.light-dimension-layer52{pointer-events:none}
+.light-dim-line52{stroke:#075bff;stroke-width:2;stroke-dasharray:6 4;vector-effect:non-scaling-stroke}
+.light-dim-ext52{stroke:#60a5fa;stroke-width:1.5;vector-effect:non-scaling-stroke}
+.light-dim-tick52{stroke:#075bff;stroke-width:2;vector-effect:non-scaling-stroke}
+.light-dim-label52{font-size:13px;font-weight:950;fill:#075bff;paint-order:stroke;stroke:#fff;stroke-width:5px;stroke-linejoin:round}
+.light-wall-dim52 .light-dim-line52{stroke:#0f766e}
+.light-wall-dim52 .light-dim-label52{fill:#0f766e}
+
+/* Під час встановлення елементів трансформації плану фізично недоступні. */
+.plan-locked52{opacity:.48!important;pointer-events:none!important}
+.plan-lock-note52{display:none;margin:8px 0;padding:8px 10px;border-radius:10px;background:#fff7ed;color:#9a3412;font-size:10px;font-weight:900}
+.plan-lock-note52.show{display:block}
+</style>
+<script>
+(function(){
+  if(window.__pixel52Installed)return;
+  window.__pixel52Installed=true;
+
+  let editMode52='manual';
+  let dimensionsVisible52=false;
+  let activeToolButton52=null;
+
+  const manualCard=document.querySelector('.manual-tools-card');
+  const autoWorkspace=document.querySelector('.auto-workspace');
+  const manualBanner=manualCard?.querySelector('.edit-mode-banner.manual');
+  const autoBanner=autoWorkspace?.querySelector('.edit-mode-banner.auto');
+
+  if(manualBanner){manualBanner.setAttribute('role','button');manualBanner.setAttribute('tabindex','0');manualBanner.title='Увімкнути ручне редагування'}
+  if(autoBanner){autoBanner.setAttribute('role','button');autoBanner.setAttribute('tabindex','0');autoBanner.title='Увімкнути автоматичне редагування'}
+
+  const status=document.createElement('div');
+  status.id='plannerStatus52';status.className='planner-status52';
+  status.innerHTML='<span>Режим: <b id="plannerModeStatus52">Ручне редагування</b></span><span>Інструмент: <b id="plannerToolStatus52">не вибрано</b></span>';
+  const mainCanvas=document.querySelector('#tab_planner main.planner-canvas');
+  const autoBox=document.querySelector('.auto-workspace');
+  if(mainCanvas&&autoBox)mainCanvas.insertBefore(status,autoBox.nextSibling);
+
+  const dimBtn=document.createElement('button');
+  dimBtn.id='dimensionToggle52';dimBtn.className='dimension-toggle52';dimBtn.type='button';
+  dimBtn.innerHTML='📏 <span>Показати розміри світильників</span>';
+  dimBtn.addEventListener('click',()=>toggleLightDimensions52());
+  if(status)status.insertAdjacentElement('afterend',dimBtn);
+
+  const lockNote=document.createElement('div');
+  lockNote.id='planLockNote52';lockNote.className='plan-lock-note52';
+  lockNote.textContent='🔒 План зафіксований на час встановлення елементів.';
+  if(dimBtn)dimBtn.insertAdjacentElement('afterend',lockNote);
+
+  const toolNames52={
+    select:'Вибір',delete:'Видалення',move:'Переміщення',door:'Двері',window:'Вікно',pipe1:'Труба 1×',pipe2:'Труба 2×',vent:'Вентиляція',column:'Колона',light:'Світильник',chandelier:'Люстра',track:'Магнітний трек',surfaceTrack:'Накладний трек',lightline:'Світлова лінія',corniceWhite:'Карниз білий',corniceBlack:'Карниз чорний',corniceLed:'Карниз LED',insertWhite:'Вставка біла',insertBlack:'Вставка чорна',shadowProfile:'Тіньовий профіль',floatingWhite:'Парящий білий',floatingBlack:'Парящий чорний',beam:'Балка',box:'Короб',circle:'Круг',oval:'Овал',curve:'Крива',wave:'Хвиля'
+  };
+
+  function isAdding52(t){return !!t&&!['select','delete','move'].includes(t)}
+  function setStatus52(){
+    const m=document.getElementById('plannerModeStatus52'),t=document.getElementById('plannerToolStatus52');
+    if(m)m.textContent=editMode52==='manual'?'Ручне редагування':'Автоматичне редагування';
+    if(t)t.textContent=plannerTool&&plannerTool!=='select'?(toolNames52[plannerTool]||plannerTool):'не вибрано';
+  }
+  function syncMode52(){
+    manualBanner?.classList.toggle('active52',editMode52==='manual');
+    autoBanner?.classList.toggle('active52',editMode52==='auto');
+    manualCard?.classList.toggle('mode-muted52',editMode52!=='manual');
+    autoWorkspace?.classList.toggle('mode-muted52',editMode52!=='auto');
+    setStatus52();
+  }
+  window.setEditMode52=function(mode){
+    editMode52=mode==='auto'?'auto':'manual';
+    syncMode52();
+  };
+  function bindModeBanner52(el,mode){
+    if(!el)return;
+    el.addEventListener('click',()=>setEditMode52(mode));
+    el.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();setEditMode52(mode)}});
+  }
+  bindModeBanner52(manualBanner,'manual');bindModeBanner52(autoBanner,'auto');
+
+  function lockPlan52(active){
+    document.querySelectorAll('.plan-transform-controls,.planner-zoom').forEach(el=>el.classList.toggle('plan-locked52',active));
+    document.getElementById('planLockNote51')?.classList.toggle('show',false);
+    lockNote.classList.toggle('show',active);
+  }
+
+  /* Зберігаємо вже наявну логіку 5.1, але додаємо повторне натискання для вимкнення. */
+  const setPlannerTool51=window.setPlannerTool;
+  window.setPlannerTool=function(t,btn){
+    const same=btn&&activeToolButton52===btn&&btn.classList.contains('active')&&plannerTool===t;
+    if(same){
+      document.querySelectorAll('#tab_planner .tool-btn,#tab_planner .auto-tool-btn').forEach(b=>b.classList.remove('active'));
+      plannerTool='select';activeToolButton52=null;lockPlan52(false);setStatus52();renderPlanner();return;
+    }
+    editMode52=btn?.closest('.auto-workspace')?'auto':'manual';
+    setPlannerTool51(t,btn);
+    activeToolButton52=btn||null;
+    lockPlan52(isAdding52(t));
+    syncMode52();
+  };
+
+  /* Якщо інструмент змінено іншим кодом, синхронізуємо блокування та статус. */
+  function syncToolUI52(){
+    if(!isAdding52(plannerTool))lockPlan52(false);
+    setStatus52();
+  }
+
+  window.toggleLightDimensions52=function(force){
+    dimensionsVisible52=typeof force==='boolean'?force:!dimensionsVisible52;
+    dimBtn.classList.toggle('active',dimensionsVisible52);
+    dimBtn.querySelector('span').textContent=dimensionsVisible52?'Сховати розміри світильників':'Показати розміри світильників';
+    renderPlanner();
+  };
+
+  function svgEl52(tag,attrs={}){const el=document.createElementNS('http://www.w3.org/2000/svg',tag);Object.entries(attrs).forEach(([k,v])=>el.setAttribute(k,v));return el}
+  function pointSegment52(px,py,ax,ay,bx,by){
+    const vx=bx-ax,vy=by-ay,l2=vx*vx+vy*vy;
+    let t=l2?((px-ax)*vx+(py-ay)*vy)/l2:0;t=Math.max(0,Math.min(1,t));
+    const x=ax+t*vx,y=ay+t*vy;return{x,y,d:Math.hypot(px-x,py-y)};
+  }
+  function plannerUnitsPerMeter52(){
+    try{return Math.max(1,typeof plannerScale==='function'?Number(plannerScale())||90:90)}catch(_){return 90}
+  }
+  function meterText52(px){return (px/plannerUnitsPerMeter52()).toFixed(2)+' м'}
+  function addTick52(g,x,y,dx,dy){
+    const len=Math.hypot(dx,dy)||1,nx=-dy/len,ny=dx/len,s=6;
+    g.appendChild(svgEl52('line',{x1:x-nx*s,y1:y-ny*s,x2:x+nx*s,y2:y+ny*s,class:'light-dim-tick52'}));
+  }
+  function addDimension52(layer,a,b,label,kind='between'){
+    const g=svgEl52('g',{class:'light-dimension-layer52 '+(kind==='wall'?'light-wall-dim52':'')});
+    g.appendChild(svgEl52('line',{x1:a.x,y1:a.y,x2:b.x,y2:b.y,class:'light-dim-line52'}));
+    addTick52(g,a.x,a.y,b.x-a.x,b.y-a.y);addTick52(g,b.x,b.y,b.x-a.x,b.y-a.y);
+    const mx=(a.x+b.x)/2,my=(a.y+b.y)/2;
+    const text=svgEl52('text',{x:mx,y:my-7,'text-anchor':'middle',class:'light-dim-label52'});text.textContent=label;g.appendChild(text);layer.appendChild(g);
+  }
+  function pairKey52(a,b){return a<b?a+'-'+b:b+'-'+a}
+  function drawLightDimensions52(layer){
+    if(!dimensionsVisible52||!layer||!roomPoints?.length)return;
+    layer.querySelectorAll('.light-dimension-layer52').forEach(n=>n.remove());
+    const lights=plannerObjects.map((o,i)=>({o,i})).filter(v=>v.o.type==='light');if(!lights.length)return;
+
+    /* До двох найближчих різних стін для кожного світильника. */
+    lights.forEach(({o})=>{
+      const hits=[];
+      for(let i=0;i<roomPoints.length;i++){
+        const a=roomPoints[i],b=roomPoints[(i+1)%roomPoints.length],q=pointSegment52(o.x,o.y,a[0],a[1],b[0],b[1]);hits.push({...q,side:i});
+      }
+      hits.sort((u,v)=>u.d-v.d);
+      hits.slice(0,Math.min(2,hits.length)).forEach(q=>addDimension52(layer,{x:o.x,y:o.y},{x:q.x,y:q.y},meterText52(q.d),'wall'));
+    });
+
+    /* Сусідні світильники: найближчий по горизонталі та вертикалі; без дублів. */
+    const used=new Set(),tol=28;
+    lights.forEach((a,ai)=>{
+      let h=null,v=null,near=null;
+      lights.forEach((b,bi)=>{if(ai===bi)return;const dx=Math.abs(a.o.x-b.o.x),dy=Math.abs(a.o.y-b.o.y),d=Math.hypot(dx,dy);
+        if(dy<=tol&&(!h||dx<h.d))h={b,d:dx};
+        if(dx<=tol&&(!v||dy<v.d))v={b,d:dy};
+        if(!near||d<near.d)near={b,d};
+      });
+      const choices=[];if(h)choices.push(h);if(v)choices.push(v);if(!choices.length&&near)choices.push(near);
+      choices.forEach(c=>{const key=pairKey52(a.i,c.b.i);if(used.has(key))return;used.add(key);addDimension52(layer,{x:a.o.x,y:a.o.y},{x:c.b.o.x,y:c.b.o.y},meterText52(Math.hypot(a.o.x-c.b.o.x,a.o.y-c.b.o.y)),'between')});
+    });
+  }
+
+  const renderPlanner51=window.renderPlanner;
+  window.renderPlanner=function(){
+    renderPlanner51();
+    syncToolUI52();
+    drawLightDimensions52(document.getElementById('nodeLayer'));
+    requestAnimationFrame(()=>drawLightDimensions52(document.getElementById('miniNodeLayer')));
+  };
+
+  /* Не дозволяємо рухати точки контуру, коли активний інструмент додавання. */
+  ['plannerSvg','plannerMiniSvg'].forEach(id=>{
+    const svg=document.getElementById(id);if(!svg)return;
+    svg.addEventListener('pointerdown',e=>{
+      if(!isAdding52(plannerTool))return;
+      const nodeLayer=e.target.closest?.('#nodeLayer,#miniNodeLayer');
+      if(nodeLayer){e.preventDefault();e.stopImmediatePropagation()}
+    },true);
+  });
+
+  syncMode52();lockPlan52(isAdding52(plannerTool));renderPlanner();
+})();
+</script>
+
 </body>
 </html>
 
