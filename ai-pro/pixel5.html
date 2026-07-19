@@ -4817,6 +4817,117 @@ setTimeout(()=>{updateRoomBaseUI47();updateSummary();renderRooms()},120);
 })();
 </script>
 
+
+
+<!-- PIXEL 5.0: вирівнювання світильників по осі та точний крок -->
+<style>
+.light-axis-panel50{margin-top:14px;border:1px solid #bfdbfe;border-radius:18px;padding:14px;background:linear-gradient(180deg,#f8fbff,#fff)}
+.light-axis-panel50 h4{margin:0 0 10px;font-size:15px;color:#0f172a}.axis-grid50{display:grid;grid-template-columns:1fr 1fr;gap:10px}.axis-field50 label{display:block;font-size:10px;font-weight:900;color:#475569;margin-bottom:5px}.axis-field50 input,.axis-field50 select{width:100%;box-sizing:border-box;border:1px solid #cbd5e1;border-radius:10px;padding:10px;font-weight:800;background:#fff}.axis-actions50{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}.axis-actions50 button{min-height:46px}.axis-status50{margin-top:9px;padding:9px 10px;border-radius:10px;background:#eff6ff;color:#1e3a8a;font-size:11px;font-weight:800}.axis-active50{background:#075bff!important;color:#fff!important;border-color:#075bff!important}.axis-selected-ring50{fill:none;stroke:#22c55e;stroke-width:5;stroke-dasharray:7 5;pointer-events:none}.axis-line50{stroke:#f59e0b;stroke-width:5;stroke-dasharray:12 8;pointer-events:stroke;cursor:grab}.axis-handle50{fill:#fff;stroke:#f59e0b;stroke-width:5;cursor:grab}.axis-label50{font-size:15px;font-weight:950;fill:#b45309;paint-order:stroke;stroke:#fff;stroke-width:5px;pointer-events:none}@media(max-width:600px){.axis-grid50,.axis-actions50{grid-template-columns:1fr 1fr}.light-axis-panel50{padding:11px}}
+</style>
+<script>
+(function(){
+  const tools=document.querySelector('.manual-tools-card');
+  const inspector=document.getElementById('objectInspector');
+  if(!tools||!inspector||document.getElementById('lightAxisPanel50'))return;
+  const panel=document.createElement('div');
+  panel.id='lightAxisPanel50';panel.className='light-axis-panel50';
+  panel.innerHTML=`<h4>📐 Вирівнювання світильників по осі</h4>
+    <div class="axis-actions50">
+      <button id="axisSelect50" class="btn outline" type="button" onclick="toggleLightAxisSelect50()">☝ Вибрати світильники</button>
+      <button class="btn outline" type="button" onclick="selectAllLights50()">✓ Вибрати всі</button>
+    </div>
+    <div class="axis-grid50" style="margin-top:10px">
+      <div class="axis-field50"><label>Напрямок осі</label><select id="axisOrientation50"><option value="h">Горизонтально</option><option value="v">Вертикально</option></select></div>
+      <div class="axis-field50"><label>Відстань між точками, м</label><input id="axisSpacing50" type="number" min="0.05" step="0.05" value="1.00"></div>
+      <div class="axis-field50"><label>Від якої стіни</label><select id="axisWall50"><option value="top">Від верхньої</option><option value="bottom">Від нижньої</option><option value="left">Від лівої</option><option value="right">Від правої</option></select></div>
+      <div class="axis-field50"><label>Відступ осі від стіни, м</label><input id="axisOffset50" type="number" min="0" step="0.05" value="0.60"></div>
+    </div>
+    <div class="axis-actions50">
+      <button class="btn blue" type="button" onclick="applyLightAxis50()">↔ Вирівняти та задати крок</button>
+      <button class="btn outline" type="button" onclick="clearLightAxis50()">Скинути вибір</button>
+    </div>
+    <div id="axisStatus50" class="axis-status50">Виберіть світильники. Потім задайте напрямок, крок і відступ від стіни.</div>`;
+  inspector.parentNode.insertBefore(panel,inspector);
+
+  window.axisSelected50=[];
+  window.axisSelectMode50=false;
+  window.axisDrag50=null;
+
+  function selectedLights50(){return axisSelected50.filter(i=>plannerObjects[i]&&plannerObjects[i].type==='light')}
+  function status50(text){const e=document.getElementById('axisStatus50');if(e)e.textContent=text}
+  function updateButton50(){const b=document.getElementById('axisSelect50');if(b)b.classList.toggle('axis-active50',axisSelectMode50)}
+  window.toggleLightAxisSelect50=function(){axisSelectMode50=!axisSelectMode50;updateButton50();plannerTool='select';status50(axisSelectMode50?'Режим вибору: торкайтеся потрібних світильників на будь-якому плані.':'Вибрано світильників: '+selectedLights50().length);renderPlanner()}
+  window.selectAllLights50=function(){axisSelected50=[];plannerObjects.forEach((o,i)=>{if(o.type==='light')axisSelected50.push(i)});axisSelectMode50=false;updateButton50();status50('Вибрано всі світильники: '+axisSelected50.length);renderPlanner()}
+  window.clearLightAxis50=function(){axisSelected50=[];axisSelectMode50=false;updateButton50();status50('Вибір очищено.');renderPlanner()}
+
+  function bounds50(){
+    if(!roomPoints.length)return {minX:40,maxX:760,minY:40,maxY:560};
+    const xs=roomPoints.map(p=>p[0]),ys=roomPoints.map(p=>p[1]);
+    return {minX:Math.min(...xs),maxX:Math.max(...xs),minY:Math.min(...ys),maxY:Math.max(...ys)};
+  }
+  window.applyLightAxis50=function(){
+    const ids=selectedLights50();if(ids.length<2)return alert('Виберіть щонайменше два світильники.');
+    const orient=document.getElementById('axisOrientation50').value;
+    const wall=document.getElementById('axisWall50').value;
+    const spacing=Math.max(.05,Number(document.getElementById('axisSpacing50').value)||1);
+    const offset=Math.max(0,Number(document.getElementById('axisOffset50').value)||0);
+    const scale=Math.max(1,typeof plannerScale==='function'?plannerScale():90),step=spacing*scale,off=offset*scale,b=bounds50();
+    pushPlanner();
+    const sorted=ids.slice().sort((a,c)=>orient==='h'?plannerObjects[a].x-plannerObjects[c].x:plannerObjects[a].y-plannerObjects[c].y);
+    if(orient==='h'){
+      const y=wall==='bottom'?b.maxY-off:b.minY+off;
+      const center=(b.minX+b.maxX)/2,start=center-step*(sorted.length-1)/2;
+      sorted.forEach((id,k)=>{plannerObjects[id].x=start+k*step;plannerObjects[id].y=y});
+    }else{
+      const x=wall==='right'?b.maxX-off:b.minX+off;
+      const center=(b.minY+b.maxY)/2,start=center-step*(sorted.length-1)/2;
+      sorted.forEach((id,k)=>{plannerObjects[id].x=x;plannerObjects[id].y=start+k*step});
+    }
+    status50(`Вирівняно ${sorted.length} світильників. Крок ${spacing.toFixed(2)} м, відступ ${offset.toFixed(2)} м. Вісь можна рухати пальцем.`);
+    renderPlanner();if(typeof syncActiveRoomFromUI==='function')syncActiveRoomFromUI(false);autosave();
+  }
+
+  function drawAxisOverlay50(layer){
+    if(!layer)return;layer.querySelectorAll('.axis-overlay50').forEach(e=>e.remove());
+    const ids=selectedLights50();if(!ids.length)return;
+    const wrap=svgEl('g',{class:'axis-overlay50'}),orient=document.getElementById('axisOrientation50')?.value||'h';
+    ids.forEach(i=>{const o=plannerObjects[i];if(!o)return;wrap.appendChild(svgEl('circle',{cx:o.x,cy:o.y,r:22,class:'axis-selected-ring50'}))});
+    if(ids.length>=2){
+      const os=ids.map(i=>plannerObjects[i]);
+      if(orient==='h'){
+        const y=os.reduce((s,o)=>s+o.y,0)/os.length,x1=Math.min(...os.map(o=>o.x))-35,x2=Math.max(...os.map(o=>o.x))+35;
+        const line=svgEl('line',{x1,y1:y,x2,y2:y,class:'axis-line50'});line.dataset.axisDrag='h';wrap.appendChild(line);
+        wrap.appendChild(svgEl('circle',{cx:(x1+x2)/2,cy:y,r:13,class:'axis-handle50','data-axis-drag':'h'}));
+      }else{
+        const x=os.reduce((s,o)=>s+o.x,0)/os.length,y1=Math.min(...os.map(o=>o.y))-35,y2=Math.max(...os.map(o=>o.y))+35;
+        const line=svgEl('line',{x1:x,y1,x2:x,y2,class:'axis-line50'});line.dataset.axisDrag='v';wrap.appendChild(line);
+        wrap.appendChild(svgEl('circle',{cx:x,cy:(y1+y2)/2,r:13,class:'axis-handle50','data-axis-drag':'v'}));
+      }
+    }
+    layer.appendChild(wrap);
+  }
+
+  const oldRender50=renderPlanner;
+  renderPlanner=function(){oldRender50();drawAxisOverlay50(document.getElementById('nodeLayer'));requestAnimationFrame(()=>drawAxisOverlay50(document.getElementById('miniNodeLayer')))};
+
+  function pointInSvg50(svg,e){const p=svg.createSVGPoint();p.x=e.clientX;p.y=e.clientY;const m=svg.getScreenCTM();if(!m)return[0,0];const q=p.matrixTransform(m.inverse());return[q.x,q.y]}
+  function nearestLight50(x,y,svg){const vb=svg.viewBox.baseVal,r=Math.max(25,40*vb.width/Math.max(svg.getBoundingClientRect().width,1));let best=-1,d=r;plannerObjects.forEach((o,i)=>{if(o.type!=='light')return;const n=Math.hypot(o.x-x,o.y-y);if(n<d){d=n;best=i}});return best}
+  function captureDown50(e,svg){
+    const target=e.target;
+    const drag=target?.dataset?.axisDrag;
+    if(drag&&selectedLights50().length>=2){e.preventDefault();e.stopImmediatePropagation();pushPlanner();const [x,y]=pointInSvg50(svg,e);axisDrag50={orient:drag,lastX:x,lastY:y,pid:e.pointerId,svg};svg.setPointerCapture?.(e.pointerId);return}
+    if(!axisSelectMode50)return;
+    const [x,y]=pointInSvg50(svg,e),i=nearestLight50(x,y,svg);if(i<0)return;
+    e.preventDefault();e.stopImmediatePropagation();const pos=axisSelected50.indexOf(i);if(pos>=0)axisSelected50.splice(pos,1);else axisSelected50.push(i);status50('Вибрано світильників: '+selectedLights50().length);renderPlanner();
+  }
+  function captureMove50(e,svg){if(!axisDrag50||axisDrag50.svg!==svg)return;e.preventDefault();e.stopImmediatePropagation();const [x,y]=pointInSvg50(svg,e),ids=selectedLights50();if(axisDrag50.orient==='h'){const dy=y-axisDrag50.lastY;ids.forEach(i=>plannerObjects[i].y+=dy);axisDrag50.lastY=y}else{const dx=x-axisDrag50.lastX;ids.forEach(i=>plannerObjects[i].x+=dx);axisDrag50.lastX=x}renderPlanner()}
+  function captureUp50(e,svg){if(!axisDrag50||axisDrag50.svg!==svg)return;e.preventDefault();e.stopImmediatePropagation();axisDrag50=null;try{svg.releasePointerCapture(e.pointerId)}catch(_){ }if(typeof syncActiveRoomFromUI==='function')syncActiveRoomFromUI(false);autosave()}
+  ['plannerSvg','plannerMiniSvg'].forEach(id=>{const svg=document.getElementById(id);if(!svg)return;svg.addEventListener('pointerdown',e=>captureDown50(e,svg),true);svg.addEventListener('pointermove',e=>captureMove50(e,svg),true);svg.addEventListener('pointerup',e=>captureUp50(e,svg),true);svg.addEventListener('pointercancel',e=>captureUp50(e,svg),true)});
+
+  document.getElementById('axisOrientation50').addEventListener('change',()=>renderPlanner());
+})();
+</script>
+
 </body>
 </html>
 
