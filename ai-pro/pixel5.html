@@ -5416,6 +5416,212 @@ setTimeout(()=>{updateRoomBaseUI47();updateSummary();renderRooms()},120);
 })();
 </script>
 
+
+<script>
+/* Pixel 5.4 — Supabase cloud archive through protected Vercel API */
+(() => {
+  'use strict';
+
+  const CLOUD_API54 = '/api/objects';
+  const CLOUD_META54 = 'potolok_pixel54_cloud_meta';
+
+  function readCloudMeta54() {
+    try { return JSON.parse(localStorage.getItem(CLOUD_META54) || '{}') || {}; }
+    catch { return {}; }
+  }
+
+  function writeCloudMeta54(meta) {
+    localStorage.setItem(CLOUD_META54, JSON.stringify(meta || {}));
+  }
+
+  async function cloudRequest54(url, options = {}) {
+    const response = await fetch(url, {
+      ...options,
+      headers: { 'Content-Type': 'application/json', ...(options.headers || {}) }
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(data.error || `API ${response.status}`);
+    return data;
+  }
+
+  function rowToObject54(row) {
+    const data = row?.object_data && typeof row.object_data === 'object'
+      ? row.object_data
+      : {};
+    return {
+      ...data,
+      id: data.id || `cloud-${row.id}`,
+      cloudId: row.id,
+      objectNumber: row.object_number,
+      cloudStatus: row.status || 'new',
+      clientName: data.clientName ?? row.client_name ?? '',
+      clientPhone: data.clientPhone ?? row.client_phone ?? '',
+      address: data.address ?? row.address ?? '',
+      date: data.date ?? row.measurement_date ?? '',
+      height: data.height ?? row.ceiling_height ?? 2.7,
+      comment: data.comment ?? row.internal_comment ?? '',
+      savedAt: data.savedAt || row.updated_at || row.created_at || '',
+    };
+  }
+
+  function statusLabel54(status) {
+    return ({
+      new: 'Новий', measurement: 'Замір', calculation: 'Прорахунок',
+      approval: 'Узгодження', contract: 'Договір',
+      installation_planned: 'Монтаж заплановано', installation: 'Монтаж',
+      completed: 'Завершено', cancelled: 'Відмова'
+    })[status] || status || 'Новий';
+  }
+
+  function cloudCard54(o) {
+    const rooms = Array.isArray(o.rooms) ? o.rooms.length : 0;
+    const key = String(o.id).replace(/'/g, "\\'");
+    return `<div class="object-card" style="border-color:#93c5fd">
+      <b>${o.objectNumber || 'Без номера'} • ${o.clientName || 'Без імені'}</b>
+      <span>${o.address || 'Без адреси'} • ${o.date || ''}</span>
+      <span>☁️ ${statusLabel54(o.cloudStatus)} • ${rooms} кімн. • ${Number(o.area || 0).toFixed(2)} м² • ${money(o.total || 0)}</span>
+      <div class="object-actions">
+        <button type="button" onclick="loadObject('${key}')">Відкрити</button>
+        <button type="button" onclick="deleteObject('${key}')">Видалити</button>
+      </div>
+    </div>`;
+  }
+
+  async function getCloudObjects54() {
+    const data = await cloudRequest54(CLOUD_API54);
+    return (data.objects || []).map(rowToObject54);
+  }
+
+  async function saveLocalCopy54(object) {
+    try { await dbPutObject(object); }
+    catch (error) { console.warn('Local backup save failed:', error); }
+  }
+
+  window.saveObject = async function saveObjectCloud54() {
+    const object = collectObject();
+    activeObjectId = object.id;
+    saveStatus.textContent = 'Збереження у хмару…';
+
+    const meta = readCloudMeta54();
+    const known = meta[object.id] || {};
+
+    try {
+      const result = await cloudRequest54(CLOUD_API54, {
+        method: 'POST',
+        body: JSON.stringify({
+          object: { ...object, objectNumber: known.objectNumber || object.objectNumber },
+          cloudId: known.cloudId || object.cloudId || '',
+          status: known.status || object.cloudStatus || 'new'
+        })
+      });
+
+      const row = result.object || {};
+      const saved = {
+        ...object,
+        cloudId: row.id,
+        objectNumber: row.object_number,
+        cloudStatus: row.status || 'new'
+      };
+      meta[object.id] = {
+        cloudId: row.id,
+        objectNumber: row.object_number,
+        status: row.status || 'new'
+      };
+      writeCloudMeta54(meta);
+      await saveLocalCopy54(saved);
+      saveStatus.textContent = `☁️ ${row.object_number || 'Збережено'}`;
+      await window.renderHistory();
+
+      if (result.created && result.accessKey) {
+        alert(`Об’єкт збережено у хмарі.\n\nНомер: ${row.object_number}\nКлюч клієнта: ${result.accessKey}\n\nЗбережіть ключ — повторно база його не покаже.`);
+      } else {
+        alert(`Об’єкт ${row.object_number || ''} оновлено у хмарі.`);
+      }
+    } catch (error) {
+      await saveLocalCopy54(object);
+      saveStatus.textContent = 'Локально, хмара недоступна';
+      alert('У хмару не збережено: ' + error.message + '\nЛокальна копія збережена на пристрої.');
+    }
+  };
+
+  window.renderHistory = async function renderHistoryCloud54() {
+    if (!window.objectList) return;
+    objectList.innerHTML = '<div class="notice">Завантаження об’єктів із хмари…</div>';
+    try {
+      const cloud = await getCloudObjects54();
+      objectList.innerHTML = cloud.length
+        ? cloud.map(cloudCard54).join('')
+        : '<div class="notice">У хмарній базі ще немає об’єктів.</div>';
+    } catch (error) {
+      console.warn('Cloud history failed:', error);
+      const local = await dbGetObjects().catch(() => []);
+      objectList.innerHTML = local.length
+        ? '<div class="notice">Хмара недоступна. Показано локальні копії.</div>' + local.map(cloudCard54).join('')
+        : '<div class="notice">Помилка хмари: ' + error.message + '</div>';
+    }
+  };
+
+  window.loadObject = async function loadObjectCloud54(id) {
+    let object = null;
+    if (String(id).startsWith('cloud-')) {
+      const cloudId = String(id).slice(6);
+      const data = await cloudRequest54(`${CLOUD_API54}?id=${encodeURIComponent(cloudId)}`);
+      if (data.object) object = rowToObject54(data.object);
+    } else {
+      try { object = await dbGetObject(id); } catch {}
+      if (!object) {
+        const cloud = await getCloudObjects54();
+        object = cloud.find(item => item.id === id || item.cloudId === id) || null;
+      }
+    }
+
+    if (!object) return alert('Об’єкт не знайдено.');
+
+    roomSyncLock = true;
+    activeObjectId = object.id;
+    clientName.value = object.clientName || '';
+    clientPhone.value = object.clientPhone || '';
+    objectAddress.value = object.address || '';
+    measureDate.value = object.date || '';
+    ceilingHeight.value = object.height || 2.7;
+    objectComment.value = object.comment || '';
+    projectRooms = deepCopy(object.rooms || []);
+    activeRoomId = object.activeRoomId && projectRooms.some(r => r.id === object.activeRoomId)
+      ? object.activeRoomId : projectRooms[0]?.id;
+    roomSyncLock = false;
+
+    const meta = readCloudMeta54();
+    meta[object.id] = { cloudId: object.cloudId, objectNumber: object.objectNumber, status: object.cloudStatus || 'new' };
+    writeCloudMeta54(meta);
+    await saveLocalCopy54(object);
+
+    if (!projectRooms.length) newObject();
+    else restoreRoom(projectRooms.find(r => r.id === activeRoomId) || projectRooms[0]);
+
+    saveStatus.textContent = `☁️ ${object.objectNumber || 'Об’єкт відкрито'}`;
+    const tab = document.querySelector('.main-tab[onclick*="object"]');
+    if (tab) showMainTab('object', tab);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  window.deleteObject = async function deleteObjectCloud54(id) {
+    if (!confirm('Видалити об’єкт із хмарної бази?')) return;
+    let cloudId = '';
+    if (String(id).startsWith('cloud-')) cloudId = String(id).slice(6);
+    else {
+      const meta = readCloudMeta54();
+      cloudId = meta[id]?.cloudId || '';
+      delete meta[id];
+      writeCloudMeta54(meta);
+      try { await dbDeleteObject(id); } catch {}
+    }
+    if (cloudId) await cloudRequest54(`${CLOUD_API54}?id=${encodeURIComponent(cloudId)}`, { method: 'DELETE' });
+    await window.renderHistory();
+  };
+
+  setTimeout(() => window.renderHistory?.(), 500);
+})();
+</script>
 </body>
 </html>
 
