@@ -381,7 +381,7 @@ th:nth-child(2),th:nth-child(3),th:nth-child(4),td:nth-child(2),td:nth-child(3),
   <button class="btn blue" type="button" onclick="document.getElementById('galleryInput')?.click()">🖼 Обрати з галереї</button>
 </div>
 <div id="photoMeta" class="photo-meta">Фото автоматично стискається та зберігається в поточній кімнаті.</div></div>
-<div class="btn-row"><button class="btn green" onclick="saveObject()">💾 Зберегти об’єкт</button><button class="btn outline" onclick="startAnotherObject()">＋ Новий об’єкт</button></div>
+<div class="btn-row"><button class="btn green" onclick="saveCloudHistory56()">☁️ Зберегти в історію</button><button class="btn outline" onclick="startAnotherObject()">＋ Новий об’єкт</button></div>
 <button id="publishClientCardBtn56" class="btn blue btn-full mt" type="button" onclick="publishClientCard56()">☁️ Зберегти в особисту картку</button>
 <div id="publishClientCardStatus56" class="client-publish-status56"></div>
 </aside>
@@ -541,7 +541,7 @@ th:nth-child(2),th:nth-child(3),th:nth-child(4),td:nth-child(2),td:nth-child(3),
 </aside>
 <main>
 <div class="mini-panel"><h3>Детальна смета</h3><table><thead><tr><th>Позиція</th><th>К-сть</th><th>Ціна</th><th>Сума</th></tr></thead><tbody id="estimateBody"></tbody></table><div id="estimateTotal" class="total-line">Разом: 0 грн</div></div>
-<div class="bottom-grid"><div class="mini-panel"><h3>Підсумок</h3><div id="bottomPrice" class="total-price">0 грн</div><div class="notice">Ціна попередня. Остаточна вартість після заміру.</div><button class="btn blue btn-full mt" onclick="sendToTelegram()">📨 Надіслати собі в Telegram</button><button class="btn green btn-full mt" onclick="shareEstimateWithClient()">📲 Надіслати клієнту</button><button class="btn outline btn-full mt" onclick="copyEstimateText()">📋 Копіювати кошторис</button></div>
+<div class="bottom-grid"><div class="mini-panel"><h3>Підсумок</h3><div id="bottomPrice" class="total-price">0 грн</div><div class="notice">Ціна попередня. Остаточна вартість після заміру.</div><button class="btn blue btn-full mt" onclick="sendToTelegram()">📨 Надіслати собі в Telegram</button><button class="btn green btn-full mt" onclick="shareEstimateWithClient()">📲 Надіслати клієнту</button><button class="btn blue btn-full mt" type="button" onclick="publishClientCard56()">🔐 Надіслати в особисту картку</button><button class="btn outline btn-full mt" onclick="copyEstimateText()">📋 Копіювати кошторис</button></div>
 <div class="mini-panel"><h3>Документи</h3><button class="btn outline btn-full" onclick="downloadPDF()">📄 Зберегти кошторис PDF</button><button class="btn outline btn-full mt" onclick="saveObject()">💾 Зберегти в історію</button></div></div>
 </main>
 </div>
@@ -5851,8 +5851,262 @@ setTimeout(()=>{updateRoomBaseUI47();updateSummary();renderRooms()},120);
 })();
 </script>
 
+
+<script>
+/* Pixel 5.7 — хмарна історія окремо від особистої картки */
+(() => {
+  'use strict';
+
+  const API57 = '/api/objects';
+  const META57 = 'potolok_pixel54_cloud_meta';
+
+  function metaRead57() {
+    try { return JSON.parse(localStorage.getItem(META57) || '{}') || {}; }
+    catch { return {}; }
+  }
+
+  function metaWrite57(value) {
+    localStorage.setItem(META57, JSON.stringify(value || {}));
+  }
+
+  async function request57(url, options = {}) {
+    const response = await fetch(url, {
+      ...options,
+      headers: { 'Content-Type': 'application/json', ...(options.headers || {}) }
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(data.error || `API ${response.status}`);
+    return data;
+  }
+
+  function rowObject57(row) {
+    const data = row?.object_data || {};
+    return {
+      ...data,
+      id: data.id || `cloud-${row.id}`,
+      cloudId: row.id,
+      objectNumber: row.object_number || data.objectNumber || '',
+      cloudStatus: row.status || data.cloudStatus || 'new',
+      clientPublished: !!row.client_view
+    };
+  }
+
+  function esc57(value) {
+    return String(value ?? '').replace(/[&<>"']/g, ch => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;'
+    })[ch]);
+  }
+
+  function money57(value) {
+    return new Intl.NumberFormat('uk-UA', { maximumFractionDigits: 0 })
+      .format(Number(value || 0)) + ' грн';
+  }
+
+  function currentMeta57(object) {
+    const meta = metaRead57();
+    return { meta, known: meta[object.id] || {} };
+  }
+
+  async function storeReturned57(object, row) {
+    const saved = {
+      ...object,
+      cloudId: row.id,
+      objectNumber: row.object_number,
+      cloudStatus: row.status || 'new',
+      clientPublished: !!row.client_view
+    };
+
+    const meta = metaRead57();
+    meta[object.id] = {
+      cloudId: row.id,
+      objectNumber: row.object_number,
+      status: row.status || 'new',
+      clientPublished: !!row.client_view
+    };
+    metaWrite57(meta);
+
+    try { await dbPutObject(saved); } catch {}
+    activeObjectId = object.id;
+    return saved;
+  }
+
+  window.saveCloudHistory56 = async function(openHistory = false) {
+    const object = collectObject();
+    const { known } = currentMeta57(object);
+
+    if (window.saveStatus) saveStatus.textContent = 'Зберігаємо у хмару…';
+
+    try {
+      const result = await request57(API57, {
+        method: 'POST',
+        body: JSON.stringify({
+          action: 'historySave',
+          object: {
+            ...object,
+            objectNumber: known.objectNumber || object.objectNumber || ''
+          },
+          cloudId: known.cloudId || object.cloudId || '',
+          status: known.status || object.cloudStatus || 'new'
+        })
+      });
+
+      const row = result.object || {};
+      await storeReturned57(object, row);
+
+      if (window.saveStatus) {
+        saveStatus.textContent = `☁️ ${row.object_number || 'Збережено в історію'}`;
+      }
+
+      await window.renderHistory?.();
+
+      if (openHistory) {
+        const tab = document.querySelector('.main-tab[onclick*="history"]');
+        if (tab) showMainTab('history', tab);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+
+      alert(`Об’єкт ${row.object_number || ''} збережено у хмарній історії.`);
+      return row;
+    } catch (error) {
+      if (window.saveStatus) saveStatus.textContent = 'Помилка хмарного збереження';
+      alert('Не вдалося зберегти в історію: ' + error.message);
+      throw error;
+    }
+  };
+
+  window.publishClientCard56 = async function(sourceObject = null) {
+    const btn = document.getElementById('publishClientCardBtn56');
+    const object = sourceObject && typeof sourceObject === 'object'
+      ? sourceObject
+      : collectObject();
+
+    const { known } = currentMeta57(object);
+
+    if (btn && !sourceObject) {
+      btn.disabled = true;
+      btn.textContent = 'Публікуємо…';
+    }
+
+    try {
+      const result = await request57(API57, {
+        method: 'POST',
+        body: JSON.stringify({
+          action: 'publishClient',
+          object: {
+            ...object,
+            objectNumber: known.objectNumber || object.objectNumber || ''
+          },
+          cloudId: known.cloudId || object.cloudId || '',
+          status: known.status || object.cloudStatus || 'new'
+        })
+      });
+
+      const row = result.object || {};
+      await storeReturned57(object, row);
+      await window.renderHistory?.();
+
+      if (window.saveStatus) {
+        saveStatus.textContent = `🔐 ${row.object_number || 'Картку опубліковано'}`;
+      }
+
+      if (result.accessKey) {
+        alert(
+          `Особисту картку створено.\n\n` +
+          `Номер: ${row.object_number}\n` +
+          `Ключ: ${result.accessKey}\n\n` +
+          `Збережіть та передайте ці дані клієнту.`
+        );
+      } else {
+        alert(`Особисту картку ${row.object_number || ''} оновлено.`);
+      }
+
+      return result;
+    } catch (error) {
+      alert('Не вдалося надіслати в особисту картку: ' + error.message);
+      throw error;
+    } finally {
+      if (btn && !sourceObject) {
+        btn.disabled = false;
+        btn.textContent = '☁️ Зберегти в особисту картку';
+      }
+    }
+  };
+
+  window.publishHistoryObject56 = async function(cloudId) {
+    try {
+      const data = await request57(`${API57}?id=${encodeURIComponent(cloudId)}`);
+      const row = data.object;
+      if (!row) throw new Error('Об’єкт не знайдено');
+      const object = rowObject57(row);
+
+      const result = await request57(API57, {
+        method: 'POST',
+        body: JSON.stringify({
+          action: 'publishClient',
+          object,
+          cloudId,
+          status: row.status || 'new'
+        })
+      });
+
+      await window.renderHistory?.();
+
+      if (result.accessKey) {
+        alert(
+          `Особисту картку створено.\n\n` +
+          `Номер: ${result.object?.object_number || row.object_number}\n` +
+          `Ключ: ${result.accessKey}\n\n` +
+          `Збережіть та передайте ці дані клієнту.`
+        );
+      } else {
+        alert(`Особисту картку ${result.object?.object_number || row.object_number} оновлено.`);
+      }
+    } catch (error) {
+      alert('Не вдалося надіслати об’єкт у особисту картку: ' + error.message);
+    }
+  };
+
+  window.renderHistory = async function renderHistory57() {
+    if (!window.objectList) return;
+
+    objectList.innerHTML = '<div class="notice">Завантаження об’єктів із хмари…</div>';
+
+    try {
+      const result = await request57(API57);
+      const rows = Array.isArray(result.objects) ? result.objects : [];
+
+      objectList.innerHTML = rows.length ? rows.map(row => {
+        const object = rowObject57(row);
+        const published = !!row.client_view;
+
+        return `
+          <div class="object-card">
+            <b>${esc57(row.object_number || 'Без номера')} · ${esc57(object.clientName || 'Без імені')}</b>
+            <span>${esc57(object.address || 'Без адреси')} · ${esc57(object.date || '')}</span>
+            <span>☁️ ${esc57(row.status || 'new')} · ${Number(object.rooms?.length || 0)} кімн. · ${Number(object.area || 0).toFixed(2)} м² · ${money57(object.total || 0)}</span>
+            <span>${published ? '🔐 Особиста картка активна' : '🔒 Клієнту ще не опубліковано'}</span>
+            <div class="object-actions" style="flex-wrap:wrap">
+              <button onclick="loadObject('cloud-${esc57(row.id)}')">Відкрити</button>
+              <button onclick="publishHistoryObject56('${esc57(row.id)}')">🔐 В особисту картку</button>
+              <button onclick="deleteObject('cloud-${esc57(row.id)}')">Видалити</button>
+            </div>
+          </div>
+        `;
+      }).join('') : '<div class="notice">У хмарній базі ще немає об’єктів.</div>';
+    } catch (error) {
+      objectList.innerHTML = '<div class="notice">Помилка хмари: ' + esc57(error.message) + '</div>';
+    }
+  };
+
+  /* Стара saveObject тепер теж зберігає саме в хмарну історію. */
+  window.saveObject = window.saveCloudHistory56;
+
+  setTimeout(() => window.renderHistory?.(), 300);
+})();
+</script>
+
 </body>
-</html>
+  </html>
 
 
 
