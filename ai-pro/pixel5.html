@@ -4708,8 +4708,73 @@ async function sendAiRequest(){
 })();
 </script>
 
+
+
+<style id="v44-new-calculation-style">
+.v44-new-calc{margin:0 0 14px;padding:14px;border:1px solid #bfdbfe;border-radius:18px;background:#eff6ff}
+.v44-new-calc button{width:100%;min-height:52px;border:0;border-radius:14px;background:#075bff;color:#fff;font-size:16px;font-weight:900;box-shadow:0 8px 20px rgba(7,91,255,.2)}
+.v44-new-calc small{display:block;margin-top:8px;color:#64748b;text-align:center;font-weight:700}
+</style>
+<script id="v44-new-calculation-fix">
+(() => {
+  'use strict';
+
+  function startCleanObject44(ask=true){
+    if(ask && !confirm('Почати новий об’єкт? Поточний незбережений розрахунок буде очищено.')) return;
+
+    /* Remove only the working draft. Saved objects/history remain untouched. */
+    try{
+      localStorage.removeItem('potolok_pixel51_draft');
+      localStorage.removeItem('potolok_pixel5_draft');
+    }catch(e){}
+
+    activeObjectId=null;
+    projectRooms=[];
+    activeRoomId=null;
+    roomSyncLock=true;
+
+    ['clientName','clientPhone','objectAddress','objectComment'].forEach(id=>{
+      const el=document.getElementById(id); if(el) el.value='';
+    });
+    if(window.measureDate) measureDate.value=new Date().toISOString().slice(0,10);
+    if(window.ceilingHeight) ceilingHeight.value=2.7;
+
+    const first={id:uid('room'),name:'Кімната 1'};
+    projectRooms=[first];
+    activeRoomId=first.id;
+    roomSyncLock=false;
+
+    resetRoomWorkspace(first.name);
+    syncActiveRoomFromUI(false);
+    renderRooms();
+    updateSummary();
+    if(window.saveStatus) saveStatus.textContent='Новий об’єкт — чистий розрахунок';
+    autosave();
+    recalc();
+  }
+
+  window.startCleanObject44=startCleanObject44;
+  window.newObject=function(){ startCleanObject44(true); };
+
+  function addButton44(){
+    const calc=document.getElementById('tab_calc');
+    if(!calc || document.getElementById('newCalculation44')) return;
+    const box=document.createElement('div');
+    box.className='v44-new-calc';
+    box.id='newCalculation44';
+    box.innerHTML='<button type="button">＋ Новий об’єкт — рахувати з нуля</button><small>Попередній збережений об’єкт залишиться в історії</small>';
+    box.querySelector('button').onclick=()=>startCleanObject44(true);
+    const target=calc.querySelector('main')||calc.firstElementChild||calc;
+    target.insertBefore(box,target.firstChild);
+  }
+
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',addButton44);
+  else addButton44();
+})();
+</script>
 </body>
 </html>
+
 
 
 
