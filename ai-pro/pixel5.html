@@ -5089,6 +5089,39 @@ setTimeout(()=>{updateRoomBaseUI47();updateSummary();renderRooms()},120);
 .plan-locked52{opacity:.48!important;pointer-events:none!important}
 .plan-lock-note52{display:none;margin:8px 0;padding:8px 10px;border-radius:10px;background:#fff7ed;color:#9a3412;font-size:10px;font-weight:900}
 .plan-lock-note52.show{display:block}
+.dimension-controls52{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:6px;
+  margin-top:8px;
+}
+.dimension-controls52.top52{margin:0 0 8px}
+.dimension-toggle52{
+  width:100%;
+  min-height:40px;
+  border:1px solid #bfdbfe;
+  border-radius:10px;
+  background:#eff6ff;
+  color:#075bff;
+  padding:7px 5px;
+  font-size:9px;
+  font-weight:950;
+  line-height:1.2;
+}
+.dimension-toggle52.active{
+  background:#075bff;
+  color:#fff;
+  border-color:#075bff;
+  box-shadow:0 7px 16px rgba(7,91,255,.20);
+}
+.dimension-toggle52.all52.active{
+  background:#071428;
+  border-color:#071428;
+}
+@media(max-width:430px){
+  .dimension-toggle52{font-size:8px;padding:6px 3px}
+}
+
 </style>
 <script>
 (function(){
@@ -5096,7 +5129,8 @@ setTimeout(()=>{updateRoomBaseUI47();updateSummary();renderRooms()},120);
   window.__pixel52Installed=true;
 
   let editMode52='manual';
-  let dimensionsVisible52=false;
+  let lightDimensionsVisible52=false;
+  let chandelierDimensionsVisible52=false;
   let activeToolButton52=null;
 
   const manualCard=document.querySelector('.manual-tools-card');
@@ -5114,24 +5148,32 @@ setTimeout(()=>{updateRoomBaseUI47();updateSummary();renderRooms()},120);
   const autoBox=document.querySelector('.auto-workspace');
   if(mainCanvas&&autoBox)mainCanvas.insertBefore(status,autoBox.nextSibling);
 
-  const dimBtn=document.createElement('button');
-  dimBtn.id='dimensionToggle52';dimBtn.className='dimension-toggle52';dimBtn.type='button';
-  dimBtn.innerHTML='📏 <span>Показати розміри світильників</span>';
-  dimBtn.addEventListener('click',()=>toggleLightDimensions52());
-  if(status)status.insertAdjacentElement('afterend',dimBtn);
+  function createDimensionControls52(locationClass=''){
+    const wrap=document.createElement('div');
+    wrap.className='dimension-controls52'+(locationClass?' '+locationClass:'');
+    wrap.innerHTML=`
+      <button class="dimension-toggle52 light52" type="button">💡 Світильники</button>
+      <button class="dimension-toggle52 chandelier52" type="button">✣ Люстра</button>
+      <button class="dimension-toggle52 all52" type="button">📐 Усі</button>
+    `;
+    wrap.querySelector('.light52').addEventListener('click',()=>toggleLightDimensions52());
+    wrap.querySelector('.chandelier52').addEventListener('click',()=>toggleChandelierDimensions52());
+    wrap.querySelector('.all52').addEventListener('click',()=>toggleAllLightingDimensions52());
+    return wrap;
+  }
 
-  /* Такий самий перемикач безпосередньо біля верхнього міні-плану. */
-  const topDimBtn=document.createElement('button');
-  topDimBtn.id='dimensionToggleTop52';topDimBtn.className='dimension-toggle52 top52';topDimBtn.type='button';
-  topDimBtn.innerHTML='📏 <span>Показати розміри світильників</span>';
-  topDimBtn.addEventListener('click',()=>toggleLightDimensions52());
+  const dimControls=createDimensionControls52();
+  if(status)status.insertAdjacentElement('afterend',dimControls);
+
+  /* Такий самий набір перемикачів біля верхнього міні-плану. */
+  const topDimControls=createDimensionControls52('top52');
   const miniPlan=document.getElementById('plannerMiniSvg');
-  if(miniPlan)miniPlan.insertAdjacentElement('beforebegin',topDimBtn);
+  if(miniPlan)miniPlan.insertAdjacentElement('beforebegin',topDimControls);
 
   const lockNote=document.createElement('div');
   lockNote.id='planLockNote52';lockNote.className='plan-lock-note52';
   lockNote.textContent='🔒 План зафіксований на час встановлення елементів.';
-  if(dimBtn)dimBtn.insertAdjacentElement('afterend',lockNote);
+  if(dimControls)dimControls.insertAdjacentElement('afterend',lockNote);
 
   const toolNames52={
     select:'Вибір',delete:'Видалення',move:'Переміщення',door:'Двері',window:'Вікно',pipe1:'Труба 1×',pipe2:'Труба 2×',vent:'Вентиляція',column:'Колона',light:'Світильник',chandelier:'Люстра',track:'Магнітний трек',surfaceTrack:'Накладний трек',lightline:'Світлова лінія',corniceWhite:'Карниз білий',corniceBlack:'Карниз чорний',corniceLed:'Карниз LED',insertWhite:'Вставка біла',insertBlack:'Вставка чорна',shadowProfile:'Тіньовий профіль',floatingWhite:'Парящий білий',floatingBlack:'Парящий чорний',beam:'Балка',box:'Короб',circle:'Круг',oval:'Овал',curve:'Крива',wave:'Хвиля'
@@ -5188,14 +5230,36 @@ setTimeout(()=>{updateRoomBaseUI47();updateSummary();renderRooms()},120);
     setStatus52();
   }
 
-  window.toggleLightDimensions52=function(force){
-    dimensionsVisible52=typeof force==='boolean'?force:!dimensionsVisible52;
-    [dimBtn,topDimBtn].forEach(btn=>{
-      if(!btn)return;
-      btn.classList.toggle('active',dimensionsVisible52);
-      const label=btn.querySelector('span');
-      if(label)label.textContent=dimensionsVisible52?'Сховати розміри світильників':'Показати розміри світильників';
+  function syncDimensionButtons52(){
+    document.querySelectorAll('.dimension-controls52').forEach(group=>{
+      group.querySelector('.light52')?.classList.toggle('active',lightDimensionsVisible52);
+      group.querySelector('.chandelier52')?.classList.toggle('active',chandelierDimensionsVisible52);
+      group.querySelector('.all52')?.classList.toggle(
+        'active',
+        lightDimensionsVisible52&&chandelierDimensionsVisible52
+      );
     });
+  }
+
+  window.toggleLightDimensions52=function(force){
+    lightDimensionsVisible52=typeof force==='boolean'?force:!lightDimensionsVisible52;
+    syncDimensionButtons52();
+    renderPlanner();
+  };
+
+  window.toggleChandelierDimensions52=function(force){
+    chandelierDimensionsVisible52=typeof force==='boolean'?force:!chandelierDimensionsVisible52;
+    syncDimensionButtons52();
+    renderPlanner();
+  };
+
+  window.toggleAllLightingDimensions52=function(force){
+    const next=typeof force==='boolean'
+      ?force
+      :!(lightDimensionsVisible52&&chandelierDimensionsVisible52);
+    lightDimensionsVisible52=next;
+    chandelierDimensionsVisible52=next;
+    syncDimensionButtons52();
     renderPlanner();
   };
 
@@ -5221,33 +5285,113 @@ setTimeout(()=>{updateRoomBaseUI47();updateSummary();renderRooms()},120);
     const text=svgEl52('text',{x:mx,y:my-7,'text-anchor':'middle',class:'light-dim-label52'});text.textContent=label;g.appendChild(text);layer.appendChild(g);
   }
   function pairKey52(a,b){return a<b?a+'-'+b:b+'-'+a}
-  function drawLightDimensions52(layer){
-    if(!dimensionsVisible52||!layer||!roomPoints?.length)return;
-    layer.querySelectorAll('.light-dimension-layer52').forEach(n=>n.remove());
-    const lights=plannerObjects.map((o,i)=>({o,i})).filter(v=>v.o.type==='light');if(!lights.length)return;
+  function fourDirectionalWallHits52(o){
+    const rays=[
+      {name:'left',dx:-1,dy:0},
+      {name:'right',dx:1,dy:0},
+      {name:'top',dx:0,dy:-1},
+      {name:'bottom',dx:0,dy:1}
+    ];
+    const hits=[];
 
-    /* До двох найближчих різних стін для кожного світильника. */
-    lights.forEach(({o})=>{
-      const hits=[];
+    rays.forEach(ray=>{
+      let best=null;
       for(let i=0;i<roomPoints.length;i++){
-        const a=roomPoints[i],b=roomPoints[(i+1)%roomPoints.length],q=pointSegment52(o.x,o.y,a[0],a[1],b[0],b[1]);hits.push({...q,side:i});
-      }
-      hits.sort((u,v)=>u.d-v.d);
-      hits.slice(0,Math.min(2,hits.length)).forEach(q=>addDimension52(layer,{x:o.x,y:o.y},{x:q.x,y:q.y},meterText52(q.d),'wall'));
-    });
+        const a=roomPoints[i],b=roomPoints[(i+1)%roomPoints.length];
+        const sx=b[0]-a[0],sy=b[1]-a[1];
+        const den=ray.dx*sy-ray.dy*sx;
+        if(Math.abs(den)<0.000001)continue;
 
-    /* Сусідні світильники: найближчий по горизонталі та вертикалі; без дублів. */
-    const used=new Set(),tol=28;
-    lights.forEach((a,ai)=>{
-      let h=null,v=null,near=null;
-      lights.forEach((b,bi)=>{if(ai===bi)return;const dx=Math.abs(a.o.x-b.o.x),dy=Math.abs(a.o.y-b.o.y),d=Math.hypot(dx,dy);
-        if(dy<=tol&&(!h||dx<h.d))h={b,d:dx};
-        if(dx<=tol&&(!v||dy<v.d))v={b,d:dy};
-        if(!near||d<near.d)near={b,d};
-      });
-      const choices=[];if(h)choices.push(h);if(v)choices.push(v);if(!choices.length&&near)choices.push(near);
-      choices.forEach(c=>{const key=pairKey52(a.i,c.b.i);if(used.has(key))return;used.add(key);addDimension52(layer,{x:a.o.x,y:a.o.y},{x:c.b.o.x,y:c.b.o.y},meterText52(Math.hypot(a.o.x-c.b.o.x,a.o.y-c.b.o.y)),'between')});
+        const qx=a[0]-o.x,qy=a[1]-o.y;
+        const t=(qx*sy-qy*sx)/den;
+        const u=(qx*ray.dy-qy*ray.dx)/den;
+
+        if(t>=0&&u>=0&&u<=1){
+          const hit={x:o.x+ray.dx*t,y:o.y+ray.dy*t,d:t,name:ray.name};
+          if(!best||hit.d<best.d)best=hit;
+        }
+      }
+      if(best)hits.push(best);
     });
+    return hits;
+  }
+
+  function drawLightDimensions52(layer){
+    if(!layer)return;
+    layer.querySelectorAll('.light-dimension-layer52').forEach(n=>n.remove());
+    if(!roomPoints?.length)return;
+
+    const indexed=plannerObjects.map((o,i)=>({o,i}));
+    const lights=indexed.filter(v=>v.o.type==='light');
+    const chandeliers=indexed.filter(v=>v.o.type==='chandelier');
+
+    /* Точкові світильники: дві найближчі стіни та сусідні світильники. */
+    if(lightDimensionsVisible52&&lights.length){
+      lights.forEach(({o})=>{
+        const hits=[];
+        for(let i=0;i<roomPoints.length;i++){
+          const a=roomPoints[i],b=roomPoints[(i+1)%roomPoints.length];
+          const q=pointSegment52(o.x,o.y,a[0],a[1],b[0],b[1]);
+          hits.push({...q,side:i});
+        }
+        hits.sort((u,v)=>u.d-v.d);
+        hits.slice(0,Math.min(2,hits.length)).forEach(q=>{
+          addDimension52(
+            layer,
+            {x:o.x,y:o.y},
+            {x:q.x,y:q.y},
+            meterText52(q.d),
+            'wall'
+          );
+        });
+      });
+
+      const used=new Set(),tol=28;
+      lights.forEach((a,ai)=>{
+        let h=null,v=null,near=null;
+        lights.forEach((b,bi)=>{
+          if(ai===bi)return;
+          const dx=Math.abs(a.o.x-b.o.x);
+          const dy=Math.abs(a.o.y-b.o.y);
+          const d=Math.hypot(dx,dy);
+          if(dy<=tol&&(!h||dx<h.d))h={b,d:dx};
+          if(dx<=tol&&(!v||dy<v.d))v={b,d:dy};
+          if(!near||d<near.d)near={b,d};
+        });
+        const choices=[];
+        if(h)choices.push(h);
+        if(v)choices.push(v);
+        if(!choices.length&&near)choices.push(near);
+
+        choices.forEach(c=>{
+          const key=pairKey52(a.i,c.b.i);
+          if(used.has(key))return;
+          used.add(key);
+          addDimension52(
+            layer,
+            {x:a.o.x,y:a.o.y},
+            {x:c.b.o.x,y:c.b.o.y},
+            meterText52(Math.hypot(a.o.x-c.b.o.x,a.o.y-c.b.o.y)),
+            'between'
+          );
+        });
+      });
+    }
+
+    /* Люстра: окремо чотири напрямки — ліворуч, праворуч, вгору і вниз. */
+    if(chandelierDimensionsVisible52&&chandeliers.length){
+      chandeliers.forEach(({o})=>{
+        fourDirectionalWallHits52(o).forEach(q=>{
+          addDimension52(
+            layer,
+            {x:o.x,y:o.y},
+            {x:q.x,y:q.y},
+            meterText52(q.d),
+            'chandelier-wall'
+          );
+        });
+      });
+    }
   }
 
   const renderPlanner51=window.renderPlanner;
@@ -5268,7 +5412,7 @@ setTimeout(()=>{updateRoomBaseUI47();updateSummary();renderRooms()},120);
     },true);
   });
 
-  syncMode52();lockPlan52(isAdding52(plannerTool));renderPlanner();
+  syncMode52();syncDimensionButtons52();lockPlan52(isAdding52(plannerTool));renderPlanner();
 })();
 </script>
 
