@@ -4928,6 +4928,130 @@ setTimeout(()=>{updateRoomBaseUI47();updateSummary();renderRooms()},120);
 })();
 </script>
 
+
+
+<!-- PIXEL 5.1: два режими світильників — довільний та осьовий -->
+<style>
+#lightAxisPanel50{display:none!important}
+.light-mode51{margin-top:14px;border:1px solid #bfdbfe;border-radius:18px;padding:13px;background:linear-gradient(180deg,#f8fbff,#fff)}
+.light-mode51 h4{margin:0 0 10px;font-size:15px}.mode-switch51{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.mode-btn51{min-height:46px;border:1px solid #93c5fd;background:#fff;color:#075bff;border-radius:12px;font-weight:950;font-size:12px}
+.mode-btn51.active{background:#075bff;color:#fff;border-color:#075bff}.axis-list51{display:grid;gap:8px;margin-top:10px}
+.axis-row51{display:grid;grid-template-columns:44px 1fr 92px;gap:8px;align-items:center;border:1px solid #dbeafe;border-radius:12px;padding:8px;background:#fff}
+.axis-toggle51{width:44px;height:38px;border:1px solid #93c5fd;border-radius:10px;background:#eff6ff;color:#075bff;font-weight:950}
+.axis-toggle51.off{background:#f8fafc;color:#94a3b8;border-color:#e2e8f0}.axis-name51{font-size:11px;font-weight:900;color:#334155}
+.axis-offset51{width:100%;box-sizing:border-box;border:1px solid #cbd5e1;border-radius:9px;padding:9px 7px;font-weight:850;background:#fff}
+.axis-bottom51{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}.axis-bottom51 input{width:100%;box-sizing:border-box;border:1px solid #cbd5e1;border-radius:10px;padding:10px;font-weight:850}
+.axis-help51{margin-top:9px;padding:9px 10px;border-radius:10px;background:#eff6ff;color:#1e3a8a;font-size:10px;font-weight:800;line-height:1.35}
+.axis-guide51{stroke:#f59e0b;stroke-width:4;stroke-dasharray:11 8;cursor:grab;pointer-events:stroke}.axis-guide51.off{display:none}
+.axis-tag51{font-size:13px;font-weight:950;fill:#b45309;paint-order:stroke;stroke:#fff;stroke-width:5px;pointer-events:none}
+.axis-light51{stroke:#22c55e!important;stroke-width:4!important}.plan-locked51{opacity:.48;pointer-events:none}.plan-lock-note51{display:none;margin:8px 0;padding:8px 10px;border-radius:10px;background:#fff7ed;color:#9a3412;font-size:10px;font-weight:900}.plan-lock-note51.show{display:block}
+@media(max-width:560px){.axis-row51{grid-template-columns:42px 1fr 84px}.axis-bottom51{grid-template-columns:1fr 1fr}}
+</style>
+<script>
+(function(){
+  const oldPanel=document.getElementById('lightAxisPanel50');
+  const inspector=document.getElementById('objectInspector');
+  if(!inspector||document.getElementById('lightModePanel51'))return;
+  if(oldPanel) oldPanel.style.display='none';
+
+  window.lightPlacementMode51='free';
+  window.lightAxes51={top:true,bottom:true,left:true,right:true};
+  window.axisDrag51=null;
+
+  const panel=document.createElement('div');
+  panel.id='lightModePanel51';panel.className='light-mode51';
+  panel.innerHTML=`<h4>💡 Режим встановлення світильників</h4>
+    <div class="mode-switch51">
+      <button id="modeFree51" class="mode-btn51 active" type="button" onclick="setLightMode51('free')">Довільно</button>
+      <button id="modeAxis51" class="mode-btn51" type="button" onclick="setLightMode51('axis')">По осях</button>
+    </div>
+    <div id="axisControls51" style="display:none">
+      <div class="axis-list51">
+        <div class="axis-row51"><button id="axisTop51" class="axis-toggle51" onclick="toggleAxis51('top')">✓</button><div class="axis-name51">Верхня горизонтальна</div><input id="offsetTop51" class="axis-offset51" type="number" min="0" step="0.05" value="0.60" oninput="updateAxes51()"></div>
+        <div class="axis-row51"><button id="axisBottom51" class="axis-toggle51" onclick="toggleAxis51('bottom')">✓</button><div class="axis-name51">Нижня горизонтальна</div><input id="offsetBottom51" class="axis-offset51" type="number" min="0" step="0.05" value="0.60" oninput="updateAxes51()"></div>
+        <div class="axis-row51"><button id="axisLeft51" class="axis-toggle51" onclick="toggleAxis51('left')">✓</button><div class="axis-name51">Ліва вертикальна</div><input id="offsetLeft51" class="axis-offset51" type="number" min="0" step="0.05" value="0.60" oninput="updateAxes51()"></div>
+        <div class="axis-row51"><button id="axisRight51" class="axis-toggle51" onclick="toggleAxis51('right')">✓</button><div class="axis-name51">Права вертикальна</div><input id="offsetRight51" class="axis-offset51" type="number" min="0" step="0.05" value="0.60" oninput="updateAxes51()"></div>
+      </div>
+      <div class="axis-bottom51">
+        <div><label style="font-size:10px;font-weight:900;color:#475569">Крок між світильниками, м</label><input id="axisStep51" type="number" min="0.05" step="0.05" value="1.00"></div>
+        <button class="btn blue" type="button" onclick="applyAxisSpacing51()">Застосувати крок</button>
+        <button class="btn outline" type="button" onclick="removeAllAxes51()">Прибрати всі осі</button>
+        <button class="btn outline" type="button" onclick="restoreAllAxes51()">Повернути 4 осі</button>
+      </div>
+      <div class="axis-help51">У режимі «По осях» план зафіксований. Торкніться плану — світильник прилипне до найближчої активної осі. Вісь можна рухати пальцем, а крок між світильниками задавати вручну.</div>
+    </div>`;
+  inspector.parentNode.insertBefore(panel,inspector);
+
+  const lockNote=document.createElement('div');lockNote.id='planLockNote51';lockNote.className='plan-lock-note51';lockNote.textContent='🔒 План зафіксований на час встановлення елементів.';
+  const miniCard=document.querySelector('.mini-plan-card');if(miniCard)miniCard.insertBefore(lockNote,miniCard.querySelector('svg'));
+
+  function scale51(){return Math.max(1,typeof plannerScale==='function'?plannerScale():90)}
+  function bounds51(){
+    if(!roomPoints||!roomPoints.length)return{minX:80,maxX:720,minY:60,maxY:540};
+    const xs=roomPoints.map(p=>p[0]),ys=roomPoints.map(p=>p[1]);return{minX:Math.min(...xs),maxX:Math.max(...xs),minY:Math.min(...ys),maxY:Math.max(...ys)};
+  }
+  function offsetVal51(a){return Math.max(0,Number(document.getElementById('offset'+a[0].toUpperCase()+a.slice(1)+'51')?.value)||0)}
+  function axisPos51(a){const b=bounds51(),o=offsetVal51(a)*scale51();if(a==='top')return b.minY+o;if(a==='bottom')return b.maxY-o;if(a==='left')return b.minX+o;return b.maxX-o}
+  function axisDistance51(a,x,y){return a==='top'||a==='bottom'?Math.abs(y-axisPos51(a)):Math.abs(x-axisPos51(a))}
+  function nearestAxis51(x,y){let best=null,d=Infinity;Object.keys(lightAxes51).forEach(a=>{if(!lightAxes51[a])return;const n=axisDistance51(a,x,y);if(n<d){d=n;best=a}});return best}
+  function axisObjects51(a){return plannerObjects.map((o,i)=>({o,i})).filter(v=>v.o.type==='light'&&v.o.axis51===a)}
+  function snapAlong51(a,x,y){
+    const step=Math.max(.05,Number(document.getElementById('axisStep51')?.value)||1)*scale51();const list=axisObjects51(a);
+    if(!list.length)return{x,y};const base=list[0].o;
+    if(a==='top'||a==='bottom')return{x:base.x+Math.round((x-base.x)/step)*step,y};
+    return{x,y:base.y+Math.round((y-base.y)/step)*step};
+  }
+  function placeAxisLight51(x,y){
+    const a=nearestAxis51(x,y);if(!a){alert('Увімкніть хоча б одну вісь.');return}
+    if(a==='top'||a==='bottom')y=axisPos51(a);else x=axisPos51(a);
+    const q=snapAlong51(a,x,y);pushPlanner();const o=objectDefaults('light',q.x,q.y);o.axis51=a;plannerObjects.push(o);selectedObjectIndex=plannerObjects.length-1;renderPlanner();showObjectInspector();autosave();
+  }
+  function svgPoint51(svg,e){const p=svg.createSVGPoint();p.x=e.clientX;p.y=e.clientY;const m=svg.getScreenCTM();if(!m)return[0,0];const q=p.matrixTransform(m.inverse());return[q.x,q.y]}
+
+  window.setLightMode51=function(mode){lightPlacementMode51=mode==='axis'?'axis':'free';document.getElementById('modeFree51').classList.toggle('active',lightPlacementMode51==='free');document.getElementById('modeAxis51').classList.toggle('active',lightPlacementMode51==='axis');document.getElementById('axisControls51').style.display=lightPlacementMode51==='axis'?'block':'none';renderPlanner()}
+  window.toggleAxis51=function(a){lightAxes51[a]=!lightAxes51[a];const b=document.getElementById('axis'+a[0].toUpperCase()+a.slice(1)+'51');if(b){b.classList.toggle('off',!lightAxes51[a]);b.textContent=lightAxes51[a]?'✓':'—'}renderPlanner()}
+  window.removeAllAxes51=function(){Object.keys(lightAxes51).forEach(a=>lightAxes51[a]=false);['top','bottom','left','right'].forEach(a=>{const b=document.getElementById('axis'+a[0].toUpperCase()+a.slice(1)+'51');if(b){b.classList.add('off');b.textContent='—'}});renderPlanner()}
+  window.restoreAllAxes51=function(){Object.keys(lightAxes51).forEach(a=>lightAxes51[a]=true);['top','bottom','left','right'].forEach(a=>{const b=document.getElementById('axis'+a[0].toUpperCase()+a.slice(1)+'51');if(b){b.classList.remove('off');b.textContent='✓'}});renderPlanner()}
+  window.updateAxes51=function(){
+    ['top','bottom','left','right'].forEach(a=>{const pos=axisPos51(a);axisObjects51(a).forEach(({o})=>{if(a==='top'||a==='bottom')o.y=pos;else o.x=pos})});renderPlanner();autosave();
+  }
+  window.applyAxisSpacing51=function(){
+    const step=Math.max(.05,Number(document.getElementById('axisStep51').value)||1)*scale51();let changed=0;pushPlanner();
+    ['top','bottom','left','right'].forEach(a=>{const list=axisObjects51(a);if(list.length<2)return;list.sort((u,v)=>(a==='top'||a==='bottom'?u.o.x-v.o.x:u.o.y-v.o.y));const mid=a==='top'||a==='bottom'?(bounds51().minX+bounds51().maxX)/2:(bounds51().minY+bounds51().maxY)/2;const start=mid-step*(list.length-1)/2;list.forEach((v,k)=>{if(a==='top'||a==='bottom'){v.o.x=start+k*step;v.o.y=axisPos51(a)}else{v.o.y=start+k*step;v.o.x=axisPos51(a)}});changed+=list.length});
+    if(!changed){plannerHistory.pop();alert('На одній осі має бути щонайменше два світильники.');return}renderPlanner();autosave();
+  }
+
+  function lockPlan51(active){
+    const box=document.querySelector('.plan-transform-controls');if(box)box.classList.toggle('plan-locked51',active);
+    const n=document.getElementById('planLockNote51');if(n)n.classList.toggle('show',active);
+  }
+  const originalSet=window.setPlannerTool;
+  window.setPlannerTool=function(t,btn){originalSet(t,btn);const adding=!['select','delete','move'].includes(t);lockPlan51(adding);if(t==='light')panel.scrollIntoView({behavior:'smooth',block:'nearest'});}
+
+  function drawAxes51(layer){
+    if(!layer)return;layer.querySelectorAll('.axisOverlay51').forEach(e=>e.remove());
+    if(plannerTool!=='light'||lightPlacementMode51!=='axis')return;const b=bounds51(),g=svgEl('g',{class:'axisOverlay51'});
+    ['top','bottom','left','right'].forEach(a=>{if(!lightAxes51[a])return;let line,label;if(a==='top'||a==='bottom'){const y=axisPos51(a);line=svgEl('line',{x1:b.minX-25,y1:y,x2:b.maxX+25,y2:y,class:'axis-guide51','data-axis51':a});label=svgEl('text',{x:b.minX+8,y:y-8,class:'axis-tag51'});}
+      else{const x=axisPos51(a);line=svgEl('line',{x1:x,y1:b.minY-25,x2:x,y2:b.maxY+25,class:'axis-guide51','data-axis51':a});label=svgEl('text',{x:x+8,y:b.minY+18,class:'axis-tag51'});}label.textContent={top:'Верхня',bottom:'Нижня',left:'Ліва',right:'Права'}[a];g.appendChild(line);g.appendChild(label)});layer.appendChild(g);
+  }
+  const prevRender=window.renderPlanner;
+  window.renderPlanner=function(){prevRender();document.querySelectorAll('.axis-overlay50').forEach(e=>e.remove());drawAxes51(document.getElementById('nodeLayer'));requestAnimationFrame(()=>drawAxes51(document.getElementById('miniNodeLayer')))};
+
+  function captureDown51(e,svg){
+    const axis=e.target?.dataset?.axis51;if(axis&&plannerTool==='light'&&lightPlacementMode51==='axis'){e.preventDefault();e.stopImmediatePropagation();const [x,y]=svgPoint51(svg,e);axisDrag51={axis,svg,pid:e.pointerId,lastX:x,lastY:y};pushPlanner();svg.setPointerCapture?.(e.pointerId);return}
+    const adding=!['select','delete','move'].includes(plannerTool);
+    if(adding&&e.target&&(e.target.closest?.('#nodeLayer')||e.target.closest?.('#miniNodeLayer'))){e.preventDefault();e.stopImmediatePropagation();}
+    if(plannerTool==='light'&&lightPlacementMode51==='axis'&&!axis){e.preventDefault();e.stopImmediatePropagation();const [x,y]=svgPoint51(svg,e);placeAxisLight51(x,y)}
+  }
+  function captureMove51(e,svg){if(!axisDrag51||axisDrag51.svg!==svg)return;e.preventDefault();e.stopImmediatePropagation();const [x,y]=svgPoint51(svg,e),a=axisDrag51.axis,b=bounds51();let off;
+    if(a==='top')off=Math.max(0,(y-b.minY)/scale51());else if(a==='bottom')off=Math.max(0,(b.maxY-y)/scale51());else if(a==='left')off=Math.max(0,(x-b.minX)/scale51());else off=Math.max(0,(b.maxX-x)/scale51());
+    const inp=document.getElementById('offset'+a[0].toUpperCase()+a.slice(1)+'51');if(inp)inp.value=off.toFixed(2);updateAxes51();}
+  function captureUp51(e,svg){if(!axisDrag51||axisDrag51.svg!==svg)return;e.preventDefault();e.stopImmediatePropagation();axisDrag51=null;try{svg.releasePointerCapture(e.pointerId)}catch(_){ }autosave()}
+  ['plannerSvg','plannerMiniSvg'].forEach(id=>{const svg=document.getElementById(id);if(!svg)return;svg.addEventListener('pointerdown',e=>captureDown51(e,svg),true);svg.addEventListener('pointermove',e=>captureMove51(e,svg),true);svg.addEventListener('pointerup',e=>captureUp51(e,svg),true);svg.addEventListener('pointercancel',e=>captureUp51(e,svg),true)});
+  renderPlanner();
+})();
+</script>
 </body>
 </html>
 
