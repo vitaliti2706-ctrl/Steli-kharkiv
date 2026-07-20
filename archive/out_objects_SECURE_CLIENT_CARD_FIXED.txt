@@ -1,0 +1,236 @@
+import crypto from 'node:crypto';
+
+const SUPABASE_URL = process.env.SUPABASE_URL;
+const SUPABASE_SECRET_KEY = process.env.SUPABASE_SECRET_KEY;
+const SERVICE_PIN = String(process.env.SERVICE_PIN || '');
+const SERVICE_TOKEN_SECRET = String(process.env.SERVICE_TOKEN_SECRET || '');
+
+function json(res, status, body) {
+  res.status(status).setHeader('Content-Type', 'application/json; charset=utf-8');
+  res.end(JSON.stringify(body));
+}
+function headers(extra = {}) {
+  return { apikey: SUPABASE_SECRET_KEY, Authorization: `Bearer ${SUPABASE_SECRET_KEY}`, 'Content-Type': 'application/json', ...extra };
+}
+function makeAccessKey() {
+  const alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  const bytes = crypto.randomBytes(8); let value = '';
+  for (let i = 0; i < 8; i += 1) value += alphabet[bytes[i] % alphabet.length];
+  return `${value.slice(0, 4)}-${value.slice(4)}`;
+}
+function hashAccessKey(value) { return crypto.createHash('sha256').update(String(value)).digest('hex'); }
+function safeEqual(a, b) {
+  const aa = Buffer.from(String(a)); const bb = Buffer.from(String(b));
+  return aa.length === bb.length && aa.length > 0 && crypto.timingSafeEqual(aa, bb);
+}
+function signServiceToken(exp) {
+  const payload = Buffer.from(JSON.stringify({ role: 'service', exp })).toString('base64url');
+  const sig = crypto.createHmac('sha256', SERVICE_TOKEN_SECRET).update(payload).digest('base64url');
+  return `${payload}.${sig}`;
+}
+function verifyServiceToken(req) {
+  if (!SERVICE_TOKEN_SECRET) return false;
+  const token = String(req.headers['x-service-token'] || '');
+  const [payload, sig] = token.split('.'); if (!payload || !sig) return false;
+  const expected = crypto.createHmac('sha256', SERVICE_TOKEN_SECRET).update(payload).digest('base64url');
+  if (!safeEqual(sig, expected)) return false;
+  try { const data = JSON.parse(Buffer.from(payload, 'base64url').toString('utf8')); return data.role === 'service' && Number(data.exp) > Date.now(); }
+  catch { return false; }
+}
+async function sb(url, options = {}) {
+  const response = await fetch(`${SUPABASE_URL}/rest/v1/${url}`, { ...options, headers: headers(options.headers || {}) });
+  if (!response.ok) throw new Error(await response.text());
+  return response.status === 204 ? null : response.json();
+}
+async function nextObjectNumber() {
+  const year = new Date().getFullYear(), prefix = `P-${year}-`;
+  const rows = await sb(`objects?select=object_number&object_number=like.${prefix}*&order=object_number.desc&limit=1`);
+  const n = Number((rows?.[0]?.object_number || '').split('-').pop()) || 0;
+  return `${prefix}${String(n + 1).padStart(4, '0')}`;
+}
+async function getRow(id) { return (await sb(`objects?id=eq.${encodeURIComponent(id)}&select=*&limit=1`))?.[0] || null; }
+async function patchRow(id, patch) { return (await sb(`objects?id=eq.${encodeURIComponent(id)}`, { method: 'PATCH', headers: { Prefer: 'return=representation' }, body: JSON.stringify(patch) }))?.[0] || null; }
+async function insertRow(row) { return (await sb('objects', { method: 'POST', headers: { Prefer: 'return=representation' }, body: JSON.stringify(row) }))?.[0] || null; }
+function dbStatus(status) {
+  const map = { new:'new',call:'new',measure_planned:'measurement',measured:'measurement',measurement:'measurement',calculation:'calculation',estimate_sent:'calculation',approval:'approval',contract:'contract',install_planned:'installation_planned',installation_planned:'installation_planned',departure:'installation_planned',installation:'installation',completed:'completed',paid:'completed',review:'completed',rejected:'cancelled',cancelled:'cancelled' };
+  return map[String(status || 'new')] || 'new';
+}
+function publicView(object, objectNumber, status) {
+  const serviceData = object.serviceData && typeof object.serviceData === 'object' ? object.serviceData : {};
+  return { objectNumber, status, clientName:object.clientName||'', address:object.address||'', date:object.date||'', rooms:Array.isArray(object.rooms)?object.rooms:[], area:Number(object.area||0), perimeter:Number(object.perimeter||0), total:Number(object.total||0), schedule:Array.isArray(object.schedule)?object.schedule:[], serviceData:{ installDate:serviceData.installDate||'', installTime:serviceData.installTime||'', brigade:serviceData.brigade||'', advance:Number(serviceData.advance||0), paid:Number(serviceData.paid||0), contractUrl:serviceData.contractUrl||'' }, savedAt:object.savedAt||new Date().toISOString() };
+}
+function baseFields(object, status) {
+  return { client_name:object.clientName||null, client_phone:object.clientPhone||null, address:object.address||null, measurement_date:object.date||null, ceiling_height:Number(object.height||0)||null, status:dbStatus(status), internal_comment:object.comment||null, object_data:object };
+}
+async function validateClient(objectNumber, accessKey) {
+  const rows = await sb(`objects?object_number=eq.${encodeURIComponent(String(objectNumber).trim().toUpperCase())}&select=*&limit=1`);
+  const row = rows?.[0]; if (!row) return null;
+  return safeEqual(hashAccessKey(String(accessKey).trim().toUpperCase()), String(row.access_key_hash || '')) ? row : null;
+}
+function hasPublishedClientView(row) {
+  return !!(
+    row &&
+    row.client_view &&
+    typeof row.client_view === 'object' &&
+    String(row.client_view.objectNumber || '').trim()
+  );
+}
+function stripSecretKey(object) {
+  if (!object || typeof object !== 'object') return {};
+  const { _clientAccessKey, ...safe } = object;
+  return safe;
+}
+function sanitizeServiceRow(row) {
+  return row ? { ...row, object_data: stripSecretKey(row.object_data) } : row;
+}
+
+export default async function handler(req, res) {
+  if (!SUPABASE_URL || !SUPABASE_SECRET_KEY) return json(res, 500, { error:'Supabase environment variables are missing' });
+  try {
+    if (req.method === 'GET') {
+      if (String(req.query?.public || '') === 'reviews') {
+        const rows = await sb('objects?select=object_number,object_data&order=updated_at.desc');
+        const reviews = [];
+        for (const row of rows || []) for (const review of (Array.isArray(row.object_data?.reviews) ? row.object_data.reviews : [])) if (review.status === 'approved') reviews.push({ ...review, objectNumber:row.object_number });
+        reviews.sort((a,b)=>String(b.createdAt||'').localeCompare(String(a.createdAt||'')));
+        return json(res, 200, { reviews });
+      }
+      return json(res, 401, { error:'Приватні дані доступні лише у службовому розділі.' });
+    }
+
+    if (req.method === 'POST') {
+      const body = typeof req.body === 'string' ? JSON.parse(req.body) : (req.body || {});
+      const action = String(body.action || '');
+
+      if (action === 'serviceLogin') {
+        if (!SERVICE_PIN || !SERVICE_TOKEN_SECRET) return json(res, 500, { error:'SERVICE_PIN або SERVICE_TOKEN_SECRET не налаштовано' });
+        if (!safeEqual(String(body.pin || ''), SERVICE_PIN)) return json(res, 401, { error:'Невірний PIN-код' });
+        return json(res, 200, { token:signServiceToken(Date.now() + 12 * 60 * 60 * 1000) });
+      }
+      if (action === 'serviceList') {
+        if (!verifyServiceToken(req)) return json(res, 401, { error:'Службова сесія завершена. Увійдіть знову.' });
+        const rows = await sb('objects?select=*&order=updated_at.desc') || []; return json(res, 200, { objects:rows.map(sanitizeServiceRow) });
+      }
+      if (action === 'clientLogin') {
+        const row = await validateClient(body.objectNumber, body.accessKey);
+        if (!row || !hasPublishedClientView(row)) return json(res, 401, { error:'Невірний номер об’єкта або ключ доступу.' });
+        return json(res, 200, { object:row.client_view });
+      }
+      if (action === 'submitReview') {
+        const row = await validateClient(body.objectNumber, body.accessKey);
+        if (!row) return json(res, 401, { error:'Невірний номер об’єкта або ключ доступу.' });
+        const review = body.review || {}, text = String(review.text || '').trim();
+        if (text.length < 5) return json(res, 400, { error:'Відгук занадто короткий.' });
+        const object = row.object_data && typeof row.object_data === 'object' ? row.object_data : {};
+        const reviews = Array.isArray(object.reviews) ? object.reviews : [];
+        reviews.push({ id:`rev_${Date.now()}_${crypto.randomBytes(3).toString('hex')}`, name:String(review.name||object.clientName||'Клієнт').slice(0,80), text:text.slice(0,2000), rating:Math.max(1,Math.min(5,Number(review.rating||5))), status:'pending', createdAt:new Date().toISOString(), date:new Date().toLocaleDateString('uk-UA') });
+        await patchRow(row.id, { object_data:{ ...object, reviews } });
+        return json(res, 201, { ok:true });
+      }
+
+      const cloudId = String(body.cloudId || '').trim();
+      const protectedActions = ['updateStatus','clientData','regenerateAccessKey','addScheduleEvent','deleteScheduleEvent','serviceUpdate','moderateReview','serviceClientView'];
+      if (protectedActions.includes(action) && !verifyServiceToken(req)) return json(res, 401, { error:'Немає службового доступу.' });
+
+      if (['updateStatus','clientData','regenerateAccessKey','addScheduleEvent','deleteScheduleEvent','serviceUpdate','moderateReview','serviceClientView'].includes(action)) {
+        if (!cloudId) return json(res, 400, { error:'cloudId is required' });
+        const current = await getRow(cloudId); if (!current) return json(res, 404, { error:'Object not found' });
+        const object = stripSecretKey(current.object_data && typeof current.object_data === 'object' ? current.object_data : {});
+        if (action === 'updateStatus') {
+          const nextStatus = String(body.status || 'new'), next = { ...object, cloudStatus:nextStatus };
+          return json(res, 200, { object:await patchRow(cloudId, { status:dbStatus(nextStatus), object_data:next, client_view:hasPublishedClientView(current) ? publicView(next,current.object_number,nextStatus) : {} }) });
+        }
+        if (action === 'clientData') return json(res, 200, { objectNumber:current.object_number, published:hasPublishedClientView(current) });
+        if (action === 'serviceClientView') { if (!hasPublishedClientView(current)) return json(res, 404, { error:'Особисту картку ще не створено.' }); return json(res, 200, { object:current.client_view }); }
+        if (action === 'regenerateAccessKey') {
+          const key = makeAccessKey(), next = stripSecretKey(object);
+          const row = await patchRow(cloudId, { access_key_hash:hashAccessKey(key), object_data:next, client_view:publicView(next,current.object_number,next.cloudStatus||current.status||'new') });
+          return json(res, 200, { objectNumber:current.object_number, accessKey:key, object:sanitizeServiceRow(row) });
+        }
+        if (action === 'addScheduleEvent') {
+          const event = body.event; if (!event?.date) return json(res, 400, { error:'Valid event is required' });
+          const next = { ...object, schedule:[...(Array.isArray(object.schedule)?object.schedule:[]), event] };
+          const row = await patchRow(cloudId, { object_data:next, client_view:hasPublishedClientView(current) ? publicView(next,current.object_number,next.cloudStatus||current.status) : {} });
+          return json(res, 200, { object:row });
+        }
+        if (action === 'deleteScheduleEvent') {
+          const next = { ...object, schedule:(Array.isArray(object.schedule)?object.schedule:[]).filter(e=>String(e.id)!==String(body.eventId||'')) };
+          const row = await patchRow(cloudId, { object_data:next, client_view:hasPublishedClientView(current) ? publicView(next,current.object_number,next.cloudStatus||current.status) : {} });
+          return json(res, 200, { object:row });
+        }
+        if (action === 'serviceUpdate') {
+          const next = { ...object, serviceData:{ ...(object.serviceData||{}), ...(body.serviceData||{}) } };
+          const row = await patchRow(cloudId, { object_data:next, client_view:hasPublishedClientView(current) ? publicView(next,current.object_number,next.cloudStatus||current.status) : {} });
+          return json(res, 200, { object:row });
+        }
+        if (action === 'moderateReview') {
+          const reviews = (Array.isArray(object.reviews)?object.reviews:[]).map(r=>String(r.id)===String(body.reviewId)?{...r,status:String(body.status||'pending')}:r).filter(r=>r.status!=='deleted');
+          return json(res, 200, { object:await patchRow(cloudId, { object_data:{ ...object, reviews } }) });
+        }
+      }
+
+      const object = body.object;
+      if (!object || typeof object !== 'object') return json(res, 400, { error:'object is required' });
+      const mode = action || 'publishClient', status = String(body.status || object.cloudStatus || 'new');
+
+      if (mode === 'historySave') {
+        if (cloudId) {
+          const current = await getRow(cloudId); if (!current) return json(res, 404, { error:'Object not found' });
+          const objectNumber = current.object_number || object.objectNumber || await nextObjectNumber();
+          const updated = { ...stripSecretKey(object), objectNumber };
+          const row = await patchRow(cloudId, {
+            ...baseFields(updated,status),
+            client_view:hasPublishedClientView(current) ? publicView(updated,objectNumber,status) : {}
+          });
+          return json(res, 200, { created:false, published:hasPublishedClientView(row), object:row });
+        }
+
+        const objectNumber = object.objectNumber || await nextObjectNumber();
+        const key = makeAccessKey();
+        const updated = { ...stripSecretKey(object), objectNumber };
+
+        return json(res, 201, {
+          created:true,
+          published:false,
+          object:await insertRow({
+            object_number:objectNumber,
+            access_key_hash:hashAccessKey(key),
+            ...baseFields(updated,status),
+            client_view:{}
+          })
+        });
+      }
+
+      if (mode === 'publishClient') {
+        if (cloudId) {
+          const current = await getRow(cloudId); if (!current) return json(res, 404, { error:'Object not found' });
+          const objectNumber = current.object_number || object.objectNumber || await nextObjectNumber();
+          const firstPublication = !hasPublishedClientView(current);
+          const key = firstPublication ? makeAccessKey() : '';
+          const updated = { ...stripSecretKey(object), objectNumber, reviews:current.object_data?.reviews||object.reviews||[], serviceData:current.object_data?.serviceData||object.serviceData||{} };
+          const row = await patchRow(cloudId, { ...baseFields(updated,status), ...(firstPublication?{access_key_hash:hashAccessKey(key)}:{}), client_view:publicView(updated,objectNumber,status) });
+          return json(res, 200, { created:false, accessKey:firstPublication?key:undefined, object:sanitizeServiceRow(row) });
+        }
+        const objectNumber = object.objectNumber || await nextObjectNumber(), key = makeAccessKey();
+        const updated = { ...stripSecretKey(object), objectNumber };
+        const row = await insertRow({ object_number:objectNumber, access_key_hash:hashAccessKey(key), ...baseFields(updated,status), client_view:publicView(updated,objectNumber,status) });
+        return json(res, 201, { created:true, accessKey:key, object:sanitizeServiceRow(row) });
+      }
+
+      return json(res, 400, { error:'Unknown action' });
+    }
+
+    if (req.method === 'DELETE') {
+      if (!verifyServiceToken(req)) return json(res, 401, { error:'Немає службового доступу.' });
+      const id = String(req.query?.id || '').trim(); if (!id) return json(res, 400, { error:'id is required' });
+      await sb(`objects?id=eq.${encodeURIComponent(id)}`, { method:'DELETE' });
+      return json(res, 200, { ok:true });
+    }
+
+    res.setHeader('Allow','GET, POST, DELETE');
+    return json(res,405,{error:'Method not allowed'});
+  } catch (error) {
+    console.error('objects API error:',error);
+    return json(res,500,{error:error.message||'Server error'});
+  }
+}
