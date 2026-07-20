@@ -1,4 +1,4 @@
- import crypto from 'node:crypto';
+import crypto from 'node:crypto';
 
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_SECRET_KEY = process.env.SUPABASE_SECRET_KEY;
@@ -165,8 +165,19 @@ export default async function handler(req, res) {
           const row = await patchRow(cloudId, { ...baseFields(updated,status), client_view:current.client_view ? publicView(updated,objectNumber,status) : null });
           return json(res, 200, { created:false, published:!!row?.client_view, object:row });
         }
-        const objectNumber = object.objectNumber || await nextObjectNumber(), updated = { ...object, objectNumber };
-        return json(res, 201, { created:true, published:false, object:await insertRow({ object_number:objectNumber, access_key_hash:null, ...baseFields(updated,status), client_view:null }) });
+        const objectNumber = object.objectNumber || await nextObjectNumber();
+        const key = makeAccessKey();
+        const updated = { ...object, objectNumber, _clientAccessKey:key };
+        return json(res, 201, {
+          created:true,
+          published:false,
+          object:await insertRow({
+            object_number:objectNumber,
+            access_key_hash:hashAccessKey(key),
+            ...baseFields(updated,status),
+            client_view:null
+          })
+        });
       }
       if (mode === 'publishClient') {
         if (cloudId) {
@@ -190,12 +201,6 @@ export default async function handler(req, res) {
       await sb(`objects?id=eq.${encodeURIComponent(id)}`, { method:'DELETE' });
       return json(res, 200, { ok:true });
     }
-        res.setHeader('Allow', 'GET, POST, DELETE');
-    return json(res, 405, { error: 'Method not allowed' });
-  } catch (error) {
-    console.error('objects API error:', error);
-    return json(res, 500, {
-      error: error.message || 'Server error'
-    });
-  }
-}
+    res.setHeader('Allow','GET, POST, DELETE'); return json(res,405,{error:'Method not allowed'});
+  } catch (error) { console.error('objects API error:',error); return json(res,500,{error:error.message||'Server error'}); }
+                                                            }
