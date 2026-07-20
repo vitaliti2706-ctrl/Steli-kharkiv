@@ -411,6 +411,16 @@ th:nth-child(2),th:nth-child(3),th:nth-child(4),td:nth-child(2),td:nth-child(3),
 .access-send-note75{margin-top:9px;padding:9px 10px;border:1px solid #bfdbfe;background:#eff6ff;border-radius:10px;color:#475569;font-size:9px;line-height:1.45}
 </style>
 
+
+<style id="autoWorkflow76Styles">
+#autoClientWorkflowBtn76{position:relative}
+#autoClientWorkflowBtn76.working76{pointer-events:none;opacity:.75}
+.workflow-status76{display:none;margin-top:9px;padding:10px;border-radius:10px;font-size:9px;font-weight:900;line-height:1.45}
+.workflow-status76.show{display:block}
+.workflow-status76.ok{background:#ecfdf5;color:#047857;border:1px solid #a7f3d0}
+.workflow-status76.error{background:#fff1f2;color:#b91c1c;border:1px solid #fecdd3}
+</style>
+
 </head>
 <body>
 <header class="header"><div class="wrap nav"><a class="logo" href="../index.html">Potolok<span>.in.ua</span></a><div class="menu"><a href="../index.html">Головна</a><a href="../gallery.html">Наші роботи</a><a href="#app">Pixel 5</a></div><a class="phone" href="tel:+380974546713">097 454 67 13</a><a class="tg-top" href="https://t.me/Potolok_in_ua">Фото в TG</a></div></header>
@@ -448,9 +458,10 @@ th:nth-child(2),th:nth-child(3),th:nth-child(4),td:nth-child(2),td:nth-child(3),
     <button class="btn blue" type="button" onclick="addRoom()">＋ Кімната</button>
   </div>
   <div class="btn-row mt">
-    <button class="btn green" type="button" onclick="saveCurrentRoom()">💾 Зберегти кімнату й об’єкт</button>
+    <button id="autoClientWorkflowBtn76" class="btn green" type="button" onclick="autoClientWorkflow76()">💾 Зберегти та запросити доступ</button>
     <button class="btn outline" type="button" onclick="duplicateCurrentRoom()">⧉ Копія</button>
   </div>
+  <div id="autoWorkflowStatus76" class="workflow-status76"></div>
   <div id="clientAccessGuide73" class="client-access-guide73">
     <div class="client-access-guide73-head">
       <div id="clientAccessGuideIcon73" class="client-access-guide73-icon">💡</div>
@@ -463,7 +474,7 @@ th:nth-child(2),th:nth-child(3),th:nth-child(4),td:nth-child(2),td:nth-child(3),
       <div id="clientAccessStepKey73" class="client-access-step73"><strong>🔑</strong>Ключ</div>
       <div id="clientAccessStepLogin73" class="client-access-step73"><strong>📱</strong>Вхід</div>
     </div>
-    <div id="clientAccessGuideNote73" class="client-access-guide73-note"><b>Порядок:</b> збережіть об’єкт → натисніть «Створити особисту картку» → одразу скопіюйте номер і ключ та передайте їх клієнту. Ключ показується лише один раз.</div>
+    <div id="clientAccessGuideNote73" class="client-access-guide73-note"><b>Порядок:</b> натисніть одну кнопку «Зберегти та запросити доступ». Система сама збереже кімнату, запише об’єкт у хмарну історію, відкриє розділ «Історія» та покаже форму запиту клієнта.</div>
   </div>
   <div id="roomList" class="room-list"></div>
 </div>
@@ -6974,7 +6985,7 @@ body.client-card-mode61 .ai-request-section{display:none!important}
       if(stepLogin)stepLogin.classList.toggle('on',published);
       if(note)note.innerHTML=published
         ? '<b>Готово:</b> клієнт входить у розділ «Особиста картка» за номером об’єкта та ключем. Якщо ключ втрачено — створіть новий; старий перестане працювати.'
-        : '<b>Порядок:</b> збережіть об’єкт → натисніть «Створити особисту картку» → одразу скопіюйте номер і ключ та передайте їх клієнту. Ключ показується лише один раз.';
+        : '<b>Порядок:</b> натисніть одну кнопку «Зберегти та запросити доступ». Система сама збереже кімнату, запише об’єкт у хмарну історію, відкриє розділ «Історія» та покаже форму запиту клієнта.';
     }
     if(published&&status&&!status.classList.contains('show')){
       status.textContent=`🟢 Особиста картка ${known.objectNumber||o.objectNumber||''} активна`;
@@ -7426,6 +7437,82 @@ body.client-card-mode61 .ai-request-section{display:none!important}
     };
     window.serviceCard60 = serviceCard60;
   }
+})();
+</script>
+
+
+<script id="autoWorkflow76Script">
+(() => {
+  'use strict';
+
+  function workflowStatus76(message, type){
+    const box = document.getElementById('autoWorkflowStatus76');
+    if(!box) return;
+    box.className = 'workflow-status76 show ' + (type || 'ok');
+    box.textContent = message;
+  }
+
+  function historyTabButton76(){
+    return [...document.querySelectorAll('.main-tab')]
+      .find(btn => btn.getAttribute('onclick')?.includes("'history'"));
+  }
+
+  window.autoClientWorkflow76 = async function(){
+    const button = document.getElementById('autoClientWorkflowBtn76');
+    if(button?.classList.contains('working76')) return;
+
+    const originalText = button?.textContent || '';
+    if(button){
+      button.classList.add('working76');
+      button.textContent = '⏳ Зберігаємо об’єкт…';
+    }
+
+    try {
+      workflowStatus76('1/4 Зберігаємо поточну кімнату…', 'ok');
+      if(typeof saveCurrentRoom !== 'function'){
+        throw new Error('Функція збереження кімнати недоступна');
+      }
+      saveCurrentRoom();
+
+      workflowStatus76('2/4 Записуємо об’єкт у хмарну історію та отримуємо номер…', 'ok');
+      if(typeof saveCloudHistory56 !== 'function'){
+        throw new Error('Функція хмарного збереження недоступна');
+      }
+
+      const savedRow = await saveCloudHistory56();
+      if(!savedRow?.object_number){
+        throw new Error('Об’єкт збережено, але сервер не повернув номер. Повторіть спробу.');
+      }
+
+      workflowStatus76(`3/4 Об’єкт ${savedRow.object_number} збережено. Відкриваємо історію…`, 'ok');
+
+      const historyButton = historyTabButton76();
+      if(historyButton && typeof showMainTab === 'function'){
+        showMainTab('history', historyButton);
+      }
+      if(typeof renderHistory === 'function'){
+        await renderHistory();
+      }
+
+      workflowStatus76('4/4 Відкриваємо форму запиту доступу…', 'ok');
+      await new Promise(resolve => setTimeout(resolve, 250));
+
+      if(typeof openClientAccess74 !== 'function'){
+        throw new Error('Форма клієнтського запиту недоступна');
+      }
+      openClientAccess74();
+
+      workflowStatus76(`✅ Об’єкт ${savedRow.object_number} збережено. Залишилось перевірити коментар і натиснути «Запросити номер і ключ».`, 'ok');
+    } catch(error){
+      workflowStatus76('Помилка автоматичної послідовності: ' + error.message, 'error');
+      alert('Не вдалося завершити автоматичне збереження: ' + error.message);
+    } finally {
+      if(button){
+        button.classList.remove('working76');
+        button.textContent = originalText;
+      }
+    }
+  };
 })();
 </script>
 
