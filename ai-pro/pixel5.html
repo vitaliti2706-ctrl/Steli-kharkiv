@@ -5985,25 +5985,52 @@ setTimeout(()=>{updateRoomBaseUI47();updateSummary();renderRooms()},120);
 
   window.saveCloudHistory56 = async function(openHistory = false) {
     const object = collectObject();
-    const { known } = currentMeta57(object);
+    const { meta, known } = currentMeta57(object);
 
     if (window.saveStatus) saveStatus.textContent = 'Зберігаємо у хмару…';
 
+    const sendHistory57 = async (cloudId = '') => request57(API57, {
+      method: 'POST',
+      body: JSON.stringify({
+        action: 'historySave',
+        object: {
+          ...object,
+          cloudId: cloudId || '',
+          objectNumber: cloudId ? (known.objectNumber || object.objectNumber || '') : ''
+        },
+        cloudId,
+        status: known.status || object.cloudStatus || 'new'
+      })
+    });
+
     try {
-      const result = await request57(API57, {
-        method: 'POST',
-        body: JSON.stringify({
-          action: 'historySave',
-          object: {
-            ...object,
-            objectNumber: known.objectNumber || object.objectNumber || ''
-          },
-          cloudId: known.cloudId || object.cloudId || '',
-          status: known.status || object.cloudStatus || 'new'
-        })
-      });
+      let cloudId = known.cloudId || object.cloudId || '';
+      let result;
+
+      try {
+        result = await sendHistory57(cloudId);
+      } catch (error) {
+        const staleCloudId =
+          cloudId &&
+          /Object not found/i.test(String(error.message || ''));
+
+        if (!staleCloudId) throw error;
+
+        delete meta[object.id];
+        metaWrite57(meta);
+
+        object.cloudId = '';
+        object.objectNumber = '';
+        object.cloudStatus = 'new';
+
+        try { await dbPutObject(object); } catch {}
+
+        result = await sendHistory57('');
+      }
 
       const row = result.object || {};
+      if (!row.id) throw new Error('Сервер не повернув ID об’єкта');
+
       await storeReturned57(object, row);
 
       if (window.saveStatus) {
@@ -6041,18 +6068,44 @@ setTimeout(()=>{updateRoomBaseUI47();updateSummary();renderRooms()},120);
     }
 
     try {
-      const result = await request57(API57, {
+      const sendPublish57 = async (cloudId = '') => request57(API57, {
         method: 'POST',
         body: JSON.stringify({
           action: 'publishClient',
           object: {
             ...object,
-            objectNumber: known.objectNumber || object.objectNumber || ''
+            cloudId: cloudId || '',
+            objectNumber: cloudId ? (known.objectNumber || object.objectNumber || '') : ''
           },
-          cloudId: known.cloudId || object.cloudId || '',
+          cloudId,
           status: known.status || object.cloudStatus || 'new'
         })
       });
+
+      let cloudId = known.cloudId || object.cloudId || '';
+      let result;
+
+      try {
+        result = await sendPublish57(cloudId);
+      } catch (error) {
+        const staleCloudId =
+          cloudId &&
+          /Object not found/i.test(String(error.message || ''));
+
+        if (!staleCloudId) throw error;
+
+        const meta = metaRead57();
+        delete meta[object.id];
+        metaWrite57(meta);
+
+        object.cloudId = '';
+        object.objectNumber = '';
+        object.cloudStatus = 'new';
+
+        try { await dbPutObject(object); } catch {}
+
+        result = await sendPublish57('');
+      }
 
       const row = result.object || {};
       await storeReturned57(object, row);
@@ -6323,6 +6376,260 @@ window.setStars60=n=>{reviewStars60=n;for(let i=1;i<=5;i++)document.getElementBy
 window.submitReview60=async()=>{try{const objectNumber=document.getElementById('clientObjectNumber56').value.trim(),accessKey=document.getElementById('clientAccessKey56').value.trim(),name=document.getElementById('reviewName60').value.trim(),text=document.getElementById('reviewText60').value.trim();if(text.length<5)throw new Error('Напишіть відгук детальніше.');await api60({action:'submitReview',objectNumber,accessKey,review:{name,text,rating:reviewStars60}});closeModal60();alert('Дякуємо! Відгук надіслано на перевірку.')}catch(e){alert(e.message)}};
 
 injectTabs60();setTimeout(injectTabs60,400);
+})();
+</script>
+
+
+<script id="pixelObjectCalculatorFix">
+(() => {
+  'use strict';
+
+  let objectCalcMode = false;
+  let forceRoomCalcOnce = false;
+
+  const escCalc = value => String(value ?? '').replace(/[&<>"']/g, ch => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#039;'
+  })[ch]);
+
+  function savedRoomsForCalc() {
+    try {
+      syncActiveRoomFromUI(false);
+    } catch {}
+    return Array.isArray(projectRooms) ? projectRooms : [];
+  }
+
+  function objectCalcTotals() {
+    const rooms = savedRoomsForCalc();
+    const calculated = rooms.reduce(
+      (sum, room) => sum + (Number(room.calculated) || 0),
+      0
+    );
+    return {
+      rooms,
+      area: rooms.reduce((sum, room) => sum + (Number(room.area) || 0), 0),
+      perimeter: rooms.reduce((sum, room) => sum + (Number(room.perimeter) || 0), 0),
+      calculated,
+      total: rooms.length <= 1 ? Math.max(calculated, 5000) : calculated
+    };
+  }
+
+  function ensureCalcModePanel() {
+    const calcControls = document.querySelector('#tab_calc aside.panel.controls');
+    if (!calcControls || document.getElementById('calcModePanelObject')) return;
+
+    const panel = document.createElement('div');
+    panel.id = 'calcModePanelObject';
+    panel.style.cssText =
+      'margin-bottom:12px;padding:11px;border:1px solid #bfdbfe;' +
+      'background:#eff6ff;border-radius:12px';
+
+    panel.innerHTML = `
+      <div style="font-size:11px;font-weight:950;margin-bottom:8px">
+        Режим кошторису
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:7px">
+        <button id="calcModeObjectBtn" type="button"
+          style="min-height:40px;border-radius:9px;border:1px solid #075bff;
+          background:#075bff;color:#fff;font-weight:900;font-size:10px">
+          🏠 Весь об’єкт
+        </button>
+        <button id="calcModeRoomBtn" type="button"
+          style="min-height:40px;border-radius:9px;border:1px solid #dbe3ef;
+          background:#fff;color:#334155;font-weight:900;font-size:10px">
+          📁 Поточна кімната
+        </button>
+      </div>
+      <div id="calcModeNoteObject"
+        style="font-size:9px;color:#475569;margin-top:8px;line-height:1.4"></div>
+    `;
+
+    calcControls.prepend(panel);
+
+    document.getElementById('calcModeObjectBtn')?.addEventListener('click', () => {
+      objectCalcMode = true;
+      renderObjectCalculator();
+    });
+
+    document.getElementById('calcModeRoomBtn')?.addEventListener('click', () => {
+      objectCalcMode = false;
+      updateCalcModeButtons();
+      originalRecalcObjectFix();
+    });
+  }
+
+  function updateCalcModeButtons() {
+    const objectBtn = document.getElementById('calcModeObjectBtn');
+    const roomBtn = document.getElementById('calcModeRoomBtn');
+    const note = document.getElementById('calcModeNoteObject');
+    const rooms = Array.isArray(projectRooms) ? projectRooms : [];
+
+    if (objectBtn) {
+      objectBtn.style.background = objectCalcMode ? '#075bff' : '#fff';
+      objectBtn.style.color = objectCalcMode ? '#fff' : '#334155';
+      objectBtn.style.borderColor = objectCalcMode ? '#075bff' : '#dbe3ef';
+    }
+
+    if (roomBtn) {
+      roomBtn.style.background = objectCalcMode ? '#fff' : '#075bff';
+      roomBtn.style.color = objectCalcMode ? '#334155' : '#fff';
+      roomBtn.style.borderColor = objectCalcMode ? '#dbe3ef' : '#075bff';
+    }
+
+    if (note) {
+      note.textContent = objectCalcMode
+        ? `Показано загальний кошторис: ${rooms.length} кімн.`
+        : `Редагується: ${rooms.find(r => r.id === activeRoomId)?.name || 'поточна кімната'}`;
+    }
+  }
+
+  function renderObjectCalculator() {
+    ensureCalcModePanel();
+
+    const totals = objectCalcTotals();
+    if (totals.rooms.length <= 1) {
+      objectCalcMode = false;
+      updateCalcModeButtons();
+      originalRecalcObjectFix();
+      return;
+    }
+
+    objectCalcMode = true;
+    updateCalcModeButtons();
+
+    if (window.priceValue) priceValue.textContent = money(totals.total);
+    if (window.bottomPrice) bottomPrice.textContent = money(totals.total);
+
+    if (window.priceDetails) {
+      priceDetails.innerHTML =
+        `<b>Кімнат:</b> ${totals.rooms.length}<br>` +
+        `<b>Загальна площа:</b> ${totals.area.toFixed(2)} м²<br>` +
+        `<b>Загальний периметр:</b> ${totals.perimeter.toFixed(2)} м.п.<br>` +
+        `<b>Мінімальне замовлення:</b> не застосовується`;
+    }
+
+    const body = document.getElementById('estimateBody');
+    if (body) {
+      const html = [];
+
+      totals.rooms.forEach((room, index) => {
+        const roomName = room.name || `Кімната ${index + 1}`;
+        const rows = Array.isArray(room.rows) ? room.rows : [];
+
+        html.push(`
+          <tr>
+            <td colspan="4"
+              style="padding-top:14px;font-weight:950;color:#075bff;
+              text-align:left;border-bottom:2px solid #bfdbfe">
+              ${index + 1}. ${escCalc(roomName)}
+              — ${Number(room.area || 0).toFixed(2)} м²
+              — ${money(Number(room.calculated) || 0)}
+            </td>
+          </tr>
+        `);
+
+        if (rows.length) {
+          rows.forEach(row => {
+            html.push(`
+              <tr>
+                <td>${escCalc(row.name || 'Позиція')}</td>
+                <td>${Number(row.qty || 0)}</td>
+                <td>${money(Number(row.price) || 0)}</td>
+                <td>${money(Number(row.sum) || 0)}</td>
+              </tr>
+            `);
+          });
+        } else {
+          html.push(`
+            <tr>
+              <td>${escCalc(roomName)} — збережений підсумок</td>
+              <td>1</td>
+              <td>${money(Number(room.calculated) || 0)}</td>
+              <td>${money(Number(room.calculated) || 0)}</td>
+            </tr>
+          `);
+        }
+      });
+
+      body.innerHTML = html.join('');
+    }
+
+    const totalLine = document.getElementById('estimateTotal');
+    if (totalLine) {
+      totalLine.textContent = `Разом по об’єкту: ${money(totals.total)}`;
+    }
+  }
+
+  const originalRecalcObjectFix = window.recalc;
+  window.recalc = function recalcObjectFix() {
+    if (objectCalcMode) {
+      renderObjectCalculator();
+      return;
+    }
+    return originalRecalcObjectFix.apply(this, arguments);
+  };
+
+  const originalShowMainTabObjectFix = window.showMainTab;
+  window.showMainTab = function showMainTabObjectFix(name, button) {
+    const result = originalShowMainTabObjectFix.apply(this, arguments);
+
+    if (name === 'calc') {
+      ensureCalcModePanel();
+
+      if (forceRoomCalcOnce) {
+        forceRoomCalcOnce = false;
+        objectCalcMode = false;
+        updateCalcModeButtons();
+        originalRecalcObjectFix();
+      } else if (Array.isArray(projectRooms) && projectRooms.length > 1) {
+        objectCalcMode = true;
+        renderObjectCalculator();
+      } else {
+        objectCalcMode = false;
+        updateCalcModeButtons();
+        originalRecalcObjectFix();
+      }
+    }
+
+    return result;
+  };
+
+  if (typeof window.applyPlannerToCalc === 'function') {
+    const originalApplyPlannerToCalc = window.applyPlannerToCalc;
+    window.applyPlannerToCalc = function applyPlannerToCalcRoomMode() {
+      forceRoomCalcOnce = true;
+      objectCalcMode = false;
+      return originalApplyPlannerToCalc.apply(this, arguments);
+    };
+  }
+
+  if (typeof window.applyBindingsToCalculator === 'function') {
+    const originalApplyBindingsToCalculator = window.applyBindingsToCalculator;
+    window.applyBindingsToCalculator = function applyBindingsToCalculatorRoomMode() {
+      forceRoomCalcOnce = true;
+      objectCalcMode = false;
+      return originalApplyBindingsToCalculator.apply(this, arguments);
+    };
+  }
+
+  document.addEventListener('input', event => {
+    if (!event.target.closest('#tab_calc')) return;
+    if (event.target.closest('#calcModePanelObject')) return;
+    objectCalcMode = false;
+    updateCalcModeButtons();
+  }, true);
+
+  document.addEventListener('change', event => {
+    if (!event.target.closest('#tab_calc')) return;
+    if (event.target.closest('#calcModePanelObject')) return;
+    objectCalcMode = false;
+    updateCalcModeButtons();
+  }, true);
+
+  setTimeout(ensureCalcModePanel, 100);
 })();
 </script>
 
