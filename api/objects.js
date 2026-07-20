@@ -209,12 +209,12 @@ export default async function handler(req, res) {
           const key = firstPublication ? makeAccessKey() : '';
           const updated = { ...stripSecretKey(object), objectNumber, reviews:current.object_data?.reviews||object.reviews||[], serviceData:current.object_data?.serviceData||object.serviceData||{} };
           const row = await patchRow(cloudId, { ...baseFields(updated,status), ...(firstPublication?{access_key_hash:hashAccessKey(key)}:{}), client_view:publicView(updated,objectNumber,status) });
-          return json(res, 200, { created:false, accessKey:firstPublication?key:undefined, object:sanitizeServiceRow(row) });
+          return json(res, 200, { created:false, published:true, accessKey:firstPublication?key:undefined, object:sanitizeServiceRow(row) });
         }
         const objectNumber = object.objectNumber || await nextObjectNumber(), key = makeAccessKey();
         const updated = { ...stripSecretKey(object), objectNumber };
         const row = await insertRow({ object_number:objectNumber, access_key_hash:hashAccessKey(key), ...baseFields(updated,status), client_view:publicView(updated,objectNumber,status) });
-        return json(res, 201, { created:true, accessKey:key, object:sanitizeServiceRow(row) });
+        return json(res, 201, { created:true, published:true, accessKey:key, object:sanitizeServiceRow(row) });
       }
 
       return json(res, 400, { error:'Unknown action' });
@@ -234,4 +234,3 @@ export default async function handler(req, res) {
     return json(res,500,{error:error.message||'Server error'});
   }
 }
-
