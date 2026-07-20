@@ -373,6 +373,37 @@ th:nth-child(2),th:nth-child(3),th:nth-child(4),td:nth-child(2),td:nth-child(3),
 @media(max-width:430px){.client-access-steps73{grid-template-columns:repeat(5,minmax(58px,1fr));overflow-x:auto;padding-bottom:3px}.client-access-step73{min-width:58px}}
 </style>
 
+
+<style id="clientHistoryAccess74Styles">
+.history-login-actions74{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:12px}
+.history-login-actions74 .btn{min-height:46px}
+.client-access-modal74{position:fixed;inset:0;z-index:420;display:none;align-items:flex-end;justify-content:center;padding:12px;background:rgba(7,20,40,.66)}
+.client-access-modal74.open{display:flex}
+.client-access-sheet74{width:min(620px,100%);max-height:92vh;overflow:auto;background:#fff;border-radius:22px;padding:16px;box-shadow:0 30px 90px rgba(0,0,0,.36)}
+.client-access-head74{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:12px}
+.client-access-head74 h3{font-size:19px;line-height:1.2}
+.client-access-head74 p{font-size:9px;line-height:1.45;color:#64748b;margin-top:5px}
+.client-access-close74{width:40px;height:40px;flex:0 0 40px;border:1px solid #e5e7eb;background:#fff;border-radius:11px;font-size:21px}
+.client-access-summary74{border:1px solid #bfdbfe;background:#eff6ff;border-radius:13px;padding:11px;margin-bottom:12px}
+.client-access-summary74 b{display:block;font-size:11px;color:#075bff}
+.client-access-summary74 span{display:block;font-size:9px;color:#475569;line-height:1.45;margin-top:4px}
+.client-access-grid74{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.client-access-grid74 .full{grid-column:1/-1}
+.client-access-grid74 label{display:block;font-size:9px;font-weight:900;color:#334155;margin-bottom:4px}
+.client-access-grid74 input,.client-access-grid74 textarea{width:100%;border:1px solid #dbe3ef;border-radius:10px;padding:10px;background:#f8fafc;color:#0f172a;font-size:10px}
+.client-access-grid74 textarea{min-height:96px;resize:vertical}
+.client-access-actions74{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+.client-access-status74{display:none;margin-top:10px;border-radius:10px;padding:10px;font-size:9px;font-weight:850;line-height:1.45}
+.client-access-status74.show{display:block}
+.client-access-status74.ok{background:#ecfdf5;color:#047857;border:1px solid #a7f3d0}
+.client-access-status74.error{background:#fff1f2;color:#b91c1c;border:1px solid #fecdd3}
+@media(min-width:760px){.client-access-modal74{align-items:center}}
+@media(max-width:520px){
+  .history-login-actions74,.client-access-actions74,.client-access-grid74{grid-template-columns:1fr}
+  .client-access-grid74 .full{grid-column:auto}
+}
+</style>
+
 </head>
 <body>
 <header class="header"><div class="wrap nav"><a class="logo" href="../index.html">Potolok<span>.in.ua</span></a><div class="menu"><a href="../index.html">Головна</a><a href="../gallery.html">Наші роботи</a><a href="#app">Pixel 5</a></div><a class="phone" href="tel:+380974546713">097 454 67 13</a><a class="tg-top" href="https://t.me/Potolok_in_ua">Фото в TG</a></div></header>
@@ -6091,7 +6122,7 @@ setTimeout(()=>{updateRoomBaseUI47();updateSummary();renderRooms()},120);
 
       const operation=result.created?'Створено новий об’єкт':'Оновлено існуючий об’єкт';
       const savedTime=formatCloudTime71(row.updated_at||row.created_at||new Date().toISOString());
-      alert(`${operation} ${row.object_number || ''}.\n\nОстаннє збереження: ${savedTime}\nОб’єкт доступний у розділі «Адмін» та у захищеній «Історії».`);
+      alert(`${operation} ${row.object_number || ''}.\n\nОстаннє збереження: ${savedTime}\n\nЩоб отримати номер об’єкта та ключ доступу:\n1. Перейдіть у розділ «Історія».\n2. Натисніть «Увійти як клієнт».\n3. Надішліть запит адміністратору.`);
       return row;
     } catch (error) {
       if (window.saveStatus) saveStatus.textContent = 'Помилка хмарного збереження';
@@ -6306,7 +6337,7 @@ window.renderHistory=async function(){
  const list=document.getElementById('objectList');if(!list)return;
  if(!serviceToken58()){
    crmRows58=[];
-   list.innerHTML=`<div class="crm58-today"><b>🔒 Історія закрита</b><br>Об’єкти, адреси, телефони та ключі доступні тільки після входу адміністратора у вкладці «Адмін».</div><button class="btn blue btn-full" type="button" onclick="const b=[...document.querySelectorAll('.main-tab')].find(x=>x.getAttribute('onclick')?.includes('service'));if(b){showMainTab('service',b);renderService60()}">Увійти як адміністратор</button>`;
+   list.innerHTML=`<div class="crm58-today"><b>🔒 Захищена історія</b><br>Оберіть спосіб входу. Адміністратор відкриває службову історію, а клієнт може надіслати запит на номер об’єкта та персональний ключ.</div><div class="history-login-actions74"><button class="btn blue" type="button" onclick="const b=[...document.querySelectorAll('.main-tab')].find(x=>x.getAttribute('onclick')?.includes('service'));if(b){showMainTab('service',b);renderService60()}">🔒 Увійти як адміністратор</button><button class="btn green" type="button" onclick="openClientAccess74()">👤 Увійти як клієнт</button></div>`;
    return;
  }
  list.innerHTML='<div class="notice">Завантаження захищеної історії…</div>';
@@ -6985,6 +7016,144 @@ body.client-card-mode61 .ai-request-section{display:none!important}
   }
 
   setTimeout(()=>window.refreshClientPublishUI61?.(),350);
+})();
+</script>
+
+
+<div id="clientAccessModal74" class="client-access-modal74" aria-hidden="true">
+  <div class="client-access-sheet74" role="dialog" aria-modal="true" aria-labelledby="clientAccessTitle74">
+    <div class="client-access-head74">
+      <div>
+        <h3 id="clientAccessTitle74">🔑 Запит клієнта на номер об’єкта та ключ</h3>
+        <p>Після збереження плану надішліть адміністратору запит. Адміністратор перевірить об’єкт, створить особисту картку та передасть номер і персональний ключ.</p>
+      </div>
+      <button class="client-access-close74" type="button" onclick="closeClientAccess74()">×</button>
+    </div>
+    <div class="client-access-summary74">
+      <b id="clientAccessObject74">Збережений об’єкт: —</b>
+      <span>У запит автоматично додаються дата, час та дані поточного збереженого об’єкта.</span>
+    </div>
+    <div class="client-access-grid74">
+      <div>
+        <label>Дата запиту</label>
+        <input id="clientAccessDate74" type="text" readonly>
+      </div>
+      <div>
+        <label>Час запиту</label>
+        <input id="clientAccessTime74" type="text" readonly>
+      </div>
+      <div class="full">
+        <label>Коментар</label>
+        <textarea id="clientAccessComment74" placeholder="Наприклад: Я створив план кімнат. Прошу перевірити об’єкт та надати номер і ключ доступу."></textarea>
+      </div>
+    </div>
+    <div class="client-access-actions74">
+      <button class="btn outline" type="button" onclick="closeClientAccess74()">Скасувати</button>
+      <button class="btn green" type="button" onclick="sendClientAccessRequest74()">📨 Запросити номер і ключ</button>
+    </div>
+    <div id="clientAccessStatus74" class="client-access-status74"></div>
+  </div>
+</div>
+
+
+<script id="clientHistoryAccess74Script">
+(() => {
+  'use strict';
+
+  const esc74 = value => String(value ?? '').replace(/[&<>"']/g, ch => ({
+    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'
+  })[ch]);
+
+  function currentObjectInfo74(){
+    let object = {};
+    try { object = typeof collectObject === 'function' ? collectObject() : {}; } catch {}
+    let meta = {};
+    try {
+      const all = JSON.parse(localStorage.getItem('potolok_cloud_meta_v57') || '{}');
+      meta = all?.[object.id] || {};
+    } catch {}
+    return {
+      number: meta.objectNumber || object.objectNumber || '',
+      client: object.clientName || document.getElementById('clientName')?.value || '',
+      phone: object.clientPhone || document.getElementById('clientPhone')?.value || '',
+      address: object.objectAddress || document.getElementById('objectAddress')?.value || '',
+      rooms: Array.isArray(object.rooms) ? object.rooms.length : (Array.isArray(window.projectRooms) ? window.projectRooms.length : 0)
+    };
+  }
+
+  window.openClientAccess74 = function(){
+    const modal = document.getElementById('clientAccessModal74');
+    const now = new Date();
+    const info = currentObjectInfo74();
+
+    document.getElementById('clientAccessDate74').value = now.toLocaleDateString('uk-UA');
+    document.getElementById('clientAccessTime74').value = now.toLocaleTimeString('uk-UA', {hour:'2-digit', minute:'2-digit'});
+    document.getElementById('clientAccessObject74').textContent =
+      'Збережений об’єкт: ' + (info.number || 'номер буде підтверджено адміністратором');
+
+    const comment = document.getElementById('clientAccessComment74');
+    if(comment && !comment.value.trim()){
+      comment.value = 'Я створив та зберіг план кімнат. Прошу перевірити об’єкт, створити особисту картку та надати номер об’єкта і ключ доступу.';
+    }
+
+    const status = document.getElementById('clientAccessStatus74');
+    status.className = 'client-access-status74';
+    status.textContent = '';
+
+    modal.classList.add('open');
+    modal.setAttribute('aria-hidden','false');
+    document.body.style.overflow = 'hidden';
+  };
+
+  window.closeClientAccess74 = function(){
+    const modal = document.getElementById('clientAccessModal74');
+    modal?.classList.remove('open');
+    modal?.setAttribute('aria-hidden','true');
+    document.body.style.overflow = '';
+  };
+
+  window.sendClientAccessRequest74 = function(){
+    const info = currentObjectInfo74();
+    const date = document.getElementById('clientAccessDate74')?.value || '';
+    const time = document.getElementById('clientAccessTime74')?.value || '';
+    const comment = (document.getElementById('clientAccessComment74')?.value || '').trim();
+    const status = document.getElementById('clientAccessStatus74');
+
+    if(!comment){
+      status.className = 'client-access-status74 show error';
+      status.textContent = 'Додайте короткий коментар до запиту.';
+      return;
+    }
+
+    const message = [
+      '🔑 ЗАПИТ КЛІЄНТА НА ДОСТУП',
+      '',
+      `📅 Дата: ${date}`,
+      `🕒 Час: ${time}`,
+      info.number ? `📄 Збережений об’єкт: ${info.number}` : '📄 Об’єкт: номер очікує підтвердження',
+      info.client ? `👤 Клієнт: ${info.client}` : '',
+      info.phone ? `☎️ Телефон: ${info.phone}` : '',
+      info.address ? `📍 Адреса: ${info.address}` : '',
+      info.rooms ? `🏠 Кімнат у плані: ${info.rooms}` : '',
+      '',
+      `📝 Коментар: ${comment}`,
+      '',
+      'Прошу перевірити збережений об’єкт, створити особисту картку та надіслати номер об’єкта і персональний ключ.'
+    ].filter(Boolean).join('\n');
+
+    status.className = 'client-access-status74 show ok';
+    status.textContent = 'Запит сформовано. Зараз відкриється Telegram адміністратора.';
+    window.open('https://t.me/Potolok_in_ua?text=' + encodeURIComponent(message), '_blank', 'noopener');
+  };
+
+  document.addEventListener('click', event => {
+    const modal = document.getElementById('clientAccessModal74');
+    if(event.target === modal) closeClientAccess74();
+  });
+
+  document.addEventListener('keydown', event => {
+    if(event.key === 'Escape') closeClientAccess74();
+  });
 })();
 </script>
 
