@@ -423,8 +423,8 @@ th:nth-child(2),th:nth-child(3),th:nth-child(4),td:nth-child(2),td:nth-child(3),
   <div class="room-base-grid">
     <div class="room-base-item"><span>Зовнішні кути (авто)</span><b id="roomOuterAuto">0</b></div>
     <div class="room-base-item"><span>Внутрішні кути (авто)</span><b id="roomInnerAuto">0</b></div>
-    <label class="room-base-field"><span>Зовнішні — вручну</span><input id="roomOuterManual" type="number" min="0" step="1" placeholder="авто" oninput="updateRoomBase47()"></label>
-    <label class="room-base-field"><span>Внутрішні — вручну</span><input id="roomInnerManual" type="number" min="0" step="1" placeholder="авто" oninput="updateRoomBase47()"></label>
+    <label class="room-base-field"><span>Зовнішні — вручну (замість авто)</span><input id="roomOuterManual" type="number" min="0" step="1" placeholder="авто" oninput="updateRoomBase47()"></label>
+    <label class="room-base-field"><span>Внутрішні — вручну (замість авто)</span><input id="roomInnerManual" type="number" min="0" step="1" placeholder="авто" oninput="updateRoomBase47()"></label>
     <label class="room-base-field room-base-wide"><span>Декоративна вставка</span><select id="objectInsert47" onchange="updateRoomInsert47(this.value)"><option value="none">Відсутня</option><option value="white">Біла</option><option value="black">Чорна</option></select></label>
   </div>
   <div class="room-base-result">У розрахунок: <b id="roomCornersFinal">0 кутів</b> • <b id="roomInsertFinal">без вставки</b></div>
@@ -888,6 +888,15 @@ let rotationDragIndex=-1,rotationStartAngle=0,rotationBase=0,resizeDragIndex=-1;
 let projectRooms=[],activeRoomId=null,roomSyncLock=false;
 
 function money(n){return Math.round(n).toLocaleString('uk-UA')+' грн'}
+function minimumOrderApplies(){return projectRooms.length<=1}
+function priceWithObjectRule(calculated){return minimumOrderApplies()?Math.max(Number(calculated)||0,5000):(Number(calculated)||0)}
+function applyMinimumOrderRule(){
+  const oneRoom=minimumOrderApplies();
+  projectRooms.forEach(room=>{
+    const calculated=Number(room.calculated)||0;
+    room.total=oneRoom?Math.max(calculated,5000):calculated;
+  });
+}
 function num(id){return Number(document.getElementById(id)?.value)||0}
 function showMainTab(name,btn){document.querySelectorAll('.main-tab').forEach(b=>b.classList.remove('active'));btn.classList.add('active');document.querySelectorAll('.page-section').forEach(s=>s.classList.remove('active'));document.getElementById('tab_'+name).classList.add('active')}
 function initManufacturers(){manufacturerFilter.innerHTML='<option value="all">Усі виробники</option>'+MANUFACTURERS.map(m=>`<option>${m}</option>`).join('')}
@@ -904,7 +913,25 @@ function toggleProfile(id){const card=document.getElementById('profile_'+id),f=d
 function renderCalcOptions(){calcOptions.innerHTML=EXTRA_ITEMS.filter(i=>!i.always).map(i=>`<div class="option-card"><div class="option-top"><label class="option-check"><input id="check_${i.id}" type="checkbox" onchange="toggleExtra('${i.id}')">${i.name}</label><span class="price-label">${money(i.price)} / ${i.unit}</span></div><div id="fields_${i.id}" class="option-fields hidden"><div class="field"><label>Кількість</label><input id="qty_${i.id}" type="number" value="1" step="0.1" oninput="recalc()"></div><div class="field"><label>Од.</label><input value="${i.unit}" disabled></div></div></div>`).join('')}
 function toggleExtra(id){const c=document.getElementById('check_'+id),f=document.getElementById('fields_'+id);f.classList.toggle('hidden',!c.checked);if(c.checked){if(['insert','film'].includes(id))document.getElementById('qty_'+id).value=num('perimeter');if(['demontage','height'].includes(id))document.getElementById('qty_'+id).value=num('area');if(['cable','ledStrip'].includes(id))document.getElementById('qty_'+id).value=num('perimeter');if(id==='cornerWork')document.getElementById('qty_'+id).value=num('cornersCount');if(id==='spots')document.getElementById('qty_'+id).value=6}recalc();autosave()}
 function currentRows(){const rows=[];EXTRA_ITEMS.forEach(i=>{let active=i.always||document.getElementById('check_'+i.id)?.checked;if(!active)return;let q=i.qty?num(i.qty):num('qty_'+i.id);if(q<=0)return;let item={...i};if(i.id==='base'){item.price=calcTexturePrice();item.name=`Полотно ${calcManufacturerLabel()} — ${calcTextureLabel()}`;}rows.push({...item,qty:q,sum:q*item.price})});PROFILE_ITEMS.forEach(p=>{if(document.getElementById('profile_'+p.id)?.classList.contains('active')){const q=num('qty_profile_'+p.id);if(q>0)rows.push({...p,qty:q,sum:q*p.price})}});return rows}
-function recalc(){const rows=currentRows(),calculated=rows.reduce((s,r)=>s+r.sum,0),total=Math.max(calculated,5000);priceValue.textContent=money(total);bottomPrice.textContent=money(total);priceDetails.innerHTML=`<b>Розраховано:</b> ${money(calculated)}<br><b>Мінімальне замовлення:</b> 5 000 грн${calculated<5000?'<br><b>До сплати:</b> 5 000 грн':''}`;estimateBody.innerHTML=rows.map(r=>`<tr><td>${r.name}</td><td>${r.qty}</td><td>${money(r.price)}</td><td>${money(r.sum)}</td></tr>`).join('');if(calculated<5000)estimateBody.innerHTML+=`<tr><td><b>Доплата до мінімального замовлення</b></td><td>1</td><td>${money(5000-calculated)}</td><td>${money(5000-calculated)}</td></tr>`;estimateTotal.textContent='Разом до сплати: '+money(total);summaryArea.textContent=num('area')+' м²';summaryPerimeter.textContent=num('perimeter')+' м';autosave()}
+function recalc(){
+  const rows=currentRows();
+  const calculated=rows.reduce((s,r)=>s+r.sum,0);
+  const minimumActive=minimumOrderApplies();
+  const total=priceWithObjectRule(calculated);
+  priceValue.textContent=money(total);
+  bottomPrice.textContent=money(total);
+  priceDetails.innerHTML=minimumActive
+    ? `<b>Розраховано:</b> ${money(calculated)}<br><b>Мінімальне замовлення:</b> 5 000 грн${calculated<5000?'<br><b>До сплати:</b> 5 000 грн':''}`
+    : `<b>Розраховано:</b> ${money(calculated)}<br><b>Мінімальне замовлення:</b> не застосовується — в об’єкті ${projectRooms.length} кімн.`;
+  estimateBody.innerHTML=rows.map(r=>`<tr><td>${r.name}</td><td>${r.qty}</td><td>${money(r.price)}</td><td>${money(r.sum)}</td></tr>`).join('');
+  if(minimumActive&&calculated<5000){
+    estimateBody.innerHTML+=`<tr><td><b>Доплата до мінімального замовлення</b></td><td>1</td><td>${money(5000-calculated)}</td><td>${money(5000-calculated)}</td></tr>`;
+  }
+  estimateTotal.textContent='Разом до сплати: '+money(total);
+  summaryArea.textContent=num('area')+' м²';
+  summaryPerimeter.textContent=num('perimeter')+' м';
+  autosave();
+}
 function updateAISpec(){specManufacturer.textContent=selectedColor.manufacturer;specColor.textContent=selectedColor.name;specTexture.textContent=textureLabel();const a=AI_OPTIONS.filter(o=>document.getElementById('ai_'+o.id)?.checked).map(o=>o.name);specElements.textContent=a.length?a.join(', '):'не вибрано'}
 async function handlePhotoInput(input){
   const file=input.files&&input.files[0];if(!file)return;
@@ -924,7 +951,7 @@ function compressImage(file,maxSide=1600,quality=.78,maxBytes=950000){return new
 async function generateAI(){if(!uploadedImageBase64){alert('Спочатку завантажте фото кімнати.');return}loader.style.display='block';apiError.style.display='none';const options=AI_OPTIONS.filter(o=>document.getElementById('ai_'+o.id)?.checked).map(o=>o.name);try{const response=await fetch('/api/ai-ceiling',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({imageBase64:uploadedImageBase64,manufacturer:selectedColor.manufacturer,color:selectedColor.name,colorHex:selectedColor.hex,material:selectedTexture,options,customRequest:customPrompt.value.trim(),instruction:'Зберегти геометрію кімнати, стіни, підлогу, вікна та двері. Змінювати лише стелю і вибрані елементи. Реалістична перспектива та освітлення.'})});const data=await response.json().catch(()=>({}));if(!response.ok)throw new Error(data.error||'API '+response.status);if(!data.image)throw new Error('API не повернув поле image');resultImageWrap.innerHTML=`<img src="${data.image}" alt="AI result">`;downloadBtn.href=data.image;autosave()}catch(e){apiError.textContent='AI не запущено: '+e.message+'. Калькулятор і кошторис працюють. Для AI треба оновити серверний /api/ai-ceiling, щоб він приймав нові параметри.';apiError.style.display='block'}finally{loader.style.display='none'}}
 function clearResult(){resultImageWrap.textContent='Завантажте фото, оберіть матеріал і додаткові елементи, потім запустіть AI.';downloadBtn.href='#'}
 function shareCurrent(){navigator.clipboard?.writeText(location.href);alert('Посилання скопійовано')}
-function collectObject(){return{id:activeObjectId||Date.now().toString(),clientName:clientName.value,clientPhone:clientPhone.value,address:objectAddress.value,date:measureDate.value,height:ceilingHeight.value,comment:objectComment.value,photo:uploadedImageBase64,area:num('area'),perimeter:num('perimeter'),corners:num('cornersCount'),chandeliers:num('chandelierCount'),color:selectedColor,texture:selectedTexture,prompt:customPrompt.value,planner:{points:roomPoints,objects:plannerObjects,template:roomTemplate,segments:segmentLengths},rows:currentRows(),total:Math.max(currentRows().reduce((s,r)=>s+r.sum,0),5000),savedAt:new Date().toISOString()}}
+function collectObject(){return{id:activeObjectId||Date.now().toString(),clientName:clientName.value,clientPhone:clientPhone.value,address:objectAddress.value,date:measureDate.value,height:ceilingHeight.value,comment:objectComment.value,photo:uploadedImageBase64,area:num('area'),perimeter:num('perimeter'),corners:num('cornersCount'),chandeliers:num('chandelierCount'),color:selectedColor,texture:selectedTexture,prompt:customPrompt.value,planner:{points:roomPoints,objects:plannerObjects,template:roomTemplate,segments:segmentLengths},rows:currentRows(),total:priceWithObjectRule(currentRows().reduce((s,r)=>s+r.sum,0)),savedAt:new Date().toISOString()}}
 function updateSummary(){summaryClient.textContent=clientName.value||'—';summaryPhone.textContent=clientPhone.value||'—';summaryAddress.textContent=objectAddress.value||'—';summaryDate.textContent=measureDate.value||'—';summaryArea.textContent=num('area')+' м²';summaryPerimeter.textContent=num('perimeter')+' м'}
 function autosave(){updateSummary();localStorage.setItem('potolok_pixel5_draft',JSON.stringify(collectObject()));saveStatus.textContent='Чернетку збережено'}
 function saveObject(){const o=collectObject(),list=JSON.parse(localStorage.getItem('potolok_pixel5_objects')||'[]'),idx=list.findIndex(x=>x.id===o.id);if(idx>=0)list[idx]=o;else list.unshift(o);localStorage.setItem('potolok_pixel5_objects',JSON.stringify(list));activeObjectId=o.id;saveStatus.textContent='Об’єкт збережено';renderHistory();alert('Об’єкт збережено')}
@@ -1040,7 +1067,7 @@ function captureCurrentRoom(){
     ai:checkedMap('ai_',AI_OPTIONS),
     rows:deepCopy(currentRows()),
     calculated:currentCalculatedTotal(),
-    total:Math.max(currentCalculatedTotal(),5000),
+    total:priceWithObjectRule(currentCalculatedTotal()),
     updatedAt:new Date().toISOString()
   };
 }
@@ -1169,10 +1196,11 @@ function objectMetrics(){
   const area=projectRooms.reduce((s,r)=>s+(Number(r.area)||0),0);
   const perimeter=projectRooms.reduce((s,r)=>s+(Number(r.perimeter)||0),0);
   const calculated=projectRooms.reduce((s,r)=>s+(Number(r.calculated)||0),0);
-  return{area,perimeter,calculated,total:Math.max(calculated,5000)};
+  applyMinimumOrderRule();return{area,perimeter,calculated,total:priceWithObjectRule(calculated)};
 }
 function renderRooms(){
   if(!roomList)return;
+  applyMinimumOrderRule();
   roomCountBadge.textContent=projectRooms.length+' кімн.';
   currentRoomLabel.textContent=projectRooms.find(r=>r.id===activeRoomId)?.name||'—';
   plannerRoomLabel.textContent=(projectRooms.find(r=>r.id===activeRoomId)?.name||'Кімната')+' • A–B–C…';
@@ -1180,7 +1208,7 @@ function renderRooms(){
     <div class="room-card ${r.id===activeRoomId?'active':''}">
       <div onclick="selectRoom('${r.id}')">
         <b>${r.name||'Кімната'}</b>
-        <span>${Number(r.area||0).toFixed(2)} м² • ${Number(r.perimeter||0).toFixed(2)} м • ${money(r.total||0)}</span>
+        <span>${Number(r.area||0).toFixed(2)} м² • ${Number(r.perimeter||0).toFixed(2)} м • ${money(minimumOrderApplies()?Math.max(Number(r.calculated)||0,5000):(Number(r.calculated)||0))}</span>
       </div>
       <div class="room-card-actions">
         <button type="button" onclick="selectRoom('${r.id}')">Відкрити</button>
@@ -1197,7 +1225,7 @@ function objectMetricsNoSync(){
   const area=projectRooms.reduce((s,r)=>s+(Number(r.area)||0),0);
   const perimeter=projectRooms.reduce((s,r)=>s+(Number(r.perimeter)||0),0);
   const calculated=projectRooms.reduce((s,r)=>s+(Number(r.calculated)||0),0);
-  return{area,perimeter,calculated,total:Math.max(calculated,5000)};
+  applyMinimumOrderRule();return{area,perimeter,calculated,total:priceWithObjectRule(calculated)};
 }
 function collectObject(){
   syncActiveRoomFromUI(false);
@@ -4754,7 +4782,7 @@ function classifyCorners47(template,segments){
     if(Math.abs(cross)<1e-7)continue;
     if(cross*orient>0)outer++;else inner++;
   }
-  return{outer,inner};
+  return{outer:inner,inner:outer};
 }
 function roomCornerData47(room){
   const auto=classifyCorners47(room?.planner?.template||'rect',room?.planner?.segments||templateDefaults(room?.planner?.template||'rect'));
