@@ -6304,9 +6304,19 @@ window.openServiceClientCard58=async function(id){
   const rooms=Array.isArray(v.rooms)?v.rooms:[];set('clientRoomCount56',rooms.length+' кімн.');
   const roomList=document.getElementById('clientRoomList56');if(roomList)roomList.innerHTML=rooms.length?rooms.map((room,index)=>`<div class=\"client-room-card56\"><b>${esc58(room.name||room.roomName||('Кімната '+(index+1)))}</b><span>${Number(room.area||room.metrics?.area||0).toFixed(2)} м² • ${Number(room.perimeter||room.metrics?.perimeter||0).toFixed(2)} м</span></div>`).join(''):'<div class=\"notice\">Кімнати ще не додані.</div>';
   document.getElementById('clientLoginCard56')?.classList.add('hidden');document.getElementById('clientObjectCard56')?.classList.add('show');
+  if(typeof enhanceClient60==='function')enhanceClient60(v);
   const tab=[...document.querySelectorAll('.main-tab')].find(x=>x.getAttribute('onclick')?.includes('clientcard'));if(tab)showMainTab('clientcard',tab);
   window.scrollTo({top:0,behavior:'smooth'});
- }catch(e){alert('Не вдалося відкрити особисту картку: '+e.message)}
+ }catch(e){
+  const message=String(e.message||'');
+  if(/ще не створено|не створено/i.test(message)){
+    if(confirm('Особисту картку ще не опубліковано. Відкрити об’єкт для публікації?')){
+      await window.openCloudObject56?.(id);
+    }
+    return;
+  }
+  alert('Не вдалося відкрити особисту картку: '+message)
+ }
 };
 
 window.openCloudObject56=async function(id){
@@ -6486,7 +6496,7 @@ async function loadService60(){const root=document.getElementById('serviceRoot60
 function obj60(r){return r.object_data&&typeof r.object_data==='object'?r.object_data:{}}
 function renderServiceList60(filter=''){const root=document.getElementById('serviceRoot60');const q=filter.toLowerCase();const rows=serviceRows60.filter(r=>{const o=obj60(r);return [r.object_number,o.clientName,o.address,o.clientPhone].join(' ').toLowerCase().includes(q)});root.innerHTML=`<div class="p60-shell"><div class="p60-head"><div><h2>🔒 Панель майстра</h2><div class="p60-note">Ключі, оплата, монтаж, кошториси та відгуки.</div></div><button class="p60-btn" onclick="serviceLogout60()">Вийти</button></div><input class="p60-search" placeholder="Пошук: номер, клієнт, адреса" oninput="renderServiceList60(this.value)"><div>${rows.length?rows.map(serviceCard60).join(''):'<div class="p60-note">Нічого не знайдено.</div>'}</div></div>`}
 window.renderServiceList60=renderServiceList60;
-function serviceCard60(r){const o=obj60(r);return `<div class="p60-object" id="serviceObject60_${e60(r.id)}"><div class="p60-object-top"><div><b>${e60(r.object_number||'Без номера')} · ${e60(o.clientName||'Без імені')}</b><small>📍 ${e60(o.address||'—')}<br>📞 ${e60(o.clientPhone||'—')} · Статус: ${e60(o.cloudStatus||r.status||'new')}</small></div><span class="p60-key">🔐 приховано</span></div><div class="p60-actions"><button onclick="regenerateServiceKey60('${r.id}','${e60(r.object_number||'')}')">♻️ Новий ключ</button><button onclick="editServiceObject60('${r.id}')">✏️ Дані</button><button onclick="serviceEstimate60('${r.id}')">💰 Кошторис</button><button onclick="serviceReviews60('${r.id}')">⭐ Відгуки</button><button onclick="openServiceClientCard60('${r.id}')">🔐 Картка</button><button onclick="openCloudObject56('${r.id}')">📂 Об’єкт</button></div><button class="p60-delete-object" id="deleteService60_${e60(r.id)}" onclick="deleteServiceObject60('${r.id}','${e60(r.object_number||'Без номера')}')">🗑 Видалити об’єкт</button></div>`}
+function serviceCard60(r){const o=obj60(r),published=!!(r?.client_view&&typeof r.client_view==='object'&&String(r.client_view.objectNumber||'').trim());return `<div class="p60-object" id="serviceObject60_${e60(r.id)}"><div class="p60-object-top"><div><b>${e60(r.object_number||'Без номера')} · ${e60(o.clientName||'Без імені')}</b><small>📍 ${e60(o.address||'—')}<br>📞 ${e60(o.clientPhone||'—')} · Статус: ${e60(o.cloudStatus||r.status||'new')}</small></div><span class="p60-key ${published?'published':''}">${published?'🟢 опубліковано':'🔒 приховано'}</span></div><div class="p60-actions"><button onclick="regenerateServiceKey60('${r.id}','${e60(r.object_number||'')}')">♻️ Новий ключ</button><button onclick="editServiceObject60('${r.id}')">✏️ Дані</button><button onclick="serviceEstimate60('${r.id}')">💰 Кошторис</button><button onclick="serviceReviews60('${r.id}')">⭐ Відгуки</button><button onclick="openServiceClientCard60('${r.id}')">${published?'👁 Картка':'🔐 Створити картку'}</button><button onclick="openCloudObject56('${r.id}')">📂 Об’єкт</button></div><button class="p60-delete-object" id="deleteService60_${e60(r.id)}" onclick="deleteServiceObject60('${r.id}','${e60(r.object_number||'Без номера')}')">🗑 Видалити об’єкт</button></div>`}
 window.copyKey60=async(n,k)=>{const t=`Potolok.in.ua\nНомер: ${n}\nКлюч: ${k}`;try{await navigator.clipboard.writeText(t);alert('Скопійовано')}catch{prompt('Скопіюйте:',t)}};
 window.regenerateServiceKey60=async (id,number='')=>{if(!confirm('Старий ключ перестане працювати. Продовжити?'))return;try{const d=await api60({action:'regenerateAccessKey',cloudId:id});const key=d.accessKey||'';openModal60('✅ Новий ключ',`<div class="p60-keybox"><span>Номер об’єкта</span><b>${e60(number||d.objectNumber||'—')}</b></div><div class="p60-keybox"><span>Показано один раз</span><b>${e60(key)}</b></div><div class="p60-actions"><button onclick="copyKey60('${e60(number||d.objectNumber||'')}','${e60(key)}')">📋 Копіювати</button><button class="blue" onclick="closeModal60()">Готово</button></div>`);await loadService60()}catch(e){alert(e.message)}};
 window.openServiceClientCard60=id=>window.openServiceClientCard58?.(id);
@@ -6788,6 +6798,80 @@ injectTabs60();setTimeout(injectTabs60,400);
   }, true);
 
   setTimeout(ensureCalcModePanel, 100);
+})();
+</script>
+
+
+<style id="pixel61PolishStyles">
+.p60-key.published{color:#15803d;background:#dcfce7;border:1px solid #86efac;border-radius:999px;padding:6px 9px;font-family:Arial,sans-serif;font-size:9px;letter-spacing:0}
+.client-room-card56,.p60-room-click{transition:.18s ease}.client-room-card56:active,.p60-room-click:active{transform:scale(.99)}
+.client-published-badge61{display:inline-flex;align-items:center;gap:6px;margin-top:8px;border:1px solid #86efac;background:#dcfce7;color:#15803d;border-radius:999px;padding:7px 10px;font-size:9px;font-weight:950}
+body.client-card-mode61 .ai-request-section{display:none!important}
+</style>
+<script id="pixel61PolishScript">
+(()=>{
+  'use strict';
+  const META='potolok_pixel54_cloud_meta';
+  function readMeta(){try{return JSON.parse(localStorage.getItem(META)||'{}')||{}}catch{return{}}}
+  async function currentObject61(){
+    try{
+      if(typeof collectObject==='function')return collectObject();
+    }catch{}
+    return null;
+  }
+  window.refreshClientPublishUI61=async function(object=null){
+    const o=object||await currentObject61();
+    const btn=document.getElementById('publishClientCardBtn56');
+    const status=document.getElementById('publishClientCardStatus56');
+    if(!btn||!o)return;
+    const known=readMeta()[o.id]||{};
+    const published=!!(o.clientPublished||known.clientPublished);
+    btn.textContent=published?'🔄 Оновити особисту картку':'☁️ Зберегти в особисту картку';
+    btn.dataset.published=published?'1':'0';
+    if(published&&status&&!status.classList.contains('show')){
+      status.textContent=`🟢 Особиста картка ${known.objectNumber||o.objectNumber||''} активна`;
+      status.className='client-publish-status56 show ok';
+    }
+  };
+
+  const originalPublish=window.publishClientCard56;
+  if(typeof originalPublish==='function'){
+    window.publishClientCard56=async function(){
+      const result=await originalPublish.apply(this,arguments);
+      await window.refreshClientPublishUI61();
+      return result;
+    };
+  }
+
+  const originalLoad=window.loadObject;
+  if(typeof originalLoad==='function'){
+    window.loadObject=async function(){
+      const result=await originalLoad.apply(this,arguments);
+      setTimeout(()=>window.refreshClientPublishUI61?.(),30);
+      return result;
+    };
+  }
+
+  const originalShow=window.showMainTab;
+  if(typeof originalShow==='function'){
+    window.showMainTab=function(name,button){
+      const result=originalShow.apply(this,arguments);
+      document.body.classList.toggle('client-card-mode61',name==='clientcard');
+      if(name==='object')setTimeout(()=>window.refreshClientPublishUI61?.(),20);
+      return result;
+    };
+  }
+
+  const originalClose=window.closeClientObject56;
+  if(typeof originalClose==='function'){
+    window.closeClientObject56=function(){
+      const result=originalClose.apply(this,arguments);
+      currentClientView60=null;
+      return result;
+    };
+  }
+
+  setTimeout(()=>window.refreshClientPublishUI61?.(),350);
 })();
 </script>
 
