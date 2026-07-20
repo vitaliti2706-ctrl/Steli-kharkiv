@@ -75,6 +75,14 @@ function hasPublishedClientView(row) {
     String(row.client_view.objectNumber || '').trim()
   );
 }
+function stripSecretKey(object) {
+  if (!object || typeof object !== 'object') return {};
+  const { _clientAccessKey, ...safe } = object;
+  return safe;
+}
+function sanitizeServiceRow(row) {
+  return row ? { ...row, object_data: stripSecretKey(row.object_data) } : row;
+}
 
 export default async function handler(req, res) {
   if (!SUPABASE_URL || !SUPABASE_SECRET_KEY) return json(res, 500, { error:'Supabase environment variables are missing' });
@@ -87,9 +95,7 @@ export default async function handler(req, res) {
         reviews.sort((a,b)=>String(b.createdAt||'').localeCompare(String(a.createdAt||'')));
         return json(res, 200, { reviews });
       }
-      const id = String(req.query?.id || '').trim();
-      const rows = await sb(id ? `objects?id=eq.${encodeURIComponent(id)}&select=*` : 'objects?select=*&order=updated_at.desc');
-      return json(res, 200, id ? { object:rows?.[0]||null } : { objects:rows||[] });
+      return json(res, 401, { error:'Приватні дані доступні лише у службовому розділі.' });
     }
 
     if (req.method === 'POST') {
@@ -103,7 +109,7 @@ export default async function handler(req, res) {
       }
       if (action === 'serviceList') {
         if (!verifyServiceToken(req)) return json(res, 401, { error:'Службова сесія завершена. Увійдіть знову.' });
-        return json(res, 200, { objects:await sb('objects?select=*&order=updated_at.desc') || [] });
+        const rows = await sb('objects?select=*&order=updated_at.desc') || []; return json(res, 200, { objects:rows.map(sanitizeServiceRow) });
       }
       if (action === 'clientLogin') {
         const row = await validateClient(body.objectNumber, body.accessKey);
@@ -123,22 +129,23 @@ export default async function handler(req, res) {
       }
 
       const cloudId = String(body.cloudId || '').trim();
-      const protectedActions = ['serviceUpdate','moderateReview'];
+      const protectedActions = ['updateStatus','clientData','regenerateAccessKey','addScheduleEvent','deleteScheduleEvent','serviceUpdate','moderateReview','serviceClientView'];
       if (protectedActions.includes(action) && !verifyServiceToken(req)) return json(res, 401, { error:'Немає службового доступу.' });
 
-      if (['updateStatus','clientData','regenerateAccessKey','addScheduleEvent','deleteScheduleEvent','serviceUpdate','moderateReview'].includes(action)) {
+      if (['updateStatus','clientData','regenerateAccessKey','addScheduleEvent','deleteScheduleEvent','serviceUpdate','moderateReview','serviceClientView'].includes(action)) {
         if (!cloudId) return json(res, 400, { error:'cloudId is required' });
         const current = await getRow(cloudId); if (!current) return json(res, 404, { error:'Object not found' });
-        const object = current.object_data && typeof current.object_data === 'object' ? current.object_data : {};
+        const object = stripSecretKey(current.object_data && typeof current.object_data === 'object' ? current.object_data : {});
         if (action === 'updateStatus') {
           const nextStatus = String(body.status || 'new'), next = { ...object, cloudStatus:nextStatus };
           return json(res, 200, { object:await patchRow(cloudId, { status:dbStatus(nextStatus), object_data:next, client_view:hasPublishedClientView(current) ? publicView(next,current.object_number,nextStatus) : {} }) });
         }
-        if (action === 'clientData') return json(res, 200, { objectNumber:current.object_number, accessKey:object._clientAccessKey||'', published:hasPublishedClientView(current) });
+        if (action === 'clientData') return json(res, 200, { objectNumber:current.object_number, published:hasPublishedClientView(current) });
+        if (action === 'serviceClientView') { if (!hasPublishedClientView(current)) return json(res, 404, { error:'Особисту картку ще не створено.' }); return json(res, 200, { object:current.client_view }); }
         if (action === 'regenerateAccessKey') {
-          const key = makeAccessKey(), next = { ...object, _clientAccessKey:key };
+          const key = makeAccessKey(), next = stripSecretKey(object);
           const row = await patchRow(cloudId, { access_key_hash:hashAccessKey(key), object_data:next, client_view:publicView(next,current.object_number,next.cloudStatus||current.status||'new') });
-          return json(res, 200, { accessKey:key, object:row });
+          return json(res, 200, { objectNumber:current.object_number, accessKey:key, object:sanitizeServiceRow(row) });
         }
         if (action === 'addScheduleEvent') {
           const event = body.event; if (!event?.date) return json(res, 400, { error:'Valid event is required' });
@@ -170,7 +177,7 @@ export default async function handler(req, res) {
         if (cloudId) {
           const current = await getRow(cloudId); if (!current) return json(res, 404, { error:'Object not found' });
           const objectNumber = current.object_number || object.objectNumber || await nextObjectNumber();
-          const updated = { ...object, objectNumber, _clientAccessKey:current.object_data?._clientAccessKey || object._clientAccessKey };
+          const updated = { ...stripSecretKey(object), objectNumber };
           const row = await patchRow(cloudId, {
             ...baseFields(updated,status),
             client_view:hasPublishedClientView(current) ? publicView(updated,objectNumber,status) : {}
@@ -180,7 +187,7 @@ export default async function handler(req, res) {
 
         const objectNumber = object.objectNumber || await nextObjectNumber();
         const key = makeAccessKey();
-        const updated = { ...object, objectNumber, _clientAccessKey:key };
+        const updated = { ...stripSecretKey(object), objectNumber };
 
         return json(res, 201, {
           created:true,
@@ -198,21 +205,23 @@ export default async function handler(req, res) {
         if (cloudId) {
           const current = await getRow(cloudId); if (!current) return json(res, 404, { error:'Object not found' });
           const objectNumber = current.object_number || object.objectNumber || await nextObjectNumber();
-          let key = current.object_data?._clientAccessKey || '', hash = '';
-          if (!current.access_key_hash || !key) { key = makeAccessKey(); hash = hashAccessKey(key); }
-          const updated = { ...object, objectNumber, _clientAccessKey:key, reviews:current.object_data?.reviews||object.reviews||[], serviceData:current.object_data?.serviceData||object.serviceData||{} };
-          const row = await patchRow(cloudId, { ...baseFields(updated,status), ...(hash?{access_key_hash:hash}:{}), client_view:publicView(updated,objectNumber,status) });
-          return json(res, 200, { created:false, accessKey:hash?key:undefined, object:row });
+          const firstPublication = !hasPublishedClientView(current);
+          const key = firstPublication ? makeAccessKey() : '';
+          const updated = { ...stripSecretKey(object), objectNumber, reviews:current.object_data?.reviews||object.reviews||[], serviceData:current.object_data?.serviceData||object.serviceData||{} };
+          const row = await patchRow(cloudId, { ...baseFields(updated,status), ...(firstPublication?{access_key_hash:hashAccessKey(key)}:{}), client_view:publicView(updated,objectNumber,status) });
+          return json(res, 200, { created:false, accessKey:firstPublication?key:undefined, object:sanitizeServiceRow(row) });
         }
         const objectNumber = object.objectNumber || await nextObjectNumber(), key = makeAccessKey();
-        const updated = { ...object, objectNumber, _clientAccessKey:key };
-        return json(res, 201, { created:true, accessKey:key, object:await insertRow({ object_number:objectNumber, access_key_hash:hashAccessKey(key), ...baseFields(updated,status), client_view:publicView(updated,objectNumber,status) }) });
+        const updated = { ...stripSecretKey(object), objectNumber };
+        const row = await insertRow({ object_number:objectNumber, access_key_hash:hashAccessKey(key), ...baseFields(updated,status), client_view:publicView(updated,objectNumber,status) });
+        return json(res, 201, { created:true, accessKey:key, object:sanitizeServiceRow(row) });
       }
 
       return json(res, 400, { error:'Unknown action' });
     }
 
     if (req.method === 'DELETE') {
+      if (!verifyServiceToken(req)) return json(res, 401, { error:'Немає службового доступу.' });
       const id = String(req.query?.id || '').trim(); if (!id) return json(res, 400, { error:'id is required' });
       await sb(`objects?id=eq.${encodeURIComponent(id)}`, { method:'DELETE' });
       return json(res, 200, { ok:true });
@@ -225,3 +234,4 @@ export default async function handler(req, res) {
     return json(res,500,{error:error.message||'Server error'});
   }
 }
+
