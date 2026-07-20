@@ -7703,6 +7703,183 @@ body.client-card-mode61 .ai-request-section{display:none!important}
 })();
 </script>
 
+
+<script id="workflowState78Script">
+(() => {
+  'use strict';
+
+  const LAST_ACCESS_OBJECT78 = 'potolok_last_access_object_v78';
+
+  function normalizeSaved78(result){
+    const row = result?.object && typeof result.object === 'object'
+      ? result.object
+      : (result && typeof result === 'object' ? result : {});
+
+    return {
+      cloudId: row.id || result?.cloudId || '',
+      objectNumber: row.object_number || row.objectNumber || result?.objectNumber || '',
+      clientName: row.client_name || row.object_data?.clientName || '',
+      clientPhone: row.client_phone || row.object_data?.clientPhone || '',
+      address: row.address || row.object_data?.address || '',
+      rooms: Array.isArray(row.object_data?.rooms) ? row.object_data.rooms.length : 0,
+      savedAt: row.updated_at || row.created_at || new Date().toISOString()
+    };
+  }
+
+  function saveAccessObject78(info){
+    window.__lastAccessObject78 = info;
+    try { localStorage.setItem(LAST_ACCESS_OBJECT78, JSON.stringify(info)); } catch {}
+  }
+
+  function readAccessObject78(){
+    if(window.__lastAccessObject78?.objectNumber) return window.__lastAccessObject78;
+    try {
+      const stored = JSON.parse(localStorage.getItem(LAST_ACCESS_OBJECT78) || '{}');
+      if(stored?.objectNumber) return stored;
+    } catch {}
+    return {};
+  }
+
+  function historyTab78(){
+    return [...document.querySelectorAll('.main-tab')]
+      .find(btn => btn.getAttribute('onclick')?.includes("'history'"));
+  }
+
+  function setWorkflow78(text, type='ok'){
+    const box = document.getElementById('autoWorkflowStatus76');
+    if(!box) return;
+    box.className = 'workflow-status76 show ' + type;
+    box.textContent = text;
+  }
+
+  window.autoClientWorkflow76 = async function(){
+    const button = document.getElementById('autoClientWorkflowBtn76');
+    if(button?.classList.contains('working76')) return;
+
+    const originalText = button?.textContent || '';
+    if(button){
+      button.classList.add('working76');
+      button.textContent = '⏳ Зберігаємо…';
+    }
+
+    try {
+      setWorkflow78('1/3 Зберігаємо кімнату…');
+      if(typeof saveCurrentRoom !== 'function') throw new Error('Функція збереження кімнати недоступна');
+      saveCurrentRoom();
+
+      setWorkflow78('2/3 Створюємо об’єкт і отримуємо номер…');
+      if(typeof saveCloudHistory56 !== 'function') throw new Error('Функція хмарного збереження недоступна');
+
+      const originalAlert = window.alert;
+      window.alert = function(message){
+        const text = String(message || '');
+        if(
+          text.includes('Створено новий об’єкт') ||
+          text.includes('Оновлено існуючий об’єкт') ||
+          text.includes('Щоб отримати номер об’єкта')
+        ) return;
+        return originalAlert(message);
+      };
+
+      let result;
+      try {
+        result = await saveCloudHistory56();
+      } finally {
+        window.alert = originalAlert;
+      }
+
+      const info = normalizeSaved78(result);
+      if(!info.objectNumber){
+        throw new Error('Сервер зберіг об’єкт, але номер не повернувся у форму');
+      }
+
+      saveAccessObject78(info);
+      setWorkflow78(`✅ Об’єкт ${info.objectNumber} збережено. Відкриваємо запит…`);
+
+      const tab = historyTab78();
+      if(tab && typeof showMainTab === 'function') showMainTab('history', tab);
+      if(typeof renderHistory === 'function') await renderHistory();
+
+      await new Promise(resolve => setTimeout(resolve, 180));
+      openClientAccess74();
+    } catch(error){
+      setWorkflow78('Помилка: ' + error.message, 'error');
+      alert('Не вдалося завершити автоматичну послідовність: ' + error.message);
+    } finally {
+      if(button){
+        button.classList.remove('working76');
+        button.textContent = originalText;
+      }
+    }
+  };
+
+  window.openClientAccess74 = function(){
+    const modal = document.getElementById('clientAccessModal74');
+    const now = new Date();
+    const info = readAccessObject78();
+
+    document.getElementById('clientAccessDate74').value = now.toLocaleDateString('uk-UA');
+    document.getElementById('clientAccessTime74').value = now.toLocaleTimeString('uk-UA', {hour:'2-digit', minute:'2-digit'});
+    document.getElementById('clientAccessObject74').textContent =
+      'Збережений об’єкт: ' + (info.objectNumber || 'номер ще не отримано');
+
+    const comment = document.getElementById('clientAccessComment74');
+    if(comment && !comment.value.trim()){
+      comment.value = 'Я створив та зберіг план кімнат. Прошу перевірити об’єкт, створити особисту картку та надати номер об’єкта і ключ доступу.';
+    }
+
+    const status = document.getElementById('clientAccessStatus74');
+    status.className = 'client-access-status74';
+    status.textContent = '';
+
+    modal.classList.add('open');
+    modal.setAttribute('aria-hidden','false');
+    document.body.style.overflow = 'hidden';
+  };
+
+  window.sendClientAccessRequest74 = function(){
+    const info = readAccessObject78();
+    const date = document.getElementById('clientAccessDate74')?.value || '';
+    const time = document.getElementById('clientAccessTime74')?.value || '';
+    const comment = (document.getElementById('clientAccessComment74')?.value || '').trim();
+    const status = document.getElementById('clientAccessStatus74');
+
+    if(!info.objectNumber){
+      status.className = 'client-access-status74 show error';
+      status.textContent = 'Номер об’єкта не знайдено. Закрийте це вікно та натисніть «Зберегти та запросити доступ» ще раз.';
+      return;
+    }
+
+    if(!comment){
+      status.className = 'client-access-status74 show error';
+      status.textContent = 'Додайте короткий коментар до запиту.';
+      return;
+    }
+
+    const message = [
+      '🔑 ЗАПИТ КЛІЄНТА НА ДОСТУП',
+      '',
+      `📅 Дата: ${date}`,
+      `🕒 Час: ${time}`,
+      `📄 Об’єкт: ${info.objectNumber}`,
+      info.cloudId ? `🆔 Cloud ID: ${info.cloudId}` : '',
+      info.clientName ? `👤 Клієнт: ${info.clientName}` : '',
+      info.clientPhone ? `☎️ Телефон: ${info.clientPhone}` : '',
+      info.address ? `📍 Адреса: ${info.address}` : '',
+      info.rooms ? `🏠 Кімнат у плані: ${info.rooms}` : '',
+      '',
+      `📝 Коментар: ${comment}`,
+      '',
+      'Прошу перевірити збережений об’єкт, створити особисту картку та надіслати номер об’єкта і персональний ключ.'
+    ].filter(Boolean).join('\n');
+
+    status.className = 'client-access-status74 show ok';
+    status.textContent = `Запит для об’єкта ${info.objectNumber} сформовано. Відкривається Telegram.`;
+    window.open('https://t.me/Potolok_in_ua?text=' + encodeURIComponent(message), '_blank', 'noopener');
+  };
+})();
+</script>
+
 </body>
 </html>
 
