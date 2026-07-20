@@ -362,6 +362,17 @@ th:nth-child(2),th:nth-child(3),th:nth-child(4),td:nth-child(2),td:nth-child(3),
 .save-flash71{animation:saveFlash71 1.2s ease}
 @keyframes saveFlash71{0%{box-shadow:0 0 0 0 rgba(34,197,94,.5)}100%{box-shadow:0 0 0 16px rgba(34,197,94,0)}}
 </style>
+
+<style id="clientAccessGuide73Styles">
+.client-access-guide73{margin:11px 0 2px;border:1px solid #bfdbfe;background:linear-gradient(180deg,#f8fbff,#fff);border-radius:14px;padding:12px;box-shadow:0 7px 18px rgba(15,23,42,.05)}
+.client-access-guide73.done{border-color:#86efac;background:linear-gradient(180deg,#f0fdf4,#fff)}
+.client-access-guide73-head{display:flex;align-items:flex-start;gap:9px}.client-access-guide73-icon{width:34px;height:34px;flex:0 0 34px;border-radius:10px;background:#eef5ff;display:flex;align-items:center;justify-content:center;font-size:18px}.client-access-guide73.done .client-access-guide73-icon{background:#dcfce7}
+.client-access-guide73 h4{font-size:11px;line-height:1.25;margin:1px 0 3px}.client-access-guide73 p{font-size:8.5px;line-height:1.45;color:#64748b}
+.client-access-steps73{display:grid;grid-template-columns:repeat(5,1fr);gap:5px;margin-top:10px}.client-access-step73{position:relative;text-align:center;border:1px solid #e5e7eb;background:#fff;border-radius:9px;padding:7px 3px;font-size:7px;font-weight:900;color:#64748b;line-height:1.2}.client-access-step73 strong{display:block;font-size:14px;margin-bottom:3px}.client-access-step73.on{border-color:#93c5fd;background:#eff6ff;color:#075bff}.client-access-step73.done{border-color:#86efac;background:#f0fdf4;color:#15803d}
+.client-access-guide73-note{margin-top:9px;border-top:1px solid #e5e7eb;padding-top:8px;font-size:8px;line-height:1.45;color:#475569}.client-access-guide73-note b{color:#0f172a}
+@media(max-width:430px){.client-access-steps73{grid-template-columns:repeat(5,minmax(58px,1fr));overflow-x:auto;padding-bottom:3px}.client-access-step73{min-width:58px}}
+</style>
+
 </head>
 <body>
 <header class="header"><div class="wrap nav"><a class="logo" href="../index.html">Potolok<span>.in.ua</span></a><div class="menu"><a href="../index.html">Головна</a><a href="../gallery.html">Наші роботи</a><a href="#app">Pixel 5</a></div><a class="phone" href="tel:+380974546713">097 454 67 13</a><a class="tg-top" href="https://t.me/Potolok_in_ua">Фото в TG</a></div></header>
@@ -402,6 +413,20 @@ th:nth-child(2),th:nth-child(3),th:nth-child(4),td:nth-child(2),td:nth-child(3),
     <button class="btn green" type="button" onclick="saveCurrentRoom()">💾 Зберегти кімнату й об’єкт</button>
     <button class="btn outline" type="button" onclick="duplicateCurrentRoom()">⧉ Копія</button>
   </div>
+  <div id="clientAccessGuide73" class="client-access-guide73">
+    <div class="client-access-guide73-head">
+      <div id="clientAccessGuideIcon73" class="client-access-guide73-icon">💡</div>
+      <div><h4 id="clientAccessGuideTitle73">Як надати клієнту доступ?</h4><p id="clientAccessGuideText73">Після збереження об’єкта створіть особисту картку. Система автоматично згенерує номер об’єкта та персональний ключ.</p></div>
+    </div>
+    <div class="client-access-steps73">
+      <div class="client-access-step73 on"><strong>📝</strong>Замір</div>
+      <div class="client-access-step73 on"><strong>💾</strong>Збереження</div>
+      <div id="clientAccessStepCard73" class="client-access-step73"><strong>👤</strong>Картка</div>
+      <div id="clientAccessStepKey73" class="client-access-step73"><strong>🔑</strong>Ключ</div>
+      <div id="clientAccessStepLogin73" class="client-access-step73"><strong>📱</strong>Вхід</div>
+    </div>
+    <div id="clientAccessGuideNote73" class="client-access-guide73-note"><b>Порядок:</b> збережіть об’єкт → натисніть «Створити особисту картку» → одразу скопіюйте номер і ключ та передайте їх клієнту. Ключ показується лише один раз.</div>
+  </div>
   <div id="roomList" class="room-list"></div>
 </div>
 <div class="block"><div class="block-head"><h3>Фото кімнати</h3></div>
@@ -414,7 +439,7 @@ th:nth-child(2),th:nth-child(3),th:nth-child(4),td:nth-child(2),td:nth-child(3),
 </div>
 <div id="photoMeta" class="photo-meta">Фото автоматично стискається та зберігається в поточній кімнаті.</div></div>
 <div class="btn-row"><button class="btn green" onclick="saveCloudHistory56()">☁️ Зберегти в історію</button><button class="btn outline" onclick="startAnotherObject()">＋ Новий об’єкт</button></div>
-<button id="publishClientCardBtn56" class="btn blue btn-full mt" type="button" onclick="publishClientCard56()">☁️ Зберегти в особисту картку</button>
+<button id="publishClientCardBtn56" class="btn blue btn-full mt" type="button" onclick="publishClientCard56()">🔐 Створити особисту картку</button>
 <div id="publishClientCardStatus56" class="client-publish-status56"></div>
 </aside>
 <main class="panel main">
@@ -6301,10 +6326,18 @@ window.saveStatus58=async function(id){try{const status=document.getElementById(
 window.deleteCloudObject58=async function(id){if(!confirm('Видалити об’єкт із хмарної бази назавжди?'))return;try{await req58(API58+'?id='+encodeURIComponent(id),{method:'DELETE'});crmRows58=crmRows58.filter(r=>r.id!==id);await renderHistory()}catch(e){alert('Не вдалося видалити об’єкт: '+e.message)}};
 
 window.clientData58=async function(id){
+ const row=(Array.isArray(crmRows58)?crmRows58:[]).find(x=>String(x.id)===String(id))
+   || (Array.isArray(window.serviceRows60)?window.serviceRows60:[]).find(x=>String(x.id)===String(id));
+ const published=clientPublished58(row);
+ if(!published){
+   const number=row?.object_number||'—';
+   openModal58('🔒 Особиста картка не створена',`<div class="crm58-keybox"><span>Номер об’єкта</span><b>${esc58(number)}</b></div><div class="notice"><b>Спочатку створіть особисту картку.</b><br>Після створення система автоматично згенерує перший ключ і покаже його лише один раз.</div><div class="crm58-modal-actions"><button onclick="closeCrm58Modal()">Закрити</button><button class="blue" onclick="closeCrm58Modal();openServiceClientCard58('${id}')">🔐 Створити картку</button></div>`);
+   return;
+ }
  try{
   const d=await req58(API58,{method:'POST',body:JSON.stringify({action:'clientData',cloudId:id})});
   const number=d.objectNumber||'—';
-  openModal58('🔐 Дані клієнта',`<div class="crm58-keybox"><span>Номер об’єкта</span><b>${esc58(number)}</b></div><div class="crm58-keybox"><span>Ключ доступу</span><b>••••-••••</b></div><div class="notice">З міркувань конфіденційності чинний ключ не показується та не зберігається відкритим текстом. Новий ключ можна створити — він з’явиться лише один раз.</div><div class="crm58-modal-actions"><button class="dark" onclick="regenerateKey58('${id}','${esc58(number)}')">♻️ Створити новий ключ</button><button onclick="closeCrm58Modal()">Закрити</button></div>`)
+  openModal58('🔐 Дані клієнта',`<div class="crm58-keybox"><span>Номер об’єкта</span><b>${esc58(number)}</b></div><div class="crm58-keybox"><span>Ключ доступу</span><b>••••-••••</b></div><div class="notice">Особиста картка вже створена. Чинний ключ не зберігається відкритим текстом. Новий ключ створюйте лише тоді, коли клієнт утратив попередній.</div><div class="crm58-modal-actions"><button class="dark" onclick="regenerateKey58('${id}','${esc58(number)}')">♻️ Створити новий ключ</button><button onclick="closeCrm58Modal()">Закрити</button></div>`)
  }catch(e){alert('Не вдалося отримати дані: '+e.message)}
 };
 window.copyClient58=async(n,k)=>{const t=`Особиста картка Potolok.in.ua\nНомер: ${n}\nКлюч: ${k||'—'}\nВідкрити: https://www.potolok.in.ua`;try{await navigator.clipboard.writeText(t);alert('Дані скопійовано.')}catch{prompt('Скопіюйте дані:',t)}};
@@ -6486,7 +6519,7 @@ window.publishClientCard56=async function(sourceObject=null){
   }finally{
     if(btn&&!sourceObject){
       btn.disabled=false;
-      btn.textContent='☁️ Зберегти в особисту картку';
+      btn.textContent='🔐 Створити особисту картку';
     }
   }
 };
@@ -6537,7 +6570,7 @@ async function loadService60(){const root=document.getElementById('serviceRoot60
 function obj60(r){return r.object_data&&typeof r.object_data==='object'?r.object_data:{}}
 function renderServiceList60(filter=''){const root=document.getElementById('serviceRoot60');const q=filter.toLowerCase();const rows=serviceRows60.filter(r=>{const o=obj60(r);return [r.object_number,o.clientName,o.address,o.clientPhone].join(' ').toLowerCase().includes(q)});root.innerHTML=`<div class="p60-shell"><div class="p60-head"><div><h2>🔒 Панель адміністратора</h2><div class="p60-note">Ключі, оплата, монтаж, кошториси та відгуки.</div></div><button class="p60-btn" onclick="serviceLogout60()">Вийти</button></div><input class="p60-search" placeholder="Пошук: номер, клієнт, адреса" oninput="renderServiceList60(this.value)"><div>${rows.length?rows.map(serviceCard60).join(''):'<div class="p60-note">Нічого не знайдено.</div>'}</div></div>`}
 window.renderServiceList60=renderServiceList60;
-function serviceCard60(r){const o=obj60(r),published=!!(r?.client_view&&typeof r.client_view==='object'&&String(r.client_view.objectNumber||'').trim());const created=formatCloudTime71(r.created_at);const updated=formatCloudTime71(r.updated_at||o.savedAt);return `<div class="p60-object" id="serviceObject60_${e60(r.id)}"><div class="p60-object-top"><div><b>${e60(r.object_number||'Без номера')} · ${e60(o.clientName||'Без імені')}</b><small>📍 ${e60(o.address||'—')}<br>📞 ${e60(o.clientPhone||'—')} · Статус: ${e60(o.cloudStatus||r.status||'new')}</small><small class="p60-time71">🆕 Створено: <b>${e60(created)}</b><br>💾 Останнє збереження: <b>${e60(updated)}</b></small></div><span class="p60-key ${published?'published':''}">${published?'🟢 опубліковано':'🔒 приховано'}</span></div><div class="p60-actions"><button onclick="regenerateServiceKey60('${r.id}','${e60(r.object_number||'')}')">♻️ Новий ключ</button><button onclick="editServiceObject60('${r.id}')">✏️ Дані</button><button onclick="serviceEstimate60('${r.id}')">💰 Кошторис</button><button onclick="serviceReviews60('${r.id}')">⭐ Відгуки</button><button onclick="openServiceClientCard60('${r.id}')">${published?'👁 Картка клієнта':'🔐 Створити картку'}</button><button onclick="serviceSchedule72('${r.id}')">📅 Календар / монтаж</button><button onclick="openCloudObject56('${r.id}')">📂 Відкрити об’єкт</button></div><button class="p60-delete-object" id="deleteService60_${e60(r.id)}" onclick="deleteServiceObject60('${r.id}','${e60(r.object_number||'Без номера')}')">🗑 Видалити об’єкт</button></div>`}
+function serviceCard60(r){const o=obj60(r),published=!!(r?.client_view&&typeof r.client_view==='object'&&String(r.client_view.objectNumber||'').trim());const created=formatCloudTime71(r.created_at);const updated=formatCloudTime71(r.updated_at||o.savedAt);return `<div class="p60-object" id="serviceObject60_${e60(r.id)}"><div class="p60-object-top"><div><b>${e60(r.object_number||'Без номера')} · ${e60(o.clientName||'Без імені')}</b><small>📍 ${e60(o.address||'—')}<br>📞 ${e60(o.clientPhone||'—')} · Статус: ${e60(o.cloudStatus||r.status||'new')}</small><small class="p60-time71">🆕 Створено: <b>${e60(created)}</b><br>💾 Останнє збереження: <b>${e60(updated)}</b></small></div><span class="p60-key ${published?'published':''}">${published?'🟢 опубліковано':'🔒 приховано'}</span></div><div class="p60-actions">${published?`<button onclick="regenerateServiceKey60('${r.id}','${e60(r.object_number||'')}')">♻️ Новий ключ</button>`:''}<button onclick="editServiceObject60('${r.id}')">✏️ Дані</button><button onclick="serviceEstimate60('${r.id}')">💰 Кошторис</button><button onclick="serviceReviews60('${r.id}')">⭐ Відгуки</button><button onclick="openServiceClientCard60('${r.id}')">${published?'👁 Картка клієнта':'🔐 Створити картку'}</button><button onclick="serviceSchedule72('${r.id}')">📅 Календар / монтаж</button><button onclick="openCloudObject56('${r.id}')">📂 Відкрити об’єкт</button></div><button class="p60-delete-object" id="deleteService60_${e60(r.id)}" onclick="deleteServiceObject60('${r.id}','${e60(r.object_number||'Без номера')}')">🗑 Видалити об’єкт</button></div>`}
 window.copyKey60=async(n,k)=>{const t=`Potolok.in.ua\nНомер: ${n}\nКлюч: ${k}`;try{await navigator.clipboard.writeText(t);alert('Скопійовано')}catch{prompt('Скопіюйте:',t)}};
 window.regenerateServiceKey60=async (id,number='')=>{if(!confirm('Старий ключ перестане працювати. Продовжити?'))return;try{const d=await api60({action:'regenerateAccessKey',cloudId:id});const key=d.accessKey||'';openModal60('✅ Новий ключ',`<div class="p60-keybox"><span>Номер об’єкта</span><b>${e60(number||d.objectNumber||'—')}</b></div><div class="p60-keybox"><span>Показано один раз</span><b>${e60(key)}</b></div><div class="p60-actions"><button onclick="copyKey60('${e60(number||d.objectNumber||'')}','${e60(key)}')">📋 Копіювати</button><button class="blue" onclick="closeModal60()">Готово</button></div>`);await loadService60()}catch(e){alert(e.message)}};
 window.openServiceClientCard60=id=>window.openServiceClientCard58?.(id);
@@ -6882,11 +6915,35 @@ body.client-card-mode61 .ai-request-section{display:none!important}
     if(!btn||!o)return;
     const known=readMeta()[o.id]||{};
     const published=!!(o.clientPublished||known.clientPublished);
-    btn.textContent=published?'🔄 Оновити особисту картку':'☁️ Зберегти в особисту картку';
+    btn.textContent=published?'🔄 Оновити особисту картку':'🔐 Створити особисту картку';
     btn.dataset.published=published?'1':'0';
+    const guide=document.getElementById('clientAccessGuide73');
+    const icon=document.getElementById('clientAccessGuideIcon73');
+    const title=document.getElementById('clientAccessGuideTitle73');
+    const text=document.getElementById('clientAccessGuideText73');
+    const note=document.getElementById('clientAccessGuideNote73');
+    const stepCard=document.getElementById('clientAccessStepCard73');
+    const stepKey=document.getElementById('clientAccessStepKey73');
+    const stepLogin=document.getElementById('clientAccessStepLogin73');
+    if(guide){
+      guide.classList.toggle('done',published);
+      if(icon)icon.textContent=published?'✅':'💡';
+      if(title)title.textContent=published?'Особиста картка створена':'Як надати клієнту доступ?';
+      if(text)text.textContent=published
+        ? `Картка ${known.objectNumber||o.objectNumber||''} активна. Передайте клієнту номер об’єкта та ключ, який був показаний під час створення.`
+        : 'Після збереження об’єкта створіть особисту картку. Система автоматично згенерує номер об’єкта та персональний ключ.';
+      [stepCard,stepKey].forEach(n=>{if(n)n.classList.toggle('done',published)});
+      if(stepLogin)stepLogin.classList.toggle('on',published);
+      if(note)note.innerHTML=published
+        ? '<b>Готово:</b> клієнт входить у розділ «Особиста картка» за номером об’єкта та ключем. Якщо ключ втрачено — створіть новий; старий перестане працювати.'
+        : '<b>Порядок:</b> збережіть об’єкт → натисніть «Створити особисту картку» → одразу скопіюйте номер і ключ та передайте їх клієнту. Ключ показується лише один раз.';
+    }
     if(published&&status&&!status.classList.contains('show')){
       status.textContent=`🟢 Особиста картка ${known.objectNumber||o.objectNumber||''} активна`;
       status.className='client-publish-status56 show ok';
+    } else if(!published&&status){
+      status.className='client-publish-status56';
+      status.textContent='';
     }
   };
 
