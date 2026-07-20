@@ -6224,8 +6224,10 @@ const STATUS58={
 };
 let crmRows58=[]; let calDate58=new Date(); let selectedDate58='';
 const esc58=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-async function req58(url,opt={}){const r=await fetch(url,{...opt,headers:{'Content-Type':'application/json',...(opt.headers||{})}});const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.error||`API ${r.status}`);return d}
+async function req58(url,opt={}){const token=sessionStorage.getItem('potolok_service_token')||'';const r=await fetch(url,{...opt,headers:{'Content-Type':'application/json',...(token?{'X-Service-Token':token}:{}),...(opt.headers||{})}});const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.error||`API ${r.status}`);return d}
 function rowObj58(row){return {...(row?.object_data||{}),cloudId:row?.id,objectNumber:row?.object_number,cloudStatus:row?.status||'new'}}
+function serviceToken58(){return sessionStorage.getItem('potolok_service_token')||''}
+function clientPublished58(row){return !!(row?.client_view&&typeof row.client_view==='object'&&String(row.client_view.objectNumber||'').trim())}
 function status58(code){return STATUS58[code]||['📌',code||'Новий',0]}
 function openModal58(title,body){document.getElementById('crm58ModalTitle').textContent=title;document.getElementById('crm58ModalBody').innerHTML=body;document.getElementById('crm58Modal').classList.add('open')}
 window.closeCrm58Modal=()=>document.getElementById('crm58Modal')?.classList.remove('open');
@@ -6244,24 +6246,74 @@ window.renderCrmHistory58=function(){
  const list=document.getElementById('objectList');if(!list)return;
  const q=String(document.getElementById('crm58Search')?.value||'').toLowerCase();const f=document.getElementById('crm58Filter')?.value||'all';
  const rows=crmRows58.filter(r=>{const o=rowObj58(r);const hay=[r.object_number,o.clientName,o.address,o.clientPhone].join(' ').toLowerCase();return(!q||hay.includes(q))&&(f==='all'||(o.cloudStatus||r.status)===f)});
- list.innerHTML=rows.length?rows.map(r=>{const o=rowObj58(r),st=status58(o.cloudStatus||r.status),step=st[2],published=!!r.client_view,events=Array.isArray(o.schedule)?o.schedule:[];return `<div class="crm58-card"><div class="crm58-card-top"><div><div class="crm58-card-title">${esc58(r.object_number||'Без номера')} · ${esc58(o.clientName||'Без імені')}</div><div class="crm58-card-meta">📍 ${esc58(o.address||'Без адреси')}<br>📅 ${esc58(formatDate58(o.date))} · ${Number(o.rooms?.length||0)} кімн. · ${Number(o.total||0).toLocaleString('uk-UA')} грн<br>${published?'🔐 Особиста картка активна':'🔓 Особиста картка не створена'}${events.length?` · ⏰ ${events.length} подій`:''}</div></div><span class="crm58-status crm58-status-${esc58(o.cloudStatus||r.status||'new')}">${st[0]} ${st[1]}</span></div><div class="crm58-progress">${[1,2,3,4,5].map(n=>`<i class="crm58-step ${step>=n?'on':''}"></i>`).join('')}</div><div class="crm58-actions"><button class="primary" onclick="openCloudObject56('${r.id}')">📂 Відкрити</button><button onclick="changeStatus58('${r.id}')">🏷 Статус</button><button onclick="clientData58('${r.id}')">🔑 Дані клієнта</button><button onclick="scheduleObject58('${r.id}')">📅 Запланувати</button><button onclick="publishHistoryObject56('${r.id}')">📤 Особиста картка</button><button class="danger" onclick="deleteCloudObject58('${r.id}')">🗑 Видалити</button></div></div>`}).join(''):'<div class="notice">Об’єктів за цим фільтром немає.</div>';
+ list.innerHTML=rows.length?rows.map(r=>{const o=rowObj58(r),st=status58(o.cloudStatus||r.status),step=st[2],published=clientPublished58(r),events=Array.isArray(o.schedule)?o.schedule:[];return `<div class="crm58-card"><div class="crm58-card-top"><div><div class="crm58-card-title">${esc58(r.object_number||'Без номера')} · ${esc58(o.clientName||'Без імені')}</div><div class="crm58-card-meta">📍 ${esc58(o.address||'Без адреси')}<br>📅 ${esc58(formatDate58(o.date))} · ${Number(o.rooms?.length||0)} кімн. · ${Number(o.total||0).toLocaleString('uk-UA')} грн<br>${published?'🔐 Особиста картка активна':'🔓 Особиста картка не створена'}${events.length?` · ⏰ ${events.length} подій`:''}</div></div><span class="crm58-status crm58-status-${esc58(o.cloudStatus||r.status||'new')}">${st[0]} ${st[1]}</span></div><div class="crm58-progress">${[1,2,3,4,5].map(n=>`<i class="crm58-step ${step>=n?'on':''}"></i>`).join('')}</div><div class="crm58-actions"><button class="primary" onclick="openCloudObject56('${r.id}')">📂 Відкрити</button><button onclick="changeStatus58('${r.id}')">🏷 Статус</button><button onclick="clientData58('${r.id}')">🔑 Дані клієнта</button><button onclick="scheduleObject58('${r.id}')">📅 Запланувати</button><button onclick="openServiceClientCard58('${r.id}')">🔐 Особиста картка</button><button class="danger" onclick="deleteCloudObject58('${r.id}')">🗑 Видалити</button></div></div>`}).join(''):'<div class="notice">Об’єктів за цим фільтром немає.</div>';
  renderToday58();
 };
 
 const oldRender58=window.renderHistory;
 window.renderHistory=async function(){
- const list=document.getElementById('objectList');if(list)list.innerHTML='<div class="notice">Завантаження об’єктів із хмари…</div>';
- try{const d=await req58(API58);crmRows58=Array.isArray(d.objects)?d.objects:[];renderCrmHistory58();renderCalendar58()}catch(e){if(list)list.innerHTML=`<div class="notice">Хмара недоступна: ${esc58(e.message)}</div>`}
+ const list=document.getElementById('objectList');if(!list)return;
+ if(!serviceToken58()){
+   crmRows58=[];
+   list.innerHTML=`<div class="crm58-today"><b>🔒 Історія закрита</b><br>Об’єкти, адреси, телефони та ключі доступні тільки після входу майстра у вкладці «Службове».</div><button class="btn blue btn-full" type="button" onclick="const b=[...document.querySelectorAll('.main-tab')].find(x=>x.getAttribute('onclick')?.includes('service'));if(b){showMainTab('service',b);renderService60()}">Увійти в службовий розділ</button>`;
+   return;
+ }
+ list.innerHTML='<div class="notice">Завантаження захищеної історії…</div>';
+ try{
+   const d=await req58(API58,{method:'POST',body:JSON.stringify({action:'serviceList'})});
+   crmRows58=Array.isArray(d.objects)?d.objects:[];
+   renderCrmHistory58();renderCalendar58();
+ }catch(e){
+   crmRows58=[];
+   sessionStorage.removeItem('potolok_service_token');
+   list.innerHTML=`<div class="notice">Службова сесія завершена: ${esc58(e.message)}</div>`;
+ }
 };
 
 window.changeStatus58=function(id){const r=crmRows58.find(x=>x.id===id);if(!r)return;openModal58('Змінити статус',`<label class="crm58-label">Поточний етап</label><select id="status58Select">${statusOptions58(rowObj58(r).cloudStatus||r.status||'new')}</select><div class="crm58-modal-actions"><button onclick="closeCrm58Modal()">Скасувати</button><button class="blue" onclick="saveStatus58('${id}')">Зберегти статус</button></div>`)};
 window.saveStatus58=async function(id){try{const status=document.getElementById('status58Select').value;await req58(API58,{method:'POST',body:JSON.stringify({action:'updateStatus',cloudId:id,status})});closeCrm58Modal();await renderHistory()}catch(e){alert('Не вдалося змінити статус: '+e.message)}};
 window.deleteCloudObject58=async function(id){if(!confirm('Видалити об’єкт із хмарної бази назавжди?'))return;try{await req58(API58+'?id='+encodeURIComponent(id),{method:'DELETE'});crmRows58=crmRows58.filter(r=>r.id!==id);await renderHistory()}catch(e){alert('Не вдалося видалити об’єкт: '+e.message)}};
 
-window.clientData58=async function(id){try{const d=await req58(API58,{method:'POST',body:JSON.stringify({action:'clientData',cloudId:id})});const number=d.objectNumber||'—',key=d.accessKey||'';openModal58('🔐 Дані клієнта',`<div class="crm58-keybox"><span>Номер об’єкта</span><b>${esc58(number)}</b></div><div class="crm58-keybox"><span>Ключ доступу</span><b>${key?esc58(key):'Ключ недоступний — створіть новий'}</b></div><div class="crm58-modal-actions"><button onclick="copyClient58('${esc58(number)}','${esc58(key)}')">📋 Копіювати</button><button onclick="shareClient58('${esc58(number)}','${esc58(key)}')">📲 Поділитися</button><button class="dark" onclick="regenerateKey58('${id}')">♻️ Новий ключ</button><button onclick="closeCrm58Modal()">Закрити</button></div>`)}catch(e){alert('Не вдалося отримати дані: '+e.message)}};
+window.clientData58=async function(id){
+ try{
+  const d=await req58(API58,{method:'POST',body:JSON.stringify({action:'clientData',cloudId:id})});
+  const number=d.objectNumber||'—';
+  openModal58('🔐 Дані клієнта',`<div class="crm58-keybox"><span>Номер об’єкта</span><b>${esc58(number)}</b></div><div class="crm58-keybox"><span>Ключ доступу</span><b>••••-••••</b></div><div class="notice">З міркувань конфіденційності чинний ключ не показується та не зберігається відкритим текстом. Новий ключ можна створити — він з’явиться лише один раз.</div><div class="crm58-modal-actions"><button class="dark" onclick="regenerateKey58('${id}','${esc58(number)}')">♻️ Створити новий ключ</button><button onclick="closeCrm58Modal()">Закрити</button></div>`)
+ }catch(e){alert('Не вдалося отримати дані: '+e.message)}
+};
 window.copyClient58=async(n,k)=>{const t=`Особиста картка Potolok.in.ua\nНомер: ${n}\nКлюч: ${k||'—'}\nВідкрити: https://www.potolok.in.ua`;try{await navigator.clipboard.writeText(t);alert('Дані скопійовано.')}catch{prompt('Скопіюйте дані:',t)}};
 window.shareClient58=async(n,k)=>{const text=`Особиста картка Potolok.in.ua\nНомер: ${n}\nКлюч: ${k||'—'}\nhttps://www.potolok.in.ua`;if(navigator.share)await navigator.share({title:'Особиста картка',text});else window.open('https://t.me/share/url?url='+encodeURIComponent('https://www.potolok.in.ua')+'&text='+encodeURIComponent(text),'_blank')};
-window.regenerateKey58=async id=>{if(!confirm('Старий ключ перестане працювати. Створити новий?'))return;try{const d=await req58(API58,{method:'POST',body:JSON.stringify({action:'regenerateAccessKey',cloudId:id})});closeCrm58Modal();await renderHistory();setTimeout(()=>clientData58(id),100)}catch(e){alert('Не вдалося створити ключ: '+e.message)}};
+window.regenerateKey58=async (id,number='')=>{
+ if(!confirm('Старий ключ перестане працювати. Створити новий ключ?'))return;
+ try{
+  const d=await req58(API58,{method:'POST',body:JSON.stringify({action:'regenerateAccessKey',cloudId:id})});
+  const key=d.accessKey||'';const n=number||d.objectNumber||'—';
+  openModal58('✅ Новий ключ створено',`<div class="crm58-keybox"><span>Номер об’єкта</span><b>${esc58(n)}</b></div><div class="crm58-keybox"><span>Новий ключ — показано один раз</span><b>${esc58(key)}</b></div><div class="notice">Передайте цей ключ клієнту зараз. Після закриття вікна повторно подивитися його буде неможливо.</div><div class="crm58-modal-actions"><button onclick="copyClient58('${esc58(n)}','${esc58(key)}')">📋 Копіювати</button><button onclick="shareClient58('${esc58(n)}','${esc58(key)}')">📲 Поділитися</button><button class="blue" onclick="closeCrm58Modal()">Готово</button></div>`);
+  await renderHistory();
+ }catch(e){alert('Не вдалося створити ключ: '+e.message)}
+};
+
+
+window.openServiceClientCard58=async function(id){
+ try{
+  const d=await req58(API58,{method:'POST',body:JSON.stringify({action:'serviceClientView',cloudId:id})});
+  const v=d.object||{};
+  const set=(id,value)=>{const n=document.getElementById(id);if(n)n.textContent=value??'—'};
+  const labels={new:'Новий',measurement:'Замір',calculation:'Прорахунок',approval:'Узгодження',contract:'Договір',installation_planned:'Монтаж заплановано',installation:'Монтаж',completed:'Завершено',cancelled:'Відмова'};
+  set('clientViewNumber56',v.objectNumber||'—');set('clientViewTitle56',v.address||'Об’єкт');set('clientViewStatus56',labels[v.status]||v.status||'Новий');set('clientViewName56',v.clientName||'—');set('clientViewAddress56',v.address||'—');set('clientViewDate56',v.date||'—');set('clientViewTotal56',Number(v.total||0).toLocaleString('uk-UA')+' грн');set('clientViewArea56',Number(v.area||0).toFixed(2)+' м²');set('clientViewPerimeter56',Number(v.perimeter||0).toFixed(2)+' м');
+  const rooms=Array.isArray(v.rooms)?v.rooms:[];set('clientRoomCount56',rooms.length+' кімн.');
+  const roomList=document.getElementById('clientRoomList56');if(roomList)roomList.innerHTML=rooms.length?rooms.map((room,index)=>`<div class=\"client-room-card56\"><b>${esc58(room.name||room.roomName||('Кімната '+(index+1)))}</b><span>${Number(room.area||room.metrics?.area||0).toFixed(2)} м² • ${Number(room.perimeter||room.metrics?.perimeter||0).toFixed(2)} м</span></div>`).join(''):'<div class=\"notice\">Кімнати ще не додані.</div>';
+  document.getElementById('clientLoginCard56')?.classList.add('hidden');document.getElementById('clientObjectCard56')?.classList.add('show');
+  const tab=[...document.querySelectorAll('.main-tab')].find(x=>x.getAttribute('onclick')?.includes('clientcard'));if(tab)showMainTab('clientcard',tab);
+  window.scrollTo({top:0,behavior:'smooth'});
+ }catch(e){alert('Не вдалося відкрити особисту картку: '+e.message)}
+};
+
+window.openCloudObject56=async function(id){
+ const row=crmRows58.find(x=>String(x.id)===String(id));if(!row)return alert('Об’єкт не знайдено у захищеній історії.');
+ const object=rowObj58(row);try{await dbPutObject(object)}catch{}
+ activeObjectId=object.id;await loadObject(object.id);const tab=[...document.querySelectorAll('.main-tab')].find(x=>x.getAttribute('onclick')?.includes("'object'"));if(tab)showMainTab('object',tab);window.scrollTo({top:0,behavior:'smooth'});
+};
 
 window.scheduleObject58=function(id,date=''){const r=crmRows58.find(x=>x.id===id);if(!r)return;const o=rowObj58(r);const today=date||localDateISO();openModal58('📅 Запланувати подію',`<div class="crm58-grid"><div><label class="crm58-label">Дата</label><input id="evDate58" type="date" value="${esc58(today)}"></div><div><label class="crm58-label">Час</label><input id="evTime58" type="time" value="09:00"></div><div class="crm58-full"><label class="crm58-label">Тип події</label><select id="evType58"><option value="measure">📏 Замір</option><option value="calculation">🧮 Прорахунок</option><option value="call">📞 Дзвінок</option><option value="install">🛠 Монтаж</option><option value="payment">💰 Оплата</option><option value="review">⭐ Відгук</option><option value="busy">🔴 День зайнятий</option><option value="other">📌 Інше</option></select></div><div class="crm58-full"><label class="crm58-label">Нагадування</label><select id="evReminder58"><option value="0">У день події</option><option value="60">За 1 годину</option><option value="1440">За 1 день</option><option value="2880">За 2 дні</option></select></div><div class="crm58-full"><label class="crm58-label">Коментар</label><textarea id="evNote58" placeholder="Адреса, що взяти, кому подзвонити…"></textarea></div></div><div class="crm58-modal-actions"><button onclick="closeCrm58Modal()">Скасувати</button><button class="blue" onclick="saveEvent58('${id}')">Додати подію</button></div>`)};
 window.saveEvent58=async function(id){try{const event={id:'ev_'+Date.now(),date:document.getElementById('evDate58').value,time:document.getElementById('evTime58').value,type:document.getElementById('evType58').value,reminder:Number(document.getElementById('evReminder58').value||0),note:document.getElementById('evNote58').value,done:false};await req58(API58,{method:'POST',body:JSON.stringify({action:'addScheduleEvent',cloudId:id,event})});closeCrm58Modal();await renderHistory()}catch(e){alert('Не вдалося додати подію: '+e.message)}};
@@ -6329,9 +6381,10 @@ async function loadService60(){const root=document.getElementById('serviceRoot60
 function obj60(r){return r.object_data&&typeof r.object_data==='object'?r.object_data:{}}
 function renderServiceList60(filter=''){const root=document.getElementById('serviceRoot60');const q=filter.toLowerCase();const rows=serviceRows60.filter(r=>{const o=obj60(r);return [r.object_number,o.clientName,o.address,o.clientPhone].join(' ').toLowerCase().includes(q)});root.innerHTML=`<div class="p60-shell"><div class="p60-head"><div><h2>🔒 Панель майстра</h2><div class="p60-note">Ключі, оплата, монтаж, кошториси та відгуки.</div></div><button class="p60-btn" onclick="serviceLogout60()">Вийти</button></div><input class="p60-search" placeholder="Пошук: номер, клієнт, адреса" oninput="renderServiceList60(this.value)"><div>${rows.length?rows.map(serviceCard60).join(''):'<div class="p60-note">Нічого не знайдено.</div>'}</div></div>`}
 window.renderServiceList60=renderServiceList60;
-function serviceCard60(r){const o=obj60(r),sd=o.serviceData||{},key=o._clientAccessKey||'';return `<div class="p60-object" id="serviceObject60_${e60(r.id)}"><div class="p60-object-top"><div><b>${e60(r.object_number||'Без номера')} · ${e60(o.clientName||'Без імені')}</b><small>📍 ${e60(o.address||'—')}<br>📞 ${e60(o.clientPhone||'—')} · Статус: ${e60(o.cloudStatus||r.status||'new')}</small></div><span class="p60-key">${e60(key||'—')}</span></div><div class="p60-actions"><button onclick="copyKey60('${e60(r.object_number)}','${e60(key)}')">📋 Ключ</button><button onclick="editServiceObject60('${r.id}')">✏️ Дані</button><button onclick="serviceEstimate60('${r.id}')">💰 Кошторис</button><button onclick="serviceReviews60('${r.id}')">⭐ Відгуки</button><button onclick="regenerateServiceKey60('${r.id}')">♻️ Новий ключ</button><button onclick="openCloudObject56('${r.id}')">📂 Об’єкт</button></div><button class="p60-delete-object" id="deleteService60_${e60(r.id)}" onclick="deleteServiceObject60('${r.id}','${e60(r.object_number||'Без номера')}')">🗑 Видалити об’єкт</button></div>`}
+function serviceCard60(r){const o=obj60(r);return `<div class="p60-object" id="serviceObject60_${e60(r.id)}"><div class="p60-object-top"><div><b>${e60(r.object_number||'Без номера')} · ${e60(o.clientName||'Без імені')}</b><small>📍 ${e60(o.address||'—')}<br>📞 ${e60(o.clientPhone||'—')} · Статус: ${e60(o.cloudStatus||r.status||'new')}</small></div><span class="p60-key">🔐 приховано</span></div><div class="p60-actions"><button onclick="regenerateServiceKey60('${r.id}','${e60(r.object_number||'')}')">♻️ Новий ключ</button><button onclick="editServiceObject60('${r.id}')">✏️ Дані</button><button onclick="serviceEstimate60('${r.id}')">💰 Кошторис</button><button onclick="serviceReviews60('${r.id}')">⭐ Відгуки</button><button onclick="openServiceClientCard60('${r.id}')">🔐 Картка</button><button onclick="openCloudObject56('${r.id}')">📂 Об’єкт</button></div><button class="p60-delete-object" id="deleteService60_${e60(r.id)}" onclick="deleteServiceObject60('${r.id}','${e60(r.object_number||'Без номера')}')">🗑 Видалити об’єкт</button></div>`}
 window.copyKey60=async(n,k)=>{const t=`Potolok.in.ua\nНомер: ${n}\nКлюч: ${k}`;try{await navigator.clipboard.writeText(t);alert('Скопійовано')}catch{prompt('Скопіюйте:',t)}};
-window.regenerateServiceKey60=async id=>{if(!confirm('Старий ключ перестане працювати. Продовжити?'))return;try{await api60({action:'regenerateAccessKey',cloudId:id});await loadService60()}catch(e){alert(e.message)}};
+window.regenerateServiceKey60=async (id,number='')=>{if(!confirm('Старий ключ перестане працювати. Продовжити?'))return;try{const d=await api60({action:'regenerateAccessKey',cloudId:id});const key=d.accessKey||'';openModal60('✅ Новий ключ',`<div class="p60-keybox"><span>Номер об’єкта</span><b>${e60(number||d.objectNumber||'—')}</b></div><div class="p60-keybox"><span>Показано один раз</span><b>${e60(key)}</b></div><div class="p60-actions"><button onclick="copyKey60('${e60(number||d.objectNumber||'')}','${e60(key)}')">📋 Копіювати</button><button class="blue" onclick="closeModal60()">Готово</button></div>`);await loadService60()}catch(e){alert(e.message)}};
+window.openServiceClientCard60=id=>window.openServiceClientCard58?.(id);
 window.deleteServiceObject60=async(id,objectNumber)=>{
   if(!id)return;
   if(!confirm(`Видалити об’єкт ${objectNumber}?\n\nБуде видалено всі дані об’єкта, ключ доступу, кошторис та відгуки.`))return;
