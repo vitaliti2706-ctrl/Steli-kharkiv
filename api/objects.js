@@ -93,6 +93,31 @@ async function insertRow(row) {
   return rows?.[0] || null;
 }
 
+function dbStatus(status) {
+  const value = String(status || 'new');
+  const map = {
+    new: 'new',
+    call: 'new',
+    measure_planned: 'measurement',
+    measured: 'measurement',
+    measurement: 'measurement',
+    calculation: 'calculation',
+    estimate_sent: 'calculation',
+    approval: 'approval',
+    contract: 'contract',
+    install_planned: 'installation_planned',
+    installation_planned: 'installation_planned',
+    departure: 'installation_planned',
+    installation: 'installation',
+    completed: 'completed',
+    paid: 'completed',
+    review: 'completed',
+    rejected: 'cancelled',
+    cancelled: 'cancelled',
+  };
+  return map[value] || 'new';
+}
+
 function baseFields(object, status) {
   return {
     client_name: object.clientName || null,
@@ -100,7 +125,7 @@ function baseFields(object, status) {
     address: object.address || null,
     measurement_date: object.date || null,
     ceiling_height: Number(object.height || 0) || null,
-    status,
+    status: dbStatus(status),
     internal_comment: object.comment || null,
     object_data: object,
   };
@@ -172,7 +197,7 @@ export default async function handler(req, res) {
           const nextStatus = String(body.status || 'new');
           const nextObject = { ...currentObject, cloudStatus: nextStatus };
           const row = await patchRow(actionCloudId, {
-            status: nextStatus,
+            status: dbStatus(nextStatus),
             object_data: nextObject,
             client_view: current.client_view ? publicView(nextObject, current.object_number, nextStatus) : null,
           });
@@ -193,7 +218,7 @@ export default async function handler(req, res) {
           const row = await patchRow(actionCloudId, {
             access_key_hash: hashAccessKey(accessKey),
             object_data: nextObject,
-            client_view: publicView(nextObject, current.object_number, current.status || 'new'),
+            client_view: publicView(nextObject, current.object_number, nextObject.cloudStatus || current.status || 'new'),
           });
           return json(res, 200, { accessKey, object: row });
         }
@@ -322,4 +347,4 @@ export default async function handler(req, res) {
     console.error('objects API error:', error);
     return json(res, 500, { error: error.message || 'Server error' });
   }
-          }
+                                    }
