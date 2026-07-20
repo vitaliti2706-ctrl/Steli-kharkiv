@@ -404,6 +404,13 @@ th:nth-child(2),th:nth-child(3),th:nth-child(4),td:nth-child(2),td:nth-child(3),
 }
 </style>
 
+
+<style id="accessIssue75Styles">
+.p60-access-issued75{display:block;margin-top:7px;padding:8px 9px;border:1px solid #86efac;background:#f0fdf4;border-radius:9px;color:#15803d;font-size:9px;font-weight:900;line-height:1.45}
+.p60-access-btn75{background:#16a34a!important;color:#fff!important;border-color:#16a34a!important}
+.access-send-note75{margin-top:9px;padding:9px 10px;border:1px solid #bfdbfe;background:#eff6ff;border-radius:10px;color:#475569;font-size:9px;line-height:1.45}
+</style>
+
 </head>
 <body>
 <header class="header"><div class="wrap nav"><a class="logo" href="../index.html">Potolok<span>.in.ua</span></a><div class="menu"><a href="../index.html">Головна</a><a href="../gallery.html">Наші роботи</a><a href="#app">Pixel 5</a></div><a class="phone" href="tel:+380974546713">097 454 67 13</a><a class="tg-top" href="https://t.me/Potolok_in_ua">Фото в TG</a></div></header>
@@ -7154,6 +7161,271 @@ body.client-card-mode61 .ai-request-section{display:none!important}
   document.addEventListener('keydown', event => {
     if(event.key === 'Escape') closeClientAccess74();
   });
+})();
+</script>
+
+
+<script id="accessIssue75Script">
+(() => {
+  'use strict';
+
+  const LAST_SAVED_KEY75 = 'potolok_last_saved_cloud_v75';
+
+  function saveLastCloud75(row, object){
+    if(!row?.object_number) return;
+    const payload = {
+      cloudId: row.id || object?.cloudId || '',
+      objectNumber: row.object_number,
+      objectId: object?.id || window.activeObjectId || '',
+      clientName: object?.clientName || '',
+      clientPhone: object?.clientPhone || '',
+      address: object?.address || '',
+      rooms: Array.isArray(object?.rooms) ? object.rooms.length : 0,
+      savedAt: row.updated_at || row.created_at || new Date().toISOString()
+    };
+    try { localStorage.setItem(LAST_SAVED_KEY75, JSON.stringify(payload)); } catch {}
+  }
+
+  function getCurrentAccessInfo75(){
+    let object = {};
+    try { object = typeof collectObject === 'function' ? collectObject() : {}; } catch {}
+
+    let meta = {};
+    try {
+      const all = JSON.parse(localStorage.getItem('potolok_cloud_meta_v57') || '{}');
+      meta = all?.[object.id] || {};
+    } catch {}
+
+    let last = {};
+    try { last = JSON.parse(localStorage.getItem(LAST_SAVED_KEY75) || '{}'); } catch {}
+
+    const sameObject = !last.objectId || !object.id || String(last.objectId) === String(object.id);
+    return {
+      number: meta.objectNumber || object.objectNumber || (sameObject ? last.objectNumber : '') || '',
+      cloudId: meta.cloudId || object.cloudId || (sameObject ? last.cloudId : '') || '',
+      client: object.clientName || last.clientName || document.getElementById('clientName')?.value || '',
+      phone: object.clientPhone || last.clientPhone || document.getElementById('clientPhone')?.value || '',
+      address: object.address || last.address || document.getElementById('objectAddress')?.value || '',
+      rooms: Array.isArray(object.rooms) ? object.rooms.length : Number(last.rooms || 0)
+    };
+  }
+
+  const originalSaveHistory75 = window.saveCloudHistory56;
+  if(typeof originalSaveHistory75 === 'function'){
+    window.saveCloudHistory56 = async function(){
+      let object = {};
+      try { object = typeof collectObject === 'function' ? collectObject() : {}; } catch {}
+      const row = await originalSaveHistory75.apply(this, arguments);
+      saveLastCloud75(row, object);
+      return row;
+    };
+  }
+
+  const originalPublish75 = window.publishClientCard56;
+  if(typeof originalPublish75 === 'function'){
+    window.publishClientCard56 = async function(){
+      let object = {};
+      try { object = arguments[0] && typeof arguments[0] === 'object' ? arguments[0] : collectObject(); } catch {}
+      const result = await originalPublish75.apply(this, arguments);
+      saveLastCloud75(result?.object || {}, object);
+      return result;
+    };
+  }
+
+  window.openClientAccess74 = function(){
+    const modal = document.getElementById('clientAccessModal74');
+    const now = new Date();
+    const info = getCurrentAccessInfo75();
+
+    document.getElementById('clientAccessDate74').value = now.toLocaleDateString('uk-UA');
+    document.getElementById('clientAccessTime74').value = now.toLocaleTimeString('uk-UA', {hour:'2-digit', minute:'2-digit'});
+    document.getElementById('clientAccessObject74').textContent =
+      'Збережений об’єкт: ' + (info.number || 'спочатку збережіть об’єкт у хмарну історію');
+
+    const comment = document.getElementById('clientAccessComment74');
+    if(comment && !comment.value.trim()){
+      comment.value = 'Я створив та зберіг план кімнат. Прошу перевірити об’єкт, створити особисту картку та надати номер об’єкта і ключ доступу.';
+    }
+
+    const status = document.getElementById('clientAccessStatus74');
+    status.className = 'client-access-status74';
+    status.textContent = '';
+
+    modal.classList.add('open');
+    modal.setAttribute('aria-hidden','false');
+    document.body.style.overflow = 'hidden';
+  };
+
+  window.sendClientAccessRequest74 = function(){
+    const info = getCurrentAccessInfo75();
+    const date = document.getElementById('clientAccessDate74')?.value || '';
+    const time = document.getElementById('clientAccessTime74')?.value || '';
+    const comment = (document.getElementById('clientAccessComment74')?.value || '').trim();
+    const status = document.getElementById('clientAccessStatus74');
+
+    if(!info.number){
+      status.className = 'client-access-status74 show error';
+      status.textContent = 'Номер об’єкта ще не отримано. Спочатку натисніть «Зберегти в історію», а потім повторіть запит.';
+      return;
+    }
+    if(!comment){
+      status.className = 'client-access-status74 show error';
+      status.textContent = 'Додайте короткий коментар до запиту.';
+      return;
+    }
+
+    const message = [
+      '🔑 ЗАПИТ КЛІЄНТА НА ДОСТУП',
+      '',
+      `📅 Дата: ${date}`,
+      `🕒 Час: ${time}`,
+      `📄 Об’єкт: ${info.number}`,
+      info.cloudId ? `🆔 Cloud ID: ${info.cloudId}` : '',
+      info.client ? `👤 Клієнт: ${info.client}` : '',
+      info.phone ? `☎️ Телефон: ${info.phone}` : '',
+      info.address ? `📍 Адреса: ${info.address}` : '',
+      info.rooms ? `🏠 Кімнат у плані: ${info.rooms}` : '',
+      '',
+      `📝 Коментар: ${comment}`,
+      '',
+      'Прошу перевірити збережений об’єкт, створити особисту картку та надіслати номер об’єкта і персональний ключ.'
+    ].filter(Boolean).join('\n');
+
+    status.className = 'client-access-status74 show ok';
+    status.textContent = `Запит для об’єкта ${info.number} сформовано. Відкривається Telegram адміністратора.`;
+    window.open('https://t.me/Potolok_in_ua?text=' + encodeURIComponent(message), '_blank', 'noopener');
+  };
+
+  function accessMessage75(number, key){
+    return [
+      '✅ Вашу особисту картку Potolok.in.ua створено.',
+      '',
+      `📄 Номер об’єкта: ${number}`,
+      `🔑 Ключ доступу: ${key}`,
+      '',
+      'Відкрийте сайт Potolok.in.ua, перейдіть у розділ «Особиста картка» та введіть номер об’єкта і ключ.',
+      '',
+      'Ключ збережіть. Якщо він буде втрачений, адміністратор створить новий, а старий перестане працювати.'
+    ].join('\n');
+  }
+
+  window.copyIssuedAccess75 = async function(number, key){
+    const text = accessMessage75(number, key);
+    try {
+      await navigator.clipboard.writeText(text);
+      alert('Номер об’єкта, ключ та інструкцію скопійовано.');
+    } catch {
+      prompt('Скопіюйте повідомлення:', text);
+    }
+  };
+
+  window.sendIssuedAccess75 = function(number, key){
+    const text = accessMessage75(number, key);
+    window.open(
+      'https://t.me/share/url?url=' + encodeURIComponent('https://www.potolok.in.ua') +
+      '&text=' + encodeURIComponent(text),
+      '_blank',
+      'noopener'
+    );
+  };
+
+  async function markAccessIssued75(id, row){
+    const object = row?.object_data && typeof row.object_data === 'object' ? row.object_data : {};
+    const previous = object.serviceData && typeof object.serviceData === 'object' ? object.serviceData : {};
+    const serviceData = {
+      ...previous,
+      accessIssuedAt: new Date().toISOString()
+    };
+    await api60({action:'serviceUpdate', cloudId:id, serviceData});
+  }
+
+  window.issueClientAccess75 = async function(id){
+    const row = (Array.isArray(window.serviceRows60) ? window.serviceRows60 : []).find(x => String(x.id) === String(id))
+      || (typeof serviceRows60 !== 'undefined' && Array.isArray(serviceRows60) ? serviceRows60 : []).find(x => String(x.id) === String(id));
+
+    if(!row) return alert('Об’єкт не знайдено у панелі адміністратора.');
+
+    const object = row.object_data && typeof row.object_data === 'object' ? row.object_data : {};
+    const published = !!(row.client_view && typeof row.client_view === 'object' && String(row.client_view.objectNumber || '').trim());
+
+    if(published && !confirm('Особиста картка вже створена. Для повторної видачі буде створено новий ключ, а старий перестане працювати. Продовжити?')){
+      return;
+    }
+
+    try {
+      let result;
+      if(published){
+        result = await api60({action:'regenerateAccessKey', cloudId:id});
+      } else {
+        result = await api60({
+          action:'publishClient',
+          cloudId:id,
+          status:row.status || object.cloudStatus || 'new',
+          object:{
+            ...object,
+            cloudId:id,
+            objectNumber:row.object_number || object.objectNumber || ''
+          }
+        });
+      }
+
+      const number = result?.object?.object_number || result?.objectNumber || row.object_number || '—';
+      const key = result?.accessKey || '';
+      if(!key) throw new Error('Сервер не повернув ключ доступу');
+
+      await markAccessIssued75(id, row);
+
+      openModal60(
+        '✅ Доступ клієнту готовий',
+        `<div class="p60-keybox"><span>Номер об’єкта</span><b>${e60(number)}</b></div>` +
+        `<div class="p60-keybox"><span>Ключ — показано лише один раз</span><b>${e60(key)}</b></div>` +
+        `<div class="access-send-note75">Одразу скопіюйте або надішліть клієнту номер і ключ. Після закриття вікна ключ повторно не показується.</div>` +
+        `<div class="p60-actions">` +
+          `<button onclick="copyIssuedAccess75('${e60(number)}','${e60(key)}')">📋 Копіювати</button>` +
+          `<button class="blue" onclick="sendIssuedAccess75('${e60(number)}','${e60(key)}')">📨 Надіслати клієнту</button>` +
+          `<button onclick="closeModal60()">Готово</button>` +
+        `</div>`
+      );
+
+      await loadService60();
+    } catch(error){
+      alert('Не вдалося видати доступ: ' + error.message);
+    }
+  };
+
+  const originalServiceCard75 = typeof serviceCard60 === 'function' ? serviceCard60 : null;
+  if(originalServiceCard75){
+    serviceCard60 = function(r){
+      const o = obj60(r);
+      const published = !!(r?.client_view && typeof r.client_view === 'object' && String(r.client_view.objectNumber || '').trim());
+      const issuedAt = o?.serviceData?.accessIssuedAt || '';
+      const created = formatCloudTime71(r.created_at);
+      const updated = formatCloudTime71(r.updated_at || o.savedAt);
+      const issuedBlock = issuedAt
+        ? `<small class="p60-access-issued75">🟢 Доступ клієнту видано: ${e60(formatCloudTime71(issuedAt))}</small>`
+        : '';
+
+      return `<div class="p60-object" id="serviceObject60_${e60(r.id)}">` +
+        `<div class="p60-object-top"><div>` +
+          `<b>${e60(r.object_number||'Без номера')} · ${e60(o.clientName||'Без імені')}</b>` +
+          `<small>📍 ${e60(o.address||'—')}<br>📞 ${e60(o.clientPhone||'—')} · Статус: ${e60(o.cloudStatus||r.status||'new')}</small>` +
+          `<small class="p60-time71">🆕 Створено: <b>${e60(created)}</b><br>💾 Останнє збереження: <b>${e60(updated)}</b></small>` +
+          issuedBlock +
+        `</div><span class="p60-key ${published?'published':''}">${published?'🟢 опубліковано':'🔒 приховано'}</span></div>` +
+        `<div class="p60-actions">` +
+          `<button class="p60-access-btn75" onclick="issueClientAccess75('${r.id}')">🔑 Видати доступ</button>` +
+          `<button onclick="editServiceObject60('${r.id}')">✏️ Дані</button>` +
+          `<button onclick="serviceEstimate60('${r.id}')">💰 Кошторис</button>` +
+          `<button onclick="serviceReviews60('${r.id}')">⭐ Відгуки</button>` +
+          `<button onclick="openServiceClientCard60('${r.id}')">${published?'👁 Картка клієнта':'🔐 Створити картку'}</button>` +
+          `<button onclick="serviceSchedule72('${r.id}')">📅 Календар / монтаж</button>` +
+          `<button onclick="openCloudObject56('${r.id}')">📂 Відкрити об’єкт</button>` +
+        `</div>` +
+        `<button class="p60-delete-object" id="deleteService60_${e60(r.id)}" onclick="deleteServiceObject60('${r.id}','${e60(r.object_number||'Без номера')}')">🗑 Видалити об’єкт</button>` +
+      `</div>`;
+    };
+    window.serviceCard60 = serviceCard60;
+  }
 })();
 </script>
 
