@@ -67,6 +67,14 @@ async function validateClient(objectNumber, accessKey) {
   const row = rows?.[0]; if (!row) return null;
   return safeEqual(hashAccessKey(String(accessKey).trim().toUpperCase()), String(row.access_key_hash || '')) ? row : null;
 }
+function hasPublishedClientView(row) {
+  return !!(
+    row &&
+    row.client_view &&
+    typeof row.client_view === 'object' &&
+    String(row.client_view.objectNumber || '').trim()
+  );
+}
 
 export default async function handler(req, res) {
   if (!SUPABASE_URL || !SUPABASE_SECRET_KEY) return json(res, 500, { error:'Supabase environment variables are missing' });
@@ -99,7 +107,7 @@ export default async function handler(req, res) {
       }
       if (action === 'clientLogin') {
         const row = await validateClient(body.objectNumber, body.accessKey);
-        if (!row || !row.client_view) return json(res, 401, { error:'Невірний номер об’єкта або ключ доступу.' });
+        if (!row || !hasPublishedClientView(row)) return json(res, 401, { error:'Невірний номер об’єкта або ключ доступу.' });
         return json(res, 200, { object:row.client_view });
       }
       if (action === 'submitReview') {
@@ -124,9 +132,9 @@ export default async function handler(req, res) {
         const object = current.object_data && typeof current.object_data === 'object' ? current.object_data : {};
         if (action === 'updateStatus') {
           const nextStatus = String(body.status || 'new'), next = { ...object, cloudStatus:nextStatus };
-          return json(res, 200, { object:await patchRow(cloudId, { status:dbStatus(nextStatus), object_data:next, client_view:current.client_view ? publicView(next,current.object_number,nextStatus) : null }) });
+          return json(res, 200, { object:await patchRow(cloudId, { status:dbStatus(nextStatus), object_data:next, client_view:hasPublishedClientView(current) ? publicView(next,current.object_number,nextStatus) : {} }) });
         }
-        if (action === 'clientData') return json(res, 200, { objectNumber:current.object_number, accessKey:object._clientAccessKey||'', published:!!current.client_view });
+        if (action === 'clientData') return json(res, 200, { objectNumber:current.object_number, accessKey:object._clientAccessKey||'', published:hasPublishedClientView(current) });
         if (action === 'regenerateAccessKey') {
           const key = makeAccessKey(), next = { ...object, _clientAccessKey:key };
           const row = await patchRow(cloudId, { access_key_hash:hashAccessKey(key), object_data:next, client_view:publicView(next,current.object_number,next.cloudStatus||current.status||'new') });
@@ -135,17 +143,17 @@ export default async function handler(req, res) {
         if (action === 'addScheduleEvent') {
           const event = body.event; if (!event?.date) return json(res, 400, { error:'Valid event is required' });
           const next = { ...object, schedule:[...(Array.isArray(object.schedule)?object.schedule:[]), event] };
-          const row = await patchRow(cloudId, { object_data:next, client_view:current.client_view ? publicView(next,current.object_number,next.cloudStatus||current.status) : null });
+          const row = await patchRow(cloudId, { object_data:next, client_view:hasPublishedClientView(current) ? publicView(next,current.object_number,next.cloudStatus||current.status) : {} });
           return json(res, 200, { object:row });
         }
         if (action === 'deleteScheduleEvent') {
           const next = { ...object, schedule:(Array.isArray(object.schedule)?object.schedule:[]).filter(e=>String(e.id)!==String(body.eventId||'')) };
-          const row = await patchRow(cloudId, { object_data:next, client_view:current.client_view ? publicView(next,current.object_number,next.cloudStatus||current.status) : null });
+          const row = await patchRow(cloudId, { object_data:next, client_view:hasPublishedClientView(current) ? publicView(next,current.object_number,next.cloudStatus||current.status) : {} });
           return json(res, 200, { object:row });
         }
         if (action === 'serviceUpdate') {
           const next = { ...object, serviceData:{ ...(object.serviceData||{}), ...(body.serviceData||{}) } };
-          const row = await patchRow(cloudId, { object_data:next, client_view:current.client_view ? publicView(next,current.object_number,next.cloudStatus||current.status) : null });
+          const row = await patchRow(cloudId, { object_data:next, client_view:hasPublishedClientView(current) ? publicView(next,current.object_number,next.cloudStatus||current.status) : {} });
           return json(res, 200, { object:row });
         }
         if (action === 'moderateReview') {
@@ -157,17 +165,23 @@ export default async function handler(req, res) {
       const object = body.object;
       if (!object || typeof object !== 'object') return json(res, 400, { error:'object is required' });
       const mode = action || 'publishClient', status = String(body.status || object.cloudStatus || 'new');
+
       if (mode === 'historySave') {
         if (cloudId) {
           const current = await getRow(cloudId); if (!current) return json(res, 404, { error:'Object not found' });
           const objectNumber = current.object_number || object.objectNumber || await nextObjectNumber();
           const updated = { ...object, objectNumber, _clientAccessKey:current.object_data?._clientAccessKey || object._clientAccessKey };
-          const row = await patchRow(cloudId, { ...baseFields(updated,status), client_view:current.client_view ? publicView(updated,objectNumber,status) : null });
-          return json(res, 200, { created:false, published:!!row?.client_view, object:row });
+          const row = await patchRow(cloudId, {
+            ...baseFields(updated,status),
+            client_view:hasPublishedClientView(current) ? publicView(updated,objectNumber,status) : {}
+          });
+          return json(res, 200, { created:false, published:hasPublishedClientView(row), object:row });
         }
+
         const objectNumber = object.objectNumber || await nextObjectNumber();
         const key = makeAccessKey();
         const updated = { ...object, objectNumber, _clientAccessKey:key };
+
         return json(res, 201, {
           created:true,
           published:false,
@@ -175,10 +189,11 @@ export default async function handler(req, res) {
             object_number:objectNumber,
             access_key_hash:hashAccessKey(key),
             ...baseFields(updated,status),
-            client_view:null
+            client_view:{}
           })
         });
       }
+
       if (mode === 'publishClient') {
         if (cloudId) {
           const current = await getRow(cloudId); if (!current) return json(res, 404, { error:'Object not found' });
@@ -193,6 +208,7 @@ export default async function handler(req, res) {
         const updated = { ...object, objectNumber, _clientAccessKey:key };
         return json(res, 201, { created:true, accessKey:key, object:await insertRow({ object_number:objectNumber, access_key_hash:hashAccessKey(key), ...baseFields(updated,status), client_view:publicView(updated,objectNumber,status) }) });
       }
+
       return json(res, 400, { error:'Unknown action' });
     }
 
@@ -201,6 +217,11 @@ export default async function handler(req, res) {
       await sb(`objects?id=eq.${encodeURIComponent(id)}`, { method:'DELETE' });
       return json(res, 200, { ok:true });
     }
-    res.setHeader('Allow','GET, POST, DELETE'); return json(res,405,{error:'Method not allowed'});
-  } catch (error) { console.error('objects API error:',error); return json(res,500,{error:error.message||'Server error'}); }
-                                                            }
+
+    res.setHeader('Allow','GET, POST, DELETE');
+    return json(res,405,{error:'Method not allowed'});
+  } catch (error) {
+    console.error('objects API error:',error);
+    return json(res,500,{error:error.message||'Server error'});
+  }
+}
