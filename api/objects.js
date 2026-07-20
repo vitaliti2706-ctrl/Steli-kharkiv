@@ -35,6 +35,23 @@ function hashAccessKey(value) {
   return crypto.createHash('sha256').update(String(value)).digest('hex');
 }
 
+function normalizeCredential(value) {
+  const lookalikes = {
+    'А':'A','В':'B','С':'C','Е':'E','Н':'H','К':'K','М':'M',
+    'О':'O','Р':'P','Т':'T','Х':'X','І':'I',
+    'а':'A','в':'B','с':'C','е':'E','н':'H','к':'K','м':'M',
+    'о':'O','р':'P','т':'T','х':'X','і':'I'
+  };
+
+  return String(value || '')
+    .normalize('NFKC')
+    .trim()
+    .toUpperCase()
+    .replace(/[АВСЕНКМОРТХІавсенкмортхі]/g, ch => lookalikes[ch] || ch)
+    .replace(/[‐‑‒–—−]/g, '-')
+    .replace(/\s+/g, '');
+}
+
 function safeEqual(a, b) {
   const aa = Buffer.from(String(a));
   const bb = Buffer.from(String(b));
@@ -285,9 +302,10 @@ function baseFields(object, status) {
 }
 
 async function validateClient(objectNumber, accessKey) {
-  const normalizedObjectNumber = String(objectNumber)
-    .trim()
-    .toUpperCase();
+  const normalizedObjectNumber = normalizeCredential(objectNumber);
+  const normalizedKey = normalizeCredential(accessKey);
+
+  if (!normalizedObjectNumber || !normalizedKey) return null;
 
   const rows = await sb(
     `objects?object_number=eq.${encodeURIComponent(normalizedObjectNumber)}&select=*&limit=1`
@@ -296,10 +314,6 @@ async function validateClient(objectNumber, accessKey) {
   const row = rows?.[0];
 
   if (!row) return null;
-
-  const normalizedKey = String(accessKey)
-    .trim()
-    .toUpperCase();
 
   return safeEqual(
     hashAccessKey(normalizedKey),
