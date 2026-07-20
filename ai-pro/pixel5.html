@@ -6331,8 +6331,113 @@ function renderToday58(){const box=document.getElementById('crm58Today');if(!box
 
 const oldPublish58=window.publishClientCard56;
 window.publishClientCard56=async function(sourceObject=null){
- const btn=document.getElementById('publishClientCardBtn56');if(btn&&!sourceObject){btn.disabled=true;btn.textContent='Публікуємо…'}
- try{const object=sourceObject||collectObject();const cloudId=object.cloudId||'';const result=await req58(API58,{method:'POST',body:JSON.stringify({action:'publishClient',object,cloudId,status:object.cloudStatus||'new'})});await renderHistory();const n=result.object?.object_number||object.objectNumber||'',k=result.accessKey||result.object?.object_data?._clientAccessKey||'';openModal58('✅ Особисту картку створено',`<div class="crm58-keybox"><span>Номер об’єкта</span><b>${esc58(n)}</b></div><div class="crm58-keybox"><span>Ключ доступу</span><b>${esc58(k||'Ключ уже створений')}</b></div><div class="crm58-modal-actions"><button onclick="copyClient58('${esc58(n)}','${esc58(k)}')">📋 Копіювати</button><button onclick="shareClient58('${esc58(n)}','${esc58(k)}')">📲 Поділитися</button><button class="blue" onclick="closeCrm58Modal()">Готово</button></div>`);return result}catch(e){alert('Не вдалося створити картку: '+e.message);throw e}finally{if(btn&&!sourceObject){btn.disabled=false;btn.textContent='☁️ Зберегти в особисту картку'}}
+  const btn=document.getElementById('publishClientCardBtn56');
+  if(btn&&!sourceObject){btn.disabled=true;btn.textContent='Публікуємо…'}
+
+  try{
+    const object=sourceObject&&typeof sourceObject==='object'
+      ? sourceObject
+      : collectObject();
+
+    const meta=typeof metaRead57==='function'?metaRead57():{};
+    const known=meta[object.id]||{};
+    let cloudId=known.cloudId||object.cloudId||'';
+
+    const sendPublish=async(id='')=>req58(API58,{
+      method:'POST',
+      body:JSON.stringify({
+        action:'publishClient',
+        object:{
+          ...object,
+          cloudId:id||'',
+          objectNumber:id?(known.objectNumber||object.objectNumber||''):''
+        },
+        cloudId:id,
+        status:known.status||object.cloudStatus||'new'
+      })
+    });
+
+    let result;
+    try{
+      result=await sendPublish(cloudId);
+    }catch(error){
+      const stale=cloudId&&/Object not found/i.test(String(error.message||''));
+      if(!stale)throw error;
+
+      delete meta[object.id];
+      if(typeof metaWrite57==='function')metaWrite57(meta);
+      object.cloudId='';
+      object.objectNumber='';
+      object.cloudStatus='new';
+      try{await dbPutObject(object)}catch{}
+      result=await sendPublish('');
+    }
+
+    const row=result.object||{};
+    if(!row.id)throw new Error('Сервер не повернув ID об’єкта');
+
+    if(typeof storeReturned57==='function'){
+      await storeReturned57(object,row);
+    }else{
+      const saved={
+        ...object,
+        cloudId:row.id,
+        objectNumber:row.object_number,
+        cloudStatus:row.status||'new',
+        clientPublished:true
+      };
+      const currentMeta=typeof metaRead57==='function'?metaRead57():{};
+      currentMeta[object.id]={
+        cloudId:row.id,
+        objectNumber:row.object_number,
+        status:row.status||'new',
+        clientPublished:true
+      };
+      if(typeof metaWrite57==='function')metaWrite57(currentMeta);
+      try{await dbPutObject(saved)}catch{}
+      activeObjectId=object.id;
+    }
+
+    if(window.saveStatus){
+      saveStatus.textContent=`🔐 ${row.object_number||'Особисту картку опубліковано'}`;
+    }
+
+    const statusBox=document.getElementById('publishClientCardStatus56');
+    if(statusBox){
+      statusBox.textContent=`Особисту картку ${row.object_number||''} опубліковано.`;
+      statusBox.className='client-publish-status56 show ok';
+    }
+
+    await window.renderHistory?.();
+
+    const n=row.object_number||object.objectNumber||'';
+    const k=result.accessKey||'';
+
+    openModal58(
+      '✅ Особисту картку опубліковано',
+      `<div class="crm58-keybox"><span>Номер об’єкта</span><b>${esc58(n)}</b></div>`+
+      `<div class="crm58-keybox"><span>Ключ доступу</span><b>${esc58(k||'Ключ не показується повторно')}</b></div>`+
+      `<div class="crm58-modal-actions">`+
+      `${k?`<button onclick="copyClient58('${esc58(n)}','${esc58(k)}')">📋 Копіювати</button>`:''}`+
+      `${k?`<button onclick="shareClient58('${esc58(n)}','${esc58(k)}')">📲 Поділитися</button>`:''}`+
+      `<button class="blue" onclick="closeCrm58Modal()">Готово</button></div>`
+    );
+
+    return result;
+  }catch(e){
+    const statusBox=document.getElementById('publishClientCardStatus56');
+    if(statusBox){
+      statusBox.textContent='Помилка: '+e.message;
+      statusBox.className='client-publish-status56 show error';
+    }
+    alert('Не вдалося опублікувати особисту картку: '+e.message);
+    throw e;
+  }finally{
+    if(btn&&!sourceObject){
+      btn.disabled=false;
+      btn.textContent='☁️ Зберегти в особисту картку';
+    }
+  }
 };
 
 injectTab58();setTimeout(()=>{injectTab58();window.renderHistory?.()},300);
