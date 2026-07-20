@@ -190,6 +190,12 @@ export default async function handler(req, res) {
       await sb(`objects?id=eq.${encodeURIComponent(id)}`, { method:'DELETE' });
       return json(res, 200, { ok:true });
     }
-    res.setHeader('Allow','GET, POST, DELETE'); return json(res,405,{error:'Method not allowed'});
-  } catch (error) { console.error('objects API error:',error); return json(res,500,{error:error.message||'Server error'}); }
-  }                                   }
+        res.setHeader('Allow', 'GET, POST, DELETE');
+    return json(res, 405, { error: 'Method not allowed' });
+  } catch (error) {
+    console.error('objects API error:', error);
+    return json(res, 500, {
+      error: error.message || 'Server error'
+    });
+  }
+}
