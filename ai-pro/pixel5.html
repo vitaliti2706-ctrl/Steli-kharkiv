@@ -348,6 +348,16 @@ th:nth-child(2),th:nth-child(3),th:nth-child(4),td:nth-child(2),td:nth-child(3),
 @media(max-width:520px){.crm58-grid{grid-template-columns:1fr}.crm58-full{grid-column:auto}.calendar58-day{min-height:62px;padding:4px}.calendar58-week,.calendar58-grid{gap:3px}.calendar58-event{grid-template-columns:44px 1fr auto}}
 </style>
 
+
+<style id="saveTimePolish71">
+.crm-time71{margin-top:7px;padding:8px 10px;border:1px solid #dbeafe;background:#f8fbff;border-radius:10px;font-size:9px;line-height:1.55;color:#475569}
+.crm-time71 b{color:#0f172a}
+.crm-time71 .updated{color:#075bff;font-weight:950}
+.p60-time71{display:block!important;margin-top:7px!important;padding:8px 9px;border:1px solid #dbeafe;background:#f8fbff;border-radius:9px;color:#475569!important;font-size:9px!important;line-height:1.5!important}
+.p60-time71 b{display:inline!important;color:#0f172a;font-size:9px!important}
+.save-flash71{animation:saveFlash71 1.2s ease}
+@keyframes saveFlash71{0%{box-shadow:0 0 0 0 rgba(34,197,94,.5)}100%{box-shadow:0 0 0 16px rgba(34,197,94,0)}}
+</style>
 </head>
 <body>
 <header class="header"><div class="wrap nav"><a class="logo" href="../index.html">Potolok<span>.in.ua</span></a><div class="menu"><a href="../index.html">Головна</a><a href="../gallery.html">Наші роботи</a><a href="#app">Pixel 5</a></div><a class="phone" href="tel:+380974546713">097 454 67 13</a><a class="tg-top" href="https://t.me/Potolok_in_ua">Фото в TG</a></div></header>
@@ -6045,7 +6055,9 @@ setTimeout(()=>{updateRoomBaseUI47();updateSummary();renderRooms()},120);
         window.scrollTo({ top: 0, behavior: 'smooth' });
       }
 
-      alert(`Об’єкт ${row.object_number || ''} збережено у хмарній історії.`);
+      const operation=result.created?'Створено новий об’єкт':'Оновлено існуючий об’єкт';
+      const savedTime=formatCloudTime71(row.updated_at||row.created_at||new Date().toISOString());
+      alert(`${operation} ${row.object_number || ''}.\n\nОстаннє збереження: ${savedTime}\nОб’єкт доступний у «Службове» та у захищеній «Історії».`);
       return row;
     } catch (error) {
       if (window.saveStatus) saveStatus.textContent = 'Помилка хмарного збереження';
@@ -6123,7 +6135,7 @@ setTimeout(()=>{updateRoomBaseUI47();updateSummary();renderRooms()},120);
           `Збережіть та передайте ці дані клієнту.`
         );
       } else {
-        alert(`Особисту картку ${row.object_number || ''} оновлено.`);
+        alert(`Особисту картку ${row.object_number || ''} оновлено.\n\nЧас оновлення: ${formatCloudTime71(row.updated_at||new Date().toISOString())}`);
       }
 
       return result;
@@ -6133,7 +6145,7 @@ setTimeout(()=>{updateRoomBaseUI47();updateSummary();renderRooms()},120);
     } finally {
       if (btn && !sourceObject) {
         btn.disabled = false;
-        btn.textContent = '☁️ Зберегти в особисту картку';
+        btn.textContent = (result&&result.published)?'🔄 Оновити особисту картку':'☁️ Зберегти в особисту картку';
       }
     }
   };
@@ -6242,11 +6254,16 @@ function injectTab58(){
  const list=document.getElementById('objectList'); if(list&&!document.getElementById('crm58Tools')) list.insertAdjacentHTML('beforebegin',`<div id="crm58Today" class="crm58-today"></div><div id="crm58Tools" class="crm58-toolbar"><input id="crm58Search" placeholder="🔎 Пошук: клієнт, адреса, номер" oninput="renderCrmHistory58()"><select id="crm58Filter" onchange="renderCrmHistory58()"><option value="all">Усі статуси</option>${statusOptions58('')}</select></div>`);
 }
 
+window.formatCloudTime71=function(value){
+ if(!value)return '—';
+ const d=new Date(value);if(Number.isNaN(d.getTime()))return '—';
+ return new Intl.DateTimeFormat('uk-UA',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit',second:'2-digit'}).format(d);
+};
 window.renderCrmHistory58=function(){
  const list=document.getElementById('objectList');if(!list)return;
  const q=String(document.getElementById('crm58Search')?.value||'').toLowerCase();const f=document.getElementById('crm58Filter')?.value||'all';
  const rows=crmRows58.filter(r=>{const o=rowObj58(r);const hay=[r.object_number,o.clientName,o.address,o.clientPhone].join(' ').toLowerCase();return(!q||hay.includes(q))&&(f==='all'||(o.cloudStatus||r.status)===f)});
- list.innerHTML=rows.length?rows.map(r=>{const o=rowObj58(r),st=status58(o.cloudStatus||r.status),step=st[2],published=clientPublished58(r),events=Array.isArray(o.schedule)?o.schedule:[];return `<div class="crm58-card"><div class="crm58-card-top"><div><div class="crm58-card-title">${esc58(r.object_number||'Без номера')} · ${esc58(o.clientName||'Без імені')}</div><div class="crm58-card-meta">📍 ${esc58(o.address||'Без адреси')}<br>📅 ${esc58(formatDate58(o.date))} · ${Number(o.rooms?.length||0)} кімн. · ${Number(o.total||0).toLocaleString('uk-UA')} грн<br>${published?'🔐 Особиста картка активна':'🔓 Особиста картка не створена'}${events.length?` · ⏰ ${events.length} подій`:''}</div></div><span class="crm58-status crm58-status-${esc58(o.cloudStatus||r.status||'new')}">${st[0]} ${st[1]}</span></div><div class="crm58-progress">${[1,2,3,4,5].map(n=>`<i class="crm58-step ${step>=n?'on':''}"></i>`).join('')}</div><div class="crm58-actions"><button class="primary" onclick="openCloudObject56('${r.id}')">📂 Відкрити</button><button onclick="changeStatus58('${r.id}')">🏷 Статус</button><button onclick="clientData58('${r.id}')">🔑 Дані клієнта</button><button onclick="scheduleObject58('${r.id}')">📅 Запланувати</button><button onclick="openServiceClientCard58('${r.id}')">🔐 Особиста картка</button><button class="danger" onclick="deleteCloudObject58('${r.id}')">🗑 Видалити</button></div></div>`}).join(''):'<div class="notice">Об’єктів за цим фільтром немає.</div>';
+ list.innerHTML=rows.length?rows.map(r=>{const o=rowObj58(r),st=status58(o.cloudStatus||r.status),step=st[2],published=clientPublished58(r),events=Array.isArray(o.schedule)?o.schedule:[];const created=formatCloudTime71(r.created_at);const updated=formatCloudTime71(r.updated_at||o.savedAt);return `<div class="crm58-card"><div class="crm58-card-top"><div><div class="crm58-card-title">${esc58(r.object_number||'Без номера')} · ${esc58(o.clientName||'Без імені')}</div><div class="crm58-card-meta">📍 ${esc58(o.address||'Без адреси')}<br>📅 Замір: ${esc58(formatDate58(o.date))} · ${Number(o.rooms?.length||0)} кімн. · ${Number(o.total||0).toLocaleString('uk-UA')} грн<br>${published?'🟢 Особиста картка опублікована':'🔒 Особиста картка не створена'}${events.length?` · ⏰ ${events.length} подій`:''}</div><div class="crm-time71">🆕 Створено: <b>${esc58(created)}</b><br>💾 Останнє збереження: <span class="updated">${esc58(updated)}</span></div></div><span class="crm58-status crm58-status-${esc58(o.cloudStatus||r.status||'new')}">${st[0]} ${st[1]}</span></div><div class="crm58-progress">${[1,2,3,4,5].map(n=>`<i class="crm58-step ${step>=n?'on':''}"></i>`).join('')}</div><div class="crm58-actions"><button class="primary" onclick="openCloudObject56('${r.id}')">📂 Відкрити</button><button onclick="changeStatus58('${r.id}')">🏷 Статус</button><button onclick="clientData58('${r.id}')">🔑 Дані клієнта</button><button onclick="scheduleObject58('${r.id}')">📅 Запланувати</button><button onclick="openServiceClientCard58('${r.id}')">${published?'👁 Особиста картка':'🔐 Створити картку'}</button><button class="danger" onclick="deleteCloudObject58('${r.id}')">🗑 Видалити</button></div></div>`}).join(''):'<div class="notice">Об’єктів за цим фільтром немає.</div>';
  renderToday58();
 };
 
@@ -6310,7 +6327,7 @@ window.openServiceClientCard58=async function(id){
  }catch(e){
   const message=String(e.message||'');
   if(/ще не створено|не створено/i.test(message)){
-    if(confirm('Особисту картку ще не опубліковано. Відкрити об’єкт для публікації?')){
+    if(confirm('Клієнт ще не має доступу до цього об’єкта. Відкрити об’єкт, щоб створити особисту картку клієнта?')){
       await window.openCloudObject56?.(id);
     }
     return;
@@ -6496,7 +6513,7 @@ async function loadService60(){const root=document.getElementById('serviceRoot60
 function obj60(r){return r.object_data&&typeof r.object_data==='object'?r.object_data:{}}
 function renderServiceList60(filter=''){const root=document.getElementById('serviceRoot60');const q=filter.toLowerCase();const rows=serviceRows60.filter(r=>{const o=obj60(r);return [r.object_number,o.clientName,o.address,o.clientPhone].join(' ').toLowerCase().includes(q)});root.innerHTML=`<div class="p60-shell"><div class="p60-head"><div><h2>🔒 Панель майстра</h2><div class="p60-note">Ключі, оплата, монтаж, кошториси та відгуки.</div></div><button class="p60-btn" onclick="serviceLogout60()">Вийти</button></div><input class="p60-search" placeholder="Пошук: номер, клієнт, адреса" oninput="renderServiceList60(this.value)"><div>${rows.length?rows.map(serviceCard60).join(''):'<div class="p60-note">Нічого не знайдено.</div>'}</div></div>`}
 window.renderServiceList60=renderServiceList60;
-function serviceCard60(r){const o=obj60(r),published=!!(r?.client_view&&typeof r.client_view==='object'&&String(r.client_view.objectNumber||'').trim());return `<div class="p60-object" id="serviceObject60_${e60(r.id)}"><div class="p60-object-top"><div><b>${e60(r.object_number||'Без номера')} · ${e60(o.clientName||'Без імені')}</b><small>📍 ${e60(o.address||'—')}<br>📞 ${e60(o.clientPhone||'—')} · Статус: ${e60(o.cloudStatus||r.status||'new')}</small></div><span class="p60-key ${published?'published':''}">${published?'🟢 опубліковано':'🔒 приховано'}</span></div><div class="p60-actions"><button onclick="regenerateServiceKey60('${r.id}','${e60(r.object_number||'')}')">♻️ Новий ключ</button><button onclick="editServiceObject60('${r.id}')">✏️ Дані</button><button onclick="serviceEstimate60('${r.id}')">💰 Кошторис</button><button onclick="serviceReviews60('${r.id}')">⭐ Відгуки</button><button onclick="openServiceClientCard60('${r.id}')">${published?'👁 Картка':'🔐 Створити картку'}</button><button onclick="openCloudObject56('${r.id}')">📂 Об’єкт</button></div><button class="p60-delete-object" id="deleteService60_${e60(r.id)}" onclick="deleteServiceObject60('${r.id}','${e60(r.object_number||'Без номера')}')">🗑 Видалити об’єкт</button></div>`}
+function serviceCard60(r){const o=obj60(r),published=!!(r?.client_view&&typeof r.client_view==='object'&&String(r.client_view.objectNumber||'').trim());const created=formatCloudTime71(r.created_at);const updated=formatCloudTime71(r.updated_at||o.savedAt);return `<div class="p60-object" id="serviceObject60_${e60(r.id)}"><div class="p60-object-top"><div><b>${e60(r.object_number||'Без номера')} · ${e60(o.clientName||'Без імені')}</b><small>📍 ${e60(o.address||'—')}<br>📞 ${e60(o.clientPhone||'—')} · Статус: ${e60(o.cloudStatus||r.status||'new')}</small><small class="p60-time71">🆕 Створено: <b>${e60(created)}</b><br>💾 Останнє збереження: <b>${e60(updated)}</b></small></div><span class="p60-key ${published?'published':''}">${published?'🟢 опубліковано':'🔒 приховано'}</span></div><div class="p60-actions"><button onclick="regenerateServiceKey60('${r.id}','${e60(r.object_number||'')}')">♻️ Новий ключ</button><button onclick="editServiceObject60('${r.id}')">✏️ Дані</button><button onclick="serviceEstimate60('${r.id}')">💰 Кошторис</button><button onclick="serviceReviews60('${r.id}')">⭐ Відгуки</button><button onclick="openServiceClientCard60('${r.id}')">${published?'👁 Картка клієнта':'🔐 Створити картку'}</button><button onclick="openCloudObject56('${r.id}')">📂 Відкрити об’єкт</button></div><button class="p60-delete-object" id="deleteService60_${e60(r.id)}" onclick="deleteServiceObject60('${r.id}','${e60(r.object_number||'Без номера')}')">🗑 Видалити об’єкт</button></div>`}
 window.copyKey60=async(n,k)=>{const t=`Potolok.in.ua\nНомер: ${n}\nКлюч: ${k}`;try{await navigator.clipboard.writeText(t);alert('Скопійовано')}catch{prompt('Скопіюйте:',t)}};
 window.regenerateServiceKey60=async (id,number='')=>{if(!confirm('Старий ключ перестане працювати. Продовжити?'))return;try{const d=await api60({action:'regenerateAccessKey',cloudId:id});const key=d.accessKey||'';openModal60('✅ Новий ключ',`<div class="p60-keybox"><span>Номер об’єкта</span><b>${e60(number||d.objectNumber||'—')}</b></div><div class="p60-keybox"><span>Показано один раз</span><b>${e60(key)}</b></div><div class="p60-actions"><button onclick="copyKey60('${e60(number||d.objectNumber||'')}','${e60(key)}')">📋 Копіювати</button><button class="blue" onclick="closeModal60()">Готово</button></div>`);await loadService60()}catch(e){alert(e.message)}};
 window.openServiceClientCard60=id=>window.openServiceClientCard58?.(id);
