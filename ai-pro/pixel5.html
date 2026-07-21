@@ -7418,7 +7418,7 @@ body.client-card-mode61 .ai-request-section{display:none!important}
         '✅ Доступ клієнту готовий',
         `<div class="p60-keybox"><span>Номер об’єкта</span><b>${e60(number)}</b></div>` +
         `<div class="p60-keybox"><span>Ключ — показано лише один раз</span><b>${e60(key)}</b></div>` +
-        `<div class="access-send-note75">Одразу скопіюйте або надішліть клієнту номер і ключ. Після закриття вікна ключ повторно не показується.</div>` +
+        `<div class="access-send-note75">Одразу скопіюйте або надішліть клієнту персональне посилання. Після закриття вікна ключ повторно не показується.</div>` +
         `<div class="p60-actions">` +
           `<button onclick="copyIssuedAccess75('${e60(number)}','${e60(key)}')">📋 Копіювати</button>` +
           `<button class="blue" onclick="sendIssuedAccess75('${e60(number)}','${e60(key)}')">📨 Надіслати клієнту</button>` +
@@ -7575,31 +7575,51 @@ body.client-card-mode61 .ai-request-section{display:none!important}
     .replace(/</g,'&lt;')
     .replace(/>/g,'&gt;');
 
-  const clientMessage77 = (number, key) => [
-    '✅ Вашу особисту картку Potolok.in.ua створено.',
-    '',
-    `📄 Номер об’єкта: ${number}`,
-    `🔑 Ключ доступу: ${key}`,
-    '',
-    'Відкрийте сайт Potolok.in.ua, перейдіть у розділ «Особиста картка» та введіть номер об’єкта і ключ.',
-    '',
-    'Збережіть ключ. Якщо його буде втрачено, адміністратор створить новий, а старий перестане працювати.'
-  ].join('\n');
+  const buildIssuedClientLink77 = (number, key) => {
+    const objectNumber = String(number || '').trim().toUpperCase();
+    const accessKey = String(key || '').trim().toUpperCase();
+    const base =
+      window.location.origin +
+      window.location.pathname +
+      window.location.search;
+
+    return (
+      base +
+      '#clientObject=' + encodeURIComponent(objectNumber) +
+      '&clientKey=' + encodeURIComponent(accessKey)
+    );
+  };
+
+  const clientMessage77 = (number, key) => {
+    const link = buildIssuedClientLink77(number, key);
+
+    return [
+      '✅ Вашу особисту картку Potolok.in.ua створено.',
+      '',
+      'Відкрийте персональне посилання:',
+      link,
+      '',
+      `📄 Номер об’єкта: ${number}`,
+      `🔑 Ключ доступу: ${key}`
+    ].join('\n');
+  };
 
   window.copyIssuedAccess77 = async (number, key) => {
-    const text = clientMessage77(number, key);
+    const link = buildIssuedClientLink77(number, key);
     try {
-      await navigator.clipboard.writeText(text);
-      alert('Номер об’єкта, ключ та інструкцію скопійовано.');
+      await navigator.clipboard.writeText(link);
+      alert('Персональне посилання клієнта скопійовано.');
     } catch {
-      prompt('Скопіюйте повідомлення:', text);
+      prompt('Скопіюйте персональне посилання:', link);
     }
   };
 
   window.sendIssuedAccess77 = (number, key) => {
+    const link = buildIssuedClientLink77(number, key);
     const text = clientMessage77(number, key);
+
     window.open(
-      'https://t.me/share/url?url=' + encodeURIComponent('https://www.potolok.in.ua') +
+      'https://t.me/share/url?url=' + encodeURIComponent(link) +
       '&text=' + encodeURIComponent(text),
       '_blank',
       'noopener'
