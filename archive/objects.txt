@@ -1,0 +1,123 @@
+import crypto from ‘node:crypto’;
+
+const SUPABASE_URL = process.env.SUPABASE_URL; const SUPABASE_SECRET_KEY
+= process.env.SUPABASE_SECRET_KEY;
+
+function json(res, status, body) {
+res.status(status).setHeader(‘Content-Type’, ‘application/json;
+charset=utf-8’); res.end(JSON.stringify(body)); }
+
+function headers(extra = {}) { return { apikey: SUPABASE_SECRET_KEY,
+Authorization: Bearer ${SUPABASE_SECRET_KEY}, ‘Content-Type’:
+‘application/json’, …extra, }; }
+
+function makeAccessKey() { const alphabet =
+‘ABCDEFGHJKLMNPQRSTUVWXYZ23456789’; const bytes = crypto.randomBytes(8);
+let value = ’’; for (let i = 0; i < 8; i += 1) value +=
+alphabet[bytes[i] % alphabet.length]; return
+${value.slice(0, 4)}-${value.slice(4)}; }
+
+function hashAccessKey(value) { return
+crypto.createHash(‘sha256’).update(String(value)).digest(‘hex’); }
+
+async function nextObjectNumber() { const year = new
+Date().getFullYear(); const prefix = P-${year}-; const response = await
+fetch(
+${SUPABASE_URL}/rest/v1/objects?select=object_number&object_number=like.${prefix}*&order=object_number.desc&limit=1,
+{ headers: headers() } ); if (!response.ok) throw new Error(await
+response.text()); const rows = await response.json(); const last =
+rows?.[0]?.object_number || ’‘; const n = Number(last.split(’-’).pop())
+|| 0; return ${prefix}${String(n + 1).padStart(4, '0')}; }
+
+function publicView(object, objectNumber, status) { return {
+objectNumber, status, clientName: object.clientName || ’‘, address:
+object.address ||’‘, date: object.date ||’’, rooms:
+Array.isArray(object.rooms) ? object.rooms : [], area:
+Number(object.area || 0), perimeter: Number(object.perimeter || 0),
+total: Number(object.total || 0), savedAt: object.savedAt || new
+Date().toISOString(), }; }
+
+export default async function handler(req, res) { if (!SUPABASE_URL ||
+!SUPABASE_SECRET_KEY) { return json(res, 500, { error: ‘Supabase
+environment variables are missing’ }); }
+
+try { if (req.method === ‘GET’) { const id = String(req.query?.id ||
+’’).trim(); const url = id ?
+${SUPABASE_URL}/rest/v1/objects?id=eq.${encodeURIComponent(id)}&select=*
+: ${SUPABASE_URL}/rest/v1/objects?select=*&order=updated_at.desc; const
+response = await fetch(url, { headers: headers() }); if (!response.ok)
+throw new Error(await response.text()); const rows = await
+response.json(); return json(res, 200, id ? { object: rows[0] || null }
+: { objects: rows }); }
+
+    if (req.method === 'POST') {
+      const body = typeof req.body === 'string' ? JSON.parse(req.body) : (req.body || {});
+      const object = body.object;
+      if (!object || typeof object !== 'object') return json(res, 400, { error: 'object is required' });
+
+      const cloudId = String(body.cloudId || object.cloudId || '').trim();
+      const status = String(body.status || object.cloudStatus || 'new');
+
+      if (cloudId) {
+        const patch = {
+          client_name: object.clientName || null,
+          client_phone: object.clientPhone || null,
+          address: object.address || null,
+          measurement_date: object.date || null,
+          ceiling_height: Number(object.height || 0) || null,
+          status,
+          internal_comment: object.comment || null,
+          object_data: object,
+          client_view: publicView(object, object.objectNumber || '', status),
+        };
+        const response = await fetch(`${SUPABASE_URL}/rest/v1/objects?id=eq.${encodeURIComponent(cloudId)}`, {
+          method: 'PATCH',
+          headers: headers({ Prefer: 'return=representation' }),
+          body: JSON.stringify(patch),
+        });
+        if (!response.ok) throw new Error(await response.text());
+        const rows = await response.json();
+        return json(res, 200, { created: false, object: rows[0] || null });
+      }
+
+      const objectNumber = await nextObjectNumber();
+      const accessKey = makeAccessKey();
+      const row = {
+        object_number: objectNumber,
+        access_key_hash: hashAccessKey(accessKey),
+        client_name: object.clientName || null,
+        client_phone: object.clientPhone || null,
+        address: object.address || null,
+        measurement_date: object.date || null,
+        ceiling_height: Number(object.height || 0) || null,
+        status,
+        internal_comment: object.comment || null,
+        object_data: { ...object, objectNumber },
+        client_view: publicView(object, objectNumber, status),
+      };
+      const response = await fetch(`${SUPABASE_URL}/rest/v1/objects`, {
+        method: 'POST',
+        headers: headers({ Prefer: 'return=representation' }),
+        body: JSON.stringify(row),
+      });
+      if (!response.ok) throw new Error(await response.text());
+      const rows = await response.json();
+      return json(res, 201, { created: true, accessKey, object: rows[0] || null });
+    }
+
+    if (req.method === 'DELETE') {
+      const id = String(req.query?.id || '').trim();
+      if (!id) return json(res, 400, { error: 'id is required' });
+      const response = await fetch(`${SUPABASE_URL}/rest/v1/objects?id=eq.${encodeURIComponent(id)}`, {
+        method: 'DELETE',
+        headers: headers(),
+      });
+      if (!response.ok) throw new Error(await response.text());
+      return json(res, 200, { ok: true });
+    }
+
+    res.setHeader('Allow', 'GET, POST, DELETE');
+    return json(res, 405, { error: 'Method not allowed' });
+
+} catch (error) { console.error(‘objects API error:’, error); return
+json(res, 500, { error: error.message || ‘Server error’ }); } }
