@@ -1,21 +1,35 @@
-import crypto from ‘node:crypto’;
+import crypto from 'node:crypto';
 
-const SUPABASE_URL = process.env.SUPABASE_URL; const SUPABASE_SECRET_KEY
-= process.env.SUPABASE_SECRET_KEY; const SERVICE_PIN =
-String(process.env.SERVICE_PIN || ’‘); const SERVICE_TOKEN_SECRET =
-String(process.env.SERVICE_TOKEN_SECRET ||’‘); const TELEGRAM_BOT_TOKEN
-= String(process.env.TELEGRAM_BOT_TOKEN ||’‘); const TELEGRAM_CHAT_ID =
-String( process.env.TELEGRAM_CHAT_ID ||
-process.env.TELEGRAM_ADMIN_CHAT_ID || process.env.CHAT_ID ||’’ );
+const SUPABASE_URL = process.env.SUPABASE_URL;
+const SUPABASE_SECRET_KEY = process.env.SUPABASE_SECRET_KEY;
+const SERVICE_PIN = String(process.env.SERVICE_PIN || '');
+const SERVICE_TOKEN_SECRET = String(process.env.SERVICE_TOKEN_SECRET || '');
+const TELEGRAM_BOT_TOKEN = String(process.env.TELEGRAM_BOT_TOKEN || '');
+const TELEGRAM_CHAT_ID = String(
+  process.env.TELEGRAM_CHAT_ID ||
+  process.env.TELEGRAM_ADMIN_CHAT_ID ||
+  process.env.CHAT_ID ||
+  ''
+);
 
-async function notifyTelegram(text) { if (!TELEGRAM_BOT_TOKEN ||
-!TELEGRAM_CHAT_ID) { return false; }
+async function notifyTelegram(text) {
+  if (!TELEGRAM_BOT_TOKEN || !TELEGRAM_CHAT_ID) {
+    return false;
+  }
 
-try { const response = await fetch(
-https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage, { method:
-‘POST’, headers: { ‘Content-Type’: ‘application/json’ }, body:
-JSON.stringify({ chat_id: TELEGRAM_CHAT_ID, text: String(text ||
-’’).slice(0, 3900), disable_web_page_preview: true }) } );
+  try {
+    const response = await fetch(
+      `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          chat_id: TELEGRAM_CHAT_ID,
+          text: String(text || '').slice(0, 3900),
+          disable_web_page_preview: true
+        })
+      }
+    );
 
     if (!response.ok) {
       console.error('Telegram notification failed:', await response.text());
@@ -23,135 +37,217 @@ JSON.stringify({ chat_id: TELEGRAM_CHAT_ID, text: String(text ||
     }
 
     return true;
-
-} catch (error) { console.error(‘Telegram notification error:’, error);
-return false; } }
-
-function json(res, status, body) {
-res.status(status).setHeader(‘Content-Type’, ‘application/json;
-charset=utf-8’); res.end(JSON.stringify(body)); }
-
-function headers(extra = {}) { return { apikey: SUPABASE_SECRET_KEY,
-Authorization: Bearer ${SUPABASE_SECRET_KEY}, ‘Content-Type’:
-‘application/json’, …extra }; }
-
-function makeAccessKey() { const alphabet =
-‘ABCDEFGHJKLMNPQRSTUVWXYZ23456789’; const bytes = crypto.randomBytes(8);
-let value = ’’;
-
-for (let i = 0; i < 8; i += 1) { value += alphabet[bytes[i] %
-alphabet.length]; }
-
-return ${value.slice(0, 4)}-${value.slice(4)}; }
-
-function hashAccessKey(value) { return
-crypto.createHash(‘sha256’).update(String(value)).digest(‘hex’); }
-
-function normalizeCredential(value) { const lookalikes = {
-‘А’:‘A’,‘В’:‘B’,‘С’:‘C’,‘Е’:‘E’,‘Н’:‘H’,‘К’:‘K’,‘М’:‘M’,
-‘О’:‘O’,‘Р’:‘P’,‘Т’:‘T’,‘Х’:‘X’,‘І’:‘I’,
-‘а’:‘A’,‘в’:‘B’,‘с’:‘C’,‘е’:‘E’,‘н’:‘H’,‘к’:‘K’,‘м’:‘M’,
-‘о’:‘O’,‘р’:‘P’,‘т’:‘T’,‘х’:‘X’,‘і’:‘I’ };
-
-return String(value || ’‘) .normalize(’NFKC’) .trim() .toUpperCase()
-.replace(/[АВСЕНКМОРТХІавсенкмортхі]/g, ch => lookalikes[ch] || ch)
-.replace(/[‐‑‒–—−]/g, ‘-’) .replace(/+/g, ’’); }
-
-function safeEqual(a, b) { const aa = Buffer.from(String(a)); const bb =
-Buffer.from(String(b));
-
-return aa.length === bb.length && aa.length > 0 &&
-crypto.timingSafeEqual(aa, bb); }
-
-function signServiceToken(exp) { const payload = Buffer
-.from(JSON.stringify({ role: ‘service’, exp })) .toString(‘base64url’);
-
-const sig = crypto .createHmac(‘sha256’, SERVICE_TOKEN_SECRET)
-.update(payload) .digest(‘base64url’);
-
-return ${payload}.${sig}; }
-
-function verifyServiceToken(req) { if (!SERVICE_TOKEN_SECRET) return
-false;
-
-const token = String(req.headers[‘x-service-token’] || ’‘); const
-[payload, sig] = token.split(’.’);
-
-if (!payload || !sig) return false;
-
-const expected = crypto .createHmac(‘sha256’, SERVICE_TOKEN_SECRET)
-.update(payload) .digest(‘base64url’);
-
-if (!safeEqual(sig, expected)) return false;
-
-try { const data = JSON.parse( Buffer.from(payload,
-‘base64url’).toString(‘utf8’) );
-
-    return data.role === 'service' && Number(data.exp) > Date.now();
-
-} catch { return false; } }
-
-function parseSupabaseError(text, status) { let details = null;
-
-try { details = JSON.parse(text); } catch { details = { message: text };
+  } catch (error) {
+    console.error('Telegram notification error:', error);
+    return false;
+  }
 }
 
-const error = new Error( details?.message || details?.details ||
-Supabase request failed with status ${status} );
+function json(res, status, body) {
+  res.status(status).setHeader('Content-Type', 'application/json; charset=utf-8');
+  res.end(JSON.stringify(body));
+}
 
-error.status = status; error.code = String(details?.code || ’’);
-error.details = details; error.raw = text;
+function headers(extra = {}) {
+  return {
+    apikey: SUPABASE_SECRET_KEY,
+    Authorization: `Bearer ${SUPABASE_SECRET_KEY}`,
+    'Content-Type': 'application/json',
+    ...extra
+  };
+}
 
-return error; }
+function makeAccessKey() {
+  const alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  const bytes = crypto.randomBytes(8);
+  let value = '';
 
-function isUniqueViolation(error) { return ( String(error?.code || ’‘)
-=== ’23505’ || String(error?.message || ’‘).includes(’duplicate key
-value’) || String(error?.raw || ’‘).includes(’23505’) ); }
+  for (let i = 0; i < 8; i += 1) {
+    value += alphabet[bytes[i] % alphabet.length];
+  }
 
-async function sb(url, options = {}) { const response = await fetch(
-${SUPABASE_URL}/rest/v1/${url}, { …options, headers:
-headers(options.headers || {}) } );
+  return `${value.slice(0, 4)}-${value.slice(4)}`;
+}
 
-const text = await response.text();
+function hashAccessKey(value) {
+  return crypto.createHash('sha256').update(String(value)).digest('hex');
+}
 
-if (!response.ok) { throw parseSupabaseError(text, response.status); }
+function normalizeCredential(value) {
+  const lookalikes = {
+    'А':'A','В':'B','С':'C','Е':'E','Н':'H','К':'K','М':'M',
+    'О':'O','Р':'P','Т':'T','Х':'X','І':'I',
+    'а':'A','в':'B','с':'C','е':'E','н':'H','к':'K','м':'M',
+    'о':'O','р':'P','т':'T','х':'X','і':'I'
+  };
 
-if (response.status === 204 || !text) { return null; }
+  return String(value || '')
+    .normalize('NFKC')
+    .trim()
+    .toUpperCase()
+    .replace(/[АВСЕНКМОРТХІавсенкмортхі]/g, ch => lookalikes[ch] || ch)
+    .replace(/[‐‑‒–—−]/g, '-')
+    .replace(/\s+/g, '');
+}
 
-return JSON.parse(text); }
+function safeEqual(a, b) {
+  const aa = Buffer.from(String(a));
+  const bb = Buffer.from(String(b));
 
-async function nextObjectNumber() { const year = new
-Date().getFullYear(); const prefix = P-${year}-;
+  return aa.length === bb.length &&
+    aa.length > 0 &&
+    crypto.timingSafeEqual(aa, bb);
+}
 
-const rows = await sb(
-objects?select=object_number&object_number=like.${prefix}*&order=object_number.desc&limit=1
-);
+function signServiceToken(exp) {
+  const payload = Buffer
+    .from(JSON.stringify({ role: 'service', exp }))
+    .toString('base64url');
 
-const lastNumber = String(rows?.[0]?.object_number || ’‘); const
-numericPart = Number(lastNumber.split(’-’).pop()) || 0;
+  const sig = crypto
+    .createHmac('sha256', SERVICE_TOKEN_SECRET)
+    .update(payload)
+    .digest('base64url');
 
-return ${prefix}${String(numericPart + 1).padStart(4, '0')}; }
+  return `${payload}.${sig}`;
+}
 
-async function getRow(id) { return ( await sb(
-objects?id=eq.${encodeURIComponent(id)}&select=*&limit=1 ) )?.[0] ||
-null; }
+function verifyServiceToken(req) {
+  if (!SERVICE_TOKEN_SECRET) return false;
 
-async function patchRow(id, patch) { return ( await sb(
-objects?id=eq.${encodeURIComponent(id)}, { method: ‘PATCH’, headers: {
-Prefer: ‘return=representation’ }, body: JSON.stringify(patch) } )
-)?.[0] || null; }
+  const token = String(req.headers['x-service-token'] || '');
+  const [payload, sig] = token.split('.');
 
-async function insertRow(row) { return ( await sb( ‘objects’, { method:
-‘POST’, headers: { Prefer: ‘return=representation’ }, body:
-JSON.stringify(row) } ) )?.[0] || null; }
+  if (!payload || !sig) return false;
 
-/** * Generates the number on the server and retries when another
-phone * creates the same next number at exactly the same time. */ async
-function insertWithGeneratedObjectNumber(buildRow, maxAttempts = 25) {
-let lastError = null;
+  const expected = crypto
+    .createHmac('sha256', SERVICE_TOKEN_SECRET)
+    .update(payload)
+    .digest('base64url');
 
-for (let attempt = 1; attempt <= maxAttempts; attempt += 1) { const
-objectNumber = await nextObjectNumber();
+  if (!safeEqual(sig, expected)) return false;
+
+  try {
+    const data = JSON.parse(
+      Buffer.from(payload, 'base64url').toString('utf8')
+    );
+
+    return data.role === 'service' && Number(data.exp) > Date.now();
+  } catch {
+    return false;
+  }
+}
+
+function parseSupabaseError(text, status) {
+  let details = null;
+
+  try {
+    details = JSON.parse(text);
+  } catch {
+    details = { message: text };
+  }
+
+  const error = new Error(
+    details?.message ||
+    details?.details ||
+    `Supabase request failed with status ${status}`
+  );
+
+  error.status = status;
+  error.code = String(details?.code || '');
+  error.details = details;
+  error.raw = text;
+
+  return error;
+}
+
+function isUniqueViolation(error) {
+  return (
+    String(error?.code || '') === '23505' ||
+    String(error?.message || '').includes('duplicate key value') ||
+    String(error?.raw || '').includes('23505')
+  );
+}
+
+async function sb(url, options = {}) {
+  const response = await fetch(
+    `${SUPABASE_URL}/rest/v1/${url}`,
+    {
+      ...options,
+      headers: headers(options.headers || {})
+    }
+  );
+
+  const text = await response.text();
+
+  if (!response.ok) {
+    throw parseSupabaseError(text, response.status);
+  }
+
+  if (response.status === 204 || !text) {
+    return null;
+  }
+
+  return JSON.parse(text);
+}
+
+async function nextObjectNumber() {
+  const year = new Date().getFullYear();
+  const prefix = `P-${year}-`;
+
+  const rows = await sb(
+    `objects?select=object_number&object_number=like.${prefix}*&order=object_number.desc&limit=1`
+  );
+
+  const lastNumber = String(rows?.[0]?.object_number || '');
+  const numericPart = Number(lastNumber.split('-').pop()) || 0;
+
+  return `${prefix}${String(numericPart + 1).padStart(4, '0')}`;
+}
+
+async function getRow(id) {
+  return (
+    await sb(
+      `objects?id=eq.${encodeURIComponent(id)}&select=*&limit=1`
+    )
+  )?.[0] || null;
+}
+
+async function patchRow(id, patch) {
+  return (
+    await sb(
+      `objects?id=eq.${encodeURIComponent(id)}`,
+      {
+        method: 'PATCH',
+        headers: { Prefer: 'return=representation' },
+        body: JSON.stringify(patch)
+      }
+    )
+  )?.[0] || null;
+}
+
+async function insertRow(row) {
+  return (
+    await sb(
+      'objects',
+      {
+        method: 'POST',
+        headers: { Prefer: 'return=representation' },
+        body: JSON.stringify(row)
+      }
+    )
+  )?.[0] || null;
+}
+
+/**
+ * Generates the number on the server and retries when another phone
+ * creates the same next number at exactly the same time.
+ */
+async function insertWithGeneratedObjectNumber(buildRow, maxAttempts = 25) {
+  let lastError = null;
+
+  for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+    const objectNumber = await nextObjectNumber();
 
     try {
       const row = await insertRow(buildRow(objectNumber));
@@ -166,102 +262,183 @@ objectNumber = await nextObjectNumber();
       // Another request won the race. Read the newest number and try again.
       await new Promise(resolve => setTimeout(resolve, 20 * attempt));
     }
+  }
 
+  const error = new Error(
+    'Не вдалося автоматично присвоїти номер об’єкта. Спробуйте ще раз.'
+  );
+
+  error.cause = lastError;
+  throw error;
 }
 
-const error = new Error( ‘Не вдалося автоматично присвоїти номер
-об’єкта. Спробуйте ще раз.’ );
+function dbStatus(status) {
+  const map = {
+    new: 'new',
+    call: 'new',
+    measure_planned: 'measurement',
+    measured: 'measurement',
+    measurement: 'measurement',
+    calculation: 'calculation',
+    estimate_sent: 'calculation',
+    approval: 'approval',
+    contract: 'contract',
+    install_planned: 'installation_planned',
+    installation_planned: 'installation_planned',
+    departure: 'installation_planned',
+    installation: 'installation',
+    completed: 'completed',
+    paid: 'completed',
+    review: 'completed',
+    rejected: 'cancelled',
+    cancelled: 'cancelled'
+  };
 
-error.cause = lastError; throw error; }
+  return map[String(status || 'new')] || 'new';
+}
 
-function dbStatus(status) { const map = { new: ‘new’, call: ‘new’,
-measure_planned: ‘measurement’, measured: ‘measurement’, measurement:
-‘measurement’, calculation: ‘calculation’, estimate_sent: ‘calculation’,
-approval: ‘approval’, contract: ‘contract’, install_planned:
-‘installation_planned’, installation_planned: ‘installation_planned’,
-departure: ‘installation_planned’, installation: ‘installation’,
-completed: ‘completed’, paid: ‘completed’, review: ‘completed’,
-rejected: ‘cancelled’, cancelled: ‘cancelled’ };
+function publicView(object, objectNumber, status) {
+  const serviceData =
+    object.serviceData && typeof object.serviceData === 'object'
+      ? object.serviceData
+      : {};
 
-return map[String(status || ‘new’)] || ‘new’; }
+  const rooms = Array.isArray(object.rooms)
+    ? object.rooms
+    : [];
 
-function publicView(object, objectNumber, status) { const serviceData =
-object.serviceData && typeof object.serviceData === ‘object’ ?
-object.serviceData : {};
+  const roomsArea = rooms.reduce(
+    (sum, room) => sum + (Number(room?.area) || 0),
+    0
+  );
 
-const rooms = Array.isArray(object.rooms) ? object.rooms : [];
+  const roomsPerimeter = rooms.reduce(
+    (sum, room) => sum + (Number(room?.perimeter) || 0),
+    0
+  );
 
-const roomsArea = rooms.reduce( (sum, room) => sum + (Number(room?.area)
-|| 0), 0 );
+  const roomsCalculated = rooms.reduce(
+    (sum, room) => sum + (Number(room?.calculated) || 0),
+    0
+  );
 
-const roomsPerimeter = rooms.reduce( (sum, room) => sum +
-(Number(room?.perimeter) || 0), 0 );
+  const area =
+    rooms.length > 0
+      ? roomsArea
+      : (Number(object.area) || 0);
 
-const roomsCalculated = rooms.reduce( (sum, room) => sum +
-(Number(room?.calculated) || 0), 0 );
+  const perimeter =
+    rooms.length > 0
+      ? roomsPerimeter
+      : (Number(object.perimeter) || 0);
 
-const area = rooms.length > 0 ? roomsArea : (Number(object.area) || 0);
+  const total =
+    rooms.length > 0
+      ? (
+          rooms.length === 1
+            ? Math.max(roomsCalculated, 5000)
+            : roomsCalculated
+        )
+      : (Number(object.total) || 0);
 
-const perimeter = rooms.length > 0 ? roomsPerimeter :
-(Number(object.perimeter) || 0);
+  return {
+    objectNumber,
+    status,
+    clientName: object.clientName || '',
+    address: object.address || '',
+    date: object.date || '',
+    rooms,
+    area,
+    perimeter,
+    total,
+    schedule: Array.isArray(object.schedule)
+      ? object.schedule
+      : [],
+    serviceData: {
+      installDate: serviceData.installDate || '',
+      installTime: serviceData.installTime || '',
+      brigade: serviceData.brigade || '',
+      advance: Number(serviceData.advance || 0),
+      paid: Number(serviceData.paid || 0),
+      contractUrl: serviceData.contractUrl || ''
+    },
+    savedAt: object.savedAt || new Date().toISOString()
+  };
+}
 
-const total = rooms.length > 0 ? ( rooms.length === 1 ?
-Math.max(roomsCalculated, 5000) : roomsCalculated ) :
-(Number(object.total) || 0);
+function baseFields(object, status) {
+  return {
+    client_name: object.clientName || null,
+    client_phone: object.clientPhone || null,
+    address: object.address || null,
+    measurement_date: object.date || null,
+    ceiling_height: Number(object.height || 0) || null,
+    status: dbStatus(status),
+    internal_comment: object.comment || null,
+    object_data: object
+  };
+}
 
-return { objectNumber, status, clientName: object.clientName || ’‘,
-address: object.address ||’‘, date: object.date ||’‘, rooms, area,
-perimeter, total, schedule: Array.isArray(object.schedule) ?
-object.schedule : [], serviceData: { installDate:
-serviceData.installDate ||’‘, installTime: serviceData.installTime ||’‘,
-brigade: serviceData.brigade ||’‘, advance: Number(serviceData.advance
-|| 0), paid: Number(serviceData.paid || 0), contractUrl:
-serviceData.contractUrl ||’’ }, savedAt: object.savedAt || new
-Date().toISOString() }; }
+async function validateClient(objectNumber, accessKey) {
+  const normalizedObjectNumber = normalizeCredential(objectNumber);
+  const normalizedKey = normalizeCredential(accessKey);
 
-function baseFields(object, status) { return { client_name:
-object.clientName || null, client_phone: object.clientPhone || null,
-address: object.address || null, measurement_date: object.date || null,
-ceiling_height: Number(object.height || 0) || null, status:
-dbStatus(status), internal_comment: object.comment || null, object_data:
-object }; }
+  if (!normalizedObjectNumber || !normalizedKey) return null;
 
-async function validateClient(objectNumber, accessKey) { const
-normalizedObjectNumber = normalizeCredential(objectNumber); const
-normalizedKey = normalizeCredential(accessKey);
+  const rows = await sb(
+    `objects?object_number=eq.${encodeURIComponent(normalizedObjectNumber)}&select=*&limit=1`
+  );
 
-if (!normalizedObjectNumber || !normalizedKey) return null;
+  const row = rows?.[0];
 
-const rows = await sb(
-objects?object_number=eq.${encodeURIComponent(normalizedObjectNumber)}&select=*&limit=1
-);
+  if (!row) return null;
 
-const row = rows?.[0];
+  return safeEqual(
+    hashAccessKey(normalizedKey),
+    String(row.access_key_hash || '')
+  )
+    ? row
+    : null;
+}
 
-if (!row) return null;
+function hasPublishedClientView(row) {
+  return !!(
+    row &&
+    row.client_view &&
+    typeof row.client_view === 'object' &&
+    String(row.client_view.objectNumber || '').trim()
+  );
+}
 
-return safeEqual( hashAccessKey(normalizedKey),
-String(row.access_key_hash || ’’) ) ? row : null; }
+function stripSecretKey(object) {
+  if (!object || typeof object !== 'object') return {};
 
-function hasPublishedClientView(row) { return !!( row && row.client_view
-&& typeof row.client_view === ‘object’ &&
-String(row.client_view.objectNumber || ’’).trim() ); }
+  const { _clientAccessKey, ...safe } = object;
+  return safe;
+}
 
-function stripSecretKey(object) { if (!object || typeof object !==
-‘object’) return {};
+function sanitizeServiceRow(row) {
+  return row
+    ? {
+        ...row,
+        object_data: stripSecretKey(row.object_data)
+      }
+    : row;
+}
 
-const { _clientAccessKey, …safe } = object; return safe; }
+export default async function handler(req, res) {
+  if (!SUPABASE_URL || !SUPABASE_SECRET_KEY) {
+    return json(res, 500, {
+      error: 'Supabase environment variables are missing'
+    });
+  }
 
-function sanitizeServiceRow(row) { return row ? { …row, object_data:
-stripSecretKey(row.object_data) } : row; }
-
-export default async function handler(req, res) { if (!SUPABASE_URL ||
-!SUPABASE_SECRET_KEY) { return json(res, 500, { error: ‘Supabase
-environment variables are missing’ }); }
-
-try { if (req.method === ‘GET’) { if (String(req.query?.public || ’‘)
-=== ’reviews’) { const rows = await sb(
-‘objects?select=object_number,object_data&order=updated_at.desc’ );
+  try {
+    if (req.method === 'GET') {
+      if (String(req.query?.public || '') === 'reviews') {
+        const rows = await sb(
+          'objects?select=object_number,object_data&order=updated_at.desc'
+        );
 
         const reviews = [];
 
@@ -962,8 +1139,8 @@ try { if (req.method === ‘GET’) { if (String(req.query?.public || ’‘)
     return json(res, 405, {
       error: 'Method not allowed'
     });
-
-} catch (error) { console.error(‘objects API error:’, error);
+  } catch (error) {
+    console.error('objects API error:', error);
 
     if (isUniqueViolation(error)) {
       return json(res, 409, {
@@ -977,5 +1154,5 @@ try { if (req.method === ‘GET’) { if (String(req.query?.public || ’‘)
         error.message ||
         'Server error'
     });
-
-} }
+  }
+    }
