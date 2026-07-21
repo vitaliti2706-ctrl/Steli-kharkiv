@@ -6600,7 +6600,7 @@ injectTab58();setTimeout(()=>{injectTab58();window.renderHistory?.()},300);
 @media(max-width:520px){.p60-grid{grid-template-columns:1fr}.p60-full{grid-column:auto}}
 </style>
 
-<section id="tab_reviews" class="page-section"><div class="p60-shell"><div class="p60-head"><div><h2>⭐ Відгуки клієнтів</h2><div class="p60-note">Публікуються лише після перевірки майстром.</div></div><button class="p60-btn" onclick="loadPublicReviews60()">↻ Оновити</button></div><div id="publicReviews60"></div></div></section>
+<section id="tab_reviews" class="page-section"><div class="p60-shell"><div class="p60-head"><div><h2>⭐ Відгуки клієнтів</h2><div class="p60-note">Реальні відгуки наших клієнтів.</div></div><button class="p60-btn" onclick="loadPublicReviews60()">↻ Оновити</button></div><div id="publicReviews60"></div></div></section>
 <section id="tab_service" class="page-section"><div id="serviceRoot60"></div></section>
 <div id="modal60" class="p60-modal" onclick="if(event.target===this)closeModal60()"><div class="p60-sheet"><div class="p60-sheet-head"><h3 id="modalTitle60">Дані</h3><button class="p60-close" onclick="closeModal60()">×</button></div><div id="modalBody60"></div></div></div>
 
@@ -6690,9 +6690,9 @@ window.clientRoomEstimate60=i=>{const r=currentClientView60?.rooms?.[i];if(!r)re
 window.clientPhoto60=i=>{const r=currentClientView60?.rooms?.[i],p=r?.photo||'';openModal60('📸 Фото кімнати',p?`<img src="${p}" style="width:100%;border-radius:12px">`:'<div class="p60-note">Фото не додано.</div>')};
 window.clientPlan60=i=>{const r=currentClientView60?.rooms?.[i],pts=r?.planner?.points||[];if(!pts.length)return openModal60('📐 План','<div class="p60-note">План цієї кімнати не збережено.</div>');const xs=pts.map(p=>Number(p.x||0)),ys=pts.map(p=>Number(p.y||0)),minx=Math.min(...xs),maxx=Math.max(...xs),miny=Math.min(...ys),maxy=Math.max(...ys),w=Math.max(1,maxx-minx),h=Math.max(1,maxy-miny),poly=pts.map(p=>`${40+(Number(p.x)-minx)*520/w},${35+(Number(p.y)-miny)*245/h}`).join(' ');openModal60('📐 '+e60(r.name||'План'),`<svg class="p60-plan-svg" viewBox="0 0 600 320"><polygon points="${poly}" fill="#dbeafe" stroke="#075bff" stroke-width="4"/>${pts.map((p,j)=>`<text x="${40+(Number(p.x)-minx)*520/w}" y="${30+(Number(p.y)-miny)*245/h}" font-size="15" font-weight="bold">${String.fromCharCode(65+j)}</text>`).join('')}</svg>`)};
 window.clientSchedule60=()=>{const ev=Array.isArray(currentClientView60?.schedule)?currentClientView60.schedule:[];openModal60('📅 Графік виконання',ev.length?ev.map(x=>`<div class="p60-review"><b>${e60(x.date)} ${e60(x.time||'')}</b><p>${e60(x.type||'Подія')} ${e60(x.note||'')}</p></div>`).join(''):'<div class="p60-note">Подій ще не заплановано.</div>')};
-window.openReviewForm60=()=>{reviewStars60=5;openModal60('⭐ Залишити відгук',`<div class="p60-field"><label>Оцінка</label><div class="p60-stars">${[1,2,3,4,5].map(n=>`<button class="on" id="star60_${n}" onclick="setStars60(${n})">★</button>`).join('')}</div></div><div class="p60-field"><label>Ваше ім’я</label><input id="reviewName60" value="${e60(currentClientView60?.clientName||'')}"></div><div class="p60-field" style="margin-top:9px"><label>Відгук</label><textarea id="reviewText60" placeholder="Розкажіть про якість роботи"></textarea></div><button class="p60-btn blue" style="width:100%;margin-top:10px" onclick="submitReview60()">Надіслати на перевірку</button>`)};
+window.openReviewForm60=()=>{reviewStars60=5;openModal60('⭐ Залишити відгук',`<div class="p60-field"><label>Оцінка</label><div class="p60-stars">${[1,2,3,4,5].map(n=>`<button class="on" id="star60_${n}" onclick="setStars60(${n})">★</button>`).join('')}</div></div><div class="p60-field"><label>Ваше ім’я</label><input id="reviewName60" value="${e60(currentClientView60?.clientName||'')}"></div><div class="p60-field" style="margin-top:9px"><label>Відгук</label><textarea id="reviewText60" placeholder="Розкажіть про якість роботи"></textarea></div><button class="p60-btn blue" style="width:100%;margin-top:10px" onclick="submitReview60()">Надіслати відгук</button>`)};
 window.setStars60=n=>{reviewStars60=n;for(let i=1;i<=5;i++)document.getElementById('star60_'+i)?.classList.toggle('on',i<=n)};
-window.submitReview60=async()=>{try{const objectNumber=document.getElementById('clientObjectNumber56').value.trim(),accessKey=document.getElementById('clientAccessKey56').value.trim(),name=document.getElementById('reviewName60').value.trim(),text=document.getElementById('reviewText60').value.trim();if(text.length<5)throw new Error('Напишіть відгук детальніше.');await api60({action:'submitReview',objectNumber,accessKey,review:{name,text,rating:reviewStars60}});closeModal60();alert('Дякуємо! Відгук надіслано на перевірку.')}catch(e){alert(e.message)}};
+window.submitReview60=async()=>{try{const objectNumber=document.getElementById('clientObjectNumber56').value.trim(),accessKey=document.getElementById('clientAccessKey56').value.trim(),name=document.getElementById('reviewName60').value.trim(),text=document.getElementById('reviewText60').value.trim();if(text.length<5)throw new Error('Напишіть відгук детальніше.');await api60({action:'submitReview',objectNumber,accessKey,review:{name,text,rating:reviewStars60}});closeModal60();alert('Дякуємо за ваш відгук! ❤️')}catch(e){alert(e.message)}};
 
 
 window.requestClientAccess72=function(){
@@ -7455,7 +7455,8 @@ body.client-card-mode61 .ai-request-section{display:none!important}
           `<button class="p60-access-btn75" onclick="issueClientAccess75('${r.id}')">🔑 Видати доступ</button>` +
           `<button onclick="editServiceObject60('${r.id}')">✏️ Дані</button>` +
           `<button onclick="serviceEstimate60('${r.id}')">💰 Кошторис</button>` +
-          `<button onclick="serviceReviews60('${r.id}')">⭐ Відгуки</button>` +
+          `<button class="${((Array.isArray(o.reviews)?o.reviews:[]).filter(v=>v.status==='pending').length)?'p60-attention79':''}" onclick="serviceReviews60('${r.id}')">⭐ Відгуки${((Array.isArray(o.reviews)?o.reviews:[]).filter(v=>v.status==='pending').length)?` (${(Array.isArray(o.reviews)?o.reviews:[]).filter(v=>v.status==='pending').length})`:''}</button>` +
+          `<button class="${((Array.isArray(o.feedbackItems)?o.feedbackItems:[]).filter(v=>v.status==='new').length)?'p60-attention79':''}" onclick="serviceFeedback79('${r.id}')">💡 Побажання${((Array.isArray(o.feedbackItems)?o.feedbackItems:[]).filter(v=>v.status==='new').length)?` (${(Array.isArray(o.feedbackItems)?o.feedbackItems:[]).filter(v=>v.status==='new').length})`:''}</button>` +
           `<button onclick="openServiceClientCard60('${r.id}')">${published?'👁 Картка клієнта':'🔐 Створити картку'}</button>` +
           `<button onclick="serviceSchedule72('${r.id}')">📅 Календар / монтаж</button>` +
           `<button onclick="openCloudObject56('${r.id}')">📂 Відкрити об’єкт</button>` +
@@ -8093,6 +8094,199 @@ body.client-card-mode61 .ai-request-section{display:none!important}
   } else {
     setTimeout(autoOpenClientLink77, 150);
   }
+})();
+</script>
+
+
+<style id="stage1ReviewsFeedback79Styles">
+.p60-attention79{
+  position:relative!important;
+  border-color:#f59e0b!important;
+  background:#fffbeb!important;
+  color:#92400e!important;
+  box-shadow:0 0 0 2px rgba(245,158,11,.12)!important
+}
+.p60-attention79:after{
+  content:'!';
+  position:absolute;
+  top:-7px;
+  right:-7px;
+  width:20px;
+  height:20px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border-radius:50%;
+  background:#ef4444;
+  color:#fff;
+  font-size:12px;
+  font-weight:950;
+  border:2px solid #fff
+}
+.feedback-rating79{margin-top:12px}
+.feedback-rating79 b{display:block;font-size:10px;margin-bottom:7px;color:#334155}
+.feedback-stars79{display:flex;gap:7px}
+.feedback-stars79 button{border:0;background:none;font-size:29px;opacity:.3;padding:0}
+.feedback-stars79 button.on{opacity:1}
+</style>
+
+<script id="stage1ReviewsFeedback79Script">
+(() => {
+  'use strict';
+
+  let feedbackRating79 = 0;
+
+  function esc79(value){
+    return String(value ?? '').replace(/[&<>"']/g, ch => ({
+      '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'
+    }[ch]));
+  }
+
+  function activeCloudId79(){
+    try {
+      if (window.object?.cloudId) return String(window.object.cloudId);
+      const meta = JSON.parse(localStorage.getItem('potolok_cloud_meta_v54') || '{}');
+      const id = window.object?.id;
+      return String(meta?.[id]?.cloudId || '');
+    } catch {
+      return String(window.object?.cloudId || '');
+    }
+  }
+
+  async function serviceApi79(body){
+    const token = sessionStorage.getItem('potolok_service_token') || '';
+    const response = await fetch('/api/objects', {
+      method:'POST',
+      headers:{
+        'Content-Type':'application/json',
+        ...(token ? {'X-Service-Token':token} : {})
+      },
+      body:JSON.stringify(body)
+    });
+    const data = await response.json().catch(() => ({}));
+    if(!response.ok) throw new Error(data.error || `API ${response.status}`);
+    return data;
+  }
+
+  function injectRating79(){
+    const feedbackCard = document.querySelector('#tab_feedback .p56-card');
+    if(!feedbackCard || document.getElementById('feedbackRating79')) return;
+
+    const box = document.createElement('div');
+    box.id = 'feedbackRating79';
+    box.className = 'feedback-rating79';
+    box.innerHTML = `
+      <b>Оцініть зручність Pixel (необов’язково)</b>
+      <div class="feedback-stars79">
+        ${[1,2,3,4,5].map(n =>
+          `<button type="button" id="feedbackStar79_${n}" onclick="setFeedbackRating79(${n})">★</button>`
+        ).join('')}
+      </div>
+    `;
+    const flow = feedbackCard.querySelector('.p56-flow');
+    feedbackCard.insertBefore(box, flow || null);
+  }
+
+  window.setFeedbackRating79 = function(value){
+    feedbackRating79 = Math.max(1, Math.min(5, Number(value || 0)));
+    for(let n=1;n<=5;n++){
+      document.getElementById(`feedbackStar79_${n}`)
+        ?.classList.toggle('on', n <= feedbackRating79);
+    }
+  };
+
+  window.saveFeedback56 = async function(){
+    const text = document.getElementById('feedbackText56')?.value.trim() || '';
+    if(!text) return alert('Напишіть побажання або опис помилки.');
+
+    const cloudId = activeCloudId79();
+    if(!cloudId){
+      return alert('Спочатку збережіть поточний об’єкт у хмарі.');
+    }
+
+    try {
+      const result = await serviceApi79({
+        action:'submitFeedback',
+        cloudId,
+        feedback:{
+          text,
+          section:document.getElementById('feedbackSection56')?.value || 'Інше',
+          priority:document.getElementById('feedbackPriority56')?.value || 'Побажання',
+          rating:feedbackRating79
+        }
+      });
+
+      const status = document.getElementById('feedbackStatus56');
+      if(status) status.textContent = '✅ Дякуємо! Ваше побажання надіслано.';
+
+      document.getElementById('feedbackText56').value = '';
+      feedbackRating79 = 0;
+      for(let n=1;n<=5;n++){
+        document.getElementById(`feedbackStar79_${n}`)?.classList.remove('on');
+      }
+
+      if(typeof loadService60 === 'function' && sessionStorage.getItem('potolok_service_token')){
+        loadService60().catch(() => {});
+      }
+    } catch(error) {
+      alert('Не вдалося надіслати побажання: ' + error.message);
+    }
+  };
+
+  window.sendFeedback56 = window.saveFeedback56;
+
+  window.serviceFeedback79 = function(id){
+    const row = (window.serviceRows60 || []).find(item => String(item.id) === String(id));
+    const objectData = row?.object_data || {};
+    const items = Array.isArray(objectData.feedbackItems) ? objectData.feedbackItems : [];
+
+    const content = items.length
+      ? items.map(item => `
+          <div class="p60-review">
+            <div class="p60-review-stars">${item.rating ? '★'.repeat(item.rating)+'☆'.repeat(5-item.rating) : '💡'}</div>
+            <b>${esc79(item.section || 'Інше')} · ${esc79(item.priority || 'Побажання')}</b>
+            <p>${esc79(item.text || '')}</p>
+            <small>${esc79(item.status || 'new')} · ${esc79(new Date(item.createdAt || Date.now()).toLocaleString('uk-UA'))}</small>
+            <div class="p60-actions">
+              <button class="blue" onclick="moderateFeedback79('${esc79(id)}','${esc79(item.id)}','read')">Прочитано</button>
+              <button class="danger" onclick="moderateFeedback79('${esc79(id)}','${esc79(item.id)}','deleted')">Видалити</button>
+            </div>
+          </div>
+        `).join('')
+      : '<div class="p60-note">Побажань немає.</div>';
+
+    openModal60('💡 Побажання', content);
+  };
+
+  window.moderateFeedback79 = async function(cloudId, feedbackId, status){
+    try {
+      await serviceApi79({
+        action:'moderateFeedback',
+        cloudId,
+        feedbackId,
+        status
+      });
+      closeModal60();
+      await loadService60();
+      serviceFeedback79(cloudId);
+    } catch(error) {
+      alert(error.message);
+    }
+  };
+
+  function updateReviewTabLabel79(){
+    const tab = [...document.querySelectorAll('.main-tab')]
+      .find(button => button.getAttribute('onclick')?.includes("'reviews'"));
+    if(tab && !tab.dataset.label79){
+      tab.dataset.label79 = '1';
+      tab.textContent = '⭐ Відгуки';
+    }
+  }
+
+  setTimeout(() => {
+    injectRating79();
+    updateReviewTabLabel79();
+  }, 500);
 })();
 </script>
 
