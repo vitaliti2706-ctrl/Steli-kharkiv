@@ -1,0 +1,57 @@
+function publicView(object, objectNumber, status) {
+  const serviceData =
+    object.serviceData && typeof object.serviceData === 'object'
+      ? object.serviceData
+      : {};
+
+  const rooms = Array.isArray(object.rooms)
+    ? object.rooms
+    : [];
+
+  const roomsArea = rooms.reduce(
+    (sum, room) => sum + (Number(room?.area) || 0),
+    0
+  );
+
+  const roomsPerimeter = rooms.reduce(
+    (sum, room) => sum + (Number(room?.perimeter) || 0),
+    0
+  );
+
+  const roomsCalculated = rooms.reduce(
+    (sum, room) => sum + (Number(room?.calculated) || 0),
+    0
+  );
+
+  const fallbackArea = Number(object.area || 0);
+  const fallbackPerimeter = Number(object.perimeter || 0);
+  const fallbackTotal = Number(object.total || 0);
+
+  return {
+    objectNumber,
+    status,
+    clientName: object.clientName || '',
+    address: object.address || '',
+    date: object.date || '',
+    rooms,
+    area: rooms.length ? roomsArea : fallbackArea,
+    perimeter: rooms.length ? roomsPerimeter : fallbackPerimeter,
+    total: rooms.length
+      ? (
+          rooms.length === 1
+            ? Math.max(roomsCalculated, 5000)
+            : roomsCalculated
+        )
+      : fallbackTotal,
+    schedule: Array.isArray(object.schedule) ? object.schedule : [],
+    serviceData: {
+      installDate: serviceData.installDate || '',
+      installTime: serviceData.installTime || '',
+      brigade: serviceData.brigade || '',
+      advance: Number(serviceData.advance || 0),
+      paid: Number(serviceData.paid || 0),
+      contractUrl: serviceData.contractUrl || ''
+    },
+    savedAt: object.savedAt || new Date().toISOString()
+  };
+}
