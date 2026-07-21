@@ -7880,6 +7880,202 @@ body.client-card-mode61 .ai-request-section{display:none!important}
 })();
 </script>
 
+
+<script id="clientDirectLink77Script">
+(() => {
+  'use strict';
+
+  const CLIENT_OBJECT_PARAM77 = 'clientObject';
+  const CLIENT_KEY_PARAM77 = 'clientKey';
+
+  function buildClientLink77(objectNumber, accessKey) {
+    const number = String(objectNumber || '').trim().toUpperCase();
+    const key = String(accessKey || '').trim().toUpperCase();
+
+    const base =
+      window.location.origin +
+      window.location.pathname +
+      window.location.search;
+
+    return (
+      base +
+      '#' +
+      CLIENT_OBJECT_PARAM77 + '=' + encodeURIComponent(number) +
+      '&' +
+      CLIENT_KEY_PARAM77 + '=' + encodeURIComponent(key)
+    );
+  }
+
+  function clientMessage77(objectNumber, accessKey) {
+    const link = buildClientLink77(objectNumber, accessKey);
+
+    return [
+      'Особиста картка Potolok.in.ua',
+      '',
+      'Відкрийте персональне посилання:',
+      link,
+      '',
+      'Номер об’єкта: ' + String(objectNumber || ''),
+      'Ключ доступу: ' + String(accessKey || '')
+    ].join('\n');
+  }
+
+  window.buildClientLink77 = buildClientLink77;
+
+  window.copyClient58 = async function(objectNumber, accessKey) {
+    const link = buildClientLink77(objectNumber, accessKey);
+
+    try {
+      await navigator.clipboard.writeText(link);
+      alert('Посилання клієнта скопійовано.');
+    } catch {
+      prompt('Скопіюйте посилання клієнта:', link);
+    }
+  };
+
+  window.shareClient58 = async function(objectNumber, accessKey) {
+    const link = buildClientLink77(objectNumber, accessKey);
+    const text = clientMessage77(objectNumber, accessKey);
+
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: 'Особиста картка Potolok.in.ua',
+          text,
+          url: link
+        });
+        return;
+      } catch (error) {
+        if (error?.name === 'AbortError') return;
+      }
+    }
+
+    window.open(
+      'https://t.me/share/url?url=' +
+        encodeURIComponent(link) +
+        '&text=' +
+        encodeURIComponent(text),
+      '_blank',
+      'noopener'
+    );
+  };
+
+  const previousPublish77 = window.publishClientCard56;
+
+  if (typeof previousPublish77 === 'function') {
+    window.publishClientCard56 = async function() {
+      const result = await previousPublish77.apply(this, arguments);
+
+      const row = result?.object || {};
+      const objectNumber =
+        row.object_number ||
+        row.objectNumber ||
+        result?.objectNumber ||
+        '';
+
+      const accessKey = String(result?.accessKey || '').trim();
+
+      if (objectNumber && accessKey) {
+        const link = buildClientLink77(objectNumber, accessKey);
+
+        try {
+          await navigator.clipboard.writeText(link);
+        } catch {}
+
+        const statusBox =
+          document.getElementById('publishClientCardStatus56');
+
+        if (statusBox) {
+          statusBox.textContent =
+            'Особисту картку створено. Персональне посилання скопійовано.';
+          statusBox.className =
+            'client-publish-status56 show ok';
+        }
+      }
+
+      return result;
+    };
+  }
+
+  async function autoOpenClientLink77() {
+    const hash = String(window.location.hash || '').replace(/^#/, '');
+    if (!hash) return;
+
+    const params = new URLSearchParams(hash);
+    const objectNumber = String(
+      params.get(CLIENT_OBJECT_PARAM77) || ''
+    ).trim();
+
+    const accessKey = String(
+      params.get(CLIENT_KEY_PARAM77) || ''
+    ).trim();
+
+    if (!objectNumber || !accessKey) return;
+
+    const numberInput =
+      document.getElementById('clientObjectNumber56');
+    const keyInput =
+      document.getElementById('clientAccessKey56');
+
+    if (!numberInput || !keyInput) return;
+
+    numberInput.value = objectNumber;
+    keyInput.value = accessKey;
+
+    const clientTab = [...document.querySelectorAll('.main-tab')]
+      .find(button =>
+        String(button.getAttribute('onclick') || '')
+          .includes("'clientcard'")
+      );
+
+    if (
+      clientTab &&
+      typeof window.showMainTab === 'function'
+    ) {
+      window.showMainTab('clientcard', clientTab);
+    }
+
+    const status =
+      document.getElementById('clientLoginStatus56');
+
+    try {
+      if (typeof window.openClientObject56 !== 'function') {
+        throw new Error('Функція входу клієнта недоступна.');
+      }
+
+      await window.openClientObject56();
+
+      const cleanUrl =
+        window.location.pathname +
+        window.location.search;
+
+      history.replaceState(
+        null,
+        document.title,
+        cleanUrl
+      );
+    } catch (error) {
+      if (status) {
+        status.textContent =
+          error?.message ||
+          'Не вдалося автоматично відкрити картку.';
+        status.className =
+          'client-login-status56 show error';
+      }
+    }
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener(
+      'DOMContentLoaded',
+      () => setTimeout(autoOpenClientLink77, 150)
+    );
+  } else {
+    setTimeout(autoOpenClientLink77, 150);
+  }
+})();
+</script>
+
 </body>
 </html>
 
