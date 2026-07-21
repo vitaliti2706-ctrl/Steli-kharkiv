@@ -265,17 +265,57 @@ function publicView(object, objectNumber, status) {
       ? object.serviceData
       : {};
 
+  const rooms = Array.isArray(object.rooms)
+    ? object.rooms
+    : [];
+
+  const roomsArea = rooms.reduce(
+    (sum, room) => sum + (Number(room?.area) || 0),
+    0
+  );
+
+  const roomsPerimeter = rooms.reduce(
+    (sum, room) => sum + (Number(room?.perimeter) || 0),
+    0
+  );
+
+  const roomsCalculated = rooms.reduce(
+    (sum, room) => sum + (Number(room?.calculated) || 0),
+    0
+  );
+
+  const area =
+    rooms.length > 0
+      ? roomsArea
+      : (Number(object.area) || 0);
+
+  const perimeter =
+    rooms.length > 0
+      ? roomsPerimeter
+      : (Number(object.perimeter) || 0);
+
+  const total =
+    rooms.length > 0
+      ? (
+          rooms.length === 1
+            ? Math.max(roomsCalculated, 5000)
+            : roomsCalculated
+        )
+      : (Number(object.total) || 0);
+
   return {
     objectNumber,
     status,
     clientName: object.clientName || '',
     address: object.address || '',
     date: object.date || '',
-    rooms: Array.isArray(object.rooms) ? object.rooms : [],
-    area: Number(object.area || 0),
-    perimeter: Number(object.perimeter || 0),
-    total: Number(object.total || 0),
-    schedule: Array.isArray(object.schedule) ? object.schedule : [],
+    rooms,
+    area,
+    perimeter,
+    total,
+    schedule: Array.isArray(object.schedule)
+      ? object.schedule
+      : [],
     serviceData: {
       installDate: serviceData.installDate || '',
       installTime: serviceData.installTime || '',
@@ -975,4 +1015,4 @@ export default async function handler(req, res) {
         'Server error'
     });
   }
-}
+    }
