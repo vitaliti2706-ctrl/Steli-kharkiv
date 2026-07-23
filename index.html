@@ -81,6 +81,12 @@ h2{font-size:20px;letter-spacing:-.5px}
 .review b{font-size:11px}
 .review p{font-size:9px;color:#475569;line-height:1.4;margin-top:6px}
 .stars{color:#f59e0b;font-size:12px;margin-top:5px}
+.review-meta{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:7px}
+.review-date{font-size:8px;color:#94a3b8;white-space:nowrap}
+.reviews-state{grid-column:1/-1;text-align:center;background:#f8fafc;border:1px dashed #cbd5e1;border-radius:13px;padding:18px 12px;color:#64748b;font-size:10px;line-height:1.5}
+.reviews-state.error{background:#fff7ed;border-color:#fed7aa;color:#9a3412}
+.review{min-height:126px;display:flex;flex-direction:column}
+.review p{flex:1}
 
 .footer{padding:18px;text-align:center;color:#64748b;font-size:10px}
 
@@ -552,11 +558,11 @@ calculateCeiling();
 <section id="reviews">
 <div class="wrap">
 <div class="reviews-box">
+<div class="section-head">
 <h2>Відгуки клієнтів</h2>
-<div class="reviews-grid">
-<div class="review"><b>Олена, Харків</b><div class="stars">★★★★★</div><p>Зробили акуратно, швидко і без зайвого бруду. Стеля виглядає дорого.</p></div>
-<div class="review"><b>Андрій, Салтівка</b><div class="stars">★★★★★</div><p>Порахували по фото, приїхали на замір, монтаж зайняв один день.</p></div>
-<div class="review"><b>Марина, Холодна Гора</b><div class="stars">★★★★★</div><p>Сподобались світлові лінії та тіньовий профіль. Рекомендую.</p></div>
+</div>
+<div id="reviewsGrid" class="reviews-grid" aria-live="polite">
+<div class="reviews-state">Завантажуємо відгуки…</div>
 </div>
 </div>
 </div>
@@ -834,8 +840,156 @@ async function sendUniversalLead(){
   }
 }
 </script>  
+
+<script>
+(function(){
+  const reviewsGrid = document.getElementById('reviewsGrid');
+  if(!reviewsGrid) return;
+
+  function safeText(value, fallback){
+    const text = String(value ?? '').trim();
+    return text || fallback;
+  }
+
+  function reviewName(review){
+    return safeText(
+      review.name ?? review.clientName ?? review.author ?? review.customerName,
+      'Клієнт Potolok.in.ua'
+    );
+  }
+
+  function reviewText(review){
+    return safeText(
+      review.text ?? review.message ?? review.review ?? review.comment,
+      ''
+    );
+  }
+
+  function reviewRating(review){
+    const value = Number(review.rating ?? review.stars ?? 5);
+    if(!Number.isFinite(value)) return 5;
+    return Math.min(5, Math.max(1, Math.round(value)));
+  }
+
+  function reviewDate(review){
+    const raw = review.createdAt ?? review.created_at ?? review.date ?? review.updatedAt;
+    if(!raw) return '';
+    const date = new Date(raw);
+    if(Number.isNaN(date.getTime())) return '';
+    return new Intl.DateTimeFormat('uk-UA', {
+      day:'2-digit',
+      month:'2-digit',
+      year:'numeric'
+    }).format(date);
+  }
+
+  function normalizeReviews(payload){
+    if(Array.isArray(payload)) return payload;
+    if(Array.isArray(payload?.reviews)) return payload.reviews;
+    if(Array.isArray(payload?.items)) return payload.items;
+    if(Array.isArray(payload?.data)) return payload.data;
+    return [];
+  }
+
+  function createReviewCard(review){
+    const card = document.createElement('article');
+    card.className = 'review';
+
+    const name = document.createElement('b');
+    name.textContent = reviewName(review);
+
+    const stars = document.createElement('div');
+    stars.className = 'stars';
+    stars.setAttribute('aria-label', 'Оцінка ' + reviewRating(review) + ' з 5');
+    stars.textContent = '★'.repeat(reviewRating(review)) + '☆'.repeat(5 - reviewRating(review));
+
+    const message = document.createElement('p');
+    message.textContent = reviewText(review);
+
+    card.appendChild(name);
+    card.appendChild(stars);
+    card.appendChild(message);
+
+    const dateText = reviewDate(review);
+    if(dateText){
+      const meta = document.createElement('div');
+      meta.className = 'review-meta';
+
+      const verified = document.createElement('span');
+      verified.style.fontSize = '8px';
+      verified.style.color = '#047857';
+      verified.style.fontWeight = '800';
+      verified.textContent = 'Перевірений відгук';
+
+      const date = document.createElement('time');
+      date.className = 'review-date';
+      date.textContent = dateText;
+
+      meta.appendChild(verified);
+      meta.appendChild(date);
+      card.appendChild(meta);
+    }
+
+    return card;
+  }
+
+  async function loadReviews(){
+    try{
+      const response = await fetch('/api/objects?public=reviews', {
+        headers:{'Accept':'application/json'},
+        cache:'no-store'
+      });
+
+      if(!response.ok) throw new Error('HTTP ' + response.status);
+
+      const payload = await response.json();
+      const reviews = normalizeReviews(payload)
+        .filter(function(review){ return review && reviewText(review); })
+        .sort(function(a,b){
+          const aDate = new Date(a.createdAt ?? a.created_at ?? a.date ?? 0).getTime() || 0;
+          const bDate = new Date(b.createdAt ?? b.created_at ?? b.date ?? 0).getTime() || 0;
+          return bDate - aDate;
+        })
+        .slice(0,6);
+
+      reviewsGrid.innerHTML = '';
+
+      if(!reviews.length){
+        reviewsGrid.innerHTML = '<div class="reviews-state">Поки що тут немає опублікованих відгуків. Після перевірки нові відгуки автоматично з’являться на цій сторінці.</div>';
+        return;
+      }
+
+      reviews.forEach(function(review){
+        reviewsGrid.appendChild(createReviewCard(review));
+      });
+    }catch(error){
+      console.error('Reviews load error:', error);
+      reviewsGrid.innerHTML = '<div class="reviews-state error">Не вдалося завантажити відгуки. Оновіть сторінку трохи пізніше.</div>';
+    }
+  }
+
+  loadReviews();
+})();
+</script>
+
 </body>
 </html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
