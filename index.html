@@ -163,6 +163,124 @@ h2{font-size:25px}
 @media(min-width:760px){.lead-grid{grid-template-columns:1fr 1fr 2fr 2fr}}
 @media(max-width:759px){.lead-photo-field{grid-column:1/-1}}
 
+
+/* Dynamic promo bar + Potolok AI strip */
+.header{height:auto;min-height:58px}
+.header .nav{min-height:58px}
+.menu{display:none!important}
+
+.promo-slider{
+  flex:1;
+  min-width:220px;
+  max-width:620px;
+  height:42px;
+  display:grid;
+  grid-template-columns:34px minmax(0,1fr) 34px;
+  align-items:center;
+  background:linear-gradient(135deg,#f8fbff,#eef5ff);
+  border:1px solid #dbeafe;
+  border-radius:13px;
+  box-shadow:0 7px 20px rgba(7,91,255,.08);
+  overflow:hidden;
+}
+.promo-arrow{
+  width:34px;height:40px;border:0;background:transparent;color:#075bff;
+  font-size:22px;font-weight:900;cursor:pointer
+}
+.promo-link{
+  min-width:0;text-align:center;padding:4px 8px;color:#0f172a;
+  font-size:10px;font-weight:800;line-height:1.25
+}
+.promo-link strong{color:#075bff}
+.promo-dots{
+  position:absolute;left:50%;bottom:2px;transform:translateX(-50%);
+  display:flex;gap:4px
+}
+.promo-center{position:relative;min-width:0;height:100%;display:flex;align-items:center;justify-content:center;padding-bottom:7px}
+.promo-dot{width:5px;height:5px;border:0;border-radius:50%;padding:0;background:#cbd5e1}
+.promo-dot.active{background:#075bff}
+.promo-fade{animation:promoFade .35s ease}
+@keyframes promoFade{from{opacity:.25;transform:translateY(3px)}to{opacity:1;transform:none}}
+
+.ai-quick-wrap{background:#fff;padding:10px 0 0}
+.ai-quick{
+  min-height:58px;
+  display:grid;
+  grid-template-columns:auto 1fr auto;
+  align-items:center;
+  gap:18px;
+  padding:10px 16px;
+  border-radius:15px;
+  color:#fff;
+  background:linear-gradient(120deg,#06152f,#072f82 65%,#075bff);
+  box-shadow:0 12px 28px rgba(7,91,255,.22)
+}
+.ai-quick-logo{font-size:22px;font-weight:950;white-space:nowrap}
+.ai-quick-logo span{color:#7dd3fc}
+.ai-quick-slogan{
+  text-align:center;
+  font-size:13px;
+  font-weight:700;
+  letter-spacing:5px;
+  white-space:nowrap
+}
+.ai-quick-btn{
+  display:inline-flex;align-items:center;justify-content:center;
+  min-height:38px;padding:8px 14px;border-radius:9px;
+  background:#075bff;color:#fff;font-size:10px;font-weight:900;white-space:nowrap
+}
+
+@media(min-width:760px){
+  .header .nav{gap:16px}
+  .promo-link{font-size:12px}
+  .ai-quick-logo{font-size:28px}
+  .ai-quick-slogan{font-size:15px;letter-spacing:7px}
+  .ai-quick-btn{font-size:12px;padding:10px 18px}
+}
+@media(max-width:759px){
+  .header{position:sticky}
+  .header .nav{
+    display:grid;
+    grid-template-columns:auto 1fr auto;
+    gap:7px;
+    padding:7px 0
+  }
+  .logo{font-size:21px}
+  .phone{font-size:13px;text-align:center}
+  .tg-top{display:inline-flex;background:#075bff;color:#fff;padding:7px 10px;border-radius:8px;font-size:10px;font-weight:900}
+  .promo-slider{
+    grid-column:1/-1;
+    grid-row:2;
+    width:100%;
+    max-width:none;
+    min-width:0;
+    height:39px
+  }
+  .promo-arrow{height:37px;font-size:19px}
+  .promo-link{font-size:9px;padding:3px 3px}
+  .ai-quick-wrap{padding-top:7px}
+  .ai-quick{
+    min-height:50px;
+    grid-template-columns:auto 1fr;
+    gap:8px;
+    padding:8px 10px;
+    border-radius:12px
+  }
+  .ai-quick-logo{font-size:16px}
+  .ai-quick-slogan{
+    font-size:9px;
+    letter-spacing:1.8px;
+    white-space:normal;
+    line-height:1.25
+  }
+  .ai-quick-btn{
+    grid-column:1/-1;
+    min-height:32px;
+    font-size:9px;
+    padding:6px 10px
+  }
+}
+
 </style>
 </head>
 
@@ -170,20 +288,31 @@ h2{font-size:25px}
 
 <header class="header">
 <div class="wrap nav">
-<div class="logo">Potolok<span>.in.ua</span></div>
-<div class="menu">
-<a href="#home">Головна</a>
-<a href="#solutions">Наші рішення</a>
-<a href="#works">Наші роботи</a>
-<a href="#calc">Калькулятор</a>
-<a href="#reviews">Відгуки</a>
-<a href="#contacts">Контакти</a>
-</div>
-<a class="phone" href="tel:+380974546713">097 454 67 13</a>
-<a class="phone" href="tg://resolve?phone=380974546713">TG</a>
-<a class="tg-top" href="tg://resolve?phone=380974546713">Фото в TG</a>
+  <div class="logo">Potolok<span>.in.ua</span></div>
+
+  <div class="promo-slider" aria-label="Акції та пропозиції">
+    <button class="promo-arrow" id="promoPrev" type="button" aria-label="Попередня акція">‹</button>
+    <div class="promo-center">
+      <a class="promo-link" id="promoLink" href="/ai-pro/pixel5.html"></a>
+      <div class="promo-dots" id="promoDots" aria-hidden="true"></div>
+    </div>
+    <button class="promo-arrow" id="promoNext" type="button" aria-label="Наступна акція">›</button>
+  </div>
+
+  <a class="phone" href="tel:+380974546713">097 454 67 13</a>
+  <a class="tg-top" href="https://t.me/Potolok_in_ua">TG</a>
 </div>
 </header>
+
+<div class="ai-quick-wrap">
+  <div class="wrap">
+    <a class="ai-quick" href="/ai-pro/pixel5.html" aria-label="Перейти до Potolok AI">
+      <div class="ai-quick-logo">✨ Potolok <span>AI</span></div>
+      <div class="ai-quick-slogan">ДЛЯ ТИХ, ХТО ЦІНУЄ СВІЙ ЧАС</div>
+      <span class="ai-quick-btn">Перейти до Potolok AI →</span>
+    </a>
+  </div>
+</div>
 
 <section class="hero" id="home">
 <div class="wrap hero-box">
@@ -972,8 +1101,129 @@ async function sendUniversalLead(){
 })();
 </script>
 
+
+<script>
+(function(){
+  /* Щоб змінити акції, достатньо відредагувати цей список. */
+  const PROMO_ITEMS = [
+    {
+      icon:'🎁',
+      text:'До кінця тижня заходь на <strong>Potolok AI</strong>, роби розрахунок та отримай знижку <strong>15%!</strong>',
+      href:'/ai-pro/pixel5.html'
+    },
+    {
+      icon:'✨',
+      text:'Створи візуалізацію майбутньої стелі у <strong>Potolok AI</strong> лише за кілька хвилин',
+      href:'/ai-pro/pixel5.html'
+    },
+    {
+      icon:'📷',
+      text:'Завантаж фото кімнати — <strong>Potolok AI</strong> покаже, як виглядатиме нова стеля',
+      href:'/ai-pro/pixel5.html'
+    },
+    {
+      icon:'📐',
+      text:'Зроби попередній розрахунок вартості стелі онлайн без виклику майстра',
+      href:'#calc'
+    },
+    {
+      icon:'🏠',
+      text:'Безкоштовний замір у Харкові та області — залишай заявку на сайті',
+      href:'#contacts'
+    }
+  ];
+
+  const link = document.getElementById('promoLink');
+  const dotsBox = document.getElementById('promoDots');
+  const prev = document.getElementById('promoPrev');
+  const next = document.getElementById('promoNext');
+  if(!link || !dotsBox || !prev || !next || !PROMO_ITEMS.length) return;
+
+  let index = 0;
+  let timer = null;
+
+  PROMO_ITEMS.forEach(function(_, i){
+    const dot = document.createElement('button');
+    dot.type = 'button';
+    dot.className = 'promo-dot';
+    dot.setAttribute('aria-label', 'Акція ' + (i + 1));
+    dot.addEventListener('click', function(){
+      index = i;
+      renderPromo();
+      restartPromo();
+    });
+    dotsBox.appendChild(dot);
+  });
+
+  function renderPromo(){
+    const item = PROMO_ITEMS[index];
+    link.href = item.href;
+    link.innerHTML = '<span aria-hidden="true">' + item.icon + '</span> ' + item.text;
+    link.classList.remove('promo-fade');
+    void link.offsetWidth;
+    link.classList.add('promo-fade');
+
+    dotsBox.querySelectorAll('.promo-dot').forEach(function(dot, i){
+      dot.classList.toggle('active', i === index);
+    });
+  }
+
+  function changePromo(step){
+    index = (index + step + PROMO_ITEMS.length) % PROMO_ITEMS.length;
+    renderPromo();
+  }
+
+  function restartPromo(){
+    clearInterval(timer);
+    timer = setInterval(function(){ changePromo(1); }, 5000);
+  }
+
+  prev.addEventListener('click', function(){ changePromo(-1); restartPromo(); });
+  next.addEventListener('click', function(){ changePromo(1); restartPromo(); });
+
+  const slider = document.querySelector('.promo-slider');
+  slider.addEventListener('mouseenter', function(){ clearInterval(timer); });
+  slider.addEventListener('mouseleave', restartPromo);
+
+  renderPromo();
+  restartPromo();
+})();
+</script>
+
 </body>
 </html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
