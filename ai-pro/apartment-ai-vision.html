@@ -3,11 +3,283 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Potolok AI Vision</title>
+  <title>Potolok AI Vision — план квартири</title>
+  <style>
+    *{box-sizing:border-box}
+    body{margin:0;background:#f2f6fc;color:#14213d;font-family:Arial,sans-serif}
+    .wrap{max-width:980px;margin:auto;padding:18px}
+    .head{display:flex;align-items:center;gap:12px;margin-bottom:18px}
+    .logo{width:58px;height:58px;border-radius:16px;background:#075bff;color:#fff;display:grid;place-items:center;font-size:28px;font-weight:900}
+    h1{font-size:24px;margin:0}.muted{color:#718096}
+    .card{background:#fff;border:1px solid #dbe5f2;border-radius:20px;padding:18px;margin-bottom:16px;box-shadow:0 8px 24px rgba(25,55,100,.06)}
+    .actions{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    button,.file-label{min-height:54px;border-radius:14px;border:1px solid #cfd9e8;background:#fff;font-size:17px;font-weight:800;display:flex;align-items:center;justify-content:center;padding:12px;text-align:center}
+    .primary{background:#075bff;color:#fff;border-color:#075bff}
+    button:disabled{opacity:.45}.danger{color:#d62828}
+    input[type=file]{display:none}
+    .status{margin-top:12px;padding:13px;border-radius:12px;background:#f5f8fd;color:#5c6b80}
+    .stage{position:relative;min-height:420px;border-radius:16px;overflow:hidden;background:
+      linear-gradient(#dfe9f5 1px,transparent 1px),
+      linear-gradient(90deg,#dfe9f5 1px,transparent 1px),#f8fbff;
+      background-size:30px 30px}
+    #planImage{display:block;width:100%;height:auto;max-height:76vh;object-fit:contain}
+    #overlay{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
+    .room{fill:rgba(7,91,255,.18);stroke:#075bff;stroke-width:3}
+    .room.selected{fill:rgba(255,176,0,.24);stroke:#f59e0b}
+    .point{fill:#fff;stroke:#075bff;stroke-width:3}
+    .point.selected{fill:#ff3b30;stroke:#fff}
+    .label{font-size:15px;font-weight:800;fill:#14213d;text-anchor:middle;paint-order:stroke;stroke:#fff;stroke-width:4}
+    .tools{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}.tools button{min-height:42px;font-size:14px;flex:1}
+    .rooms{display:grid;gap:8px}.room-row{padding:12px;border:1px solid #dbe5f2;border-radius:12px;display:flex;justify-content:space-between;gap:10px}
+    @media(max-width:620px){.actions{grid-template-columns:1fr}.wrap{padding:12px}.stage{min-height:360px}}
+  </style>
 </head>
 <body>
+  <main class="wrap">
+    <div class="head">
+      <div class="logo">P</div>
+      <div><h1>Potolok AI Vision</h1><div class="muted">Електронний план квартири з фото</div></div>
+    </div>
 
-<h1>Potolok AI Vision</h1>
+    <section class="card">
+      <div class="actions">
+        <label class="file-label" for="fileInput">📷 Завантажити план</label>
+        <button id="recognizeBtn" class="primary" disabled>🧠 Розпізнати приміщення</button>
+      </div>
+      <input id="fileInput" type="file" accept="image/*">
+      <div id="status" class="status">Спочатку завантажте чітке фото або скриншот плану БТІ.</div>
+    </section>
 
+    <section class="card">
+      <div class="stage" id="stage">
+        <img id="planImage" alt="" hidden>
+        <svg id="overlay" viewBox="0 0 1000 700" preserveAspectRatio="none"></svg>
+      </div>
+      <div class="tools">
+        <button id="toggleImageBtn" disabled>👁 Сховати підкладку</button>
+        <button id="addPointBtn" disabled>＋ Точка на стіні</button>
+        <button id="deletePointBtn" class="danger" disabled>✕ Видалити точку</button>
+        <button id="clearBtn" class="danger">Очистити</button>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Знайдені приміщення</h2>
+      <div id="roomsList" class="rooms"><div class="muted">Результату ще немає.</div></div>
+    </section>
+  </main>
+
+<script>
+const fileInput = document.getElementById('fileInput');
+const recognizeBtn = document.getElementById('recognizeBtn');
+const planImage = document.getElementById('planImage');
+const overlay = document.getElementById('overlay');
+const statusBox = document.getElementById('status');
+const roomsList = document.getElementById('roomsList');
+const toggleImageBtn = document.getElementById('toggleImageBtn');
+const addPointBtn = document.getElementById('addPointBtn');
+const deletePointBtn = document.getElementById('deletePointBtn');
+const clearBtn = document.getElementById('clearBtn');
+
+let imageBase64 = '';
+let result = {rooms:[], openings:[]};
+let selectedRoom = -1;
+let selectedPoint = -1;
+let addPointMode = false;
+let dragging = null;
+
+fileInput.addEventListener('change', async () => {
+  const file = fileInput.files?.[0];
+  if (!file) return;
+  if (!file.type.startsWith('image/')) return setStatus('Оберіть файл зображення.', true);
+  imageBase64 = await readFile(file);
+  planImage.src = imageBase64;
+  planImage.hidden = false;
+  recognizeBtn.disabled = false;
+  toggleImageBtn.disabled = false;
+  result = {rooms:[], openings:[]};
+  render();
+  setStatus('План завантажено. Натисніть «Розпізнати приміщення».');
+});
+
+recognizeBtn.addEventListener('click', async () => {
+  if (!imageBase64) return;
+  recognizeBtn.disabled = true;
+  recognizeBtn.textContent = '⏳ Розпізнавання...';
+  setStatus('AI аналізує стіни та контури. Це може зайняти до хвилини.');
+  try {
+    const response = await fetch('/api/apartment-vision', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({imageBase64})
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(data.error || `Помилка ${response.status}`);
+    result = data;
+    selectedRoom = result.rooms.length ? 0 : -1;
+    selectedPoint = -1;
+    render();
+    setStatus(`Готово: знайдено ${result.rooms.length} приміщень. Перевірте та виправте точки за потреби.`);
+  } catch (error) {
+    setStatus(error.message || 'Не вдалося розпізнати план.', true);
+  } finally {
+    recognizeBtn.disabled = false;
+    recognizeBtn.textContent = '🧠 Розпізнати приміщення';
+  }
+});
+
+function readFile(file){
+  return new Promise((resolve,reject)=>{
+    const reader = new FileReader();
+    reader.onload=()=>resolve(reader.result);
+    reader.onerror=reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+function render(){
+  overlay.innerHTML='';
+  result.rooms.forEach((room, roomIndex)=>{
+    const pts = room.points.map(p => `${p.x*1000},${p.y*700}`).join(' ');
+    const polygon = svg('polygon',{
+      points:pts,
+      class:`room ${roomIndex===selectedRoom?'selected':''}`
+    });
+    polygon.addEventListener('click',e=>{
+      e.stopPropagation(); selectedRoom=roomIndex; selectedPoint=-1; render();
+    });
+    if(addPointMode && roomIndex===selectedRoom){
+      polygon.addEventListener('pointerdown', e => addPointToNearestEdge(e, roomIndex));
+    }
+    overlay.appendChild(polygon);
+
+    const center = centroid(room.points);
+    const text = svg('text',{x:center.x*1000,y:center.y*700,class:'label'});
+    text.textContent = room.areaLabel ? `${room.name} · ${room.areaLabel}` : room.name;
+    overlay.appendChild(text);
+
+    if(roomIndex===selectedRoom){
+      room.points.forEach((p, pointIndex)=>{
+        const c = svg('circle',{
+          cx:p.x*1000,cy:p.y*700,r:9,
+          class:`point ${pointIndex===selectedPoint?'selected':''}`
+        });
+        c.addEventListener('pointerdown',e=>{
+          e.stopPropagation();
+          selectedPoint=pointIndex;
+          dragging={roomIndex,pointIndex};
+          c.setPointerCapture(e.pointerId);
+          renderTools();
+        });
+        overlay.appendChild(c);
+      });
+    }
+  });
+  renderRooms();
+  renderTools();
+}
+
+overlay.addEventListener('pointermove',e=>{
+  if(!dragging) return;
+  const p=eventPoint(e);
+  result.rooms[dragging.roomIndex].points[dragging.pointIndex]=p;
+  render();
+});
+
+overlay.addEventListener('pointerup',()=> dragging=null);
+overlay.addEventListener('pointercancel',()=> dragging=null);
+
+function addPointToNearestEdge(e, roomIndex){
+  if(!addPointMode) return;
+  e.stopPropagation();
+  const p=eventPoint(e);
+  const points=result.rooms[roomIndex].points;
+  let best=0, bestDistance=Infinity;
+  for(let i=0;i<points.length;i++){
+    const a=points[i], b=points[(i+1)%points.length];
+    const d=distanceToSegment(p,a,b);
+    if(d<bestDistance){bestDistance=d;best=i;}
+  }
+  points.splice(best+1,0,p);
+  selectedPoint=best+1;
+  addPointMode=false;
+  render();
+}
+
+addPointBtn.addEventListener('click',()=>{
+  addPointMode=!addPointMode;
+  addPointBtn.textContent=addPointMode?'Торкніться потрібної стіни':'＋ Точка на стіні';
+});
+
+deletePointBtn.addEventListener('click',()=>{
+  if(selectedRoom<0 || selectedPoint<0) return;
+  const points=result.rooms[selectedRoom].points;
+  if(points.length<=3) return setStatus('У контурі повинно залишитися щонайменше 3 точки.',true);
+  points.splice(selectedPoint,1);
+  selectedPoint=-1;
+  render();
+});
+
+toggleImageBtn.addEventListener('click',()=>{
+  planImage.hidden=!planImage.hidden;
+  toggleImageBtn.textContent=planImage.hidden?'👁 Показати підкладку':'👁 Сховати підкладку';
+});
+
+clearBtn.addEventListener('click',()=>{
+  imageBase64=''; result={rooms:[],openings:[]}; selectedRoom=-1; selectedPoint=-1;
+  planImage.src=''; planImage.hidden=true; fileInput.value=''; recognizeBtn.disabled=true;
+  toggleImageBtn.disabled=true; render(); setStatus('План очищено.');
+});
+
+function renderRooms(){
+  if(!result.rooms.length){roomsList.innerHTML='<div class="muted">Результату ще немає.</div>';return;}
+  roomsList.innerHTML='';
+  result.rooms.forEach((room,index)=>{
+    const row=document.createElement('div');
+    row.className='room-row';
+    row.innerHTML=`<strong>${escapeHtml(room.name)}</strong><span>${escapeHtml(room.areaLabel||'площа не прочитана')}</span>`;
+    row.addEventListener('click',()=>{selectedRoom=index;selectedPoint=-1;render();});
+    roomsList.appendChild(row);
+  });
+}
+
+function renderTools(){
+  addPointBtn.disabled=selectedRoom<0;
+  deletePointBtn.disabled=selectedRoom<0 || selectedPoint<0;
+}
+
+function setStatus(text,error=false){
+  statusBox.textContent=text;
+  statusBox.style.color=error?'#c62828':'#5c6b80';
+  statusBox.style.background=error?'#fff1f1':'#f5f8fd';
+}
+
+function eventPoint(e){
+  const rect=overlay.getBoundingClientRect();
+  return {
+    x:Math.max(0,Math.min(1,(e.clientX-rect.left)/rect.width)),
+    y:Math.max(0,Math.min(1,(e.clientY-rect.top)/rect.height))
+  };
+}
+function centroid(points){
+  return points.reduce((a,p)=>({x:a.x+p.x/points.length,y:a.y+p.y/points.length}),{x:0,y:0});
+}
+function distanceToSegment(p,a,b){
+  const dx=b.x-a.x,dy=b.y-a.y;
+  if(dx===0&&dy===0)return Math.hypot(p.x-a.x,p.y-a.y);
+  const t=Math.max(0,Math.min(1,((p.x-a.x)*dx+(p.y-a.y)*dy)/(dx*dx+dy*dy)));
+  return Math.hypot(p.x-(a.x+t*dx),p.y-(a.y+t*dy));
+}
+function svg(name,attrs){
+  const node=document.createElementNS('http://www.w3.org/2000/svg',name);
+  Object.entries(attrs).forEach(([k,v])=>node.setAttribute(k,v));
+  return node;
+}
+function escapeHtml(value){
+  return String(value).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
+}
+render();
+</script>
 </body>
 </html>
+
