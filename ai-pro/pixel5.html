@@ -1148,6 +1148,7 @@ function captureCurrentRoom(){
     prompt:customPrompt.value||'',
     planner:{
       points:deepCopy(roomPoints),
+      realPoints:deepCopy(roomPoints._real||[]),
       objects:deepCopy(plannerObjects),
       template:roomTemplate,
       segments:deepCopy(segmentLengths)
@@ -1230,7 +1231,15 @@ function restoreRoom(room){
   roomTemplate=room.planner?.template||'rect';
   segmentLengths=deepCopy(room.planner?.segments||templateDefaults(roomTemplate));
   plannerObjects=deepCopy(room.planner?.objects||[]);
-  renderSegmentInputs();buildRoomFromSegments(false);renderPlanner();renderPalette();updateAISpec();recalc();
+  renderSegmentInputs();
+  buildRoomFromSegments(false);
+  if(Array.isArray(room.planner?.points)&&room.planner.points.length>=3){
+    roomPoints=deepCopy(room.planner.points);
+    if(Array.isArray(room.planner?.realPoints)&&room.planner.realPoints.length===roomPoints.length){
+      roomPoints._real=deepCopy(room.planner.realPoints);
+    }
+  }
+  renderPlanner();renderPalette();updateAISpec();recalc();
   roomSyncLock=false;
   renderRooms();
 }
@@ -8287,6 +8296,254 @@ body.client-card-mode61 .ai-request-section{display:none!important}
     injectRating79();
     updateReviewTabLabel79();
   }, 500);
+})();
+</script>
+
+
+<script id="apartmentRoomHandoff81">
+(() => {
+  'use strict';
+
+  const HANDOFF_KEY = 'potolok_apartment_room_handoff';
+
+  function number(value, fallback = 0) {
+    const n = Number(String(value ?? '').replace(',', '.'));
+    return Number.isFinite(n) ? n : fallback;
+  }
+
+  function polygonArea(points) {
+    let sum = 0;
+    for (let i = 0; i < points.length; i += 1) {
+      const a = points[i];
+      const b = points[(i + 1) % points.length];
+      sum += a.x * b.y - b.x * a.y;
+    }
+    return Math.abs(sum / 2);
+  }
+
+  function edgeLengths(points, areaM2, supplied = []) {
+    if (Array.isArray(supplied) && supplied.length === points.length &&
+        supplied.every(v => number(v) > 0)) {
+      return supplied.map(v => number(v));
+    }
+
+    const rawArea = polygonArea(points);
+    const scale = rawArea > 0 && areaM2 > 0
+      ? Math.sqrt(areaM2 / rawArea)
+      : 1;
+
+    return points.map((p, i) => {
+      const q = points[(i + 1) % points.length];
+      return Math.max(0.01, Math.hypot(q.x - p.x, q.y - p.y) * scale);
+    });
+  }
+
+  function normalizedPoints(room) {
+    const source = Array.isArray(room.points)
+      ? room.points
+      : Array.isArray(room.polygon)
+        ? room.polygon
+        : [];
+
+    if (!source.length) return [];
+
+    const maxX = Math.max(...source.map(p => number(p.x)));
+    const maxY = Math.max(...source.map(p => number(p.y)));
+    const divisorX = maxX > 2 ? 1000 : 1;
+    const divisorY = maxY > 2 ? 700 : 1;
+
+    return source.map(p => ({
+      x: number(p.x) / divisorX,
+      y: number(p.y) / divisorY
+    }));
+  }
+
+  function fitCanvas(points) {
+    const xs = points.map(p => p.x);
+    const ys = points.map(p => p.y);
+    const minX = Math.min(...xs), maxX = Math.max(...xs);
+    const minY = Math.min(...ys), maxY = Math.max(...ys);
+    const width = Math.max(0.001, maxX - minX);
+    const height = Math.max(0.001, maxY - minY);
+    const scale = Math.min(560 / width, 400 / height);
+    const ox = 120 + (560 - width * scale) / 2;
+    const oy = 90 + (400 - height * scale) / 2;
+
+    return points.map(p => [
+      ox + (p.x - minX) * scale,
+      oy + (p.y - minY) * scale
+    ]);
+  }
+
+  function buildRealPoints(points, lengths) {
+    const rawArea = polygonArea(points);
+    const desiredArea = number(
+      window.__apartmentImportArea81,
+      0
+    );
+    const scale = rawArea > 0 && desiredArea > 0
+      ? Math.sqrt(desiredArea / rawArea)
+      : 1;
+
+    return points.map(p => [p.x * scale, p.y * scale]);
+  }
+
+  function openingObjects(room, points, canvasPoints) {
+    const openings = Array.isArray(room.openings) ? room.openings : [];
+    return openings.map((opening, index) => {
+      let x = 0.5, y = 0.5;
+
+      if (opening.start && opening.end) {
+        const sx = number(opening.start.x), sy = number(opening.start.y);
+        const ex = number(opening.end.x), ey = number(opening.end.y);
+        const dx = Math.max(sx, ex) > 2 ? 1000 : 1;
+        const dy = Math.max(sy, ey) > 2 ? 700 : 1;
+        x = (sx + ex) / 2 / dx;
+        y = (sy + ey) / 2 / dy;
+      } else {
+        x = (number(opening.x1) + number(opening.x2)) / 2;
+        y = (number(opening.y1) + number(opening.y2)) / 2;
+      }
+
+      let nearest = 0;
+      let distance = Infinity;
+      points.forEach((point, i) => {
+        const d = Math.hypot(point.x - x, point.y - y);
+        if (d < distance) {
+          distance = d;
+          nearest = i;
+        }
+      });
+
+      const p = canvasPoints[nearest] || [400, 300];
+      return {
+        id: String(opening.id || `opening_${Date.now()}_${index}`),
+        type: opening.type === 'window' ? 'window' : 'door',
+        x: p[0],
+        y: p[1],
+        rotation: 0,
+        size: 1
+      };
+    });
+  }
+
+  function importApartmentRoom() {
+    let payload = null;
+    try {
+      payload = JSON.parse(localStorage.getItem(HANDOFF_KEY) || 'null');
+    } catch (error) {
+      console.warn('Apartment handoff parse error:', error);
+      return;
+    }
+
+    const room = payload?.room;
+    if (!room || payload?.consumedAt) return;
+
+    const points = normalizedPoints(room);
+    if (points.length < 3) return;
+
+    const areaM2 = number(room.area_m2 ?? room.area, 0);
+    window.__apartmentImportArea81 = areaM2;
+
+    const lengths = edgeLengths(
+      points,
+      areaM2,
+      room.wall_lengths_m || room.lengths || []
+    );
+    const canvasPoints = fitCanvas(points);
+    const realPoints = buildRealPoints(points, lengths);
+    const perimeter = lengths.reduce((sum, value) => sum + value, 0);
+
+    const importedRoom = {
+      id: String(room.id || `room_${Date.now()}`),
+      name: String(room.name || 'Приміщення з плану'),
+      photo: '',
+      area: areaM2 || polygonArea(realPoints),
+      perimeter,
+      corners: points.length,
+      chandeliers: 0,
+      height: Number(document.getElementById('ceilingHeight')?.value || 2.7),
+      color: typeof COLORS !== 'undefined' ? deepCopy(COLORS[0]) : null,
+      texture: 'matte',
+      prompt: '',
+      planner: {
+        points: canvasPoints,
+        realPoints,
+        objects: openingObjects(room, points, canvasPoints),
+        template: 'custom',
+        segments: lengths
+      },
+      source: {
+        type: 'apartment-ai-vision',
+        apartmentId: payload.apartmentId || '',
+        importedAt: new Date().toISOString()
+      }
+    };
+
+    try {
+      if (typeof syncActiveRoomFromUI === 'function' && activeRoomId) {
+        syncActiveRoomFromUI(false);
+      }
+
+      const existingIndex = Array.isArray(projectRooms)
+        ? projectRooms.findIndex(item => String(item.id) === importedRoom.id)
+        : -1;
+
+      if (existingIndex >= 0) {
+        projectRooms[existingIndex] = {
+          ...projectRooms[existingIndex],
+          ...importedRoom
+        };
+      } else {
+        projectRooms.push(importedRoom);
+      }
+
+      activeRoomId = importedRoom.id;
+      restoreRoom(importedRoom);
+
+      const plannerTab = [...document.querySelectorAll('.main-tab')]
+        .find(button =>
+          String(button.getAttribute('onclick') || '').includes("'planner'")
+        );
+      if (plannerTab && typeof showMainTab === 'function') {
+        showMainTab('planner', plannerTab);
+      }
+
+      if (typeof autosave === 'function') autosave();
+      if (typeof updateSummary === 'function') updateSummary();
+
+      localStorage.setItem(
+        HANDOFF_KEY,
+        JSON.stringify({
+          ...payload,
+          consumedAt: new Date().toISOString()
+        })
+      );
+
+      setTimeout(() => {
+        const target = document.getElementById('plannerSvg');
+        if (target) target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 150);
+
+      alert(
+        `Кімнату «${importedRoom.name}» завантажено з цифрового плану.\n` +
+        `Кутів: ${points.length}\n` +
+        `Площа: ${importedRoom.area.toFixed(2)} м²\n` +
+        `Периметр: ${perimeter.toFixed(2)} м`
+      );
+    } catch (error) {
+      console.error('Apartment room import error:', error);
+      alert('Не вдалося перенести кімнату в Pixel: ' + error.message);
+    } finally {
+      delete window.__apartmentImportArea81;
+    }
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => setTimeout(importApartmentRoom, 250));
+  } else {
+    setTimeout(importApartmentRoom, 250);
+  }
 })();
 </script>
 
