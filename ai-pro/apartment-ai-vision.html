@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="uk">
 <head>
@@ -30,7 +31,8 @@
     .point.selected{fill:#ff3b30;stroke:#fff}
     .label{font-size:15px;font-weight:800;fill:#14213d;text-anchor:middle;paint-order:stroke;stroke:#fff;stroke-width:4}
     .tools{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}.tools button{min-height:42px;font-size:14px;flex:1}
-    .rooms{display:grid;gap:8px}.room-row{padding:12px;border:1px solid #dbe5f2;border-radius:12px;display:flex;justify-content:space-between;gap:10px}
+    .rooms{display:grid;gap:8px}.room-row{padding:12px;border:1px solid #dbe5f2;border-radius:12px;display:grid;grid-template-columns:1fr auto;align-items:center;gap:10px}
+    .room-open{min-height:38px!important;border-radius:10px!important;background:#19a95a!important;color:#fff!important;border-color:#19a95a!important;font-size:13px!important;padding:8px 12px!important}
     @media(max-width:620px){.actions{grid-template-columns:1fr}.wrap{padding:12px}.stage{min-height:360px}}
   </style>
 </head>
@@ -237,10 +239,59 @@ function renderRooms(){
   result.rooms.forEach((room,index)=>{
     const row=document.createElement('div');
     row.className='room-row';
-    row.innerHTML=`<strong>${escapeHtml(room.name)}</strong><span>${escapeHtml(room.areaLabel||'площа не прочитана')}</span>`;
+    row.innerHTML=`<div><strong>${escapeHtml(room.name)}</strong><div class="muted">${escapeHtml(room.areaLabel||'площа не прочитана')}</div></div><button type="button" class="room-open">Відкрити в Pixel</button>`;
     row.addEventListener('click',()=>{selectedRoom=index;selectedPoint=-1;render();});
+    row.querySelector('.room-open').addEventListener('click',event=>{
+      event.stopPropagation();
+      openRoomInPixel(index);
+    });
     roomsList.appendChild(row);
   });
+}
+
+function roomAreaNumber(room){
+  const match=String(room?.areaLabel||'').replace(',','.').match(/\d+(?:\.\d+)?/);
+  return match?Number(match[0]):0;
+}
+
+function openingDistanceToRoom(opening,room){
+  const mx=(Number(opening.x1)+Number(opening.x2))/2;
+  const my=(Number(opening.y1)+Number(opening.y2))/2;
+  return Math.min(...room.points.map(point=>Math.hypot(point.x-mx,point.y-my)));
+}
+
+function openRoomInPixel(index){
+  const room=result.rooms[index];
+  if(!room||!Array.isArray(room.points)||room.points.length<3){
+    return setStatus('Спочатку розпізнайте коректний контур кімнати.',true);
+  }
+
+  const openings=(result.openings||[])
+    .filter(opening=>openingDistanceToRoom(opening,room)<0.12)
+    .map(opening=>({
+      id:opening.id,
+      type:opening.type,
+      x1:opening.x1,
+      y1:opening.y1,
+      x2:opening.x2,
+      y2:opening.y2
+    }));
+
+  const payload={
+    version:1,
+    apartmentId:'apt_'+Date.now(),
+    createdAt:new Date().toISOString(),
+    room:{
+      id:room.id||'room_'+(index+1),
+      name:room.name||'Приміщення '+(index+1),
+      area_m2:roomAreaNumber(room),
+      points:room.points.map(point=>({x:Number(point.x),y:Number(point.y)})),
+      openings
+    }
+  };
+
+  localStorage.setItem('potolok_apartment_room_handoff',JSON.stringify(payload));
+  window.location.href='/ai-pro/pixel5.html?from=apartment&room='+encodeURIComponent(payload.room.id);
 }
 
 function renderTools(){
@@ -282,4 +333,5 @@ render();
 </script>
 </body>
 </html>
+
 
