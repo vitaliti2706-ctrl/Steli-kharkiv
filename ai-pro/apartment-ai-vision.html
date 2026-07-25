@@ -93,7 +93,7 @@ const deletePointBtn = document.getElementById('deletePointBtn');
 const clearBtn = document.getElementById('clearBtn');
 
 let imageBase64 = '';
-let result = {rooms:[], openings:[]};
+let result = {walls:[],rooms:[],openings:[]};
 let selectedRoom = -1;
 let selectedPoint = -1;
 let selectedOpening = -1;
@@ -108,7 +108,7 @@ fileInput.addEventListener('change', async () => {
   planImage.src = imageBase64;
   planImage.hidden = false;
   recognizeBtn.disabled = false;
-  result = {rooms:[], openings:[]};
+  result = {walls:[],rooms:[],openings:[]};
   render();
   setStatus('План завантажено. Натисніть «Розпізнати приміщення».');
 });
@@ -131,7 +131,9 @@ recognizeBtn.addEventListener('click', async () => {
     selectedPoint = -1;
     selectedOpening = -1;
     render();
-    setStatus(`Готово: знайдено ${result.rooms.length} приміщень. Перевірте та виправте точки за потреби.`);
+    const low=result.rooms.filter(r=>Number(r.confidence)<0.65).length;
+    const note=result.notes?.length?` ${result.notes[0]}`:'';
+    setStatus(`Готово: ${result.rooms.length} приміщень, ${result.walls?.length||0} стін.${low?` Низька впевненість: ${low}.`:''}${note}`);
   } catch (error) {
     setStatus(error.message || 'Не вдалося розпізнати план.', true);
   } finally {
@@ -264,7 +266,7 @@ flipDoorBtn.addEventListener('click',()=>{
 });
 
 clearBtn.addEventListener('click',()=>{
-  imageBase64=''; result={rooms:[],openings:[]}; selectedRoom=-1; selectedPoint=-1;
+  imageBase64=''; result={walls:[],rooms:[],openings:[]}; selectedRoom=-1; selectedPoint=-1;
   planImage.src=''; planImage.hidden=true; fileInput.value=''; recognizeBtn.disabled=true;
   selectedOpening=-1; render(); setStatus('План очищено.');
 });
@@ -400,6 +402,8 @@ render();
 </script>
 </body>
 </html>
+
+
 
 
 
