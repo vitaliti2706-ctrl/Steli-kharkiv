@@ -8597,6 +8597,73 @@ function rotateDoor90_81(){
 })();
 </script>
 
+
+
+<style>
+/* Pixel 5.7 — жорстка фіксація контуру */
+.plan-lock-bar57{display:flex;gap:8px;align-items:center;margin:10px 0;padding:9px;border:1px solid #dbe3ef;border-radius:12px;background:#f8fafc}
+.plan-lock-btn57{flex:1;min-height:42px;border:1px solid #93c5fd;border-radius:10px;background:#eff6ff;color:#075bff;font-weight:950;font-size:10px}
+.plan-lock-btn57.locked{background:#071428;color:#fff;border-color:#071428}
+.plan-lock-help57{font-size:8px;color:#64748b;line-height:1.35;max-width:210px}
+body.plan-contour-locked57 #nodeLayer circle,
+body.plan-contour-locked57 #miniNodeLayer circle{pointer-events:none!important;opacity:.48!important;cursor:not-allowed!important}
+body.plan-contour-locked57 #roomLayer polygon,
+body.plan-contour-locked57 #miniRoomLayer polygon{cursor:default!important}
+</style>
+<script>
+(function(){
+  if(window.__pixel57ContourLock)return;
+  window.__pixel57ContourLock=true;
+
+  let contourLocked57=true;
+  const status=document.getElementById('plannerStatus52');
+  const bar=document.createElement('div');
+  bar.className='plan-lock-bar57';
+  bar.innerHTML='<button type="button" class="plan-lock-btn57 locked">🔒 Контур зафіксовано</button><div class="plan-lock-help57">Під час встановлення дверей, вікон та інших елементів точки й стіни не рухаються.</div>';
+  if(status) status.insertAdjacentElement('afterend',bar);
+  else document.querySelector('#tab_planner main.planner-canvas')?.prepend(bar);
+  const btn=bar.querySelector('.plan-lock-btn57');
+
+  function apply57(){
+    document.body.classList.toggle('plan-contour-locked57',contourLocked57);
+    btn.classList.toggle('locked',contourLocked57);
+    btn.textContent=contourLocked57?'🔒 Контур зафіксовано':'🔓 Редагування контуру';
+    btn.title=contourLocked57?'Натисніть, щоб дозволити рух точок стін':'Натисніть, щоб зафіксувати контур';
+    if(contourLocked57 && typeof dragIndex!=='undefined') dragIndex=-1;
+  }
+  window.setContourLock57=function(v){contourLocked57=!!v;apply57()};
+  window.isContourLocked57=()=>contourLocked57;
+  btn.addEventListener('click',()=>{contourLocked57=!contourLocked57;apply57()});
+
+  /* Блокуємо саме точки контуру до запуску старих pointerdown-обробників. */
+  ['plannerSvg','plannerMiniSvg'].forEach(id=>{
+    const svg=document.getElementById(id);if(!svg)return;
+    svg.addEventListener('pointerdown',e=>{
+      if(!contourLocked57)return;
+      const point=e.target.closest?.('#nodeLayer circle,#miniNodeLayer circle');
+      if(point){
+        if(typeof dragIndex!=='undefined')dragIndex=-1;
+        e.preventDefault();e.stopImmediatePropagation();
+      }
+    },true);
+    svg.addEventListener('pointermove',e=>{
+      if(contourLocked57 && typeof dragIndex!=='undefined' && dragIndex>=0){dragIndex=-1;e.preventDefault();e.stopImmediatePropagation()}
+    },true);
+  });
+
+  /* Будь-який інструмент елемента автоматично фіксує контур. */
+  const prev=window.setPlannerTool;
+  if(typeof prev==='function'){
+    window.setPlannerTool=function(t,b){
+      const r=prev.apply(this,arguments);
+      if(t && !['select','move','delete'].includes(t))window.setContourLock57(true);
+      return r;
+    };
+  }
+  apply57();
+})();
+</script>
+
 </body>
 </html>
 
