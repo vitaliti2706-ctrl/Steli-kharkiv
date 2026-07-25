@@ -740,6 +740,11 @@ th:nth-child(2),th:nth-child(3),th:nth-child(4),td:nth-child(2),td:nth-child(3),
     <div class="field"><label>Поворот, °</label><input id="objectRotation" type="number" step="1" oninput="updateSelectedObject()"></div>
     <div class="field"><label>Підпис</label><input id="objectLabel" oninput="updateSelectedObject()"></div>
   </div>
+  <div id="doorDirectionControls81" class="inspector-actions" style="display:none">
+    <button class="btn outline" type="button" onclick="flipDoorSwing81()">⇄ Ліво / право</button>
+    <button class="btn outline" type="button" onclick="flipDoorOpen81()">↕ Всередину / назовні</button>
+    <button class="btn outline" type="button" onclick="rotateDoor90_81()">↻ 90°</button>
+  </div>
   <div class="inspector-actions"><button class="btn outline" type="button" onclick="duplicateSelectedObject()">⧉ Копіювати</button><button class="btn danger" type="button" onclick="deleteSelectedObject()">🗑 Видалити</button></div>
 </div>
 </div>
@@ -1739,6 +1744,7 @@ function showObjectInspector(){
   objectInspector.classList.toggle('active',!!o);
   if(!o)return;
   inspectorName.textContent=PLANNER_NAMES[o.type]||o.type;objectLength.value=o.length||0;objectWidth.value=o.width||0;objectRotation.value=o.rotation||0;objectLabel.value=o.label||'';
+  const dc=document.getElementById('doorDirectionControls81');if(dc)dc.style.display=o.type==='door'?'flex':'none';
 }
 function updateSelectedObject(){
   const o=plannerObjects[selectedObjectIndex];if(!o)return;
@@ -1800,7 +1806,19 @@ function drawPlannerObject(o,i,scale){
   g.style.cursor='move';g.addEventListener('pointerdown',e=>selectPlannerObject(i,e));
   const L=Math.max(10,(o.length||1)*scale),W=Math.max(8,(o.width||.2)*scale);
   const stroke='#0f172a',blue='#075bff';
-  if(o.type==='door'){g.append(svgEl('line',{x1:0,y1:0,x2:L,y2:0,stroke,'stroke-width':5}),svgEl('path',{d:`M0 0 A${L} ${L} 0 0 1 ${L} ${-L}`,fill:'none',stroke:blue,'stroke-width':2,'stroke-dasharray':'5 4'}))}
+  if(o.type==='door'){
+    const hinge=o.swing==='right'?L:0;
+    const leafEnd=o.swing==='right'?0:L;
+    const side=o.opens==='out'?1:-1;
+    g.append(
+      svgEl('line',{x1:0,y1:0,x2:L,y2:0,stroke,'stroke-width':5}),
+      svgEl('line',{x1:hinge,y1:0,x2:hinge,y2:side*L,stroke:blue,'stroke-width':3}),
+      svgEl('path',{d:o.swing==='right'
+        ?`M${L} 0 A${L} ${L} 0 0 ${o.opens==='out'?0:1} 0 ${side*L}`
+        :`M0 0 A${L} ${L} 0 0 ${o.opens==='out'?1:0} ${L} ${side*L}`,
+        fill:'none',stroke:blue,'stroke-width':2,'stroke-dasharray':'5 4'})
+    )
+  }
   else if(o.type==='window'){g.append(svgEl('rect',{x:-L/2,y:-W/2,width:L,height:W,fill:'#dbeafe',stroke,'stroke-width':2}),svgEl('line',{x1:-L/2,y1:0,x2:L/2,y2:0,stroke:blue,'stroke-width':2}))}
   else if(o.type==='pipe1'){g.append(svgEl('circle',{cx:0,cy:0,r:W/2,fill:'#fff',stroke,'stroke-width':3}))}
   else if(o.type==='pipe2'){g.append(svgEl('circle',{cx:-W*.55,cy:0,r:W/2,fill:'#fff',stroke,'stroke-width':3}),svgEl('circle',{cx:W*.55,cy:0,r:W/2,fill:'#fff',stroke,'stroke-width':3}))}
@@ -8300,6 +8318,22 @@ body.client-card-mode61 .ai-request-section{display:none!important}
 </script>
 
 
+
+<script id="doorDirectionControlsLogic81">
+function flipDoorSwing81(){
+  const o=plannerObjects[selectedObjectIndex];if(!o||o.type!=='door')return;
+  pushPlanner();o.swing=o.swing==='right'?'left':'right';renderPlanner();showObjectInspector();autosave();
+}
+function flipDoorOpen81(){
+  const o=plannerObjects[selectedObjectIndex];if(!o||o.type!=='door')return;
+  pushPlanner();o.opens=o.opens==='out'?'in':'out';renderPlanner();showObjectInspector();autosave();
+}
+function rotateDoor90_81(){
+  const o=plannerObjects[selectedObjectIndex];if(!o||o.type!=='door')return;
+  pushPlanner();o.rotation=((Number(o.rotation)||0)+90)%360;renderPlanner();showObjectInspector();autosave();
+}
+</script>
+
 <script id="apartmentRoomHandoff81">
 (() => {
   'use strict';
@@ -8388,41 +8422,57 @@ body.client-card-mode61 .ai-request-section{display:none!important}
     return points.map(p => [p.x * scale, p.y * scale]);
   }
 
+  function nearestEdge81(opening, points) {
+    const mx=(number(opening.x1)+number(opening.x2))/2;
+    const my=(number(opening.y1)+number(opening.y2))/2;
+    let best={index:0,t:0.5,d:Infinity};
+    points.forEach((a,i)=>{
+      const b=points[(i+1)%points.length];
+      const dx=b.x-a.x,dy=b.y-a.y,den=dx*dx+dy*dy||1;
+      const t=Math.max(0,Math.min(1,((mx-a.x)*dx+(my-a.y)*dy)/den));
+      const px=a.x+t*dx,py=a.y+t*dy,d=Math.hypot(mx-px,my-py);
+      if(d<best.d)best={index:i,t,d};
+    });
+    return best;
+  }
+
+  function countRealCorners81(points) {
+    let count=0;
+    for(let i=0;i<points.length;i++){
+      const a=points[(i-1+points.length)%points.length],b=points[i],c=points[(i+1)%points.length];
+      const v1={x:a.x-b.x,y:a.y-b.y},v2={x:c.x-b.x,y:c.y-b.y};
+      const l1=Math.hypot(v1.x,v1.y),l2=Math.hypot(v2.x,v2.y);
+      if(l1<0.003||l2<0.003)continue;
+      const cos=Math.max(-1,Math.min(1,(v1.x*v2.x+v1.y*v2.y)/(l1*l2)));
+      const angle=Math.acos(cos)*180/Math.PI;
+      if(Math.abs(180-angle)>8)count++;
+    }
+    return count;
+  }
+
   function openingObjects(room, points, canvasPoints) {
     const openings = Array.isArray(room.openings) ? room.openings : [];
-    return openings.map((opening, index) => {
-      let x = 0.5, y = 0.5;
-
-      if (opening.start && opening.end) {
-        const sx = number(opening.start.x), sy = number(opening.start.y);
-        const ex = number(opening.end.x), ey = number(opening.end.y);
-        const dx = Math.max(sx, ex) > 2 ? 1000 : 1;
-        const dy = Math.max(sy, ey) > 2 ? 700 : 1;
-        x = (sx + ex) / 2 / dx;
-        y = (sy + ey) / 2 / dy;
-      } else {
-        x = (number(opening.x1) + number(opening.x2)) / 2;
-        y = (number(opening.y1) + number(opening.y2)) / 2;
-      }
-
-      let nearest = 0;
-      let distance = Infinity;
-      points.forEach((point, i) => {
-        const d = Math.hypot(point.x - x, point.y - y);
-        if (d < distance) {
-          distance = d;
-          nearest = i;
-        }
-      });
-
-      const p = canvasPoints[nearest] || [400, 300];
+    return openings.map((opening,index)=>{
+      const edge=nearestEdge81(opening,points);
+      const a=canvasPoints[edge.index],b=canvasPoints[(edge.index+1)%canvasPoints.length];
+      const x=a[0]+(b[0]-a[0])*edge.t;
+      const y=a[1]+(b[1]-a[1])*edge.t;
+      const wallAngle=Math.atan2(b[1]-a[1],b[0]-a[0])*180/Math.PI;
+      const detectedAngle=number(opening.rotation,NaN);
+      const width=number(opening.width_m,0) || Math.max(.4, Math.hypot(
+        number(opening.x2)-number(opening.x1),
+        number(opening.y2)-number(opening.y1)
+      )*10);
       return {
-        id: String(opening.id || `opening_${Date.now()}_${index}`),
-        type: opening.type === 'window' ? 'window' : 'door',
-        x: p[0],
-        y: p[1],
-        rotation: 0,
-        size: 1
+        id:String(opening.id||`opening_${Date.now()}_${index}`),
+        type:opening.type==='window'?'window':'door',
+        x,y,
+        rotation:Number.isFinite(detectedAngle)?detectedAngle:wallAngle,
+        length:width,
+        width:opening.type==='window'?.08:.08,
+        label:'',
+        swing:opening.swing==='right'?'right':'left',
+        opens:opening.opens==='out'?'out':'in'
       };
     });
   }
@@ -8460,7 +8510,7 @@ body.client-card-mode61 .ai-request-section{display:none!important}
       photo: '',
       area: areaM2 || polygonArea(realPoints),
       perimeter,
-      corners: points.length,
+      corners: number(room.corners, countRealCorners81(points)),
       chandeliers: 0,
       height: Number(document.getElementById('ceilingHeight')?.value || 2.7),
       color: typeof COLORS !== 'undefined' ? deepCopy(COLORS[0]) : null,
