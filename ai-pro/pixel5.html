@@ -740,11 +740,6 @@ th:nth-child(2),th:nth-child(3),th:nth-child(4),td:nth-child(2),td:nth-child(3),
     <div class="field"><label>Поворот, °</label><input id="objectRotation" type="number" step="1" oninput="updateSelectedObject()"></div>
     <div class="field"><label>Підпис</label><input id="objectLabel" oninput="updateSelectedObject()"></div>
   </div>
-  <div id="doorDirectionControls81" class="inspector-actions" style="display:none">
-    <button class="btn outline" type="button" onclick="flipDoorSwing81()">⇄ Ліво / право</button>
-    <button class="btn outline" type="button" onclick="flipDoorOpen81()">↕ Всередину / назовні</button>
-    <button class="btn outline" type="button" onclick="rotateDoor90_81()">↻ 90°</button>
-  </div>
   <div class="inspector-actions"><button class="btn outline" type="button" onclick="duplicateSelectedObject()">⧉ Копіювати</button><button class="btn danger" type="button" onclick="deleteSelectedObject()">🗑 Видалити</button></div>
 </div>
 </div>
@@ -1153,7 +1148,6 @@ function captureCurrentRoom(){
     prompt:customPrompt.value||'',
     planner:{
       points:deepCopy(roomPoints),
-      realPoints:deepCopy(roomPoints._real||[]),
       objects:deepCopy(plannerObjects),
       template:roomTemplate,
       segments:deepCopy(segmentLengths)
@@ -1236,15 +1230,7 @@ function restoreRoom(room){
   roomTemplate=room.planner?.template||'rect';
   segmentLengths=deepCopy(room.planner?.segments||templateDefaults(roomTemplate));
   plannerObjects=deepCopy(room.planner?.objects||[]);
-  renderSegmentInputs();
-  buildRoomFromSegments(false);
-  if(Array.isArray(room.planner?.points)&&room.planner.points.length>=3){
-    roomPoints=deepCopy(room.planner.points);
-    if(Array.isArray(room.planner?.realPoints)&&room.planner.realPoints.length===roomPoints.length){
-      roomPoints._real=deepCopy(room.planner.realPoints);
-    }
-  }
-  renderPlanner();renderPalette();updateAISpec();recalc();
+  renderSegmentInputs();buildRoomFromSegments(false);renderPlanner();renderPalette();updateAISpec();recalc();
   roomSyncLock=false;
   renderRooms();
 }
@@ -1744,7 +1730,6 @@ function showObjectInspector(){
   objectInspector.classList.toggle('active',!!o);
   if(!o)return;
   inspectorName.textContent=PLANNER_NAMES[o.type]||o.type;objectLength.value=o.length||0;objectWidth.value=o.width||0;objectRotation.value=o.rotation||0;objectLabel.value=o.label||'';
-  const dc=document.getElementById('doorDirectionControls81');if(dc)dc.style.display=o.type==='door'?'flex':'none';
 }
 function updateSelectedObject(){
   const o=plannerObjects[selectedObjectIndex];if(!o)return;
@@ -1806,19 +1791,7 @@ function drawPlannerObject(o,i,scale){
   g.style.cursor='move';g.addEventListener('pointerdown',e=>selectPlannerObject(i,e));
   const L=Math.max(10,(o.length||1)*scale),W=Math.max(8,(o.width||.2)*scale);
   const stroke='#0f172a',blue='#075bff';
-  if(o.type==='door'){
-    const hinge=o.swing==='right'?L:0;
-    const leafEnd=o.swing==='right'?0:L;
-    const side=o.opens==='out'?1:-1;
-    g.append(
-      svgEl('line',{x1:0,y1:0,x2:L,y2:0,stroke,'stroke-width':5}),
-      svgEl('line',{x1:hinge,y1:0,x2:hinge,y2:side*L,stroke:blue,'stroke-width':3}),
-      svgEl('path',{d:o.swing==='right'
-        ?`M${L} 0 A${L} ${L} 0 0 ${o.opens==='out'?0:1} 0 ${side*L}`
-        :`M0 0 A${L} ${L} 0 0 ${o.opens==='out'?1:0} ${L} ${side*L}`,
-        fill:'none',stroke:blue,'stroke-width':2,'stroke-dasharray':'5 4'})
-    )
-  }
+  if(o.type==='door'){g.append(svgEl('line',{x1:0,y1:0,x2:L,y2:0,stroke,'stroke-width':5}),svgEl('path',{d:`M0 0 A${L} ${L} 0 0 1 ${L} ${-L}`,fill:'none',stroke:blue,'stroke-width':2,'stroke-dasharray':'5 4'}))}
   else if(o.type==='window'){g.append(svgEl('rect',{x:-L/2,y:-W/2,width:L,height:W,fill:'#dbeafe',stroke,'stroke-width':2}),svgEl('line',{x1:-L/2,y1:0,x2:L/2,y2:0,stroke:blue,'stroke-width':2}))}
   else if(o.type==='pipe1'){g.append(svgEl('circle',{cx:0,cy:0,r:W/2,fill:'#fff',stroke,'stroke-width':3}))}
   else if(o.type==='pipe2'){g.append(svgEl('circle',{cx:-W*.55,cy:0,r:W/2,fill:'#fff',stroke,'stroke-width':3}),svgEl('circle',{cx:W*.55,cy:0,r:W/2,fill:'#fff',stroke,'stroke-width':3}))}
@@ -8314,353 +8287,6 @@ body.client-card-mode61 .ai-request-section{display:none!important}
     injectRating79();
     updateReviewTabLabel79();
   }, 500);
-})();
-</script>
-
-
-
-<script id="doorDirectionControlsLogic81">
-function flipDoorSwing81(){
-  const o=plannerObjects[selectedObjectIndex];if(!o||o.type!=='door')return;
-  pushPlanner();o.swing=o.swing==='right'?'left':'right';renderPlanner();showObjectInspector();autosave();
-}
-function flipDoorOpen81(){
-  const o=plannerObjects[selectedObjectIndex];if(!o||o.type!=='door')return;
-  pushPlanner();o.opens=o.opens==='out'?'in':'out';renderPlanner();showObjectInspector();autosave();
-}
-function rotateDoor90_81(){
-  const o=plannerObjects[selectedObjectIndex];if(!o||o.type!=='door')return;
-  pushPlanner();o.rotation=((Number(o.rotation)||0)+90)%360;renderPlanner();showObjectInspector();autosave();
-}
-</script>
-
-<script id="apartmentRoomHandoff81">
-(() => {
-  'use strict';
-
-  const HANDOFF_KEY = 'potolok_apartment_room_handoff';
-
-  function number(value, fallback = 0) {
-    const n = Number(String(value ?? '').replace(',', '.'));
-    return Number.isFinite(n) ? n : fallback;
-  }
-
-  function polygonArea(points) {
-    let sum = 0;
-    for (let i = 0; i < points.length; i += 1) {
-      const a = points[i];
-      const b = points[(i + 1) % points.length];
-      sum += a.x * b.y - b.x * a.y;
-    }
-    return Math.abs(sum / 2);
-  }
-
-  function edgeLengths(points, areaM2, supplied = []) {
-    if (Array.isArray(supplied) && supplied.length === points.length &&
-        supplied.every(v => number(v) > 0)) {
-      return supplied.map(v => number(v));
-    }
-
-    const rawArea = polygonArea(points);
-    const scale = rawArea > 0 && areaM2 > 0
-      ? Math.sqrt(areaM2 / rawArea)
-      : 1;
-
-    return points.map((p, i) => {
-      const q = points[(i + 1) % points.length];
-      return Math.max(0.01, Math.hypot(q.x - p.x, q.y - p.y) * scale);
-    });
-  }
-
-  function normalizedPoints(room) {
-    const source = Array.isArray(room.points)
-      ? room.points
-      : Array.isArray(room.polygon)
-        ? room.polygon
-        : [];
-
-    if (!source.length) return [];
-
-    const maxX = Math.max(...source.map(p => number(p.x)));
-    const maxY = Math.max(...source.map(p => number(p.y)));
-    const divisorX = maxX > 2 ? 1000 : 1;
-    const divisorY = maxY > 2 ? 700 : 1;
-
-    return source.map(p => ({
-      x: number(p.x) / divisorX,
-      y: number(p.y) / divisorY
-    }));
-  }
-
-  function fitCanvas(points) {
-    const xs = points.map(p => p.x);
-    const ys = points.map(p => p.y);
-    const minX = Math.min(...xs), maxX = Math.max(...xs);
-    const minY = Math.min(...ys), maxY = Math.max(...ys);
-    const width = Math.max(0.001, maxX - minX);
-    const height = Math.max(0.001, maxY - minY);
-    const scale = Math.min(560 / width, 400 / height);
-    const ox = 120 + (560 - width * scale) / 2;
-    const oy = 90 + (400 - height * scale) / 2;
-
-    return points.map(p => [
-      ox + (p.x - minX) * scale,
-      oy + (p.y - minY) * scale
-    ]);
-  }
-
-  function buildRealPoints(points, lengths) {
-    const rawArea = polygonArea(points);
-    const desiredArea = number(
-      window.__apartmentImportArea81,
-      0
-    );
-    const scale = rawArea > 0 && desiredArea > 0
-      ? Math.sqrt(desiredArea / rawArea)
-      : 1;
-
-    return points.map(p => [p.x * scale, p.y * scale]);
-  }
-
-  function nearestEdge81(opening, points) {
-    const mx=(number(opening.x1)+number(opening.x2))/2;
-    const my=(number(opening.y1)+number(opening.y2))/2;
-    let best={index:0,t:0.5,d:Infinity};
-    points.forEach((a,i)=>{
-      const b=points[(i+1)%points.length];
-      const dx=b.x-a.x,dy=b.y-a.y,den=dx*dx+dy*dy||1;
-      const t=Math.max(0,Math.min(1,((mx-a.x)*dx+(my-a.y)*dy)/den));
-      const px=a.x+t*dx,py=a.y+t*dy,d=Math.hypot(mx-px,my-py);
-      if(d<best.d)best={index:i,t,d};
-    });
-    return best;
-  }
-
-  function countRealCorners81(points) {
-    let count=0;
-    for(let i=0;i<points.length;i++){
-      const a=points[(i-1+points.length)%points.length],b=points[i],c=points[(i+1)%points.length];
-      const v1={x:a.x-b.x,y:a.y-b.y},v2={x:c.x-b.x,y:c.y-b.y};
-      const l1=Math.hypot(v1.x,v1.y),l2=Math.hypot(v2.x,v2.y);
-      if(l1<0.003||l2<0.003)continue;
-      const cos=Math.max(-1,Math.min(1,(v1.x*v2.x+v1.y*v2.y)/(l1*l2)));
-      const angle=Math.acos(cos)*180/Math.PI;
-      if(Math.abs(180-angle)>8)count++;
-    }
-    return count;
-  }
-
-  function openingObjects(room, points, canvasPoints) {
-    const openings = Array.isArray(room.openings) ? room.openings : [];
-    return openings.map((opening,index)=>{
-      const edge=nearestEdge81(opening,points);
-      const a=canvasPoints[edge.index],b=canvasPoints[(edge.index+1)%canvasPoints.length];
-      const x=a[0]+(b[0]-a[0])*edge.t;
-      const y=a[1]+(b[1]-a[1])*edge.t;
-      const wallAngle=Math.atan2(b[1]-a[1],b[0]-a[0])*180/Math.PI;
-      const detectedAngle=number(opening.rotation,NaN);
-      const width=number(opening.width_m,0) || Math.max(.4, Math.hypot(
-        number(opening.x2)-number(opening.x1),
-        number(opening.y2)-number(opening.y1)
-      )*10);
-      return {
-        id:String(opening.id||`opening_${Date.now()}_${index}`),
-        type:opening.type==='window'?'window':'door',
-        x,y,
-        rotation:Number.isFinite(detectedAngle)?detectedAngle:wallAngle,
-        length:width,
-        width:opening.type==='window'?.08:.08,
-        label:'',
-        swing:opening.swing==='right'?'right':'left',
-        opens:opening.opens==='out'?'out':'in'
-      };
-    });
-  }
-
-  function importApartmentRoom() {
-    let payload = null;
-    try {
-      payload = JSON.parse(localStorage.getItem(HANDOFF_KEY) || 'null');
-    } catch (error) {
-      console.warn('Apartment handoff parse error:', error);
-      return;
-    }
-
-    const room = payload?.room;
-    if (!room || payload?.consumedAt) return;
-
-    const points = normalizedPoints(room);
-    if (points.length < 3) return;
-
-    const areaM2 = number(room.area_m2 ?? room.area, 0);
-    window.__apartmentImportArea81 = areaM2;
-
-    const lengths = edgeLengths(
-      points,
-      areaM2,
-      room.wall_lengths_m || room.lengths || []
-    );
-    const canvasPoints = fitCanvas(points);
-    const realPoints = buildRealPoints(points, lengths);
-    const perimeter = lengths.reduce((sum, value) => sum + value, 0);
-
-    const importedRoom = {
-      id: String(room.id || `room_${Date.now()}`),
-      name: String(room.name || 'Приміщення з плану'),
-      photo: '',
-      area: areaM2 || polygonArea(realPoints),
-      perimeter,
-      corners: number(room.corners, countRealCorners81(points)),
-      chandeliers: 0,
-      height: Number(document.getElementById('ceilingHeight')?.value || 2.7),
-      color: typeof COLORS !== 'undefined' ? deepCopy(COLORS[0]) : null,
-      texture: 'matte',
-      prompt: '',
-      planner: {
-        points: canvasPoints,
-        realPoints,
-        objects: openingObjects(room, points, canvasPoints),
-        template: 'custom',
-        segments: lengths
-      },
-      source: {
-        type: 'apartment-ai-vision',
-        apartmentId: payload.apartmentId || '',
-        importedAt: new Date().toISOString()
-      }
-    };
-
-    try {
-      if (typeof syncActiveRoomFromUI === 'function' && activeRoomId) {
-        syncActiveRoomFromUI(false);
-      }
-
-      const existingIndex = Array.isArray(projectRooms)
-        ? projectRooms.findIndex(item => String(item.id) === importedRoom.id)
-        : -1;
-
-      if (existingIndex >= 0) {
-        projectRooms[existingIndex] = {
-          ...projectRooms[existingIndex],
-          ...importedRoom
-        };
-      } else {
-        projectRooms.push(importedRoom);
-      }
-
-      activeRoomId = importedRoom.id;
-      restoreRoom(importedRoom);
-
-      const plannerTab = [...document.querySelectorAll('.main-tab')]
-        .find(button =>
-          String(button.getAttribute('onclick') || '').includes("'planner'")
-        );
-      if (plannerTab && typeof showMainTab === 'function') {
-        showMainTab('planner', plannerTab);
-      }
-
-      if (typeof autosave === 'function') autosave();
-      if (typeof updateSummary === 'function') updateSummary();
-
-      localStorage.setItem(
-        HANDOFF_KEY,
-        JSON.stringify({
-          ...payload,
-          consumedAt: new Date().toISOString()
-        })
-      );
-
-      setTimeout(() => {
-        const target = document.getElementById('plannerSvg');
-        if (target) target.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }, 150);
-
-      alert(
-        `Кімнату «${importedRoom.name}» завантажено з цифрового плану.\n` +
-        `Кутів: ${points.length}\n` +
-        `Площа: ${importedRoom.area.toFixed(2)} м²\n` +
-        `Периметр: ${perimeter.toFixed(2)} м`
-      );
-    } catch (error) {
-      console.error('Apartment room import error:', error);
-      alert('Не вдалося перенести кімнату в Pixel: ' + error.message);
-    } finally {
-      delete window.__apartmentImportArea81;
-    }
-  }
-
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => setTimeout(importApartmentRoom, 250));
-  } else {
-    setTimeout(importApartmentRoom, 250);
-  }
-})();
-</script>
-
-
-
-<style>
-/* Pixel 5.7 — жорстка фіксація контуру */
-.plan-lock-bar57{display:flex;gap:8px;align-items:center;margin:10px 0;padding:9px;border:1px solid #dbe3ef;border-radius:12px;background:#f8fafc}
-.plan-lock-btn57{flex:1;min-height:42px;border:1px solid #93c5fd;border-radius:10px;background:#eff6ff;color:#075bff;font-weight:950;font-size:10px}
-.plan-lock-btn57.locked{background:#071428;color:#fff;border-color:#071428}
-.plan-lock-help57{font-size:8px;color:#64748b;line-height:1.35;max-width:210px}
-body.plan-contour-locked57 #nodeLayer circle,
-body.plan-contour-locked57 #miniNodeLayer circle{pointer-events:none!important;opacity:.48!important;cursor:not-allowed!important}
-body.plan-contour-locked57 #roomLayer polygon,
-body.plan-contour-locked57 #miniRoomLayer polygon{cursor:default!important}
-</style>
-<script>
-(function(){
-  if(window.__pixel57ContourLock)return;
-  window.__pixel57ContourLock=true;
-
-  let contourLocked57=true;
-  const status=document.getElementById('plannerStatus52');
-  const bar=document.createElement('div');
-  bar.className='plan-lock-bar57';
-  bar.innerHTML='<button type="button" class="plan-lock-btn57 locked">🔒 Контур зафіксовано</button><div class="plan-lock-help57">Під час встановлення дверей, вікон та інших елементів точки й стіни не рухаються.</div>';
-  if(status) status.insertAdjacentElement('afterend',bar);
-  else document.querySelector('#tab_planner main.planner-canvas')?.prepend(bar);
-  const btn=bar.querySelector('.plan-lock-btn57');
-
-  function apply57(){
-    document.body.classList.toggle('plan-contour-locked57',contourLocked57);
-    btn.classList.toggle('locked',contourLocked57);
-    btn.textContent=contourLocked57?'🔒 Контур зафіксовано':'🔓 Редагування контуру';
-    btn.title=contourLocked57?'Натисніть, щоб дозволити рух точок стін':'Натисніть, щоб зафіксувати контур';
-    if(contourLocked57 && typeof dragIndex!=='undefined') dragIndex=-1;
-  }
-  window.setContourLock57=function(v){contourLocked57=!!v;apply57()};
-  window.isContourLocked57=()=>contourLocked57;
-  btn.addEventListener('click',()=>{contourLocked57=!contourLocked57;apply57()});
-
-  /* Блокуємо саме точки контуру до запуску старих pointerdown-обробників. */
-  ['plannerSvg','plannerMiniSvg'].forEach(id=>{
-    const svg=document.getElementById(id);if(!svg)return;
-    svg.addEventListener('pointerdown',e=>{
-      if(!contourLocked57)return;
-      const point=e.target.closest?.('#nodeLayer circle,#miniNodeLayer circle');
-      if(point){
-        if(typeof dragIndex!=='undefined')dragIndex=-1;
-        e.preventDefault();e.stopImmediatePropagation();
-      }
-    },true);
-    svg.addEventListener('pointermove',e=>{
-      if(contourLocked57 && typeof dragIndex!=='undefined' && dragIndex>=0){dragIndex=-1;e.preventDefault();e.stopImmediatePropagation()}
-    },true);
-  });
-
-  /* Будь-який інструмент елемента автоматично фіксує контур. */
-  const prev=window.setPlannerTool;
-  if(typeof prev==='function'){
-    window.setPlannerTool=function(t,b){
-      const r=prev.apply(this,arguments);
-      if(t && !['select','move','delete'].includes(t))window.setContourLock57(true);
-      return r;
-    };
-  }
-  apply57();
 })();
 </script>
 
