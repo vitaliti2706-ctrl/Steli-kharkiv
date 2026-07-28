@@ -9047,6 +9047,259 @@ body.client-card-mode61 .ai-request-section{display:none!important}
 })();
 </script>
 
+
+<!-- PIXEL BUILD 42-34 — local plan controls, clear active tool status, hard contour lock -->
+<style id="pixel534LocalControlsStyles">
+.plan-local-panel34{
+  margin:8px 0 9px;
+  padding:8px;
+  border:1px solid #bfdbfe;
+  border-radius:12px;
+  background:linear-gradient(180deg,#f8fbff,#fff);
+}
+.plan-local-state34{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:8px;
+  min-height:34px;
+  padding:7px 9px;
+  border-radius:9px;
+  background:#071428;
+  color:#fff;
+  font-size:9px;
+  font-weight:950;
+}
+.plan-local-state34 .tool34{
+  color:#93c5fd;
+}
+.plan-local-actions34{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:6px;
+  margin-top:7px;
+}
+.plan-local-actions34 button{
+  min-height:36px;
+  border:1px solid #dbe3ef;
+  background:#fff;
+  color:#334155;
+  border-radius:9px;
+  padding:6px 4px;
+  font-size:8px;
+  line-height:1.15;
+  font-weight:950;
+}
+.plan-local-actions34 button.primary34{
+  color:#075bff;
+  border-color:#93c5fd;
+  background:#eff6ff;
+}
+.plan-local-actions34 button.danger34{
+  color:#dc2626;
+  border-color:#fecaca;
+  background:#fff;
+}
+.plan-local-actions34 button.active34{
+  background:#075bff;
+  color:#fff;
+  border-color:#075bff;
+  box-shadow:0 5px 12px rgba(7,91,255,.2);
+}
+#plannerSvg.contour-hard-locked34 #nodeLayer,
+#plannerMiniSvg.contour-hard-locked34 #miniNodeLayer{
+  pointer-events:none!important;
+}
+#plannerSvg.contour-hard-locked34 .point-hit,
+#plannerMiniSvg.contour-hard-locked34 .point-hit{
+  pointer-events:none!important;
+}
+@media(max-width:430px){
+  .plan-local-actions34{grid-template-columns:repeat(4,minmax(0,1fr))}
+  .plan-local-actions34 button{font-size:7.5px;padding:5px 2px}
+  .plan-local-state34{font-size:8px}
+}
+</style>
+
+<script id="pixel534LocalControls">
+(function(){
+  'use strict';
+  if(window.__pixel534LocalControls)return;
+  window.__pixel534LocalControls=true;
+
+  const names34={
+    select:'Вибір',delete:'Видалення',move:'Переміщення',
+    door:'Двері',window:'Вікно',pipe1:'Труба 1×',pipe2:'Труба 2×',
+    vent:'Вентиляція',column:'Колона',light:'Світильники',
+    chandelier:'Люстра',track:'Магнітний трек',surfaceTrack:'Накладний трек',
+    lightline:'Світлова лінія',corniceWhite:'Карниз білий',
+    corniceBlack:'Карниз чорний',corniceLed:'Карниз LED',
+    insertWhite:'Вставка біла',insertBlack:'Вставка чорна',
+    shadowProfile:'Тіньовий профіль',floatingWhite:'Парящий білий',
+    floatingBlack:'Парящий чорний',beam:'Балка',box:'Короб',
+    circle:'Круг',oval:'Овал',curve:'Крива',wave:'Хвиля'
+  };
+  const icons34={
+    light:'💡',chandelier:'✣',track:'▬',surfaceTrack:'═',lightline:'━',
+    door:'🚪',window:'▥',pipe1:'○',pipe2:'◎',vent:'▦',column:'◉',
+    delete:'🗑',select:'☝'
+  };
+
+  let currentTool34 = window.plannerTool || 'select';
+  let lastAddTool34 = (currentTool34 && !['select','delete','move'].includes(currentTool34))
+    ? currentTool34 : 'light';
+
+  function isAdd34(t){return !!t && !['select','delete','move'].includes(t)}
+  function toolName34(t){return names34[t] || t || 'Вибір'}
+  function toolIcon34(t){return icons34[t] || '🧰'}
+
+  function makePanel34(where){
+    const panel=document.createElement('div');
+    panel.className='plan-local-panel34';
+    panel.dataset.planPlace=where;
+    panel.innerHTML=`
+      <div class="plan-local-state34">
+        <span>${where==='upper'?'Верхній':'Нижній'} план: <span class="tool34">☝ Вибір</span></span>
+        <span class="lock34">🔒 Контур</span>
+      </div>
+      <div class="plan-local-actions34">
+        <button type="button" class="primary34 add34">＋ Додати</button>
+        <button type="button" class="undo34">↩ Попереднє</button>
+        <button type="button" class="delete34">🗑 Видалити</button>
+        <button type="button" class="danger34 clear34">🧹 Очистити</button>
+      </div>`;
+    panel.querySelector('.add34').addEventListener('click',()=>activate34(lastAddTool34));
+    panel.querySelector('.undo34').addEventListener('click',()=>{
+      if(typeof window.undoPlanner==='function')window.undoPlanner();
+      sync34();
+    });
+    panel.querySelector('.delete34').addEventListener('click',()=>activate34('delete'));
+    panel.querySelector('.clear34').addEventListener('click',clearCurrent34);
+    return panel;
+  }
+
+  function installPanels34(){
+    const mini=document.getElementById('plannerMiniSvg');
+    if(mini && !document.querySelector('[data-plan-place="upper"]')){
+      mini.parentNode.insertBefore(makePanel34('upper'),mini);
+    }
+    const main=document.getElementById('plannerSvg');
+    if(main && !document.querySelector('[data-plan-place="lower"]')){
+      main.parentNode.insertBefore(makePanel34('lower'),main);
+    }
+  }
+
+  function findToolButton34(tool){
+    return [...document.querySelectorAll('#tab_planner .tool-btn,#tab_planner .auto-tool-btn')]
+      .find(b=>{
+        const attr=b.getAttribute('onclick')||'';
+        return attr.includes(`setPlannerTool('${tool}'`) || attr.includes(`setPlannerTool("${tool}"`);
+      });
+  }
+
+  function activate34(tool){
+    const btn=findToolButton34(tool);
+    if(typeof window.setPlannerTool==='function'){
+      window.setPlannerTool(tool,btn||null);
+    }else{
+      window.plannerTool=tool;
+    }
+    currentTool34=tool;
+    if(isAdd34(tool))lastAddTool34=tool;
+    sync34();
+  }
+
+  function clearCurrent34(){
+    const type=isAdd34(currentTool34)?currentTool34:lastAddTool34;
+    const arr=window.plannerObjects||[];
+    const count=arr.filter(o=>o.type===type).length;
+    if(!count)return;
+    if(!confirm(`Очистити всі елементи «${toolName34(type)}» (${count})?`))return;
+    if(typeof window.pushPlanner==='function')window.pushPlanner();
+    window.plannerObjects=arr.filter(o=>o.type!==type);
+    window.selectedObjectIndex=-1;
+    if(typeof window.renderPlanner==='function')window.renderPlanner();
+    if(typeof window.showObjectInspector==='function')window.showObjectInspector();
+    if(typeof window.syncActiveRoomFromUI==='function')window.syncActiveRoomFromUI(false);
+    if(typeof window.autosave==='function')window.autosave();
+    sync34();
+  }
+
+  function hardLock34(){
+    /* Контур всегда фиксирован при работе с дополнительными элементами,
+       в выборе и удалении. Разблокировка остаётся только через основную
+       кнопку фиксации, если старый модуль её разрешает. */
+    const lock = isAdd34(currentTool34) || currentTool34==='select' || currentTool34==='delete';
+    ['plannerSvg','plannerMiniSvg'].forEach(id=>{
+      document.getElementById(id)?.classList.toggle('contour-hard-locked34',lock);
+    });
+    return lock;
+  }
+
+  function sync34(){
+    installPanels34();
+
+    /* Берём фактический активный инструмент, а не подпись старого индикатора. */
+    const real=window.plannerTool;
+    if(real)currentTool34=real;
+    if(isAdd34(currentTool34))lastAddTool34=currentTool34;
+
+    const locked=hardLock34();
+    document.querySelectorAll('.plan-local-panel34').forEach(panel=>{
+      const tool=panel.querySelector('.tool34');
+      const lock=panel.querySelector('.lock34');
+      const add=panel.querySelector('.add34');
+      const del=panel.querySelector('.delete34');
+      if(tool)tool.textContent=`${toolIcon34(currentTool34)} ${toolName34(currentTool34)}`;
+      if(lock)lock.textContent=locked?'🔒 Контур':'🔓 Контур';
+      if(add){
+        add.textContent=`＋ ${toolName34(lastAddTool34)}`;
+        add.classList.toggle('active34',currentTool34===lastAddTool34);
+      }
+      if(del)del.classList.toggle('active34',currentTool34==='delete');
+    });
+
+    const oldTool=document.getElementById('plannerToolStatus52');
+    if(oldTool)oldTool.textContent=toolName34(currentTool34);
+  }
+
+  /* Оборачиваем текущий контроллер инструментов и синхронизируем оба плана. */
+  const setBefore34=window.setPlannerTool;
+  window.setPlannerTool=function(tool,btn){
+    const out=typeof setBefore34==='function'
+      ? setBefore34.apply(this,arguments)
+      : (window.plannerTool=tool);
+
+    currentTool34=window.plannerTool||tool||'select';
+    if(isAdd34(currentTool34))lastAddTool34=currentTool34;
+    setTimeout(sync34,0);
+    return out;
+  };
+
+  /* Жёстко не даём начать движение вершины контура на обоих планах. */
+  function stopContour34(svg,e){
+    if(!svg.classList.contains('contour-hard-locked34'))return;
+    const node=e.target?.closest?.('#nodeLayer,#miniNodeLayer,.point-hit');
+    const object=e.target?.closest?.('[data-planner-object]');
+    if(node&&!object){
+      e.preventDefault();
+      e.stopImmediatePropagation();
+    }
+  }
+  ['plannerSvg','plannerMiniSvg'].forEach(id=>{
+    const svg=document.getElementById(id);
+    if(svg)svg.addEventListener('pointerdown',e=>stopContour34(svg,e),true);
+  });
+
+  document.addEventListener('click',e=>{
+    if(e.target?.closest?.('#tab_planner button'))setTimeout(sync34,0);
+  },false);
+
+  installPanels34();
+  sync34();
+})();
+</script>
+
 </body>
 </html>
 
