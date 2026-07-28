@@ -8587,6 +8587,116 @@ body.client-card-mode61 .ai-request-section{display:none!important}
 })();
 </script>
 
+
+
+<style id="pixel432SliderAndPlanLockStyles">
+/* Pixel 43.2 — ползунки всегда остаются видимыми; блокируется только управление планом во время добавления элементов. */
+#tab_planner .plan-transform-controls{
+  display:block!important;
+  visibility:visible!important;
+}
+#tab_planner .plan-transform-controls input[type="range"]{
+  visibility:visible!important;
+}
+#tab_planner .plan-transform-controls.pixel432-unlocked,
+#tab_planner .planner-zoom.pixel432-unlocked{
+  opacity:1!important;
+  pointer-events:auto!important;
+}
+</style>
+<script id="pixel432SliderAndPlanLockFixes">
+(function(){
+  'use strict';
+  if(window.__pixel432Installed)return;
+  window.__pixel432Installed=true;
+
+  function transformBoxes432(){
+    return document.querySelectorAll('#tab_planner .plan-transform-controls,#tab_planner .planner-zoom');
+  }
+
+  function unlockTransforms432(){
+    transformBoxes432().forEach(el=>{
+      el.classList.remove('plan-locked51','plan-locked52');
+      el.classList.add('pixel432-unlocked');
+      el.style.removeProperty('display');
+      el.style.removeProperty('visibility');
+      el.style.removeProperty('pointer-events');
+      el.style.removeProperty('opacity');
+    });
+    ['rotatePlanRange','miniPlanScaleRange'].forEach(id=>{
+      const input=document.getElementById(id);
+      if(input){input.disabled=false;input.removeAttribute('aria-disabled');}
+    });
+    document.getElementById('planLockNote51')?.classList.remove('show');
+    document.getElementById('planLockNote52')?.classList.remove('show');
+  }
+
+  function lockTransforms432(active){
+    transformBoxes432().forEach(el=>{
+      el.classList.remove('pixel432-unlocked');
+      el.classList.toggle('plan-locked52',!!active);
+    });
+    document.getElementById('planLockNote51')?.classList.remove('show');
+    document.getElementById('planLockNote52')?.classList.toggle('show',!!active);
+  }
+
+  function finishAxisStep432(){
+    window.axisDrag51=null;
+    window.axisDrag50=null;
+    window.rotationDragIndex=-1;
+    window.resizeDragIndex=-1;
+    window.dragIndex=-1;
+    window.objectDragIndex=-1;
+    window.plannerTool='select';
+    document.querySelectorAll('#tab_planner .tool-btn,#tab_planner .auto-tool-btn').forEach(btn=>btn.classList.remove('active'));
+    unlockTransforms432();
+    try{window.renderPlanner?.()}catch(_){ }
+  }
+
+  const applyAxisBase432=window.applyAxisSpacing51;
+  if(typeof applyAxisBase432==='function'){
+    window.applyAxisSpacing51=function(){
+      const result=applyAxisBase432.apply(this,arguments);
+      requestAnimationFrame(finishAxisStep432);
+      setTimeout(finishAxisStep432,0);
+      return result;
+    };
+  }
+
+  /* При выборе нового элемента план фиксируется, но выбранный элемент продолжает двигаться. */
+  const setToolBase432=window.setPlannerTool;
+  if(typeof setToolBase432==='function'){
+    window.setPlannerTool=function(t,btn){
+      const result=setToolBase432.apply(this,arguments);
+      const adding=!!t&&!['select','delete','move'].includes(t);
+      lockTransforms432(adding);
+      return result;
+    };
+  }
+
+  /* При выходе из инструмента или открытии комнаты не оставляем зависшую блокировку. */
+  document.addEventListener('click',function(e){
+    if(e.target?.closest?.('.edit-mode-banner.manual,.edit-mode-banner.auto')){
+      setTimeout(unlockTransforms432,0);
+    }
+  },true);
+
+  const restoreBase432=window.restoreRoom;
+  if(typeof restoreBase432==='function'){
+    window.restoreRoom=function(){
+      const result=restoreBase432.apply(this,arguments);
+      setTimeout(unlockTransforms432,0);
+      return result;
+    };
+  }
+
+  setTimeout(()=>{
+    const adding=window.plannerTool&&!['select','delete','move'].includes(window.plannerTool);
+    lockTransforms432(adding);
+  },250);
+})();
+</script>
+
 </body>
 </html>
 
