@@ -9300,6 +9300,273 @@ body.client-card-mode61 .ai-request-section{display:none!important}
 })();
 </script>
 
+
+<!-- PIXEL BUILD 42-35 — clear placement/select state machine -->
+<style id="pixel535StateStyles">
+.edit-mode-banner.manual{
+  cursor:pointer;
+}
+.edit-mode-banner.manual::after{
+  content:"Натисніть, щоб завершити додавання та пересувати елементи";
+  display:block;
+  margin-left:auto;
+  max-width:150px;
+  font-size:7px;
+  line-height:1.25;
+  text-align:right;
+  opacity:.82;
+}
+.plan-local-state34.select35{
+  background:#064e3b;
+}
+.plan-local-state34.place35{
+  background:#071428;
+}
+.plan-local-state34.delete35{
+  background:#7f1d1d;
+}
+.plan-local-actions34 .select35{
+  color:#047857;
+  border-color:#86efac;
+  background:#f0fdf4;
+}
+.dimension-controls52::before{
+  content:"ПОКАЗ РОЗМІРІВ";
+  grid-column:1/-1;
+  display:block;
+  margin-bottom:1px;
+  color:#64748b;
+  font-size:7px;
+  font-weight:950;
+  letter-spacing:.4px;
+}
+@media(max-width:520px){
+  .edit-mode-banner.manual::after{display:none}
+}
+</style>
+
+<script id="pixel535StateMachine">
+(function(){
+  'use strict';
+  if(window.__pixel535StateMachine)return;
+  window.__pixel535StateMachine=true;
+
+  const names35={
+    select:'Вибір і переміщення',
+    delete:'Видалення',
+    move:'Переміщення',
+    light:'Світильники',
+    chandelier:'Люстра',
+    track:'Магнітний трек',
+    surfaceTrack:'Накладний трек',
+    lightline:'Світлова лінія',
+    door:'Двері',
+    window:'Вікно',
+    pipe1:'Труба 1×',
+    pipe2:'Труба 2×',
+    vent:'Вентиляція',
+    column:'Колона',
+    corniceWhite:'Карниз білий',
+    corniceBlack:'Карниз чорний',
+    corniceLed:'Карниз LED',
+    insertWhite:'Вставка біла',
+    insertBlack:'Вставка чорна',
+    shadowProfile:'Тіньовий профіль',
+    floatingWhite:'Парящий білий',
+    floatingBlack:'Парящий чорний',
+    beam:'Балка',box:'Короб',circle:'Круг',oval:'Овал',curve:'Крива',wave:'Хвиля'
+  };
+
+  function isPlacement35(t){
+    return !!t && !['select','delete','move'].includes(t);
+  }
+
+  function clearToolButtons35(){
+    document.querySelectorAll(
+      '#tab_planner .tool-btn.active,#tab_planner .auto-tool-btn.active'
+    ).forEach(btn=>btn.classList.remove('active'));
+  }
+
+  function selectButton35(){
+    return [...document.querySelectorAll('#tab_planner .tool-btn,#tab_planner .auto-tool-btn')]
+      .find(btn=>/Вибрати|Вибір/i.test(btn.textContent||''));
+  }
+
+  function enterSelect35(){
+    try{window.setLightMode51?.('free')}catch(_){}
+    try{window.setEditMode52?.('manual')}catch(_){}
+
+    window.plannerTool='select';
+    window.axisDrag51=null;
+    window.axisDrag50=null;
+    window.dragIndex=-1;
+    window.objectDragIndex=-1;
+    window.rotationDragIndex=-1;
+    window.resizeDragIndex=-1;
+
+    clearToolButtons35();
+    selectButton35()?.classList.add('active');
+
+    try{window.renderPlanner?.()}catch(_){}
+    try{window.showObjectInspector?.()}catch(_){}
+    sync35();
+  }
+  window.pixelEnterSelect35=enterSelect35;
+
+  function activateTool35(tool){
+    if(window.plannerTool===tool){
+      enterSelect35();
+      return;
+    }
+
+    const btn=[...document.querySelectorAll('#tab_planner .tool-btn,#tab_planner .auto-tool-btn')]
+      .find(b=>{
+        const code=b.getAttribute('onclick')||'';
+        return code.includes(`setPlannerTool('${tool}'`) ||
+               code.includes(`setPlannerTool("${tool}"`);
+      });
+
+    if(typeof window.setPlannerTool==='function'){
+      window.setPlannerTool(tool,btn||null);
+    }else{
+      window.plannerTool=tool;
+    }
+    sync35();
+  }
+
+  function sync35(){
+    const tool=window.plannerTool||'select';
+    const placement=isPlacement35(tool);
+
+    const modeText=document.getElementById('plannerModeStatus52');
+    const toolText=document.getElementById('plannerToolStatus52');
+    if(modeText){
+      modeText.textContent=tool==='select'
+        ? 'Ручне редагування'
+        : placement
+          ? 'Встановлення елементів'
+          : 'Ручне редагування';
+    }
+    if(toolText)toolText.textContent=names35[tool]||tool;
+
+    document.querySelectorAll('.plan-local-panel34').forEach(panel=>{
+      const state=panel.querySelector('.plan-local-state34');
+      const toolLabel=panel.querySelector('.tool34');
+      const add=panel.querySelector('.add34');
+      const del=panel.querySelector('.delete34');
+
+      state?.classList.toggle('select35',tool==='select');
+      state?.classList.toggle('place35',placement);
+      state?.classList.toggle('delete35',tool==='delete');
+
+      if(toolLabel){
+        toolLabel.textContent=tool==='select'
+          ? '☝ Вибір і переміщення'
+          : tool==='delete'
+            ? '🗑 Видалення'
+            : `${tool==='light'?'💡':tool==='chandelier'?'✣':'🧰'} ${names35[tool]||tool}`;
+      }
+
+      if(add){
+        add.classList.toggle('active34',placement);
+        add.title=placement
+          ? 'Натисніть ще раз, щоб завершити додавання'
+          : 'Увімкнути додавання вибраного типу';
+      }
+      if(del)del.classList.toggle('active34',tool==='delete');
+    });
+
+    const manual=document.querySelector('.edit-mode-banner.manual');
+    if(manual){
+      const description=manual.querySelector('span');
+      if(description){
+        description.textContent=tool==='select'
+          ? 'Перетягуйте встановлені елементи пальцем по плану'
+          : 'Натисніть сюди, щоб завершити додавання і пересувати елементи';
+      }
+    }
+  }
+
+  /*
+   * Главное правило:
+   * нажатие на «РУЧНЕ РЕДАГУВАННЯ» всегда завершает установку
+   * и переводит оба плана в режим выбора/перемещения.
+   */
+  document.addEventListener('click',function(e){
+    const manual=e.target?.closest?.('.edit-mode-banner.manual');
+    if(!manual)return;
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    enterSelect35();
+  },true);
+
+  /*
+   * Кнопка «+ Светильники / + Люстра ...» теперь настоящий переключатель:
+   * первое нажатие — добавление, второе — выбор и перемещение.
+   */
+  document.addEventListener('click',function(e){
+    const add=e.target?.closest?.('.plan-local-panel34 .add34');
+    if(!add)return;
+    e.preventDefault();
+    e.stopImmediatePropagation();
+
+    const label=(add.textContent||'').toLowerCase();
+    let tool='light';
+    if(label.includes('люстр'))tool='chandelier';
+    else if(label.includes('магніт'))tool='track';
+    else if(label.includes('наклад'))tool='surfaceTrack';
+    else if(label.includes('світлова'))tool='lightline';
+    else if(label.includes('двер'))tool='door';
+    else if(label.includes('вікн'))tool='window';
+    else {
+      /* Берём последний выбранный инструмент из текущего состояния 42-34. */
+      const current=window.plannerTool;
+      if(isPlacement35(current))tool=current;
+    }
+
+    activateTool35(tool);
+  },true);
+
+  /* Повторное нажатие «Удалить» возвращает выбор. */
+  document.addEventListener('click',function(e){
+    const del=e.target?.closest?.('.plan-local-panel34 .delete34');
+    if(!del)return;
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    if(window.plannerTool==='delete')enterSelect35();
+    else activateTool35('delete');
+  },true);
+
+  /* Синхронизация после обычных кнопок инструментов. */
+  const baseSet35=window.setPlannerTool;
+  window.setPlannerTool=function(tool,btn){
+    const result=typeof baseSet35==='function'
+      ? baseSet35.apply(this,arguments)
+      : (window.plannerTool=tool);
+
+    setTimeout(sync35,0);
+    return result;
+  };
+
+  /*
+   * Верхние кнопки «Светильники / Люстра / Все» управляют только
+   * отображением размеров. Добавляем подсказки, чтобы их не путать
+   * с режимом установки.
+   */
+  document.querySelectorAll('.dimension-controls52 .light52').forEach(b=>{
+    b.title='Показати або приховати розміри світильників';
+  });
+  document.querySelectorAll('.dimension-controls52 .chandelier52').forEach(b=>{
+    b.title='Показати або приховати розміри люстри';
+  });
+  document.querySelectorAll('.dimension-controls52 .all52').forEach(b=>{
+    b.title='Показати або приховати всі розміри';
+  });
+
+  sync35();
+})();
+</script>
+
 </body>
 </html>
 
