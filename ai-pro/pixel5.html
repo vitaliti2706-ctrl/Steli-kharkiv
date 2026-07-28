@@ -8453,6 +8453,140 @@ body.client-card-mode61 .ai-request-section{display:none!important}
 })();
 </script>
 
+<style id="pixel431StabilityStyles">
+/* Pixel 43.1 — mobile planner stability */
+#tab_planner,
+#tab_planner button,
+#tab_planner svg,
+#tab_planner svg *{
+  -webkit-touch-callout:none;
+  -webkit-user-select:none;
+  user-select:none;
+}
+#tab_planner input,
+#tab_planner textarea,
+#tab_planner select{
+  -webkit-user-select:text;
+  user-select:text;
+}
+.pixel431-toast{
+  position:fixed;left:50%;bottom:24px;transform:translateX(-50%);
+  z-index:9999;max-width:min(92vw,520px);padding:11px 14px;border-radius:12px;
+  background:#071428;color:#fff;font-size:11px;font-weight:900;line-height:1.35;
+  box-shadow:0 14px 40px rgba(7,20,40,.3);opacity:0;pointer-events:none;
+  transition:opacity .18s ease,transform .18s ease;
+}
+.pixel431-toast.show{opacity:1;transform:translate(-50%,-6px)}
+</style>
+<script id="pixel431StabilityFixes">
+(function(){
+  'use strict';
+  if(window.__pixel431StabilityInstalled)return;
+  window.__pixel431StabilityInstalled=true;
+
+  let toastTimer431=0;
+  function toast431(message){
+    let el=document.getElementById('pixel431Toast');
+    if(!el){el=document.createElement('div');el.id='pixel431Toast';el.className='pixel431-toast';document.body.appendChild(el)}
+    el.textContent=message;
+    el.classList.add('show');
+    clearTimeout(toastTimer431);
+    toastTimer431=setTimeout(()=>el.classList.remove('show'),2200);
+  }
+  window.pixelToast431=toast431;
+
+  /* Не даём Android открывать «Копировать / Поделиться» внутри редактора. */
+  document.addEventListener('contextmenu',function(e){
+    if(e.target?.closest?.('#tab_planner'))e.preventDefault();
+  },{capture:true,passive:false});
+  document.addEventListener('selectstart',function(e){
+    if(e.target?.closest?.('#tab_planner svg,.planner-canvas,.mini-plan-card'))e.preventDefault();
+  },{capture:true,passive:false});
+
+  /* Убираем из мини-плана служебные ручки/курсор выбранного объекта. */
+  function cleanMini431(){
+    const mini=document.getElementById('plannerMiniSvg');
+    if(!mini)return;
+    mini.querySelectorAll(
+      '.rotate-handle,.resize-handle,.rotate-guide,.resize-guide,'+
+      '.point-hit,.svg-selected,.selection-handle,.drag-handle,'+
+      '[data-editor-handle],[data-role="handle"]'
+    ).forEach(el=>{
+      if(el.classList.contains('svg-selected'))el.classList.remove('svg-selected');
+      else el.remove();
+    });
+  }
+  const miniObserverTarget=()=>document.getElementById('plannerMiniSvg');
+  setTimeout(()=>{
+    const mini=miniObserverTarget();
+    if(mini){new MutationObserver(()=>requestAnimationFrame(cleanMini431)).observe(mini,{childList:true,subtree:true});cleanMini431()}
+  },0);
+
+  /* При входе в ручное редактирование выключаем зависший инструмент и режим осей. */
+  function resetManualState431(){
+    try{if(typeof window.setLightMode51==='function')window.setLightMode51('free')}catch(_){ }
+    try{
+      if(window.plannerTool&&window.plannerTool!=='select'){
+        window.plannerTool='select';
+        document.querySelectorAll('#tab_planner .tool-btn,#tab_planner .auto-tool-btn').forEach(b=>b.classList.remove('active'));
+      }
+      window.axisDrag51=null;
+      if(typeof window.renderPlanner==='function')window.renderPlanner();
+    }catch(_){ }
+  }
+  document.addEventListener('click',function(e){
+    if(e.target?.closest?.('.edit-mode-banner.manual'))setTimeout(resetManualState431,0);
+  },true);
+
+  /* Модальное предупреждение об осях заменяем одним неблокирующим уведомлением. */
+  const nativeAlert431=window.alert.bind(window);
+  let lastAxisNotice431=0;
+  window.alert=function(message){
+    if(String(message).includes('Увімкніть хоча б одну вісь')){
+      const now=Date.now();
+      if(now-lastAxisNotice431>1200){toast431('Увімкніть хоча б одну вісь або оберіть режим «Довільно».');lastAxisNotice431=now}
+      return;
+    }
+    return nativeAlert431(message);
+  };
+
+  /* Поля предварительных данных всегда синхронизируются с открытой комнатой. */
+  function syncPreliminary431(room){
+    if(!room)return;
+    const pre=room.preliminary||{};
+    const areaValue=Number(pre.area)>0?Number(pre.area):(Number(room.area)||0);
+    const perimeterValue=Number(pre.perimeter)>0?Number(pre.perimeter):(Number(room.perimeter)||0);
+    const set=(id,value)=>{const el=document.getElementById(id);if(el)el.value=value??''};
+    set('preArea56',areaValue);
+    set('prePerimeter56',perimeterValue);
+    set('preTexture56',pre.texture||room.texture||'matte');
+    set('preLight56',pre.lighting||'none');
+    set('preWish56',pre.wish||'');
+  }
+  const restore431=window.restoreRoom;
+  if(typeof restore431==='function'){
+    window.restoreRoom=function(room){
+      const result=restore431.apply(this,arguments);
+      syncPreliminary431(room);
+      setTimeout(()=>syncPreliminary431(room),0);
+      return result;
+    };
+  }
+
+  /* После каждого рендера дополнительно очищаем мини-план. */
+  const render431=window.renderPlanner;
+  if(typeof render431==='function'){
+    window.renderPlanner=function(){
+      const result=render431.apply(this,arguments);
+      requestAnimationFrame(cleanMini431);
+      return result;
+    };
+  }
+
+  setTimeout(()=>{cleanMini431();const room=window.projectRooms?.find?.(r=>r.id===window.activeRoomId);syncPreliminary431(room)},200);
+})();
+</script>
+
 </body>
 </html>
 
