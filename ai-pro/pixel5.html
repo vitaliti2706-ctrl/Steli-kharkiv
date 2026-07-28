@@ -4,7 +4,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Potolok AI PRO — v30 PLAN LOCK</title>
+<title>Potolok AI PRO — v32 MODE BAR</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth}
@@ -8903,6 +8903,458 @@ body.client-card-mode61 .ai-request-section{display:none!important}
     requestAnimationFrame(guard433);
   }
   requestAnimationFrame(guard433);
+})();
+</script>
+
+
+<script id="pixel434ToolAndResetFixes">
+(function(){
+  'use strict';
+  if(window.__pixel434Installed)return;
+  window.__pixel434Installed=true;
+
+  function isPlacementTool434(t){
+    return !!t && !['select','delete','move'].includes(t);
+  }
+
+  function clearTool434(){
+    /*
+     * plannerTool объявлен в основном коде через let.
+     * Поэтому меняем именно глобальную лексическую переменную, а не window.plannerTool.
+     */
+    try{ plannerTool='select'; }catch(_){}
+    try{ selectedObjectIndex=-1; }catch(_){}
+    try{ dragIndex=-1; }catch(_){}
+    try{ objectDragIndex=-1; }catch(_){}
+    try{ rotationDragIndex=-1; }catch(_){}
+    try{ resizeDragIndex=-1; }catch(_){}
+    try{ axisDrag51=null; }catch(_){}
+    try{ axisDrag50=null; }catch(_){}
+
+    document.querySelectorAll(
+      '#tab_planner .tool-btn.active,#tab_planner .auto-tool-btn.active'
+    ).forEach(btn=>btn.classList.remove('active'));
+
+    document.querySelectorAll('.plan-transform-controls,.planner-zoom').forEach(el=>{
+      el.classList.remove('plan-locked51','plan-locked52');
+      el.classList.add('pixel432-unlocked');
+      el.style.pointerEvents='auto';
+      el.style.opacity='1';
+    });
+
+    document.getElementById('planLockNote51')?.classList.remove('show');
+    document.getElementById('planLockNote52')?.classList.remove('show');
+
+    try{ renderPlanner(); }catch(_){}
+  }
+
+  /* После применения шага режим установки светильников обязан завершиться. */
+  const applyBase434 = window.applyAxisSpacing51;
+  if(typeof applyBase434 === 'function'){
+    window.applyAxisSpacing51 = function(){
+      const result = applyBase434.apply(this, arguments);
+      clearTool434();
+      requestAnimationFrame(clearTool434);
+      setTimeout(clearTool434, 30);
+      return result;
+    };
+  }
+
+  /*
+   * Страховка: после любого нажатия "Застосувати крок" снимаем инструмент,
+   * даже если другой старый обработчик прервал функцию раньше.
+   */
+  document.addEventListener('click', function(e){
+    const btn=e.target?.closest?.('button');
+    if(!btn)return;
+    if((btn.textContent||'').trim().includes('Застосувати крок')){
+      setTimeout(clearTool434,0);
+      setTimeout(clearTool434,80);
+    }
+  }, true);
+
+  function rotatePoint434(x,y,cx,cy,a){
+    const c=Math.cos(a),s=Math.sin(a),dx=x-cx,dy=y-cy;
+    return [cx+dx*c-dy*s,cy+dx*s+dy*c];
+  }
+
+  function normalizePlanner434(){
+    if(!Array.isArray(roomPoints)||roomPoints.length<2)return;
+
+    try{ pushPlanner(); }catch(_){}
+
+    const p0=roomPoints[0],p1=roomPoints[1];
+    const angle=Math.atan2(p1[1]-p0[1],p1[0]-p0[0]);
+    const cx=roomPoints.reduce((s,p)=>s+p[0],0)/roomPoints.length;
+    const cy=roomPoints.reduce((s,p)=>s+p[1],0)/roomPoints.length;
+    const delta=-angle;
+
+    roomPoints=roomPoints.map(([x,y])=>rotatePoint434(x,y,cx,cy,delta));
+    plannerObjects=plannerObjects.map(o=>{
+      const [x,y]=rotatePoint434(Number(o.x)||0,Number(o.y)||0,cx,cy,delta);
+      return {...o,x,y,rotation:(Number(o.rotation)||0)+delta*180/Math.PI};
+    });
+
+    try{ plannerRotation62=0; }catch(_){}
+    try{ miniPlanScale62=100; }catch(_){}
+
+    const rr=document.getElementById('rotatePlanRange');
+    const sr=document.getElementById('miniPlanScaleRange');
+    if(rr)rr.value=0;
+    if(sr)sr.value=100;
+    const rv=document.getElementById('rotatePlanValue');
+    const av=document.getElementById('miniPlanAngleLabel');
+    const sv=document.getElementById('miniPlanScaleValue');
+    if(rv)rv.textContent='0°';
+    if(av)av.textContent='0°';
+    if(sv)sv.textContent='100%';
+
+    clearTool434();
+    try{ syncPlannerTransformLabels62(); }catch(_){}
+    try{ renderPlanner(); }catch(_){}
+    try{ syncActiveRoomFromUI(false); }catch(_){}
+    try{ autosave(); }catch(_){}
+  }
+
+  /*
+   * "Скинути" теперь не доверяет потерянному счетчику угла:
+   * он реально выравнивает сторону A–B по горизонтали.
+   */
+  window.resetPlannerTransform = normalizePlanner434;
+
+  /*
+   * При выборе нового инструмента блокируем трансформации только пока
+   * действительно активна установка. Повторное нажатие корректно выключает режим.
+   */
+  const setToolBase434=window.setPlannerTool;
+  if(typeof setToolBase434==='function'){
+    window.setPlannerTool=function(t,btn){
+      const result=setToolBase434.apply(this,arguments);
+      let current='select';
+      try{ current=plannerTool; }catch(_){}
+      const active=isPlacementTool434(current);
+      document.querySelectorAll('.plan-transform-controls,.planner-zoom').forEach(el=>{
+        el.classList.toggle('plan-locked52',active);
+        el.style.pointerEvents=active?'none':'auto';
+        el.style.opacity=active?'.55':'1';
+      });
+      return result;
+    };
+  }
+})();
+</script>
+
+
+<style id="pixel435ModeBarStyles">
+/* Pixel 42-32 — панель режиму та ручна фіксація */
+#pixel435ModeBar{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  gap:8px;
+  align-items:center;
+  margin:0 0 10px;
+  padding:9px;
+  border:1px solid #dbeafe;
+  border-radius:12px;
+  background:linear-gradient(180deg,#f8fbff,#fff);
+  box-shadow:0 7px 18px rgba(15,23,42,.06);
+}
+#pixel435ModeInfo{
+  display:flex;
+  align-items:center;
+  gap:9px;
+  min-width:0;
+}
+#pixel435ModeIcon{
+  width:38px;
+  height:38px;
+  flex:0 0 38px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border-radius:10px;
+  background:#eef5ff;
+  font-size:20px;
+}
+#pixel435ModeText{
+  min-width:0;
+}
+#pixel435ModeText b{
+  display:block;
+  font-size:10px;
+  font-weight:950;
+  color:#0f172a;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+#pixel435ModeText span{
+  display:block;
+  margin-top:3px;
+  font-size:8px;
+  line-height:1.35;
+  color:#64748b;
+}
+#pixel435LockBtn{
+  min-height:40px;
+  border:1px solid #93c5fd;
+  background:#eff6ff;
+  color:#075bff;
+  border-radius:10px;
+  padding:8px 10px;
+  font-size:9px;
+  font-weight:950;
+  white-space:nowrap;
+}
+#pixel435LockBtn.locked{
+  background:#071428;
+  color:#fff;
+  border-color:#071428;
+}
+#pixel435ModeBar.mode-place{
+  border-color:#93c5fd;
+  background:linear-gradient(180deg,#eff6ff,#fff);
+}
+#pixel435ModeBar.mode-select{
+  border-color:#86efac;
+  background:linear-gradient(180deg,#f0fdf4,#fff);
+}
+#pixel435ModeBar.mode-delete{
+  border-color:#fecaca;
+  background:linear-gradient(180deg,#fff1f2,#fff);
+}
+#pixel435ModeBar.mode-free{
+  border-color:#e5e7eb;
+  background:linear-gradient(180deg,#f8fafc,#fff);
+}
+#plannerSvg.pixel435-plan-locked #nodeLayer,
+#plannerMiniSvg.pixel435-plan-locked #miniNodeLayer{
+  pointer-events:none!important;
+}
+#plannerSvg.pixel435-plan-locked .point-hit,
+#plannerMiniSvg.pixel435-plan-locked .point-hit{
+  pointer-events:none!important;
+}
+@media(max-width:430px){
+  #pixel435ModeBar{
+    grid-template-columns:1fr;
+  }
+  #pixel435LockBtn{
+    width:100%;
+  }
+}
+</style>
+
+<script id="pixel435ModeSystem">
+(function(){
+  'use strict';
+  if(window.__pixel435ModeSystemInstalled)return;
+  window.__pixel435ModeSystemInstalled=true;
+
+  const toolMeta = {
+    select:{icon:'👆',title:'Вибір / редагування',hint:'Переміщуйте вже додані елементи. Нові об’єкти не створюються.'},
+    delete:{icon:'🗑️',title:'Видалення',hint:'Натисніть на елемент, який потрібно видалити.'},
+    light:{icon:'💡',title:'Встановлення світильників',hint:'Можна ставити багато світильників підряд.'},
+    chandelier:{icon:'👑',title:'Встановлення люстри',hint:'Натискайте на план для додавання люстр.'},
+    curtain:{icon:'🪟',title:'Встановлення карниза',hint:'Натискайте на план для додавання карнизів.'},
+    track:{icon:'➖',title:'Встановлення треку',hint:'Натискайте на план для додавання треків.'},
+    led:{icon:'✨',title:'Встановлення LED',hint:'Натискайте на план для додавання підсвітки.'},
+    vent:{icon:'🌀',title:'Встановлення витяжки',hint:'Натискайте на план для додавання витяжок.'},
+    speaker:{icon:'🔊',title:'Встановлення динаміка',hint:'Натискайте на план для додавання динаміків.'},
+    sensor:{icon:'📡',title:'Встановлення датчика',hint:'Натискайте на план для додавання датчиків.'},
+    default:{icon:'🛠️',title:'Редагування плану',hint:'Оберіть інструмент для роботи.'}
+  };
+
+  let manualLock = false;
+  let lastTool = 'select';
+
+  function getTool(){
+    try{return plannerTool || 'select'}catch(_){return lastTool || 'select'}
+  }
+
+  function isPlacement(tool){
+    return !!tool && !['select','delete','move'].includes(tool);
+  }
+
+  function isAutoLocked(){
+    const t=getTool();
+    return isPlacement(t) || t==='select' || t==='delete';
+  }
+
+  function effectiveLocked(){
+    return manualLock || isAutoLocked();
+  }
+
+  function ensureBar(){
+    if(document.getElementById('pixel435ModeBar'))return;
+    const host =
+      document.querySelector('#tab_planner .auto-workspace') ||
+      document.querySelector('#tab_planner .planner-canvas')?.parentElement ||
+      document.querySelector('#tab_planner .main') ||
+      document.getElementById('tab_planner');
+
+    if(!host)return;
+
+    const bar=document.createElement('div');
+    bar.id='pixel435ModeBar';
+    bar.innerHTML=`
+      <div id="pixel435ModeInfo">
+        <div id="pixel435ModeIcon">🛠️</div>
+        <div id="pixel435ModeText">
+          <b>Редагування плану</b>
+          <span>Оберіть інструмент для роботи.</span>
+        </div>
+      </div>
+      <button id="pixel435LockBtn" type="button">🔓 Фіксація: ВИМК</button>
+    `;
+    host.insertBefore(bar, host.firstChild);
+
+    document.getElementById('pixel435LockBtn').addEventListener('click',function(){
+      manualLock=!manualLock;
+      updateUI();
+    });
+  }
+
+  function updateUI(){
+    ensureBar();
+    const tool=getTool();
+    lastTool=tool;
+    const meta=toolMeta[tool] || toolMeta.default;
+    const bar=document.getElementById('pixel435ModeBar');
+    const icon=document.getElementById('pixel435ModeIcon');
+    const text=document.getElementById('pixel435ModeText');
+    const btn=document.getElementById('pixel435LockBtn');
+
+    if(icon)icon.textContent=meta.icon;
+    if(text)text.innerHTML=`<b>${meta.title}</b><span>${meta.hint}</span>`;
+
+    if(bar){
+      bar.classList.remove('mode-place','mode-select','mode-delete','mode-free');
+      if(isPlacement(tool))bar.classList.add('mode-place');
+      else if(tool==='select')bar.classList.add('mode-select');
+      else if(tool==='delete')bar.classList.add('mode-delete');
+      else bar.classList.add('mode-free');
+    }
+
+    const locked=effectiveLocked();
+    if(btn){
+      btn.classList.toggle('locked',locked);
+      if(isAutoLocked() && !manualLock){
+        btn.textContent='🔒 План зафіксовано';
+        btn.title='Автоматична фіксація через активний режим';
+      }else if(manualLock){
+        btn.textContent='🔒 Ручна фіксація: УВІМК';
+        btn.title='Натисніть, щоб вимкнути ручну фіксацію';
+      }else{
+        btn.textContent='🔓 Фіксація: ВИМК';
+        btn.title='Натисніть, щоб зафіксувати план вручну';
+      }
+    }
+
+    [document.getElementById('plannerSvg'),document.getElementById('plannerMiniSvg')]
+      .filter(Boolean)
+      .forEach(svg=>svg.classList.toggle('pixel435-plan-locked',locked));
+
+    /*
+      Ползунки блокируем только во время установки/выбора/удаления.
+      Ручная фиксация блокирует сам контур, но оставляет управление видом.
+    */
+    const controlsLocked=isAutoLocked();
+    document.querySelectorAll('.plan-transform-controls,.planner-zoom').forEach(el=>{
+      el.style.pointerEvents=controlsLocked?'none':'auto';
+      el.style.opacity=controlsLocked?'.55':'1';
+    });
+  }
+
+  function clearActiveButtons(){
+    document.querySelectorAll('#tab_planner .tool-btn.active,#tab_planner .auto-tool-btn.active')
+      .forEach(b=>b.classList.remove('active'));
+  }
+
+  function setSelectMode(){
+    try{plannerTool='select'}catch(_){}
+    clearActiveButtons();
+    const selectBtn=[...document.querySelectorAll('#tab_planner button')]
+      .find(b=>/вибрати|вибір/i.test((b.textContent||'').trim()));
+    selectBtn?.classList.add('active');
+    try{selectedObjectIndex=-1}catch(_){}
+    try{dragIndex=-1}catch(_){}
+    try{objectDragIndex=-1}catch(_){}
+    try{renderPlanner()}catch(_){}
+    updateUI();
+  }
+
+  /* Полноценное переключение режимов */
+  const originalSetTool=window.setPlannerTool;
+  window.setPlannerTool=function(tool,btn){
+    const current=getTool();
+
+    /* Повторное нажатие той же кнопки выключает режим и возвращает выбор */
+    if(current===tool && isPlacement(tool)){
+      setSelectMode();
+      return;
+    }
+
+    if(typeof originalSetTool==='function'){
+      originalSetTool.apply(this,arguments);
+    }else{
+      try{plannerTool=tool}catch(_){}
+      clearActiveButtons();
+      btn?.classList.add('active');
+      try{renderPlanner()}catch(_){}
+    }
+
+    lastTool=tool;
+    updateUI();
+  };
+
+  /*
+    После "Застосувати крок" режим установки НЕ выключаем.
+    Пользователь может ставить много одинаковых элементов подряд.
+  */
+  document.addEventListener('click',function(e){
+    const btn=e.target?.closest?.('button');
+    if(!btn)return;
+
+    const txt=(btn.textContent||'').trim();
+
+    if(txt.includes('Застосувати крок')){
+      setTimeout(updateUI,0);
+      setTimeout(updateUI,80);
+      return;
+    }
+
+    if(/вибрати|вибір/i.test(txt)){
+      setTimeout(setSelectMode,0);
+      return;
+    }
+
+    setTimeout(updateUI,0);
+  },true);
+
+  /*
+    Жёсткая защита контура: при активной фиксации запрещаем начало
+    перетаскивания точки комнаты, но не мешаем объектам.
+  */
+  ['plannerSvg','plannerMiniSvg'].forEach(id=>{
+    const svg=document.getElementById(id);
+    if(!svg)return;
+    svg.addEventListener('pointerdown',function(e){
+      if(!effectiveLocked())return;
+      const isNode=!!e.target?.closest?.('#nodeLayer,#miniNodeLayer,.point-hit');
+      if(isNode){
+        e.preventDefault();
+        e.stopImmediatePropagation();
+      }
+    },true);
+  });
+
+  /* Наблюдаем за перерисовками и добавлением интерфейса */
+  const obs=new MutationObserver(()=>updateUI());
+  obs.observe(document.body,{childList:true,subtree:true});
+
+  ensureBar();
+  updateUI();
 })();
 </script>
 
