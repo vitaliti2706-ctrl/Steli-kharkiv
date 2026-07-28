@@ -4,7 +4,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Potolok AI PRO — v29 FIXED</title>
+<title>Potolok AI PRO — v30 PLAN LOCK</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth}
@@ -8694,6 +8694,215 @@ body.client-card-mode61 .ai-request-section{display:none!important}
     const adding=window.plannerTool&&!['select','delete','move'].includes(window.plannerTool);
     lockTransforms432(adding);
   },250);
+})();
+</script>
+
+
+<style id="pixel433HardPlanLockStyles">
+/* Pixel 43.3 — жорстка фіксація контуру під час роботи з додатковими елементами */
+#plannerSvg.pixel433-object-gesture,
+#plannerMiniSvg.pixel433-object-gesture{
+  cursor:grabbing!important;
+}
+#plannerSvg.pixel433-object-gesture #nodeLayer,
+#plannerMiniSvg.pixel433-object-gesture #miniNodeLayer{
+  pointer-events:none!important;
+}
+</style>
+<script id="pixel433HardPlanLockFixes">
+(function(){
+  'use strict';
+  if(window.__pixel433HardPlanLockInstalled)return;
+  window.__pixel433HardPlanLockInstalled=true;
+
+  const states=new WeakMap();
+
+  function svgPoint433(svg,e){
+    const p=svg.createSVGPoint();
+    p.x=e.clientX;p.y=e.clientY;
+    const ctm=svg.getScreenCTM();
+    if(!ctm)return [0,0];
+    const q=p.matrixTransform(ctm.inverse());
+    return [q.x,q.y];
+  }
+
+  function radius433(svg){
+    const vb=svg.viewBox?.baseVal;
+    const r=svg.getBoundingClientRect();
+    const scale=(vb?.width||800)/Math.max(r.width,1);
+    return Math.max(24,36*scale);
+  }
+
+  function nearestObject433(svg,x,y){
+    let best=-1;
+    let distance=radius433(svg);
+    (window.plannerObjects||[]).forEach((o,i)=>{
+      const d=Math.hypot((Number(o.x)||0)-x,(Number(o.y)||0)-y);
+      if(d<distance){distance=d;best=i}
+    });
+    return best;
+  }
+
+  function cloneRoom433(){
+    return (window.roomPoints||[]).map(p=>[Number(p[0])||0,Number(p[1])||0]);
+  }
+
+  function restoreContour433(snapshot){
+    if(!snapshot||!Array.isArray(window.roomPoints))return;
+    if(window.roomPoints.length!==snapshot.length){
+      window.roomPoints=snapshot.map(p=>p.slice());
+      return;
+    }
+    for(let i=0;i<snapshot.length;i++){
+      window.roomPoints[i][0]=snapshot[i][0];
+      window.roomPoints[i][1]=snapshot[i][1];
+    }
+  }
+
+  function isElementTool433(){
+    const t=window.plannerTool;
+    return !!t&&!['select','delete','move'].includes(t);
+  }
+
+  function startObjectGesture433(svg,e,index){
+    const o=window.plannerObjects?.[index];
+    if(!o)return false;
+    const [x,y]=svgPoint433(svg,e);
+    states.set(svg,{
+      pointerId:e.pointerId,
+      index,
+      offsetX:x-(Number(o.x)||0),
+      offsetY:y-(Number(o.y)||0),
+      contour:cloneRoom433(),
+      moved:false
+    });
+    window.selectedObjectIndex=index;
+    window.dragIndex=-1;
+    window.rotationDragIndex=-1;
+    window.resizeDragIndex=-1;
+    window.objectDragIndex=-1;
+    svg.classList.add('pixel433-object-gesture');
+    try{svg.setPointerCapture(e.pointerId)}catch(_){}
+    try{window.renderPlanner?.()}catch(_){}
+    try{window.showObjectInspector?.()}catch(_){}
+    return true;
+  }
+
+  function finish433(svg,e,cancelled){
+    const s=states.get(svg);
+    if(!s)return;
+    restoreContour433(s.contour);
+    states.delete(svg);
+    svg.classList.remove('pixel433-object-gesture');
+    try{svg.releasePointerCapture(s.pointerId)}catch(_){}
+    window.dragIndex=-1;
+    window.objectDragIndex=-1;
+    window.rotationDragIndex=-1;
+    window.resizeDragIndex=-1;
+    try{window.renderPlanner?.()}catch(_){}
+    try{window.showObjectInspector?.()}catch(_){}
+    if(!cancelled){
+      try{window.syncActiveRoomFromUI?.(false)}catch(_){}
+      try{window.autosave?.()}catch(_){}
+    }
+    if(e){e.preventDefault();e.stopImmediatePropagation()}
+  }
+
+  function install433(svg){
+    if(!svg||svg.dataset.pixel433==='1')return;
+    svg.dataset.pixel433='1';
+    svg.style.touchAction='none';
+
+    svg.addEventListener('pointerdown',function(e){
+      const [x,y]=svgPoint433(svg,e);
+      const oi=nearestObject433(svg,x,y);
+
+      /*
+       * У режимі вибору додатковий елемент має абсолютний пріоритет над
+       * точкою контуру. Так палець ніколи не потягне кімнату замість світильника.
+       */
+      if(window.plannerTool==='select'&&oi>=0){
+        e.preventDefault();e.stopImmediatePropagation();
+        try{window.pushPlanner?.()}catch(_){}
+        startObjectGesture433(svg,e,oi);
+        return;
+      }
+
+      /*
+       * Під час встановлення будь-якого додаткового елемента запам'ятовуємо
+       * контур і не дозволяємо старим обробникам почати перетягування вузла.
+       */
+      if(isElementTool433()){
+        const targetIsNode=!!e.target?.closest?.('#nodeLayer,#miniNodeLayer,.point-hit');
+        if(targetIsNode){
+          e.preventDefault();e.stopImmediatePropagation();
+          return;
+        }
+        states.set(svg,{
+          pointerId:e.pointerId,
+          index:-1,
+          contour:cloneRoom433(),
+          adding:true
+        });
+      }
+    },true);
+
+    svg.addEventListener('pointermove',function(e){
+      const s=states.get(svg);
+      if(!s)return;
+
+      restoreContour433(s.contour);
+
+      if(s.index>=0&&window.plannerObjects?.[s.index]){
+        e.preventDefault();e.stopImmediatePropagation();
+        const [x,y]=svgPoint433(svg,e);
+        const o=window.plannerObjects[s.index];
+        o.x=Math.max(0,Math.min(800,x-s.offsetX));
+        o.y=Math.max(0,Math.min(600,y-s.offsetY));
+        s.moved=true;
+        try{window.renderPlanner?.()}catch(_){}
+      }
+    },true);
+
+    svg.addEventListener('pointerup',function(e){
+      const s=states.get(svg);
+      if(!s)return;
+      if(s.index>=0){
+        finish433(svg,e,false);
+      }else{
+        restoreContour433(s.contour);
+        states.delete(svg);
+        try{window.renderPlanner?.()}catch(_){}
+      }
+    },true);
+
+    svg.addEventListener('pointercancel',function(e){
+      const s=states.get(svg);
+      if(!s)return;
+      if(s.index>=0)finish433(svg,e,true);
+      else{
+        restoreContour433(s.contour);
+        states.delete(svg);
+        try{window.renderPlanner?.()}catch(_){}
+      }
+    },true);
+  }
+
+  install433(document.getElementById('plannerSvg'));
+  install433(document.getElementById('plannerMiniSvg'));
+
+  /*
+   * Додаткова страховка: якщо будь-який старий обробник все ж змінив контур
+   * під час жесту елемента, наступний кадр повертає вихідні координати.
+   */
+  function guard433(){
+    document.querySelectorAll('#plannerSvg,#plannerMiniSvg').forEach(svg=>{
+      const s=states.get(svg);
+      if(s?.contour)restoreContour433(s.contour);
+    });
+    requestAnimationFrame(guard433);
+  }
+  requestAnimationFrame(guard433);
 })();
 </script>
 
