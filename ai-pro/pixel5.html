@@ -4,7 +4,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Potolok AI PRO — v30 PLAN LOCK</title>
+<title>Potolok AI PRO — v33 STABLE MODES</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth}
@@ -425,7 +425,7 @@ th:nth-child(2),th:nth-child(3),th:nth-child(4),td:nth-child(2),td:nth-child(3),
 <body>
 <header class="header"><div class="wrap nav"><a class="logo" href="../index.html">Potolok<span>.in.ua</span></a><div class="menu"><a href="../index.html">Головна</a><a href="../gallery.html">Наші роботи</a><a href="#app">Pixel 5</a></div><a class="phone" href="tel:+380974546713">097 454 67 13</a><a class="tg-top" href="https://t.me/Potolok_in_ua">Фото в TG</a></div></header>
 
-<section class="hero"><div class="wrap"><div class="hero-box"><div class="hero-badge">✨ POTOLOK AI PRO — v29 FIXED</div><h1>Замір, AI-візуалізація, калькулятор і кошторис</h1><p>Один інструмент для роботи на замірі: фото, план кімнати, вибір матеріалів, додаткових елементів, детальна смета, PDF і збереження об’єкта.</p><div class="hero-points"><div class="hero-point">📐 План кімнати<span>периметр і площа</span></div><div class="hero-point">🎨 AI-проєкт<span>стеля та освітлення</span></div><div class="hero-point">📄 Кошторис PDF<span>для себе і клієнта</span></div></div></div></div></section>
+<section class="hero"><div class="wrap"><div class="hero-box"><div class="hero-badge">✨ POTOLOK AI PRO — v33 STABLE</div><h1>Замір, AI-візуалізація, калькулятор і кошторис</h1><p>Один інструмент для роботи на замірі: фото, план кімнати, вибір матеріалів, додаткових елементів, детальна смета, PDF і збереження об’єкта.</p><div class="hero-points"><div class="hero-point">📐 План кімнати<span>периметр і площа</span></div><div class="hero-point">🎨 AI-проєкт<span>стеля та освітлення</span></div><div class="hero-point">📄 Кошторис PDF<span>для себе і клієнта</span></div></div></div></div></section>
 
 <section id="app" class="app"><div class="wrap">
 <div class="tabs-main">
@@ -5380,7 +5380,7 @@ setTimeout(()=>{updateRoomBaseUI47();updateSummary();renderRooms()},120);
 
   const status=document.createElement('div');
   status.id='plannerStatus52';status.className='planner-status52';
-  status.innerHTML='<span>Режим: <b id="plannerModeStatus52">Ручне редагування</b></span><span>Інструмент: <b id="plannerToolStatus52">не вибрано</b></span>';
+  status.innerHTML='<span>Режим: <b id="plannerModeStatus52">Ручне редагування</b></span><span>Інструмент: <b id="plannerToolStatus52">Вибір</b></span><button id="plannerContourLock33" class="planner-lock33 locked" type="button">🔒 Контур зафіксовано</button>';
   const mainCanvas=document.querySelector('#tab_planner main.planner-canvas');
   const autoBox=document.querySelector('.auto-workspace');
   if(mainCanvas&&autoBox)mainCanvas.insertBefore(status,autoBox.nextSibling);
@@ -8903,6 +8903,147 @@ body.client-card-mode61 .ai-request-section{display:none!important}
     requestAnimationFrame(guard433);
   }
   requestAnimationFrame(guard433);
+})();
+</script>
+
+
+
+<!-- PIXEL 5.3 / BUILD 42-33: stable planner modes from 42-30 -->
+<style id="pixel533StableStyles">
+.planner-status52{display:grid!important;grid-template-columns:1fr 1fr auto!important;align-items:center!important}
+.planner-lock33{min-height:34px;border:1px solid #93c5fd;background:#eff6ff;color:#075bff;border-radius:9px;padding:7px 9px;font-size:8px;font-weight:950;white-space:nowrap}
+.planner-lock33.locked{background:#071428;color:#fff;border-color:#071428}
+.planner-status52.place33{border-color:#93c5fd;background:#eff6ff}
+.planner-status52.select33{border-color:#86efac;background:#f0fdf4}
+.planner-status52.delete33{border-color:#fecaca;background:#fff1f2}
+@media(max-width:520px){
+ .planner-status52{grid-template-columns:1fr 1fr!important}
+ .planner-lock33{grid-column:1/-1;width:100%}
+}
+</style>
+<script id="pixel533StableModes">
+(function(){
+  'use strict';
+  if(window.__pixel533StableModes)return;
+  window.__pixel533StableModes=true;
+
+  let contourLocked33=true;
+  let miniDrag33=null;
+  const names33={select:'Вибір',delete:'Видалення',move:'Переміщення',door:'Двері',window:'Вікно',pipe1:'Труба 1×',pipe2:'Труба 2×',vent:'Вентиляція',column:'Колона',light:'Світильники',chandelier:'Люстра',track:'Магнітний трек',surfaceTrack:'Накладний трек',lightline:'Світлова лінія',corniceWhite:'Карниз білий',corniceBlack:'Карниз чорний',corniceLed:'Карниз LED',insertWhite:'Вставка біла',insertBlack:'Вставка чорна',shadowProfile:'Тіньовий профіль',floatingWhite:'Парящий білий',floatingBlack:'Парящий чорний',beam:'Балка',box:'Короб',circle:'Круг',oval:'Овал',curve:'Крива',wave:'Хвиля'};
+  function adding33(t){return !!t&&!['select','delete','move'].includes(t)}
+  function lockActive33(){return adding33(window.plannerTool)||contourLocked33}
+  function setButtons33(btn){
+    document.querySelectorAll('#tab_planner .tool-btn,#tab_planner .auto-tool-btn').forEach(b=>b.classList.remove('active'));
+    if(btn)btn.classList.add('active');
+  }
+  function ui33(){
+    const tool=window.plannerTool||'select';
+    const status=document.getElementById('plannerStatus52');
+    const t=document.getElementById('plannerToolStatus52');
+    const lock=document.getElementById('plannerContourLock33');
+    if(t)t.textContent=names33[tool]||tool;
+    if(status){status.classList.toggle('place33',adding33(tool));status.classList.toggle('select33',tool==='select');status.classList.toggle('delete33',tool==='delete')}
+    const fixed=lockActive33();
+    if(lock){
+      lock.classList.toggle('locked',fixed);
+      lock.textContent=adding33(tool)?'🔒 Контур зафіксовано':(contourLocked33?'🔒 Контур зафіксовано':'🔓 Контур вільний');
+      lock.disabled=adding33(tool);
+      lock.title=adding33(tool)?'Під час встановлення елементів контур фіксується автоматично':'Натисніть, щоб змінити фіксацію контуру';
+    }
+  }
+
+  const lockBtn=document.getElementById('plannerContourLock33');
+  if(lockBtn)lockBtn.addEventListener('click',function(){
+    if(adding33(window.plannerTool))return;
+    contourLocked33=!contourLocked33;ui33();
+  });
+
+  /* Final tool controller: one press = continuous placement; second press = Selection. */
+  const previousSet33=window.setPlannerTool;
+  window.setPlannerTool=function(t,btn){
+    const same=adding33(t)&&window.plannerTool===t&&btn&&btn.classList.contains('active');
+    if(same){
+      window.plannerTool='select';
+      setButtons33(null);
+      const selectBtn=[...document.querySelectorAll('#tab_planner .tool-btn,#tab_planner .auto-tool-btn')].find(b=>/Вибрати/.test(b.textContent||''));
+      if(selectBtn)selectBtn.classList.add('active');
+      if(typeof window.renderPlanner==='function')window.renderPlanner();
+      ui33();return;
+    }
+    if(typeof previousSet33==='function')previousSet33.apply(this,arguments);else window.plannerTool=t;
+    setButtons33(btn||null);
+    ui33();
+  };
+
+  /* Applying spacing must not turn off the active placement tool. */
+  const oldApplySpacing33=window.applyAxisSpacing51;
+  if(typeof oldApplySpacing33==='function')window.applyAxisSpacing51=function(){
+    const keep=window.plannerTool,active=document.querySelector('#tab_planner .tool-btn.active,#tab_planner .auto-tool-btn.active');
+    const out=oldApplySpacing33.apply(this,arguments);
+    window.plannerTool=keep;
+    if(active){setButtons33(active)}
+    ui33();return out;
+  };
+
+  function svgPoint33(svg,e){
+    const p=svg.createSVGPoint();p.x=e.clientX;p.y=e.clientY;
+    const m=svg.getScreenCTM();if(!m)return[0,0];
+    const q=p.matrixTransform(m.inverse());return[q.x,q.y];
+  }
+  function nearestObject33(x,y,r){
+    let best=-1,dist=r;
+    (window.plannerObjects||[]).forEach((o,i)=>{const d=Math.hypot(o.x-x,o.y-y);if(d<dist){dist=d;best=i}});
+    return best;
+  }
+
+  /* Main plan: block only room nodes. Installed objects remain selectable and movable. */
+  const main=document.getElementById('plannerSvg');
+  if(main)main.addEventListener('pointerdown',function(e){
+    if(!lockActive33())return;
+    const onNode=e.target&&e.target.closest&&e.target.closest('#nodeLayer,.point-hit');
+    const onObject=e.target&&e.target.closest&&e.target.closest('[data-planner-object]');
+    if(onNode&&!onObject){e.preventDefault();e.stopImmediatePropagation()}
+  },true);
+
+  /* Mini plan: in Selection mode handle only objects and never room vertices while locked. */
+  const mini=document.getElementById('plannerMiniSvg');
+  if(mini){
+    mini.addEventListener('pointerdown',function(e){
+      if(window.plannerTool!=='select'||!lockActive33())return;
+      const [x,y]=svgPoint33(mini,e),vb=mini.viewBox.baseVal,rect=mini.getBoundingClientRect();
+      const r=Math.max(24,38*(vb.width/Math.max(rect.width,1))),i=nearestObject33(x,y,r);
+      e.preventDefault();e.stopImmediatePropagation();
+      if(i<0){window.selectedObjectIndex=-1;if(typeof window.renderPlanner==='function')window.renderPlanner();if(typeof window.showObjectInspector==='function')window.showObjectInspector();return}
+      if(typeof window.pushPlanner==='function')window.pushPlanner();
+      window.selectedObjectIndex=i;
+      miniDrag33={i,pid:e.pointerId,dx:x-window.plannerObjects[i].x,dy:y-window.plannerObjects[i].y};
+      try{mini.setPointerCapture(e.pointerId)}catch(_){ }
+      if(typeof window.renderPlanner==='function')window.renderPlanner();
+      if(typeof window.showObjectInspector==='function')window.showObjectInspector();
+    },true);
+    mini.addEventListener('pointermove',function(e){
+      if(!miniDrag33||miniDrag33.pid!==e.pointerId)return;
+      e.preventDefault();e.stopImmediatePropagation();
+      const o=window.plannerObjects&&window.plannerObjects[miniDrag33.i];if(!o)return;
+      const [x,y]=svgPoint33(mini,e);o.x=x-miniDrag33.dx;o.y=y-miniDrag33.dy;
+      if(typeof window.renderPlanner==='function')window.renderPlanner();
+    },true);
+    function finishMini33(e){
+      if(!miniDrag33||miniDrag33.pid!==e.pointerId)return;
+      e.preventDefault();e.stopImmediatePropagation();miniDrag33=null;
+      try{mini.releasePointerCapture(e.pointerId)}catch(_){ }
+      if(typeof window.showObjectInspector==='function')window.showObjectInspector();
+      if(typeof window.syncActiveRoomFromUI==='function')window.syncActiveRoomFromUI(false);
+      if(typeof window.autosave==='function')window.autosave();
+    }
+    mini.addEventListener('pointerup',finishMini33,true);mini.addEventListener('pointercancel',finishMini33,true);
+  }
+
+  /* Keep status correct after direct tool changes made by older modules. */
+  document.addEventListener('click',function(e){
+    if(e.target&&e.target.closest&&e.target.closest('#tab_planner button'))setTimeout(ui33,0);
+  },false);
+  ui33();
 })();
 </script>
 
