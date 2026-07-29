@@ -9902,6 +9902,321 @@ body.client-card-mode61 .ai-request-section{display:none!important}
 })();
 </script>
 
+
+<!-- PIXEL BUILD 42-38 — selected element control center -->
+<style id="pixel538SelectedMenuStyles">
+.plan-selected-menu38{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:6px;
+  margin-top:7px;
+  padding-top:7px;
+  border-top:1px solid #dbeafe;
+}
+.plan-selected-menu38 button{
+  min-height:36px;
+  border:1px solid #dbe3ef;
+  background:#fff;
+  color:#334155;
+  border-radius:9px;
+  padding:6px 3px;
+  font-size:7.7px;
+  line-height:1.15;
+  font-weight:950;
+}
+.plan-selected-menu38 button.pick38{
+  color:#075bff;
+  border-color:#93c5fd;
+  background:#eff6ff;
+}
+.plan-selected-menu38 button.active38{
+  color:#fff;
+  border-color:#075bff;
+  background:#075bff;
+}
+.plan-selected-info38{
+  grid-column:1/-1;
+  min-height:30px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:8px;
+  padding:6px 8px;
+  border-radius:8px;
+  background:#f8fafc;
+  border:1px solid #e5e7eb;
+  font-size:8px;
+  font-weight:900;
+  color:#475569;
+}
+.plan-selected-info38 b{color:#0f172a}
+.plan-selected-info38 .ready38{color:#15803d}
+.plan-selected-info38 .pickhint38{color:#075bff}
+#plannerSvg.element-lock38 [data-planner-object].inactive38{
+  pointer-events:none!important;
+  opacity:.78;
+}
+#plannerSvg.element-lock38 [data-planner-object].selected38{
+  pointer-events:all!important;
+  opacity:1;
+}
+@media(max-width:430px){
+  .plan-selected-menu38{grid-template-columns:repeat(4,minmax(0,1fr))}
+  .plan-selected-menu38 button{font-size:7px;padding:5px 2px}
+}
+</style>
+
+<script id="pixel538SelectedElementController">
+(function(){
+  'use strict';
+  if(window.__pixel538SelectedElementController)return;
+  window.__pixel538SelectedElementController=true;
+
+  let pickMode38=false;
+
+  const names38={
+    door:'Двері',window:'Вікно',pipe1:'Труба 1×',pipe2:'Труба 2×',
+    vent:'Вентиляція',column:'Колона',light:'Світильник',
+    chandelier:'Люстра',track:'Магнітний трек',
+    surfaceTrack:'Накладний трек',lightline:'Світлова лінія',
+    corniceWhite:'Карниз білий',corniceBlack:'Карниз чорний',
+    corniceLed:'Карниз LED',insertWhite:'Вставка біла',
+    insertBlack:'Вставка чорна',shadowProfile:'Тіньовий профіль',
+    floatingWhite:'Парящий білий',floatingBlack:'Парящий чорний',
+    beam:'Балка',box:'Короб',circle:'Круг',oval:'Овал',
+    curve:'Крива',wave:'Хвиля'
+  };
+
+  function selected38(){
+    const i=Number(window.selectedObjectIndex);
+    if(!Number.isInteger(i)||i<0)return null;
+    return window.plannerObjects?.[i]||null;
+  }
+
+  function createMenu38(panel){
+    if(panel.querySelector('.plan-selected-menu38'))return;
+    const menu=document.createElement('div');
+    menu.className='plan-selected-menu38';
+    menu.innerHTML=`
+      <div class="plan-selected-info38">
+        <span>Елемент: <b class="selectedName38">не вибрано</b></span>
+        <span class="selectedState38">Оберіть елемент</span>
+      </div>
+      <button type="button" class="pick38">☝ Вибір<br>елемента</button>
+      <button type="button" class="rotate9038">↻ Повернути<br>90°</button>
+      <button type="button" class="rotate18038">↻ Повернути<br>180°</button>
+      <button type="button" class="mirror38">↔ Дзеркально</button>
+    `;
+    panel.appendChild(menu);
+
+    menu.querySelector('.pick38').addEventListener('click',function(e){
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      pickMode38=true;
+      window.plannerTool='select';
+      window.objectDragIndex=-1;
+      window.dragIndex=-1;
+      window.rotationDragIndex=-1;
+      window.resizeDragIndex=-1;
+      sync38();
+    });
+
+    menu.querySelector('.rotate9038').addEventListener('click',()=>rotate38(90));
+    menu.querySelector('.rotate18038').addEventListener('click',()=>rotate38(180));
+    menu.querySelector('.mirror38').addEventListener('click',mirror38);
+  }
+
+  function installMenus38(){
+    document.querySelectorAll('.plan-local-panel34').forEach(createMenu38);
+  }
+
+  function commit38(){
+    try{window.renderPlanner?.()}catch(_){}
+    try{window.showObjectInspector?.()}catch(_){}
+    try{window.syncActiveRoomFromUI?.(false)}catch(_){}
+    try{window.autosave?.()}catch(_){}
+    setTimeout(sync38,0);
+  }
+
+  function requireSelected38(){
+    const o=selected38();
+    if(o)return o;
+    pickMode38=true;
+    sync38();
+    alert('Спочатку натисніть «Вибір елемента», а потім виберіть потрібний елемент на плані.');
+    return null;
+  }
+
+  function rotate38(deg){
+    const o=requireSelected38();if(!o)return;
+    try{window.pushPlanner?.()}catch(_){}
+    o.rotation=((Number(o.rotation)||0)+deg)%360;
+    commit38();
+  }
+
+  function mirror38(){
+    const o=requireSelected38();if(!o)return;
+    try{window.pushPlanner?.()}catch(_){}
+    o.mirrorX=!o.mirrorX;
+    commit38();
+  }
+
+  function applyMirror38(){
+    (window.plannerObjects||[]).forEach((o,i)=>{
+      document.querySelectorAll(
+        `#plannerSvg [data-planner-object="${i}"],#plannerMiniSvg [data-planner-object="${i}"]`
+      ).forEach(g=>{
+        const scale=o.mirrorX?' scale(-1 1)':'';
+        g.setAttribute(
+          'transform',
+          `translate(${Number(o.x)||0} ${Number(o.y)||0}) rotate(${Number(o.rotation)||0})${scale}`
+        );
+      });
+    });
+  }
+
+  function applyLocks38(){
+    const svg=document.getElementById('plannerSvg');
+    if(!svg)return;
+    const selectedIndex=Number(window.selectedObjectIndex);
+    const lock=window.plannerTool==='select' && selectedIndex>=0 && !pickMode38;
+    svg.classList.toggle('element-lock38',lock);
+
+    svg.querySelectorAll('[data-planner-object]').forEach(g=>{
+      const i=Number(g.getAttribute('data-planner-object'));
+      g.classList.toggle('selected38',lock&&i===selectedIndex);
+      g.classList.toggle('inactive38',lock&&i!==selectedIndex);
+    });
+  }
+
+  function sync38(){
+    installMenus38();
+    const o=selected38();
+    document.querySelectorAll('.plan-selected-menu38').forEach(menu=>{
+      const name=menu.querySelector('.selectedName38');
+      const state=menu.querySelector('.selectedState38');
+      const pick=menu.querySelector('.pick38');
+      const mirror=menu.querySelector('.mirror38');
+
+      if(name)name.textContent=o?(names38[o.type]||o.type):'не вибрано';
+      if(state){
+        state.className='selectedState38';
+        if(pickMode38){
+          state.textContent='Натисніть потрібний елемент';
+          state.classList.add('pickhint38');
+        }else if(o){
+          state.textContent='Інші елементи зафіксовано';
+          state.classList.add('ready38');
+        }else{
+          state.textContent='Оберіть елемент';
+        }
+      }
+      pick?.classList.toggle('active38',pickMode38);
+      mirror?.classList.toggle('active38',!!o?.mirrorX);
+    });
+    applyMirror38();
+    applyLocks38();
+  }
+
+  function svgPoint38(svg,e){
+    const p=svg.createSVGPoint();
+    p.x=e.clientX;p.y=e.clientY;
+    const ctm=svg.getScreenCTM();
+    if(!ctm)return [0,0];
+    const q=p.matrixTransform(ctm.inverse());
+    return [q.x,q.y];
+  }
+
+  function local38(o,x,y){
+    const a=-(Number(o.rotation)||0)*Math.PI/180;
+    let dx=x-(Number(o.x)||0),dy=y-(Number(o.y)||0);
+    let lx=dx*Math.cos(a)-dy*Math.sin(a);
+    const ly=dx*Math.sin(a)+dy*Math.cos(a);
+    if(o.mirrorX)lx=-lx;
+    return [lx,ly];
+  }
+
+  function distance38(o,x,y){
+    const scale=typeof window.plannerScale==='function'?window.plannerScale():80;
+    const L=Math.max(12,(Number(o.length)||1)*scale);
+    const W=Math.max(12,(Number(o.width)||.2)*scale);
+    const [lx,ly]=local38(o,x,y);
+    if(o.type==='door'){
+      const vx=L,vy=0,len2=L*L;
+      const t=Math.max(0,Math.min(1,(lx*vx+ly*vy)/len2));
+      return Math.hypot(lx-t*vx,ly-t*vy);
+    }
+    if(['window','track','surfaceTrack','lightline','corniceWhite','corniceBlack',
+      'corniceLed','insertWhite','insertBlack','shadowProfile','floatingWhite',
+      'floatingBlack','beam','box'].includes(o.type)){
+      const dx=Math.max(Math.abs(lx)-L/2,0);
+      const dy=Math.max(Math.abs(ly)-Math.max(W/2,12),0);
+      return Math.hypot(dx,dy);
+    }
+    return Math.hypot(lx,ly);
+  }
+
+  /*
+    Когда элемент уже выбран, все остальные становятся «мертвыми».
+    Чтобы выбрать другой, оператор явно нажимает «Вибір елемента».
+  */
+  document.addEventListener('pointerdown',function(e){
+    const svg=e.target?.closest?.('#plannerSvg,#plannerMiniSvg');
+    if(!svg||window.plannerTool!=='select'||pickMode38)return;
+    const o=selected38();
+    if(!o)return;
+
+    const [x,y]=svgPoint38(svg,e);
+    const rect=svg.getBoundingClientRect();
+    const vb=svg.viewBox?.baseVal;
+    const threshold=Math.max(28,38*((vb?.width||800)/Math.max(rect.width,1)));
+
+    if(distance38(o,x,y)>threshold){
+      e.preventDefault();
+      e.stopImmediatePropagation();
+    }
+  },true);
+
+  /*
+    В режиме выбора первое касание определяет активный элемент.
+    После отпускания остальные элементы автоматически блокируются.
+  */
+  document.addEventListener('pointerup',function(e){
+    if(!pickMode38)return;
+    if(!e.target?.closest?.('#plannerSvg,#plannerMiniSvg'))return;
+    setTimeout(function(){
+      if(selected38())pickMode38=false;
+      sync38();
+    },0);
+  },false);
+
+  const baseRender38=window.renderPlanner;
+  if(typeof baseRender38==='function'){
+    window.renderPlanner=function(){
+      const result=baseRender38.apply(this,arguments);
+      requestAnimationFrame(sync38);
+      return result;
+    };
+  }
+
+  const baseMini38=window.syncMiniPlanner62;
+  if(typeof baseMini38==='function'){
+    window.syncMiniPlanner62=function(){
+      const result=baseMini38.apply(this,arguments);
+      requestAnimationFrame(sync38);
+      return result;
+    };
+  }
+
+  document.addEventListener('click',function(e){
+    if(e.target?.closest?.('#tab_planner button'))setTimeout(sync38,0);
+  },false);
+
+  installMenus38();
+  sync38();
+})();
+</script>
+
 </body>
 </html>
 
