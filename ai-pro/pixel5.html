@@ -10706,6 +10706,156 @@ body.quick-calc-open40{
 })();
 </script>
 
+
+<!-- PIXEL BUILD 42-41 — percent and ceiling shrinkage -->
+<style id="pixel541PercentStyles">
+.quick-calc-extra41{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:7px;
+  margin-top:7px;
+}
+.quick-calc-extra41 button{
+  min-height:40px;
+  border:1px solid #bfdbfe;
+  border-radius:10px;
+  background:#eff6ff;
+  color:#075bff;
+  font-size:9px;
+  font-weight:950;
+}
+.quick-calc-shrink41{
+  display:none;
+  grid-template-columns:1fr 1fr auto;
+  gap:7px;
+  margin-top:7px;
+  padding:8px;
+  border:1px solid #bfdbfe;
+  border-radius:10px;
+  background:#f8fbff;
+}
+.quick-calc-shrink41.open41{display:grid}
+.quick-calc-shrink41 input{
+  width:100%;
+  min-height:38px;
+  border:1px solid #dbe3ef;
+  border-radius:9px;
+  padding:7px 8px;
+  background:#fff;
+  color:#0f172a;
+  font-size:11px;
+  font-weight:900;
+}
+.quick-calc-shrink41 button{
+  min-height:38px;
+  border:0;
+  border-radius:9px;
+  padding:7px 10px;
+  background:#075bff;
+  color:#fff;
+  font-size:9px;
+  font-weight:950;
+}
+.quick-calc-shrink-result41{
+  grid-column:1/-1;
+  padding:7px 8px;
+  border-radius:8px;
+  background:#ecfdf5;
+  color:#047857;
+  font-size:9px;
+  font-weight:900;
+  line-height:1.4;
+}
+</style>
+
+<script id="pixel541PercentScript">
+(function(){
+  'use strict';
+  if(window.__pixel541Percent)return;
+  window.__pixel541Percent=true;
+
+  const drawer=document.getElementById('quickCalcDrawer40');
+  const display=document.getElementById('quickCalcDisplay40');
+  const grid=drawer?.querySelector('.quick-calc-grid40');
+  if(!drawer||!display||!grid)return;
+
+  /* Добавляем кнопку процентов в основной калькулятор */
+  const percentBtn=document.createElement('button');
+  percentBtn.type='button';
+  percentBtn.className='op40';
+  percentBtn.textContent='%';
+  percentBtn.dataset.action='percent';
+  grid.appendChild(percentBtn);
+
+  const extra=document.createElement('div');
+  extra.className='quick-calc-extra41';
+  extra.innerHTML=`
+    <button type="button" id="quickCalcPercent41">％ Відсоток</button>
+    <button type="button" id="quickCalcShrinkOpen41">📐 Усадка полотна</button>
+  `;
+  drawer.insertBefore(extra, drawer.querySelector('.quick-calc-note40'));
+
+  const shrink=document.createElement('div');
+  shrink.className='quick-calc-shrink41';
+  shrink.innerHTML=`
+    <input id="quickCalcBase41" type="number" step="0.001" placeholder="Розмір, м">
+    <input id="quickCalcShrinkPct41" type="number" step="0.1" value="7" placeholder="Усадка, %">
+    <button id="quickCalcShrinkCalc41" type="button">Розрахувати</button>
+    <div id="quickCalcShrinkResult41" class="quick-calc-shrink-result41">
+      Введіть розмір і відсоток усадки.
+    </div>
+  `;
+  drawer.insertBefore(shrink, drawer.querySelector('.quick-calc-note40'));
+
+  function parseDisplay41(){
+    return Number(String(display.value).replaceAll('×','*').replaceAll('÷','/').replace(',','.'));
+  }
+
+  function showValue41(v){
+    const value=Math.round((v+Number.EPSILON)*1000000)/1000000;
+    display.value=String(value).replace('.',',');
+  }
+
+  function applySimplePercent41(){
+    const value=parseDisplay41();
+    if(!Number.isFinite(value))return;
+    showValue41(value/100);
+  }
+
+  function calculateShrink41(){
+    const base=Number(document.getElementById('quickCalcBase41').value);
+    const pct=Number(document.getElementById('quickCalcShrinkPct41').value);
+    const result=document.getElementById('quickCalcShrinkResult41');
+
+    if(!Number.isFinite(base)||base<=0||!Number.isFinite(pct)||pct<0||pct>=100){
+      result.textContent='Перевірте розмір і відсоток усадки.';
+      return;
+    }
+
+    const finished=base*(1-pct/100);
+    const removed=base-finished;
+    result.innerHTML=
+      `Після усадки: <b>${finished.toFixed(3).replace('.',',')} м</b>. `+
+      `Зменшення: ${removed.toFixed(3).replace('.',',')} м.`;
+    showValue41(finished);
+  }
+
+  grid.addEventListener('click',function(e){
+    const btn=e.target.closest('[data-action="percent"]');
+    if(!btn)return;
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    applySimplePercent41();
+  },true);
+
+  document.getElementById('quickCalcPercent41').addEventListener('click',applySimplePercent41);
+  document.getElementById('quickCalcShrinkOpen41').addEventListener('click',function(){
+    shrink.classList.toggle('open41');
+  });
+  document.getElementById('quickCalcShrinkCalc41').addEventListener('click',calculateShrink41);
+})();
+</script>
+
 </body>
 </html>
 
