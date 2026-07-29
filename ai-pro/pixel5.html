@@ -10217,6 +10217,176 @@ body.client-card-mode61 .ai-request-section{display:none!important}
 })();
 </script>
 
+
+<!-- PIXEL BUILD 42-39 — use existing lights in axis mode -->
+<style id="pixel539AxisExistingStyles">
+#axisExistingStatus39{
+  margin:8px 0 0;
+  padding:8px 9px;
+  border:1px solid #bfdbfe;
+  border-radius:9px;
+  background:#eff6ff;
+  color:#334155;
+  font-size:9px;
+  font-weight:850;
+  line-height:1.4;
+}
+#axisExistingStatus39 b{color:#075bff}
+</style>
+
+<script id="pixel539AxisExistingLights">
+(function(){
+  'use strict';
+  if(window.__pixel539AxisExistingLights)return;
+  window.__pixel539AxisExistingLights=true;
+
+  function lights39(){
+    return (window.plannerObjects||[])
+      .map((o,i)=>({o,i}))
+      .filter(v=>v.o?.type==='light');
+  }
+
+  function enabled39(axis){
+    try{return !!window.lightAxes51?.[axis]}catch(_){return true}
+  }
+
+  function addStatus39(){
+    const controls=document.getElementById('axisControls51');
+    if(!controls||document.getElementById('axisExistingStatus39'))return;
+    const status=document.createElement('div');
+    status.id='axisExistingStatus39';
+    controls.appendChild(status);
+    updateStatus39();
+  }
+
+  function updateStatus39(){
+    const status=document.getElementById('axisExistingStatus39');
+    if(!status)return;
+    const all=lights39();
+    const assigned=all.filter(v=>v.o.axis51);
+    status.innerHTML=
+      `На плані: <b>${all.length}</b> світильник(и). `+
+      (assigned.length
+        ? `До осей прив’язано: <b>${assigned.length}</b>.`
+        : `Існуючі світильники будуть автоматично розподілені по осях.`);
+  }
+
+  function clearAxisTags39(list){
+    list.forEach(({o})=>{delete o.axis51});
+  }
+
+  function distributeHorizontal39(list){
+    const sorted=[...list].sort((a,b)=>(Number(a.o.y)||0)-(Number(b.o.y)||0));
+    const split=Math.ceil(sorted.length/2);
+    const top=sorted.slice(0,split);
+    const bottom=sorted.slice(split);
+
+    if(enabled39('top')&&enabled39('bottom')&&bottom.length){
+      top.forEach(v=>v.o.axis51='top');
+      bottom.forEach(v=>v.o.axis51='bottom');
+    }else{
+      const axis=enabled39('top')?'top':'bottom';
+      sorted.forEach(v=>v.o.axis51=axis);
+    }
+  }
+
+  function distributeVertical39(list){
+    const sorted=[...list].sort((a,b)=>(Number(a.o.x)||0)-(Number(b.o.x)||0));
+    const split=Math.ceil(sorted.length/2);
+    const left=sorted.slice(0,split);
+    const right=sorted.slice(split);
+
+    if(enabled39('left')&&enabled39('right')&&right.length){
+      left.forEach(v=>v.o.axis51='left');
+      right.forEach(v=>v.o.axis51='right');
+    }else{
+      const axis=enabled39('left')?'left':'right';
+      sorted.forEach(v=>v.o.axis51=axis);
+    }
+  }
+
+  function prepareExisting39(){
+    const all=lights39();
+    if(all.length<2)return false;
+
+    const groups={top:0,bottom:0,left:0,right:0};
+    all.forEach(({o})=>{
+      if(groups[o.axis51]!==undefined)groups[o.axis51]++;
+    });
+
+    /* Уже есть рабочая ось — ничего не переназначаем. */
+    if(Object.values(groups).some(n=>n>=2))return true;
+
+    clearAxisTags39(all);
+
+    const horizontal=enabled39('top')||enabled39('bottom');
+    const vertical=enabled39('left')||enabled39('right');
+
+    /*
+      Если доступны горизонтальные оси, по умолчанию формируем ряды:
+      верхняя половина светильников — верхняя ось,
+      нижняя половина — нижняя ось.
+      Это соответствует обычной раскладке 2×2, 3×2 и т. п.
+    */
+    if(horizontal){
+      distributeHorizontal39(all);
+    }else if(vertical){
+      distributeVertical39(all);
+    }else{
+      return false;
+    }
+
+    return true;
+  }
+
+  const oldApply39=window.applyAxisSpacing51;
+  window.applyAxisSpacing51=function(){
+    const all=lights39();
+
+    if(all.length<2){
+      alert(`Для вирівнювання по осях потрібно щонайменше 2 світильники. Зараз на плані: ${all.length}.`);
+      return;
+    }
+
+    if(!prepareExisting39()){
+      alert('Увімкніть хоча б одну вісь.');
+      return;
+    }
+
+    updateStatus39();
+
+    if(typeof oldApply39==='function'){
+      return oldApply39.apply(this,arguments);
+    }
+  };
+
+  const oldMode39=window.setLightMode51;
+  window.setLightMode51=function(mode){
+    const result=typeof oldMode39==='function'
+      ? oldMode39.apply(this,arguments)
+      : undefined;
+
+    if(mode==='axis'){
+      addStatus39();
+      updateStatus39();
+    }
+    return result;
+  };
+
+  const oldRender39=window.renderPlanner;
+  if(typeof oldRender39==='function'){
+    window.renderPlanner=function(){
+      const result=oldRender39.apply(this,arguments);
+      setTimeout(updateStatus39,0);
+      return result;
+    };
+  }
+
+  addStatus39();
+  updateStatus39();
+})();
+</script>
+
 </body>
 </html>
 
