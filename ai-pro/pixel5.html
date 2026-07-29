@@ -10976,6 +10976,110 @@ body.quick-calc-open40{
 })();
 </script>
 
+
+<!-- PIXEL BUILD 42-43 — two requested calculator fixes -->
+<style id="pixel543TwoCalcFixes">
+/* 1. Чёрная боковая кнопка не перекрывает результат при открытой шторке. */
+body.quick-calc-open40 #quickCalcHandle40{
+  opacity:0!important;
+  visibility:hidden!important;
+  pointer-events:none!important;
+  transform:translateX(100%)!important;
+}
+#quickCalcHandle40{
+  transition:opacity .18s ease,transform .18s ease,visibility .18s ease!important;
+}
+
+/* 2. Компактнее вся клавиатура, чтобы все ряды помещались удобнее. */
+#quickCalcDrawer40{
+  height:min(45vh,410px)!important;
+  min-height:0!important;
+  overflow-y:auto!important;
+  padding:6px 9px calc(7px + env(safe-area-inset-bottom))!important;
+}
+.quick-calc-grab40{
+  height:4px!important;
+  margin-bottom:4px!important;
+}
+.quick-calc-head40{
+  margin-bottom:4px!important;
+}
+.quick-calc-head40 b{
+  font-size:11px!important;
+}
+.quick-calc-head40 button{
+  width:28px!important;
+  height:28px!important;
+  font-size:15px!important;
+}
+#quickCalcDisplay40{
+  height:42px!important;
+  padding:4px 9px!important;
+  font-size:20px!important;
+  margin-bottom:4px!important;
+}
+.quick-calc-grid40{
+  gap:4px!important;
+}
+.quick-calc-grid40 button{
+  min-height:30px!important;
+  height:30px!important;
+  padding:2px!important;
+  border-radius:8px!important;
+  font-size:12px!important;
+}
+.quick-calc-extra41{
+  margin-top:4px!important;
+  gap:4px!important;
+}
+.quick-calc-extra41 button{
+  min-height:29px!important;
+  font-size:8px!important;
+}
+@media(max-height:740px){
+  #quickCalcDrawer40{
+    height:min(44vh,385px)!important;
+  }
+  #quickCalcDisplay40{
+    height:38px!important;
+    font-size:18px!important;
+  }
+  .quick-calc-grid40 button{
+    min-height:28px!important;
+    height:28px!important;
+    font-size:11px!important;
+  }
+}
+</style>
+
+<script id="pixel543RaisePercentScript">
+(function(){
+  'use strict';
+  if(window.__pixel543RaisePercent)return;
+  window.__pixel543RaisePercent=true;
+
+  function arrangePercent(){
+    const grid=document.querySelector('#quickCalcDrawer40 .quick-calc-grid40');
+    if(!grid)return;
+
+    const percent=grid.querySelector('[data-action="percent"]');
+    const rightParen=grid.querySelector('[data-value=")"]');
+    if(!percent||!rightParen)return;
+
+    /* Поднимаем % в верхний ряд. Менее используемую правую скобку
+       переносим в самый конец, не удаляя её функциональность. */
+    grid.insertBefore(percent,rightParen);
+    grid.appendChild(rightParen);
+  }
+
+  if(document.readyState==='loading'){
+    document.addEventListener('DOMContentLoaded',()=>setTimeout(arrangePercent,0),{once:true});
+  }else{
+    setTimeout(arrangePercent,0);
+  }
+})();
+</script>
+
 </body>
 </html>
 
