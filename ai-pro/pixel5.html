@@ -10387,6 +10387,325 @@ body.client-card-mode61 .ai-request-section{display:none!important}
 })();
 </script>
 
+
+<!-- PIXEL BUILD 42-40 — global slide-out calculator -->
+<style id="pixel540QuickCalcStyles">
+#quickCalcHandle40{
+  position:fixed;
+  right:0;
+  top:58%;
+  z-index:520;
+  width:30px;
+  height:92px;
+  border:0;
+  border-radius:14px 0 0 14px;
+  background:#071428;
+  color:#fff;
+  box-shadow:0 8px 24px rgba(7,20,40,.28);
+  font-size:18px;
+  font-weight:950;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:5px;
+  touch-action:none;
+}
+#quickCalcHandle40 span{
+  writing-mode:vertical-rl;
+  transform:rotate(180deg);
+  font-size:8px;
+  letter-spacing:.6px;
+}
+#quickCalcBackdrop40{
+  position:fixed;
+  inset:0;
+  z-index:518;
+  background:rgba(7,20,40,.25);
+  opacity:0;
+  pointer-events:none;
+  transition:opacity .22s ease;
+}
+#quickCalcBackdrop40.open40{
+  opacity:1;
+  pointer-events:auto;
+}
+#quickCalcDrawer40{
+  position:fixed;
+  left:0;
+  right:0;
+  bottom:0;
+  z-index:519;
+  height:min(52vh,520px);
+  min-height:360px;
+  transform:translateY(102%);
+  transition:transform .24s ease;
+  background:#fff;
+  border-radius:20px 20px 0 0;
+  box-shadow:0 -18px 46px rgba(7,20,40,.28);
+  padding:9px 12px calc(12px + env(safe-area-inset-bottom));
+  touch-action:none;
+}
+#quickCalcDrawer40.open40{
+  transform:translateY(0);
+}
+.quick-calc-grab40{
+  width:56px;
+  height:5px;
+  border-radius:99px;
+  background:#cbd5e1;
+  margin:0 auto 8px;
+}
+.quick-calc-head40{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  margin-bottom:8px;
+}
+.quick-calc-head40 b{
+  font-size:14px;
+}
+.quick-calc-head40 button{
+  width:36px;
+  height:36px;
+  border:1px solid #e5e7eb;
+  background:#fff;
+  border-radius:10px;
+  font-size:18px;
+}
+#quickCalcDisplay40{
+  width:100%;
+  height:58px;
+  border:1px solid #dbe3ef;
+  border-radius:12px;
+  background:#f8fafc;
+  color:#0f172a;
+  padding:8px 12px;
+  font-size:26px;
+  font-weight:950;
+  text-align:right;
+  outline:none;
+  margin-bottom:9px;
+}
+.quick-calc-grid40{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:7px;
+}
+.quick-calc-grid40 button{
+  min-height:44px;
+  border:1px solid #dbe3ef;
+  border-radius:11px;
+  background:#fff;
+  color:#0f172a;
+  font-size:15px;
+  font-weight:950;
+}
+.quick-calc-grid40 button.op40{
+  background:#eef5ff;
+  color:#075bff;
+  border-color:#bfdbfe;
+}
+.quick-calc-grid40 button.eq40{
+  background:#075bff;
+  color:#fff;
+  border-color:#075bff;
+}
+.quick-calc-grid40 button.clear40{
+  color:#dc2626;
+  border-color:#fecaca;
+  background:#fff1f2;
+}
+.quick-calc-note40{
+  margin-top:7px;
+  text-align:center;
+  color:#64748b;
+  font-size:8px;
+}
+body.quick-calc-open40{
+  overflow:hidden;
+}
+@media(min-width:760px){
+  #quickCalcDrawer40{
+    left:auto;
+    width:390px;
+    height:520px;
+    border-radius:20px 0 0 0;
+  }
+}
+</style>
+
+<div id="quickCalcBackdrop40"></div>
+<button id="quickCalcHandle40" type="button" aria-label="Відкрити калькулятор">
+  🧮
+  <span>КАЛЬКУЛЯТОР</span>
+</button>
+
+<section id="quickCalcDrawer40" aria-hidden="true">
+  <div class="quick-calc-grab40"></div>
+  <div class="quick-calc-head40">
+    <b>🧮 Швидкий калькулятор</b>
+    <button id="quickCalcClose40" type="button">×</button>
+  </div>
+  <input id="quickCalcDisplay40" type="text" inputmode="decimal" value="0" readonly>
+  <div class="quick-calc-grid40">
+    <button class="clear40" data-action="clear">C</button>
+    <button data-action="back">⌫</button>
+    <button class="op40" data-value="(">(</button>
+    <button class="op40" data-value=")">)</button>
+
+    <button data-value="7">7</button>
+    <button data-value="8">8</button>
+    <button data-value="9">9</button>
+    <button class="op40" data-value="/">÷</button>
+
+    <button data-value="4">4</button>
+    <button data-value="5">5</button>
+    <button data-value="6">6</button>
+    <button class="op40" data-value="*">×</button>
+
+    <button data-value="1">1</button>
+    <button data-value="2">2</button>
+    <button data-value="3">3</button>
+    <button class="op40" data-value="-">−</button>
+
+    <button data-value="0">0</button>
+    <button data-value=".">,</button>
+    <button class="eq40" data-action="equals">=</button>
+    <button class="op40" data-value="+">+</button>
+  </div>
+  <div class="quick-calc-note40">Калькулятор доступний у будь-якому розділі сайту.</div>
+</section>
+
+<script id="pixel540QuickCalcScript">
+(function(){
+  'use strict';
+  if(window.__pixel540QuickCalc)return;
+  window.__pixel540QuickCalc=true;
+
+  const handle=document.getElementById('quickCalcHandle40');
+  const drawer=document.getElementById('quickCalcDrawer40');
+  const backdrop=document.getElementById('quickCalcBackdrop40');
+  const closeBtn=document.getElementById('quickCalcClose40');
+  const display=document.getElementById('quickCalcDisplay40');
+
+  let expr='0';
+  let dragStartY=null;
+  let drawerStartY=null;
+
+  function render40(){
+    display.value=expr
+      .replaceAll('*','×')
+      .replaceAll('/','÷')
+      .replaceAll('.',',');
+  }
+
+  function open40(){
+    drawer.classList.add('open40');
+    backdrop.classList.add('open40');
+    drawer.setAttribute('aria-hidden','false');
+    document.body.classList.add('quick-calc-open40');
+  }
+
+  function close40(){
+    drawer.classList.remove('open40');
+    backdrop.classList.remove('open40');
+    drawer.setAttribute('aria-hidden','true');
+    document.body.classList.remove('quick-calc-open40');
+    drawer.style.transform='';
+  }
+
+  function append40(value){
+    if(expr==='0' && /[0-9.]/.test(value))expr='';
+    expr+=value;
+    render40();
+  }
+
+  function calculate40(){
+    try{
+      const safe=expr.replace(/[^0-9+\-*/().]/g,'');
+      if(!safe.trim())return;
+      const result=Function('"use strict";return ('+safe+')')();
+      if(!Number.isFinite(result))throw new Error('bad result');
+      expr=String(Math.round((result+Number.EPSILON)*1000000)/1000000);
+      render40();
+    }catch(_){
+      display.value='Помилка';
+      setTimeout(()=>{expr='0';render40()},900);
+    }
+  }
+
+  handle.addEventListener('click',open40);
+  closeBtn.addEventListener('click',close40);
+  backdrop.addEventListener('click',close40);
+
+  drawer.querySelector('.quick-calc-grid40').addEventListener('click',function(e){
+    const btn=e.target.closest('button');
+    if(!btn)return;
+    const action=btn.dataset.action;
+    const value=btn.dataset.value;
+
+    if(action==='clear'){
+      expr='0';
+      render40();
+      return;
+    }
+    if(action==='back'){
+      expr=expr.length>1?expr.slice(0,-1):'0';
+      render40();
+      return;
+    }
+    if(action==='equals'){
+      calculate40();
+      return;
+    }
+    if(value)append40(value);
+  });
+
+  /*
+    Можно закрыть шторку свайпом вниз за верхнюю серую ручку.
+  */
+  drawer.querySelector('.quick-calc-grab40').addEventListener('pointerdown',function(e){
+    dragStartY=e.clientY;
+    drawerStartY=0;
+    try{this.setPointerCapture(e.pointerId)}catch(_){}
+  });
+
+  drawer.addEventListener('pointermove',function(e){
+    if(dragStartY===null)return;
+    const dy=Math.max(0,e.clientY-dragStartY);
+    drawerStartY=dy;
+    drawer.style.transition='none';
+    drawer.style.transform=`translateY(${dy}px)`;
+  });
+
+  function finishDrag40(){
+    if(dragStartY===null)return;
+    drawer.style.transition='';
+    if(drawerStartY>90)close40();
+    else drawer.style.transform='';
+    dragStartY=null;
+    drawerStartY=null;
+  }
+
+  drawer.addEventListener('pointerup',finishDrag40);
+  drawer.addEventListener('pointercancel',finishDrag40);
+
+  /*
+    Лёгкий свайп влево по боковой ручке также открывает калькулятор.
+  */
+  let hx=null;
+  handle.addEventListener('pointerdown',e=>{hx=e.clientX});
+  handle.addEventListener('pointerup',e=>{
+    if(hx!==null && hx-e.clientX>18)open40();
+    hx=null;
+  });
+
+  render40();
+})();
+</script>
+
 </body>
 </html>
 
