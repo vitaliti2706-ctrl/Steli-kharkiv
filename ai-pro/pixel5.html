@@ -9567,6 +9567,341 @@ body.client-card-mode61 .ai-request-section{display:none!important}
 })();
 </script>
 
+
+<!-- PIXEL BUILD 42-36 — correct touch hit zones for doors and windows -->
+<style id="pixel536HitZonesStyles">
+/* Невидимые увеличенные зоны касания для длинных элементов */
+.planner-touch-hit36{
+  fill:transparent!important;
+  stroke:transparent!important;
+  pointer-events:all!important;
+  cursor:grab!important;
+}
+</style>
+
+<script id="pixel536DoorWindowDrag">
+(function(){
+  'use strict';
+  if(window.__pixel536DoorWindowDrag)return;
+  window.__pixel536DoorWindowDrag=true;
+
+  function svgPoint36(svg,e){
+    const p=svg.createSVGPoint();
+    p.x=e.clientX;
+    p.y=e.clientY;
+    const ctm=svg.getScreenCTM();
+    if(!ctm)return [0,0];
+    const q=p.matrixTransform(ctm.inverse());
+    return [q.x,q.y];
+  }
+
+  function localPoint36(o,x,y){
+    const a=-(Number(o.rotation)||0)*Math.PI/180;
+    const dx=x-(Number(o.x)||0);
+    const dy=y-(Number(o.y)||0);
+    return [
+      dx*Math.cos(a)-dy*Math.sin(a),
+      dx*Math.sin(a)+dy*Math.cos(a)
+    ];
+  }
+
+  function pointSegmentDistance36(px,py,x1,y1,x2,y2){
+    const vx=x2-x1, vy=y2-y1;
+    const wx=px-x1, wy=py-y1;
+    const len2=vx*vx+vy*vy || 1;
+    const t=Math.max(0,Math.min(1,(wx*vx+wy*vy)/len2));
+    return Math.hypot(px-(x1+t*vx),py-(y1+t*vy));
+  }
+
+  function objectDistance36(o,x,y){
+    const scale=typeof window.plannerScale==='function'
+      ? window.plannerScale()
+      : 80;
+
+    const L=Math.max(10,(Number(o.length)||1)*scale);
+    const W=Math.max(8,(Number(o.width)||0.2)*scale);
+    const [lx,ly]=localPoint36(o,x,y);
+
+    if(o.type==='door'){
+      /*
+       * Дверь рисуется от точки привязки вправо, поэтому считаем расстояние
+       * до всей створки, а не только до её начальной точки.
+       */
+      const leaf=pointSegmentDistance36(lx,ly,0,0,L,0);
+      const arcRadius=L;
+      const r=Math.hypot(lx,ly);
+      const angle=Math.atan2(-ly,lx);
+      const onQuarter=angle>=0 && angle<=Math.PI/2;
+      const arc=onQuarter?Math.abs(r-arcRadius):Infinity;
+      return Math.min(leaf,arc);
+    }
+
+    if(o.type==='window'){
+      /*
+       * Окно центрировано относительно o.x/o.y.
+       * Считаем расстояние до прямоугольника с запасом для пальца.
+       */
+      const dx=Math.max(Math.abs(lx)-L/2,0);
+      const dy=Math.max(Math.abs(ly)-Math.max(W/2,10),0);
+      return Math.hypot(dx,dy);
+    }
+
+    /* Для остальных длинных элементов также учитываем их фактическую длину. */
+    if([
+      'track','surfaceTrack','lightline','corniceWhite','corniceBlack',
+      'corniceLed','insertWhite','insertBlack','shadowProfile',
+      'floatingWhite','floatingBlack','beam','box'
+    ].includes(o.type)){
+      return pointSegmentDistance36(lx,ly,-L/2,0,L/2,0);
+    }
+
+    return Math.hypot(lx,ly);
+  }
+
+  function nearestObject36(svg,x,y){
+    const vb=svg.viewBox?.baseVal;
+    const rect=svg.getBoundingClientRect();
+    const unitPerPx=(vb?.width||800)/Math.max(rect.width,1);
+    const touchRadius=Math.max(26,34*unitPerPx);
+
+    let best=-1;
+    let bestDistance=touchRadius;
+
+    (window.plannerObjects||[]).forEach((o,i)=>{
+      const d=objectDistance36(o,x,y);
+      if(d<bestDistance){
+        bestDistance=d;
+        best=i;
+      }
+    });
+    return best;
+  }
+
+  function beginDrag36(svg,e,index){
+    const o=window.plannerObjects?.[index];
+    if(!o)return;
+
+    const [x,y]=svgPoint36(svg,e);
+    const state={
+      index,
+      pointerId:e.pointerId,
+      dx:x-(Number(o.x)||0),
+      dy:y-(Number(o.y)||0),
+      contour:(window.roomPoints||[]).map(p=>[Number(p[0])||0,Number(p[1])||0])
+    };
+    svg.__pixel536Drag=state;
+
+    try{window.pushPlanner?.()}catch(_){}
+    window.selectedObjectIndex=index;
+    window.dragIndex=-1;
+    window.objectDragIndex=-1;
+    window.rotationDragIndex=-1;
+    window.resizeDragIndex=-1;
+
+    try{svg.setPointerCapture(e.pointerId)}catch(_){}
+    try{window.renderPlanner?.()}catch(_){}
+    try{window.showObjectInspector?.()}catch(_){}
+  }
+
+  function restoreContour36(state){
+    if(!state?.contour||!Array.isArray(window.roomPoints))return;
+    if(window.roomPoints.length!==state.contour.length){
+      window.roomPoints=state.contour.map(p=>p.slice());
+      return;
+    }
+    state.contour.forEach((p,i)=>{
+      window.roomPoints[i][0]=p[0];
+      window.roomPoints[i][1]=p[1];
+    });
+  }
+
+  function install36(svg){
+    if(!svg||svg.dataset.pixel536==='1')return;
+    svg.dataset.pixel536='1';
+
+    /*
+     * Этот обработчик установлен в capture-фазе и срабатывает раньше старой
+     * проверки по центру объекта. Он нужен именно для двери и окна.
+     */
+    svg.addEventListener('pointerdown',function(e){
+      if((window.plannerTool||'select')!=='select')return;
+
+      const [x,y]=svgPoint36(svg,e);
+      const index=nearestObject36(svg,x,y);
+      if(index<0)return;
+
+      const o=window.plannerObjects?.[index];
+      if(!o)return;
+
+      /*
+       * Для точечных элементов старый механизм уже работает.
+       * Перехватываем длинные элементы, у которых зона касания была неверной.
+       */
+      const extended=[
+        'door','window','track','surfaceTrack','lightline',
+        'corniceWhite','corniceBlack','corniceLed',
+        'insertWhite','insertBlack','shadowProfile',
+        'floatingWhite','floatingBlack','beam','box'
+      ];
+      if(!extended.includes(o.type))return;
+
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      beginDrag36(svg,e,index);
+    },true);
+
+    svg.addEventListener('pointermove',function(e){
+      const state=svg.__pixel536Drag;
+      if(!state)return;
+
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      restoreContour36(state);
+
+      const o=window.plannerObjects?.[state.index];
+      if(!o)return;
+
+      const [x,y]=svgPoint36(svg,e);
+      o.x=Math.max(0,Math.min(800,x-state.dx));
+      o.y=Math.max(0,Math.min(600,y-state.dy));
+
+      try{window.renderPlanner?.()}catch(_){}
+    },true);
+
+    function finish(e,cancelled){
+      const state=svg.__pixel536Drag;
+      if(!state)return;
+
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      restoreContour36(state);
+
+      try{svg.releasePointerCapture(state.pointerId)}catch(_){}
+      delete svg.__pixel536Drag;
+
+      window.dragIndex=-1;
+      window.objectDragIndex=-1;
+      window.rotationDragIndex=-1;
+      window.resizeDragIndex=-1;
+
+      try{window.renderPlanner?.()}catch(_){}
+      try{window.showObjectInspector?.()}catch(_){}
+
+      if(!cancelled){
+        try{window.syncActiveRoomFromUI?.(false)}catch(_){}
+        try{window.autosave?.()}catch(_){}
+      }
+    }
+
+    svg.addEventListener('pointerup',e=>finish(e,false),true);
+    svg.addEventListener('pointercancel',e=>finish(e,true),true);
+  }
+
+  install36(document.getElementById('plannerSvg'));
+  install36(document.getElementById('plannerMiniSvg'));
+})();
+</script>
+
+
+<!-- PIXEL BUILD 42-37 — bridge real planner state to later control modules -->
+<script id="pixel537PlannerStateBridge">
+(function(){
+  'use strict';
+  if(window.__pixel537PlannerStateBridge)return;
+  window.__pixel537PlannerStateBridge=true;
+
+  /*
+    В основном коде состояние планировщика объявлено через let.
+    Поздние модули 42-33—42-36 обращались к window.plannerTool и
+    window.plannerObjects, поэтому после переключений видели другое состояние.
+    Здесь создаётся единый мост к реальным переменным планировщика.
+  */
+  function bridge537(name,getter,setter){
+    try{
+      Object.defineProperty(window,name,{
+        configurable:true,
+        enumerable:false,
+        get:getter,
+        set:setter
+      });
+    }catch(_){}
+  }
+
+  bridge537('plannerTool',()=>plannerTool,v=>{plannerTool=v});
+  bridge537('plannerObjects',()=>plannerObjects,v=>{plannerObjects=Array.isArray(v)?v:[]});
+  bridge537('roomPoints',()=>roomPoints,v=>{roomPoints=Array.isArray(v)?v:[]});
+  bridge537('selectedObjectIndex',()=>selectedObjectIndex,v=>{selectedObjectIndex=Number(v)});
+  bridge537('dragIndex',()=>dragIndex,v=>{dragIndex=Number(v)});
+  bridge537('objectDragIndex',()=>objectDragIndex,v=>{objectDragIndex=Number(v)});
+  bridge537('rotationDragIndex',()=>rotationDragIndex,v=>{rotationDragIndex=Number(v)});
+  bridge537('resizeDragIndex',()=>resizeDragIndex,v=>{resizeDragIndex=Number(v)});
+
+  function sync537(){
+    try{
+      document.querySelectorAll('.plan-local-panel34').forEach(panel=>{
+        const tool=plannerTool||'select';
+        const label=panel.querySelector('.tool34');
+        const state=panel.querySelector('.plan-local-state34');
+        if(label){
+          if(tool==='select')label.textContent='☝ Вибір і переміщення';
+          else if(tool==='delete')label.textContent='🗑 Видалення';
+        }
+        state?.classList.toggle('select35',tool==='select');
+        state?.classList.toggle('delete35',tool==='delete');
+      });
+    }catch(_){}
+  }
+
+  /*
+    Красная кнопка очищает ВСЕ дополнительные элементы текущей комнаты.
+    Контур и размеры комнаты остаются.
+  */
+  document.addEventListener('click',function(e){
+    const btn=e.target?.closest?.('.plan-local-panel34 .clear34');
+    if(!btn)return;
+
+    e.preventDefault();
+    e.stopImmediatePropagation();
+
+    if(!plannerObjects.length){
+      alert('На плані немає елементів для очищення.');
+      return;
+    }
+
+    if(!confirm('Очистити всі додаткові елементи на плані? Контур і розміри кімнати залишаться.'))return;
+
+    try{pushPlanner()}catch(_){}
+    plannerObjects=[];
+    selectedObjectIndex=-1;
+    objectDragIndex=-1;
+    rotationDragIndex=-1;
+    resizeDragIndex=-1;
+    plannerTool='select';
+
+    document.querySelectorAll(
+      '#tab_planner .tool-btn.active,#tab_planner .auto-tool-btn.active'
+    ).forEach(b=>b.classList.remove('active'));
+
+    try{renderPlanner()}catch(_){}
+    try{showObjectInspector()}catch(_){}
+    try{syncActiveRoomFromUI(false)}catch(_){}
+    try{autosave()}catch(_){}
+    sync537();
+  },true);
+
+  /*
+    После выбора материалов или любого инструмента принудительно
+    синхронизируем настоящий режим с индикаторами.
+  */
+  document.addEventListener('click',function(e){
+    if(!e.target?.closest?.('#tab_planner button'))return;
+    setTimeout(sync537,0);
+  },false);
+
+  sync537();
+})();
+</script>
+
 </body>
 </html>
 
