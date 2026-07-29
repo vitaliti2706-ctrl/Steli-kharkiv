@@ -10856,6 +10856,126 @@ body.quick-calc-open40{
 })();
 </script>
 
+
+<!-- PIXEL BUILD 42-42 — compact fully visible quick calculator -->
+<style id="pixel542CompactCalcStyles">
+/* Компактная шторка: все основные кнопки видны на мобильном экране */
+#quickCalcDrawer40{
+  height:min(44vh,430px)!important;
+  min-height:0!important;
+  max-height:calc(100dvh - 90px)!important;
+  overflow-y:auto!important;
+  overscroll-behavior:contain;
+  padding:7px 10px calc(8px + env(safe-area-inset-bottom))!important;
+}
+.quick-calc-grab40{
+  margin-bottom:5px!important;
+}
+.quick-calc-head40{
+  margin-bottom:5px!important;
+}
+.quick-calc-head40 b{
+  font-size:12px!important;
+}
+.quick-calc-head40 button{
+  width:32px!important;
+  height:32px!important;
+  font-size:17px!important;
+}
+#quickCalcDisplay40{
+  height:48px!important;
+  padding:6px 10px!important;
+  font-size:22px!important;
+  margin-bottom:6px!important;
+}
+.quick-calc-grid40{
+  gap:5px!important;
+}
+.quick-calc-grid40 button{
+  min-height:36px!important;
+  border-radius:9px!important;
+  font-size:13px!important;
+}
+.quick-calc-extra41{
+  margin-top:5px!important;
+  gap:5px!important;
+}
+.quick-calc-extra41 button{
+  min-height:34px!important;
+  font-size:8px!important;
+}
+.quick-calc-shrink41{
+  margin-top:5px!important;
+  padding:6px!important;
+  gap:5px!important;
+}
+.quick-calc-shrink41 input,
+.quick-calc-shrink41 button{
+  min-height:34px!important;
+}
+.quick-calc-shrink-result41{
+  padding:6px 7px!important;
+  font-size:8px!important;
+}
+.quick-calc-note40{
+  display:none!important;
+}
+
+/* На очень низких экранах уменьшаем ещё сильнее */
+@media(max-height:740px){
+  #quickCalcDrawer40{
+    height:min(42vh,390px)!important;
+  }
+  #quickCalcDisplay40{
+    height:44px!important;
+    font-size:20px!important;
+  }
+  .quick-calc-grid40 button{
+    min-height:33px!important;
+    font-size:12px!important;
+  }
+  .quick-calc-extra41 button{
+    min-height:31px!important;
+  }
+}
+
+/* На широких экранах сохраняем боковой вариант, но без лишней высоты */
+@media(min-width:760px){
+  #quickCalcDrawer40{
+    width:390px!important;
+    height:430px!important;
+    max-height:calc(100dvh - 40px)!important;
+  }
+}
+</style>
+
+<script id="pixel542CompactCalcScript">
+(function(){
+  'use strict';
+  if(window.__pixel542CompactCalc)return;
+  window.__pixel542CompactCalc=true;
+
+  const drawer=document.getElementById('quickCalcDrawer40');
+  const shrink=document.querySelector('.quick-calc-shrink41');
+  if(!drawer)return;
+
+  /* При открытии усадки прокручиваем только внутренность шторки,
+     а не страницу под ней. */
+  document.getElementById('quickCalcShrinkOpen41')?.addEventListener('click',function(){
+    setTimeout(()=>{
+      if(shrink?.classList.contains('open41')){
+        shrink.scrollIntoView({block:'nearest',behavior:'smooth'});
+      }
+    },30);
+  });
+
+  /* При каждом открытии калькулятора возвращаем верх шторки. */
+  document.getElementById('quickCalcHandle40')?.addEventListener('click',function(){
+    setTimeout(()=>{drawer.scrollTop=0},20);
+  });
+})();
+</script>
+
 </body>
 </html>
 
