@@ -11080,6 +11080,217 @@ body.quick-calc-open40 #quickCalcHandle40{
 })();
 </script>
 
+
+<!-- PIXEL BUILD 43-2 — exact current base: contour unlock + saved object open -->
+<style id="pixel432TwoFixesStyles">
+.plan-local-panel34 .lock34{
+  cursor:pointer!important;
+  pointer-events:auto!important;
+  user-select:none!important;
+  -webkit-user-select:none!important;
+}
+</style>
+
+<script id="pixel432TwoFixesScript">
+(function(){
+  'use strict';
+  if(window.__pixel432TwoFixesInstalled)return;
+  window.__pixel432TwoFixesInstalled=true;
+
+  /* =========================================================
+     1. Локальная кнопка «Контур» управляет реальным замком
+     ========================================================= */
+
+  function baseLock432(){
+    return document.getElementById('plannerContourLock33');
+  }
+
+  function contourIsLocked432(){
+    const btn=baseLock432();
+    return !btn || btn.classList.contains('locked');
+  }
+
+  function syncContour432(){
+    const locked=contourIsLocked432();
+
+    ['plannerSvg','plannerMiniSvg'].forEach(id=>{
+      const svg=document.getElementById(id);
+      if(svg)svg.classList.toggle('contour-hard-locked34',locked);
+    });
+
+    document.querySelectorAll('.plan-local-panel34 .lock34').forEach(lock=>{
+      lock.textContent=locked?'🔒 Контур':'🔓 Контур';
+      lock.setAttribute('role','button');
+      lock.setAttribute('tabindex','0');
+      lock.setAttribute(
+        'aria-label',
+        locked?'Розблокувати контур':'Зафіксувати контур'
+      );
+    });
+  }
+
+  function toggleContour432(){
+    const btn=baseLock432();
+    if(!btn || btn.disabled)return;
+    btn.click();
+    requestAnimationFrame(syncContour432);
+    setTimeout(syncContour432,20);
+  }
+
+  document.addEventListener('click',function(event){
+    const lock=event.target?.closest?.('.plan-local-panel34 .lock34');
+    if(!lock)return;
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    toggleContour432();
+  },true);
+
+  document.addEventListener('keydown',function(event){
+    const lock=event.target?.closest?.('.plan-local-panel34 .lock34');
+    if(!lock || (event.key!=='Enter' && event.key!==' '))return;
+    event.preventDefault();
+    toggleContour432();
+  },true);
+
+  const lockButton432=baseLock432();
+  if(lockButton432){
+    new MutationObserver(syncContour432).observe(lockButton432,{
+      attributes:true,
+      attributeFilter:['class','disabled'],
+      childList:true,
+      subtree:true
+    });
+  }
+
+  document.addEventListener('click',function(event){
+    if(event.target?.closest?.('#tab_planner button,.plan-local-panel34')){
+      setTimeout(syncContour432,0);
+    }
+  });
+
+  setTimeout(syncContour432,100);
+
+  /* =========================================================
+     2. Безопасное открытие сохранённого объекта
+     ========================================================= */
+
+  function array432(value){
+    return Array.isArray(value)?value:[];
+  }
+
+  function object432(value){
+    return value && typeof value==='object' && !Array.isArray(value)
+      ? value
+      : {};
+  }
+
+  function normaliseRoom432(room,index){
+    const source=object432(room);
+    const planner=object432(source.planner);
+
+    return {
+      ...source,
+      id:source.id || ('room_cloud_'+Date.now()+'_'+index),
+      name:source.name || source.roomName || ('Кімната '+(index+1)),
+      photo:typeof source.photo==='string'?source.photo:'',
+      photos:array432(source.photos),
+      rows:array432(source.rows),
+      aiMarkup:array432(source.aiMarkup),
+      extras:{
+        checked:object432(source.extras?.checked),
+        qty:object432(source.extras?.qty)
+      },
+      profiles:object432(source.profiles),
+      ai:object432(source.ai),
+      planner:{
+        ...planner,
+        template:planner.template || 'rect',
+        points:array432(planner.points),
+        objects:array432(planner.objects),
+        segments:array432(planner.segments),
+        note:typeof planner.note==='string'?planner.note:'',
+        order:typeof planner.order==='string'?planner.order:''
+      }
+    };
+  }
+
+  function normaliseCloudObject432(row){
+    const source=object432(row?.object_data);
+    const rooms=array432(source.rooms).map(normaliseRoom432);
+    const localId=source.id || ('cloud-'+String(row?.id||Date.now()));
+
+    return {
+      ...source,
+      id:localId,
+      cloudId:row?.id || source.cloudId || '',
+      objectNumber:row?.object_number || source.objectNumber || '',
+      cloudStatus:row?.status || source.cloudStatus || 'new',
+      rooms,
+      schedule:array432(source.schedule),
+      reviews:array432(source.reviews),
+      activeRoomId:
+        source.activeRoomId && rooms.some(room=>room.id===source.activeRoomId)
+          ? source.activeRoomId
+          : (rooms[0]?.id || null)
+    };
+  }
+
+  window.openCloudObject56=async function openCloudObject432(id){
+    try{
+      let row=(typeof crmRows58!=='undefined' && Array.isArray(crmRows58)
+        ? crmRows58
+        : []
+      ).find(item=>String(item.id)===String(id));
+
+      if(!row){
+        row=(Array.isArray(window.serviceRows60)?window.serviceRows60:[])
+          .find(item=>String(item.id)===String(id));
+      }
+
+      if(!row && typeof serviceToken58==='function' && serviceToken58()){
+        const data=await req58(API58,{
+          method:'POST',
+          body:JSON.stringify({action:'serviceList'})
+        });
+
+        if(typeof crmRows58!=='undefined'){
+          crmRows58=Array.isArray(data.objects)?data.objects:[];
+          row=crmRows58.find(item=>String(item.id)===String(id));
+        }
+      }
+
+      if(!row){
+        throw new Error('Об’єкт не знайдено або сесія адміністратора завершена.');
+      }
+
+      const savedObject=normaliseCloudObject432(row);
+
+      if(!savedObject.rooms.length){
+        throw new Error('У збереженому об’єкті немає даних кімнат.');
+      }
+
+      await dbPutObject(savedObject);
+      activeObjectId=savedObject.id;
+      await window.loadObject(savedObject.id);
+
+      const tab=[...document.querySelectorAll('.main-tab')]
+        .find(button=>button.getAttribute('onclick')?.includes("'object'"));
+
+      if(tab && typeof window.showMainTab==='function'){
+        window.showMainTab('object',tab);
+      }
+
+      window.scrollTo({top:0,behavior:'smooth'});
+    }catch(error){
+      alert(
+        'Не вдалося відкрити об’єкт: '+
+        String(error?.message||error||'Невідома помилка')
+      );
+    }
+  };
+})();
+</script>
+
 </body>
 </html>
 
