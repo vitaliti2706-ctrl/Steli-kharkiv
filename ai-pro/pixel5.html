@@ -9175,6 +9175,12 @@ body.client-card-mode61 .ai-request-section{display:none!important}
     });
     panel.querySelector('.delete34').addEventListener('click',()=>activate34('delete'));
     panel.querySelector('.clear34').addEventListener('click',clearCurrent34);
+    panel.querySelector('.lock34').addEventListener('click',()=>{
+      const baseLock=document.getElementById('plannerContourLock33');
+      if(!baseLock || baseLock.disabled)return;
+      baseLock.click();
+      setTimeout(sync34,0);
+    });
     return panel;
   }
 
@@ -9226,10 +9232,11 @@ body.client-card-mode61 .ai-request-section{display:none!important}
   }
 
   function hardLock34(){
-    /* Контур всегда фиксирован при работе с дополнительными элементами,
-       в выборе и удалении. Разблокировка остаётся только через основную
-       кнопку фиксации, если старый модуль её разрешает. */
-    const lock = isAdd34(currentTool34) || currentTool34==='select' || currentTool34==='delete';
+    /* Источник истины — штатная кнопка plannerContourLock33.
+       При установке элементов контур блокируется автоматически.
+       В режиме выбора пользователь сам переключает замок. */
+    const baseLock=document.getElementById('plannerContourLock33');
+    const lock=isAdd34(currentTool34) || !baseLock || baseLock.classList.contains('locked');
     ['plannerSvg','plannerMiniSvg'].forEach(id=>{
       document.getElementById(id)?.classList.toggle('contour-hard-locked34',lock);
     });
@@ -11081,211 +11088,136 @@ body.quick-calc-open40 #quickCalcHandle40{
 </script>
 
 
-<!-- PIXEL BUILD 43-2 — exact current base: contour unlock + saved object open -->
-<style id="pixel432TwoFixesStyles">
-.plan-local-panel34 .lock34{
-  cursor:pointer!important;
-  pointer-events:auto!important;
-  user-select:none!important;
-  -webkit-user-select:none!important;
-}
-</style>
 
-<script id="pixel432TwoFixesScript">
+<!-- PIXEL BUILD 43-3 — reliable history open fallback -->
+<script id="pixel433HistoryOpenFix">
 (function(){
   'use strict';
-  if(window.__pixel432TwoFixesInstalled)return;
-  window.__pixel432TwoFixesInstalled=true;
+  if(window.__pixel433HistoryOpenFix)return;
+  window.__pixel433HistoryOpenFix=true;
 
-  /* =========================================================
-     1. Локальная кнопка «Контур» управляет реальным замком
-     ========================================================= */
-
-  function baseLock432(){
-    return document.getElementById('plannerContourLock33');
-  }
-
-  function contourIsLocked432(){
-    const btn=baseLock432();
-    return !btn || btn.classList.contains('locked');
-  }
-
-  function syncContour432(){
-    const locked=contourIsLocked432();
-
-    ['plannerSvg','plannerMiniSvg'].forEach(id=>{
-      const svg=document.getElementById(id);
-      if(svg)svg.classList.toggle('contour-hard-locked34',locked);
-    });
-
-    document.querySelectorAll('.plan-local-panel34 .lock34').forEach(lock=>{
-      lock.textContent=locked?'🔒 Контур':'🔓 Контур';
-      lock.setAttribute('role','button');
-      lock.setAttribute('tabindex','0');
-      lock.setAttribute(
-        'aria-label',
-        locked?'Розблокувати контур':'Зафіксувати контур'
-      );
-    });
-  }
-
-  function toggleContour432(){
-    const btn=baseLock432();
-    if(!btn || btn.disabled)return;
-    btn.click();
-    requestAnimationFrame(syncContour432);
-    setTimeout(syncContour432,20);
-  }
-
-  document.addEventListener('click',function(event){
-    const lock=event.target?.closest?.('.plan-local-panel34 .lock34');
-    if(!lock)return;
-    event.preventDefault();
-    event.stopImmediatePropagation();
-    toggleContour432();
-  },true);
-
-  document.addEventListener('keydown',function(event){
-    const lock=event.target?.closest?.('.plan-local-panel34 .lock34');
-    if(!lock || (event.key!=='Enter' && event.key!==' '))return;
-    event.preventDefault();
-    toggleContour432();
-  },true);
-
-  const lockButton432=baseLock432();
-  if(lockButton432){
-    new MutationObserver(syncContour432).observe(lockButton432,{
-      attributes:true,
-      attributeFilter:['class','disabled'],
-      childList:true,
-      subtree:true
-    });
-  }
-
-  document.addEventListener('click',function(event){
-    if(event.target?.closest?.('#tab_planner button,.plan-local-panel34')){
-      setTimeout(syncContour432,0);
+  const asArray=v=>Array.isArray(v)?v:[];
+  const asObject=v=>{
+    if(v&&typeof v==='object'&&!Array.isArray(v))return v;
+    if(typeof v==='string'){
+      try{
+        const parsed=JSON.parse(v);
+        return parsed&&typeof parsed==='object'&&!Array.isArray(parsed)?parsed:{};
+      }catch(_){return {}}
     }
-  });
+    return {};
+  };
 
-  setTimeout(syncContour432,100);
-
-  /* =========================================================
-     2. Безопасное открытие сохранённого объекта
-     ========================================================= */
-
-  function array432(value){
-    return Array.isArray(value)?value:[];
-  }
-
-  function object432(value){
-    return value && typeof value==='object' && !Array.isArray(value)
-      ? value
-      : {};
-  }
-
-  function normaliseRoom432(room,index){
-    const source=object432(room);
-    const planner=object432(source.planner);
-
+  function normalRoom433(room,index){
+    const r=asObject(room);
+    const p=asObject(r.planner);
     return {
-      ...source,
-      id:source.id || ('room_cloud_'+Date.now()+'_'+index),
-      name:source.name || source.roomName || ('Кімната '+(index+1)),
-      photo:typeof source.photo==='string'?source.photo:'',
-      photos:array432(source.photos),
-      rows:array432(source.rows),
-      aiMarkup:array432(source.aiMarkup),
-      extras:{
-        checked:object432(source.extras?.checked),
-        qty:object432(source.extras?.qty)
-      },
-      profiles:object432(source.profiles),
-      ai:object432(source.ai),
+      ...r,
+      id:r.id||('room_'+Date.now()+'_'+index),
+      name:r.name||r.roomName||('Кімната '+(index+1)),
+      photos:asArray(r.photos),
+      rows:asArray(r.rows),
+      aiMarkup:asArray(r.aiMarkup),
       planner:{
-        ...planner,
-        template:planner.template || 'rect',
-        points:array432(planner.points),
-        objects:array432(planner.objects),
-        segments:array432(planner.segments),
-        note:typeof planner.note==='string'?planner.note:'',
-        order:typeof planner.order==='string'?planner.order:''
+        ...p,
+        points:asArray(p.points),
+        objects:asArray(p.objects),
+        segments:asArray(p.segments)
       }
     };
   }
 
-  function normaliseCloudObject432(row){
-    const source=object432(row?.object_data);
-    const rooms=array432(source.rooms).map(normaliseRoom432);
-    const localId=source.id || ('cloud-'+String(row?.id||Date.now()));
-
+  function fromCloudRow433(row){
+    const source=asObject(row?.object_data);
+    const rooms=asArray(source.rooms).map(normalRoom433);
     return {
       ...source,
-      id:localId,
-      cloudId:row?.id || source.cloudId || '',
-      objectNumber:row?.object_number || source.objectNumber || '',
-      cloudStatus:row?.status || source.cloudStatus || 'new',
+      id:source.id||('cloud-'+String(row?.id||Date.now())),
+      cloudId:row?.id||source.cloudId||'',
+      objectNumber:row?.object_number||source.objectNumber||'',
+      cloudStatus:row?.status||source.cloudStatus||'new',
       rooms,
-      schedule:array432(source.schedule),
-      reviews:array432(source.reviews),
+      schedule:asArray(source.schedule),
+      reviews:asArray(source.reviews),
       activeRoomId:
-        source.activeRoomId && rooms.some(room=>room.id===source.activeRoomId)
-          ? source.activeRoomId
-          : (rooms[0]?.id || null)
+        source.activeRoomId&&rooms.some(r=>r.id===source.activeRoomId)
+          ?source.activeRoomId
+          :(rooms[0]?.id||null)
     };
   }
 
-  window.openCloudObject56=async function openCloudObject432(id){
-    try{
-      let row=(typeof crmRows58!=='undefined' && Array.isArray(crmRows58)
-        ? crmRows58
-        : []
-      ).find(item=>String(item.id)===String(id));
+  async function localFallback433(id){
+    if(typeof dbGetObjects!=='function')return null;
+    const all=await dbGetObjects();
+    return asArray(all).find(o=>
+      String(o?.id)===String(id)||
+      String(o?.cloudId)===String(id)||
+      String(o?.objectNumber)===String(id)
+    )||null;
+  }
 
-      if(!row){
-        row=(Array.isArray(window.serviceRows60)?window.serviceRows60:[])
-          .find(item=>String(item.id)===String(id));
+  window.openCloudObject56=async function(id){
+    try{
+      const wanted=String(id);
+      let row=null;
+
+      if(typeof crmRows58!=='undefined'&&Array.isArray(crmRows58)){
+        row=crmRows58.find(x=>String(x?.id)===wanted)||null;
+      }
+      if(!row&&Array.isArray(window.serviceRows60)){
+        row=window.serviceRows60.find(x=>String(x?.id)===wanted)||null;
       }
 
-      if(!row && typeof serviceToken58==='function' && serviceToken58()){
-        const data=await req58(API58,{
-          method:'POST',
-          body:JSON.stringify({action:'serviceList'})
-        });
-
-        if(typeof crmRows58!=='undefined'){
-          crmRows58=Array.isArray(data.objects)?data.objects:[];
-          row=crmRows58.find(item=>String(item.id)===String(id));
+      /* Всегда пробуем обновить список с сервера, если объект не найден
+         в текущем массиве. Токен req58 подставляет самостоятельно. */
+      if(!row&&typeof req58==='function'&&typeof API58!=='undefined'){
+        try{
+          const data=await req58(API58,{
+            method:'POST',
+            body:JSON.stringify({action:'serviceList'})
+          });
+          const rows=asArray(data?.objects);
+          if(typeof crmRows58!=='undefined')crmRows58=rows;
+          window.serviceRows60=rows;
+          row=rows.find(x=>String(x?.id)===wanted)||null;
+        }catch(serverError){
+          console.warn('serviceList failed:',serverError);
         }
       }
 
-      if(!row){
-        throw new Error('Об’єкт не знайдено або сесія адміністратора завершена.');
+      let object=null;
+      if(row)object=fromCloudRow433(row);
+      if(!object)object=await localFallback433(wanted);
+
+      if(!object){
+        throw new Error('Об’єкт не знайдено ні в хмарній, ні в локальній історії.');
       }
 
-      const savedObject=normaliseCloudObject432(row);
+      object={
+        ...object,
+        rooms:asArray(object.rooms).map(normalRoom433)
+      };
+      if(!object.activeRoomId&&object.rooms[0])object.activeRoomId=object.rooms[0].id;
 
-      if(!savedObject.rooms.length){
-        throw new Error('У збереженому об’єкті немає даних кімнат.');
+      if(!object.rooms.length){
+        throw new Error('У записі немає збережених кімнат.');
       }
 
-      await dbPutObject(savedObject);
-      activeObjectId=savedObject.id;
-      await window.loadObject(savedObject.id);
+      if(typeof dbPutObject==='function')await dbPutObject(object);
+
+      const loader=typeof window.loadObject==='function'
+        ?window.loadObject
+        :(typeof loadObject==='function'?loadObject:null);
+      if(!loader)throw new Error('Функція завантаження недоступна.');
+
+      await loader(object.id);
 
       const tab=[...document.querySelectorAll('.main-tab')]
-        .find(button=>button.getAttribute('onclick')?.includes("'object'"));
-
-      if(tab && typeof window.showMainTab==='function'){
-        window.showMainTab('object',tab);
-      }
-
+        .find(b=>b.getAttribute('onclick')?.includes("'object'"));
+      if(tab&&typeof window.showMainTab==='function')window.showMainTab('object',tab);
       window.scrollTo({top:0,behavior:'smooth'});
     }catch(error){
-      alert(
-        'Не вдалося відкрити об’єкт: '+
-        String(error?.message||error||'Невідома помилка')
-      );
+      alert('Не вдалося відкрити об’єкт: '+String(error?.message||error));
     }
   };
 })();
