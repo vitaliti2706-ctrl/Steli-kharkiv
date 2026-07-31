@@ -421,6 +421,73 @@ th:nth-child(2),th:nth-child(3),th:nth-child(4),td:nth-child(2),td:nth-child(3),
 .workflow-status76.error{background:#fff1f2;color:#b91c1c;border:1px solid #fecdd3}
 </style>
 
+
+<style id="finishingStage1Styles78">
+#finishingTab78{background:#f0fdf4;color:#047857;border:1px solid #86efac}
+#finishingTab78.active{background:#16a34a;color:#fff;border-color:#16a34a}
+.fin78-shell{background:#fff;border:1px solid #dbe3ef;border-radius:18px;padding:14px;box-shadow:0 10px 28px rgba(15,23,42,.07)}
+.fin78-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:10px}
+.fin78-head h2{font-size:19px}.fin78-head p{font-size:9px;color:#64748b;line-height:1.5;margin-top:5px;max-width:720px}
+.fin78-safe{font-size:8px;font-weight:950;color:#047857;background:#ecfdf5;border:1px solid #a7f3d0;border-radius:999px;padding:7px 9px;white-space:nowrap}
+.fin78-roomline{margin-bottom:11px;padding:9px 10px;border-radius:10px;background:#eff6ff;color:#475569;font-size:9px}.fin78-roomline b{color:#075bff}
+.fin78-metrics{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:12px}
+.fin78-metrics div{border:1px solid #dbe3ef;background:#f8fafc;border-radius:11px;padding:10px}
+.fin78-metrics span{display:block;font-size:8px;color:#64748b}.fin78-metrics b{display:block;font-size:17px;margin-top:3px;color:#075bff}
+.fin78-toolbar{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px}
+.fin78-toolbar select{width:100%;border:1px solid #dbe3ef;border-radius:9px;padding:10px;background:#fff;font-size:10px;font-weight:850}
+.fin78-list{display:grid;gap:9px}
+.fin78-card{border:1px solid #e5e7eb;border-radius:13px;padding:11px;background:#fff}
+.fin78-card-top{display:grid;grid-template-columns:22px 1fr auto;gap:8px;align-items:center}
+.fin78-card-top input[type=checkbox]{width:18px;height:18px;accent-color:#075bff}
+.fin78-card-title b{display:block;font-size:11px}.fin78-card-title span{display:block;font-size:8px;color:#64748b;margin-top:2px}
+.fin78-remove{border:0;background:#fff;color:#dc2626;font-size:17px}
+.fin78-fields{display:grid;grid-template-columns:1.4fr .8fr .8fr .9fr;gap:7px;margin-top:9px}
+.fin78-field label{display:block;font-size:8px;font-weight:900;color:#475569;margin-bottom:4px}
+.fin78-field input,.fin78-field select{width:100%;border:1px solid #dbe3ef;border-radius:8px;padding:8px;background:#f8fafc;font-size:9px}
+.fin78-sum{display:flex;align-items:end;justify-content:flex-end;font-size:11px;font-weight:950;color:#16a34a;padding-bottom:9px}
+.fin78-total{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;margin-top:13px;padding:13px;border-radius:13px;background:#071428;color:#fff}
+.fin78-total span{display:block;font-size:9px;color:#bfdbfe}.fin78-total b{display:block;font-size:24px;margin-top:4px}.fin78-total small{max-width:360px;font-size:8px;line-height:1.4;color:#cbd5e1;text-align:right}
+.fin78-empty{border:1px dashed #cbd5e1;border-radius:12px;padding:18px;text-align:center;color:#64748b;font-size:10px}
+@media(min-width:760px){.fin78-metrics{grid-template-columns:repeat(4,1fr)}}
+@media(max-width:620px){
+ .fin78-head{flex-direction:column}.fin78-toolbar{grid-template-columns:1fr}.fin78-fields{grid-template-columns:1fr 1fr}
+ .fin78-sum{justify-content:flex-start;padding-bottom:0}.fin78-total{align-items:flex-start;flex-direction:column}.fin78-total small{text-align:left}
+}
+.fin79-unit-wrap{display:grid;grid-template-columns:1fr 74px;gap:5px}
+.fin79-unit-wrap select{min-width:0}
+.fin79-materials{margin-top:14px;border:1px solid #bfdbfe;background:linear-gradient(180deg,#f8fbff,#fff);border-radius:15px;padding:12px}
+.fin79-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:10px}
+.fin79-head h3{font-size:15px}.fin79-head p{font-size:8px;color:#64748b;line-height:1.45;margin-top:4px}
+.fin79-actions{display:flex;gap:7px;flex-wrap:wrap}
+.fin79-materials-list{display:grid;gap:8px}
+.fin79-material{border:1px solid #e5e7eb;border-radius:12px;padding:10px;background:#fff}
+.fin79-material-top{display:grid;grid-template-columns:34px 1fr auto;gap:8px;align-items:center;margin-bottom:8px}
+.fin79-number{width:34px;height:34px;border-radius:9px;background:#eff6ff;color:#075bff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:950;border:1px solid #bfdbfe}
+.fin79-material-top input{width:100%;border:1px solid #dbe3ef;border-radius:8px;padding:8px;font-size:10px;font-weight:900}
+.fin79-material-top button{width:34px;height:34px;border:1px solid #fecaca;background:#fff;color:#dc2626;border-radius:8px;font-size:18px}
+.fin79-material-grid{display:grid;grid-template-columns:1fr .75fr .8fr .9fr;gap:7px}
+.fin79-material-grid label{font-size:8px;font-weight:900;color:#475569}
+.fin79-material-grid input,.fin79-material-grid select{width:100%;margin-top:4px;border:1px solid #dbe3ef;border-radius:8px;padding:8px;background:#f8fafc;font-size:9px}
+.fin79-material-sum{display:flex;align-items:end;justify-content:flex-end;padding-bottom:9px;font-weight:950;color:#16a34a;font-size:11px}
+.fin79-empty{padding:14px;border:1px dashed #cbd5e1;border-radius:10px;text-align:center;color:#64748b;font-size:9px}
+.fin79-finance{margin-top:14px;border:1px solid #dbe3ef;border-radius:15px;padding:12px;background:#fff}
+.fin79-finance h3{font-size:15px;margin-bottom:10px}
+.fin79-finance-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.fin79-finance-grid div{border:1px solid #e5e7eb;background:#f8fafc;border-radius:11px;padding:10px}
+.fin79-finance-grid span{display:block;font-size:8px;color:#64748b}
+.fin79-finance-grid b{display:block;margin-top:4px;font-size:17px;color:#075bff}
+.fin79-finance-grid .fin79-grand{grid-column:1/-1;background:#071428;border-color:#071428}
+.fin79-finance-grid .fin79-grand span{color:#bfdbfe}.fin79-finance-grid .fin79-grand b{color:#fff;font-size:24px}
+.fin79-note{margin-top:8px;font-size:8px;color:#64748b;line-height:1.45}
+@media(max-width:620px){
+ .fin79-head{flex-direction:column}.fin79-actions{width:100%;display:grid;grid-template-columns:1fr}.fin79-head .btn{width:100%}
+ .fin79-material-grid{grid-template-columns:1fr 1fr}
+ .fin79-material-sum{justify-content:flex-start;padding-bottom:0}
+ .fin79-finance-grid{grid-template-columns:1fr}
+ .fin79-finance-grid .fin79-grand{grid-column:auto}
+}
+</style>
+
 </head>
 <body>
 <header class="header"><div class="wrap nav"><a class="logo" href="../index.html">Potolok<span>.in.ua</span></a><div class="menu"><a href="../index.html">Головна</a><a href="../gallery.html">Наші роботи</a><a href="#app">Pixel 5</a></div><a class="phone" href="tel:+380974546713">097 454 67 13</a><a class="tg-top" href="https://t.me/Potolok_in_ua">Фото в TG</a></div></header>
@@ -433,6 +500,7 @@ th:nth-child(2),th:nth-child(3),th:nth-child(4),td:nth-child(2),td:nth-child(3),
 <button class="main-tab" onclick="showMainTab('clientcard',this)">🔐 Особиста картка</button>
 <button class="main-tab" onclick="showMainTab('ai',this)">✨ AI</button>
 <button class="main-tab" onclick="showMainTab('calc',this)">💰 Калькулятор</button>
+<button id="finishingTab78" class="main-tab" onclick="showMainTab('finishing',this);renderFinishing78()">🧱 Оздоблення</button>
 <button class="main-tab" onclick="showMainTab('planner',this)">📐 План</button>
 <button class="main-tab" onclick="showMainTab('history',this)">💾 Історія</button>
 </div>
@@ -656,6 +724,95 @@ th:nth-child(2),th:nth-child(3),th:nth-child(4),td:nth-child(2),td:nth-child(3),
 <div class="mini-panel"><h3>Документи</h3><button class="btn outline btn-full" onclick="downloadPDF()">📄 Зберегти кошторис PDF</button><button class="btn outline btn-full mt" onclick="saveObject()">💾 Зберегти в історію</button></div></div>
 </main>
 </div>
+</section>
+
+
+<section id="tab_finishing" class="page-section">
+  <div class="fin78-shell">
+    <div class="fin78-head">
+      <div>
+        <h2>🧱 Додаткові оздоблювальні роботи</h2>
+        <p>Окремий модуль поточної кімнати. Читає готові параметри, але не змінює контур або елементи планувальника.</p>
+      </div>
+      <span class="fin78-safe">Планувальник захищено</span>
+    </div>
+
+    <div class="fin78-roomline">
+      Поточна кімната: <b id="fin78RoomName">—</b>
+    </div>
+
+    <div class="fin78-metrics">
+      <div><span>Площа підлоги / стелі</span><b id="fin78Area">0 м²</b></div>
+      <div><span>Периметр</span><b id="fin78Perimeter">0 м</b></div>
+      <div><span>Висота</span><b id="fin78Height">0 м</b></div>
+      <div><span>Стіни брутто</span><b id="fin78GrossWalls">0 м²</b></div>
+      <div><span>Прорізи</span><b id="fin78Openings">0 м²</b></div>
+      <div><span>Чиста площа стін</span><b id="fin78NetWalls">0 м²</b></div>
+      <div><span>Вузькі ділянки ≤50 см</span><b id="fin78Narrow">0 м.п.</b></div>
+      <div><span>Внутрішні / зовнішні кути</span><b id="fin78Corners">0 / 0</b></div>
+    </div>
+    <details class="fin78-details" open>
+      <summary>🚪 Вікна, двері та складні стіни</summary>
+      <div class="fin78-config-grid">
+        <label>Висота кімнати, м<input id="fin78HeightInput" type="number" min="0" step="0.01" value="2.7" oninput="fin78ConfigChange()"></label>
+        <label>Ширина вузької ділянки, м<input id="fin78NarrowLimit" type="number" min="0.1" max="1" step="0.05" value="0.5" oninput="fin78ConfigChange()"></label>
+        <label>Доплата оконної стіни<select id="fin78WindowMode" onchange="fin78ConfigChange()"><option value="percent">Відсоток</option><option value="pricePerArea">Грн за м²</option><option value="fixed">Фіксовано за стіну</option></select></label>
+        <label>Значення доплати<input id="fin78WindowSurcharge" type="number" min="0" step="1" value="20" oninput="fin78ConfigChange()"></label>
+      </div>
+      <div class="fin78-subhead"><b>Прорізи</b><button class="btn outline" type="button" onclick="addOpening78()">＋ Двері / вікно</button></div>
+      <div id="fin78OpeningsList" class="fin78-mini-list"></div>
+      <div class="fin78-subhead"><b>Складні оконні стіни</b><button class="btn outline" type="button" onclick="addWindowWall78()">＋ Оконна стіна</button></div>
+      <div id="fin78WindowWallsList" class="fin78-mini-list"></div>
+      <div class="fin78-subhead"><b>Вузькі ділянки та виступи</b><button class="btn outline" type="button" onclick="addNarrow78()">＋ Ділянка</button></div>
+      <div id="fin78NarrowList" class="fin78-mini-list"></div>
+    </details>
+
+    <div class="fin78-toolbar">
+      <select id="fin78Category" onchange="renderFinishing78()">
+        <option value="all">Усі категорії</option>
+        <option value="walls">Стіни</option>
+        <option value="ceiling">Стеля</option>
+        <option value="floor">Підлога</option>
+        <option value="corners">Кути</option>
+        <option value="demolition">Демонтаж</option>
+        <option value="other">Інше</option>
+      </select>
+      <button class="btn blue" type="button" onclick="addCustomFinishing78()">＋ Додаткова робота</button>
+      <button class="btn outline" type="button" onclick="refreshFinishingGeometry78()">↻ Оновити з плану</button>
+    </div>
+
+    <div id="fin78List" class="fin78-list"></div>
+
+    <section class="fin79-materials">
+      <div class="fin79-head">
+        <div>
+          <h3>📦 Поточні матеріали цього об’єкта</h3>
+          <p>Матеріали з кількістю, одиницею, ціною та прив’язкою до кімнати або всього об’єкта.</p>
+        </div>
+        <div class="fin79-actions">
+          <button class="btn blue" type="button" onclick="addMaterial79()">＋ Додати матеріал</button>
+          <button class="btn outline" type="button" onclick="clearMaterials79()">🧹 Очистити матеріали</button>
+        </div>
+      </div>
+      <div id="fin79MaterialsList" class="fin79-materials-list"></div>
+    </section>
+
+    <section class="fin79-finance">
+      <h3>💰 Загальна картина по фінансах</h3>
+      <div class="fin79-finance-grid">
+        <div><span>Натяжна стеля</span><b id="fin79CeilingTotal">0 грн</b></div>
+        <div><span>Оздоблювальні роботи</span><b id="fin79FinishingTotal">0 грн</b></div>
+        <div><span>Матеріали</span><b id="fin79MaterialsTotal">0 грн</b></div>
+        <div class="fin79-grand"><span>Загальна вартість об’єкта</span><b id="fin79GrandTotal">0 грн</b></div>
+      </div>
+      <div class="fin79-note">Ці дані вже зберігаються разом з кімнатами. В особисту картку клієнта підключимо їх окремим безпечним етапом.</div>
+    </section>
+
+    <div class="fin78-total">
+      <div><span>Разом по оздобленню цієї кімнати</span><b id="fin78Total">0 грн</b></div>
+      <small>Перший етап: результат зберігається у кімнаті, але поки не додається до головного кошторису та PDF.</small>
+    </div>
+  </div>
 </section>
 
 <section id="tab_planner" class="page-section">
@@ -1307,6 +1464,7 @@ function captureCurrentRoom(){
     profiles:profileState(),
     ai:checkedMap('ai_',AI_OPTIONS),
     rows:deepCopy(currentRows()),
+    finishingWorks:deepCopy(existing?.finishingWorks||{items:[],total:0,geometrySnapshot:null}),
     calculated:currentCalculatedTotal(),
     total:priceWithObjectRule(currentCalculatedTotal()),
     updatedAt:new Date().toISOString()
@@ -11392,6 +11550,320 @@ body.quick-calc-open40 #quickCalcHandle40{
       alert('Не вдалося відкрити об’єкт: '+String(error?.message||error));
     }
   };
+})();
+</script>
+
+
+<script id="finishingStage1Script78">
+(function(){
+'use strict';
+
+const FIN78_CATALOG=[
+ {id:'demoWallpaper',category:'demolition',stage:'demolition',name:'Демонтаж шпалер',unit:'м²',source:'netWalls',price:90},
+ {id:'demoPlaster',category:'demolition',stage:'demolition',name:'Демонтаж штукатурки',unit:'м²',source:'netWalls',price:160},
+ {id:'wallPrimer',category:'walls',stage:'primer',name:'Ґрунтування стін',unit:'м²',source:'netWalls',price:45},
+ {id:'wallGroove',category:'walls',stage:'groove',name:'Штроба в стіні',unit:'м.п.',source:'manual',price:160},
+ {id:'wallPlaster',category:'walls',stage:'plaster',name:'Штукатурка стін',unit:'м²',source:'netWalls',price:280},
+ {id:'wallMesh',category:'walls',stage:'mesh',name:'Армувальна сітка',unit:'м²',source:'netWalls',price:120},
+ {id:'wallPuttyStart',category:'walls',stage:'putty',name:'Стартова шпаклівка',unit:'м²',source:'netWalls',price:180},
+ {id:'wallPuttyFinish',category:'walls',stage:'putty',name:'Фінішна шпаклівка',unit:'м²',source:'netWalls',price:190},
+ {id:'wallWallpaper',category:'walls',stage:'finish',name:'Поклейка шпалер',unit:'м²',source:'netWalls',price:180},
+ {id:'wallDecor',category:'walls',stage:'finish',name:'Декоративна штукатурка',unit:'м²',source:'netWalls',price:450},
+
+ {id:'ceilingPrimer',category:'ceiling',name:'Ґрунтування базової стелі',unit:'м²',source:'area',price:45},
+ {id:'ceilingRepair',category:'ceiling',name:'Локальний ремонт базової стелі',unit:'м²',source:'manual',price:250},
+ {id:'floorProtection',category:'floor',name:'Захист підлоги плівкою',unit:'м²',source:'area',price:35},
+ {id:'perimeterSeal',category:'other',name:'Герметизація по периметру',unit:'м.п.',source:'perimeter',price:90},
+ {id:'insideCorner',category:'corners',name:'Обробка внутрішніх кутів',unit:'шт',source:'innerCorners',price:100},
+ {id:'outsideCorner',category:'corners',name:'Обробка зовнішніх кутів',unit:'шт',source:'outerCorners',price:140},
+];
+const labels78={walls:'Стіни',ceiling:'Стеля',floor:'Підлога',corners:'Кути',demolition:'Демонтаж',other:'Інше'};
+
+function activeRoom78(){
+ try{
+   if(typeof projectRooms==='undefined'||!Array.isArray(projectRooms))return null;
+   return projectRooms.find(r=>r.id===activeRoomId)||null;
+ }catch(_){return null}
+}
+function ensure78(){
+ const r=activeRoom78();if(!r)return null;
+ if(!r.finishingWorks||typeof r.finishingWorks!=='object')r.finishingWorks={items:[],total:0,geometrySnapshot:null};
+ if(!Array.isArray(r.finishingWorks.openings))r.finishingWorks.openings=[];
+ if(!Array.isArray(r.finishingWorks.windowWalls))r.finishingWorks.windowWalls=[];
+ if(!Array.isArray(r.finishingWorks.narrowAreas))r.finishingWorks.narrowAreas=[];
+ if(!r.finishingWorks.config||typeof r.finishingWorks.config!=='object')r.finishingWorks.config={height:Number(r.height)||Number(document.getElementById('ceilingHeight')?.value)||2.7,narrowLimit:0.5,windowMode:'percent',windowSurcharge:20};
+ if(!Array.isArray(r.finishingWorks.items))r.finishingWorks.items=[];
+ if(!Array.isArray(r.finishingWorks.materials))r.finishingWorks.materials=[];
+ return r.finishingWorks;
+}
+function geometry78(){
+ const r=activeRoom78()||{};
+ let outer=Number(r.outerCorners),inner=Number(r.innerCorners);
+ try{
+   if((!Number.isFinite(outer)||!Number.isFinite(inner))&&typeof roomCornerData47==='function'){
+     const c=roomCornerData47(r);outer=Number(c?.outer)||0;inner=Number(c?.inner)||0;
+   }
+ }catch(_){}
+ const fw=ensure78()||{openings:[],narrowAreas:[],config:{}};
+ const height=Math.max(0,Number(fw.config?.height)||Number(r.height)||Number(document.getElementById('ceilingHeight')?.value)||2.7);
+ const perimeter=Math.max(0,Number(r.perimeter)||0);
+ const openingsArea=(fw.openings||[]).reduce((s,o)=>s+Math.max(0,Number(o.width)||0)*Math.max(0,Number(o.height)||0),0);
+ const grossWalls=perimeter*height;
+ const netWalls=Math.max(0,grossWalls-openingsArea);
+ const narrowLm=(fw.narrowAreas||[]).reduce((s,n)=>s+((Number(n.width)||0)<=Math.max(.1,Number(fw.config?.narrowLimit)||.5)?Math.max(0,Number(n.length)||0):0),0);
+ return{area:Number(r.area)||0,perimeter,height,grossWalls,openingsArea,netWalls,narrowLm,outerCorners:Number.isFinite(outer)?outer:0,innerCorners:Number.isFinite(inner)?inner:(Number(r.corners)||0)};
+}
+function qty78(source,g){
+ if(source==='area')return g.area;
+ if(source==='perimeter')return g.perimeter;
+ if(source==='outerCorners')return g.outerCorners;
+ if(source==='innerCorners')return g.innerCorners;
+ if(source==='grossWalls')return g.grossWalls;
+ if(source==='netWalls')return g.netWalls;
+ if(source==='openingsArea')return g.openingsArea;
+ if(source==='narrowLm')return g.narrowLm;
+ return 0;
+}
+function esc78(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function money78(v){return Math.round(Number(v)||0).toLocaleString('uk-UA')+' грн'}
+function seed78(){
+ const fw=ensure78();if(!fw||fw.items.length)return;
+ fw.items=FIN78_CATALOG.map(x=>({...x,enabled:false,quantityMode:x.source==='manual'?'manual':'auto',quantity:0,custom:false}));
+}
+function save78(){
+ const fw=ensure78();if(!fw)return;
+ fw.total=fw.items.reduce((s,x)=>s+(x.enabled?(Number(x.quantity)||0)*(Number(x.price)||0):0),0);
+ fw.updatedAt=new Date().toISOString();
+ try{if(typeof autosave==='function')autosave()}catch(_){}
+}
+function card78(item,g,index){
+ const auto=item.quantityMode==='auto';
+ const q=auto?qty78(item.source,g):(Number(item.quantity)||0);item.quantity=q;
+ const opts=[
+  ['manual','Вручну'],['area','Площа підлоги / стелі'],['grossWalls','Стіни брутто'],
+  ['netWalls','Чиста площа стін'],['openingsArea','Прорізи'],['perimeter','Периметр'],
+  ['narrowLm','Вузькі ділянки, м.п.'],['outerCorners','Зовнішні кути'],['innerCorners','Внутрішні кути']
+ ].map(([v,n])=>`<option value="${v}" ${item.source===v?'selected':''}>${n}</option>`).join('');
+ return `<div class="fin78-card fin78-stage-${esc78(item.stage||"finish")}" data-fin78="${index}">
+  <div class="fin78-card-top">
+   <input type="checkbox" ${item.enabled?'checked':''} onchange="fin78Change(${index},'enabled',this.checked)">
+   <div class="fin78-card-title"><b>${esc78(item.name)}</b><span>${labels78[item.category]||'Інше'} • ${esc78(item.unit)}</span></div>
+   ${item.custom?`<button class="fin78-remove" type="button" onclick="removeFinishing78(${index})">×</button>`:''}
+  </div>
+  <div class="fin78-fields">
+   <div class="fin78-field"><label>Розрахунок</label><select onchange="fin78Change(${index},'source',this.value)">${opts}</select></div>
+   <div class="fin78-field"><label>Кількість / од.</label><div class="fin79-unit-wrap"><input type="number" min="0" step="0.01" value="${q.toFixed(2)}" ${auto?'readonly':''} oninput="fin78Change(${index},'quantity',this.value)"><select onchange="fin78Change(${index},'unit',this.value)">${['м²','м.п.','м','шт','м³','компл.','послуга'].map(u=>`<option value="${u}" ${item.unit===u?'selected':''}>${u}</option>`).join('')}</select></div></div>
+   <div class="fin78-field"><label>Ціна, грн</label><input type="number" min="0" step="1" value="${Number(item.price)||0}" oninput="fin78Change(${index},'price',this.value)"></div>
+   <div class="fin78-sum">${money78(item.enabled?q*(Number(item.price)||0):0)}</div>
+  </div>
+ </div>`;
+}
+
+window.renderFinishing78=function(){
+ const fw=ensure78(),list=document.getElementById('fin78List');
+ if(!fw||!list){
+   if(list)list.innerHTML='<div class="fin78-empty">Спочатку створіть або виберіть кімнату.</div>';
+   return;
+ }
+ seed78();
+ const r=activeRoom78(),g=geometry78();
+ const set=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v};
+ set('fin78RoomName',r?.name||'Кімната');
+ set('fin78Area',g.area.toFixed(2)+' м²');set('fin78Perimeter',g.perimeter.toFixed(2)+' м');
+ set('fin78Height',g.height.toFixed(2)+' м');set('fin78GrossWalls',g.grossWalls.toFixed(2)+' м²');set('fin78Openings',g.openingsArea.toFixed(2)+' м²');set('fin78NetWalls',g.netWalls.toFixed(2)+' м²');set('fin78Narrow',g.narrowLm.toFixed(2)+' м.п.');set('fin78Corners',g.innerCorners+' / '+g.outerCorners);
+ const cfg=fw.config||{};const h=document.getElementById('fin78HeightInput'),nl=document.getElementById('fin78NarrowLimit'),wm=document.getElementById('fin78WindowMode'),ws=document.getElementById('fin78WindowSurcharge');if(h&&document.activeElement!==h)h.value=Number(cfg.height||g.height).toFixed(2);if(nl&&document.activeElement!==nl)nl.value=Number(cfg.narrowLimit||.5);if(wm)wm.value=cfg.windowMode||'percent';if(ws&&document.activeElement!==ws)ws.value=Number(cfg.windowSurcharge||0);renderOpenings78();renderWindowWalls78();renderNarrow78();
+ const cat=document.getElementById('fin78Category')?.value||'all';
+ const rows=fw.items.map((x,i)=>({x,i})).filter(({x})=>cat==='all'||x.category===cat);
+ list.innerHTML=rows.length?rows.map(({x,i})=>card78(x,g,i)).join(''):'<div class="fin78-empty">У цій категорії поки немає робіт.</div>';
+ fw.total=fw.items.reduce((s,x)=>s+(x.enabled?(Number(x.quantity)||0)*(Number(x.price)||0):0),0);
+ set('fin78Total',money78(fw.total));
+};
+function updateFinishingCardOnly78(index){
+ const fw=ensure78();if(!fw||!fw.items[index])return;
+ const card=document.querySelector(`[data-fin78="${index}"]`);
+ if(!card){updateFinance79();return}
+ const item=fw.items[index];
+ const sum=card.querySelector('.fin78-sum');
+ const value=item.enabled?(Number(item.quantity)||0)*(Number(item.price)||0):0;
+ if(sum)sum.textContent=money78(value);
+ const total=document.getElementById('fin78Total');
+ fw.total=fw.items.reduce((s,x)=>s+(x.enabled?(Number(x.quantity)||0)*(Number(x.price)||0):0),0);
+ if(total)total.textContent=money78(fw.total);
+ updateFinance79();
+}
+window.fin78Change=function(i,key,value){
+ const fw=ensure78();if(!fw||!fw.items[i])return;const x=fw.items[i];
+ let needsRender=false;
+ if(key==='enabled')x.enabled=!!value;
+ if(key==='price')x.price=Math.max(0,Number(value)||0);
+ if(key==='unit')x.unit=value||'шт';
+ if(key==='quantity'&&x.quantityMode==='manual')x.quantity=Math.max(0,Number(value)||0);
+ if(key==='source'){
+   x.source=value;
+   x.quantityMode=value==='manual'?'manual':'auto';
+   if(x.quantityMode==='auto')x.quantity=qty78(value,geometry78());
+   needsRender=true;
+ }
+ save78();
+ if(needsRender)renderFinishing78();
+ else updateFinishingCardOnly78(i);
+};
+window.addCustomFinishing78=function(){
+ const name=prompt('Назва роботи:');if(!name)return;
+ const fw=ensure78();if(!fw)return;
+ fw.items.push({id:'custom_'+Date.now(),category:'other',name:name.trim(),unit:'шт',source:'manual',quantityMode:'manual',quantity:1,price:0,enabled:true,custom:true});
+ save78();renderFinishing78();
+};
+window.removeFinishing78=function(i){
+ const fw=ensure78();if(!fw||!fw.items[i]||!confirm('Видалити цю роботу?'))return;
+ fw.items.splice(i,1);save78();renderFinishing78();
+};
+
+window.fin78ConfigChange=function(){const fw=ensure78();if(!fw)return;fw.config={height:Math.max(0,Number(document.getElementById('fin78HeightInput')?.value)||0),narrowLimit:Math.max(.1,Number(document.getElementById('fin78NarrowLimit')?.value)||.5),windowMode:document.getElementById('fin78WindowMode')?.value||'percent',windowSurcharge:Math.max(0,Number(document.getElementById('fin78WindowSurcharge')?.value)||0)};save78();renderFinishing78();};
+window.addOpening78=function(){const fw=ensure78();if(!fw)return;fw.openings.push({id:'opening_'+Date.now(),type:'window',width:1.5,height:1.4});save78();renderFinishing78();};
+window.addWindowWall78=function(){const fw=ensure78();if(!fw)return;fw.windowWalls.push({id:'windowwall_'+Date.now(),name:'Оконна стіна',area:0,reason:'Радіатор'});save78();renderFinishing78();};
+window.addNarrow78=function(){const fw=ensure78();if(!fw)return;fw.narrowAreas.push({id:'narrow_'+Date.now(),name:'Виступ',width:.3,length:2.7});save78();renderFinishing78();};
+window.fin78MiniChange=function(group,index,key,value){const fw=ensure78();if(!fw||!fw[group]?.[index])return;fw[group][index][key]=['width','height','length','area'].includes(key)?Math.max(0,Number(value)||0):value;save78();renderFinishing78();};
+window.fin78MiniRemove=function(group,index){const fw=ensure78();if(!fw||!Array.isArray(fw[group]))return;fw[group].splice(index,1);save78();renderFinishing78();};
+window.windowWallExtra78=function(o){const fw=ensure78(),cfg=fw?.config||{},a=Math.max(0,Number(o?.area)||0),v=Math.max(0,Number(cfg.windowSurcharge)||0);if(cfg.windowMode==='pricePerArea')return a*v;if(cfg.windowMode==='fixed')return v;return a*v/100;};
+window.renderOpenings78=function(){const fw=ensure78(),box=document.getElementById('fin78OpeningsList');if(!fw||!box)return;box.innerHTML=fw.openings.length?fw.openings.map((o,i)=>`<div class="fin78-mini-row"><label>Тип<select onchange="fin78MiniChange('openings',${i},'type',this.value)"><option value="window" ${o.type==='window'?'selected':''}>Вікно</option><option value="door" ${o.type==='door'?'selected':''}>Двері</option></select></label><label>Ширина, м<input type="number" step=".01" value="${Number(o.width)||0}" oninput="fin78MiniChange('openings',${i},'width',this.value)"></label><label>Висота, м<input type="number" step=".01" value="${Number(o.height)||0}" oninput="fin78MiniChange('openings',${i},'height',this.value)"></label><label>Площа<input readonly value="${((Number(o.width)||0)*(Number(o.height)||0)).toFixed(2)} м²"></label><button type="button" onclick="fin78MiniRemove('openings',${i})">×</button></div>`).join(''):'<div class="fin78-empty">Прорізи ще не додані.</div>';};
+window.renderWindowWalls78=function(){const fw=ensure78(),box=document.getElementById('fin78WindowWallsList');if(!fw||!box)return;box.innerHTML=fw.windowWalls.length?fw.windowWalls.map((o,i)=>`<div class="fin78-mini-row fin78-note-row"><label>Назва<input value="${esc78(o.name||'Оконна стіна')}" oninput="fin78MiniChange('windowWalls',${i},'name',this.value)"></label><label>Причина<select onchange="fin78MiniChange('windowWalls',${i},'reason',this.value)">${['Радіатор','Труби опалення','Складний доступ','Багато відкосів','Інше'].map(v=>`<option ${o.reason===v?'selected':''}>${v}</option>`).join('')}</select></label><label>Площа, м²<input type="number" step=".01" value="${Number(o.area)||0}" oninput="fin78MiniChange('windowWalls',${i},'area',this.value)"></label><label>Доплата<input readonly value="${windowWallExtra78(o).toFixed(0)} грн"></label><button type="button" onclick="fin78MiniRemove('windowWalls',${i})">×</button></div>`).join(''):'<div class="fin78-empty">Складні оконні стіни ще не позначені.</div>';};
+window.renderNarrow78=function(){const fw=ensure78(),box=document.getElementById('fin78NarrowList');if(!fw||!box)return;const limit=Math.max(.1,Number(fw.config?.narrowLimit)||.5);box.innerHTML=fw.narrowAreas.length?fw.narrowAreas.map((o,i)=>{const lm=(Number(o.width)||0)<=limit?(Number(o.length)||0):0;return `<div class="fin78-mini-row"><label>Назва<input value="${esc78(o.name||'Ділянка')}" oninput="fin78MiniChange('narrowAreas',${i},'name',this.value)"></label><label>Ширина, м<input type="number" step=".01" value="${Number(o.width)||0}" oninput="fin78MiniChange('narrowAreas',${i},'width',this.value)"></label><label>Довжина, м<input type="number" step=".01" value="${Number(o.length)||0}" oninput="fin78MiniChange('narrowAreas',${i},'length',this.value)"></label><label>Авто<input readonly value="${lm.toFixed(2)} м.п."></label><button type="button" onclick="fin78MiniRemove('narrowAreas',${i})">×</button></div>`;}).join(''):'<div class="fin78-empty">Вузькі ділянки ще не додані.</div>';};
+
+window.refreshFinishingGeometry78=function(){
+ const fw=ensure78();if(!fw)return;const g=geometry78();
+ fw.geometrySnapshot={...g,updatedAt:new Date().toISOString()};
+ fw.items.forEach(x=>{if(x.quantityMode==='auto')x.quantity=qty78(x.source,g)});
+ save78();renderFinishing78();
+};
+
+document.addEventListener('DOMContentLoaded',()=>{
+ const tab=document.getElementById('finishingTab78');
+ if(tab)tab.title='Додаткові оздоблювальні роботи';
+});
+
+const units79=['м²','м.п.','м','шт','л','кг','мішок','рулон','компл.','послуга'];
+
+function objectRooms79(){
+ try{return Array.isArray(projectRooms)?projectRooms:[]}catch(_){return []}
+}
+function materialTotal79(m){return Math.max(0,Number(m.quantity)||0)*Math.max(0,Number(m.price)||0)}
+function allMaterials79(){
+ const out=[];
+ objectRooms79().forEach(room=>{
+   const list=room?.finishingWorks?.materials;
+   if(Array.isArray(list))list.forEach(m=>out.push({...m,roomId:room.id,roomName:room.name||'Кімната'}));
+ });
+ return out;
+}
+function ceilingTotal79(){
+ return objectRooms79().reduce((s,r)=>s+(Number(r.total)||Number(r.calculated)||0),0);
+}
+function finishingTotal79(){
+ return objectRooms79().reduce((s,r)=>{
+   const fw=r?.finishingWorks;
+   if(!fw)return s;
+   return s+(Array.isArray(fw.items)?fw.items.reduce((a,x)=>a+(x.enabled?(Number(x.quantity)||0)*(Number(x.price)||0):0),0):0);
+ },0);
+}
+function materialsTotal79(){
+ return allMaterials79().reduce((s,m)=>s+materialTotal79(m),0);
+}
+function updateFinance79(){
+ const set=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=money78(v)};
+ const ceiling=ceilingTotal79(),finishing=finishingTotal79(),materials=materialsTotal79();
+ set('fin79CeilingTotal',ceiling);
+ set('fin79FinishingTotal',finishing);
+ set('fin79MaterialsTotal',materials);
+ set('fin79GrandTotal',ceiling+finishing+materials);
+ const roomFw=ensure78();
+ if(roomFw){
+   roomFw.materialsTotal=(roomFw.materials||[]).reduce((s,m)=>s+materialTotal79(m),0);
+   roomFw.financialSummary={
+     finishing:Number(roomFw.total)||0,
+     materials:roomFw.materialsTotal,
+     updatedAt:new Date().toISOString()
+   };
+ }
+}
+window.addMaterial79=function(){
+ const fw=ensure78();if(!fw)return;
+ fw.materials.push({
+   id:'material_'+Date.now(),
+   name:'Новий матеріал',
+   quantity:1,
+   unit:'шт',
+   price:0,
+   scope:'room'
+ });
+ save78();renderMaterials79();updateFinance79();
+};
+function updateMaterialCardOnly79(index){
+ const fw=ensure78();if(!fw||!fw.materials[index])return;
+ const card=document.querySelector(`[data-material79="${index}"]`);
+ if(card){
+   const sum=card.querySelector('.fin79-material-sum');
+   if(sum)sum.textContent=money78(materialTotal79(fw.materials[index]));
+ }
+ updateFinance79();
+}
+window.materialChange79=function(index,key,value){
+ const fw=ensure78();if(!fw||!fw.materials[index])return;
+ const m=fw.materials[index];
+ if(['quantity','price'].includes(key))m[key]=Math.max(0,Number(value)||0);
+ else m[key]=value;
+ save78();
+ updateMaterialCardOnly79(index);
+};
+window.removeMaterial79=function(index){
+ const fw=ensure78();if(!fw||!fw.materials[index])return;
+ if(!confirm('Видалити матеріал?'))return;
+ fw.materials.splice(index,1);save78();renderMaterials79();updateFinance79();
+};
+window.clearMaterials79=function(){
+ const fw=ensure78();if(!fw||!fw.materials.length)return;
+ if(!confirm('Очистити всі матеріали поточної кімнати?'))return;
+ fw.materials=[];
+ save78();renderMaterials79();updateFinance79();
+};
+window.renderMaterials79=function(){
+ const fw=ensure78(),box=document.getElementById('fin79MaterialsList');
+ if(!fw||!box)return;
+ box.innerHTML=fw.materials.length?fw.materials.map((m,i)=>`
+   <div class="fin79-material" data-material79="${i}">
+     <div class="fin79-material-top">
+       <div class="fin79-number">${i+1}</div>
+       <input value="${esc78(m.name||'Матеріал')}" oninput="materialChange79(${i},'name',this.value)">
+       <button type="button" onclick="removeMaterial79(${i})">×</button>
+     </div>
+     <div class="fin79-material-grid">
+       <label>Кількість<input type="number" min="0" step="0.01" value="${Number(m.quantity)||0}" oninput="materialChange79(${i},'quantity',this.value)"></label>
+       <label>Одиниця<select onchange="materialChange79(${i},'unit',this.value)">${units79.map(u=>`<option value="${u}" ${m.unit===u?'selected':''}>${u}</option>`).join('')}</select></label>
+       <label>Ціна за одиницю<input type="number" min="0" step="1" value="${Number(m.price)||0}" oninput="materialChange79(${i},'price',this.value)"></label>
+       <label>Прив’язка<select onchange="materialChange79(${i},'scope',this.value)"><option value="room" ${m.scope!=='object'?'selected':''}>Поточна кімната</option><option value="object" ${m.scope==='object'?'selected':''}>Весь об’єкт</option></select></label>
+       <div class="fin79-material-sum">${money78(materialTotal79(m))}</div>
+     </div>
+   </div>
+ `).join(''):'<div class="fin79-empty">Матеріали ще не додані.</div>';
+};
+
+const renderFinishingBase79=window.renderFinishing78;
+window.renderFinishing78=function(){
+ renderFinishingBase79();
+ renderMaterials79();
+ updateFinance79();
+};
+
+const saveBase79=save78;
+save78=function(){
+ saveBase79();
+ updateFinance79();
+};
+
+document.addEventListener('DOMContentLoaded',()=>{
+ setTimeout(()=>{renderMaterials79();updateFinance79()},0);
+});
+
 })();
 </script>
 
