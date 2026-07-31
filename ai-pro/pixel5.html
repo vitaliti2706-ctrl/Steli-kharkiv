@@ -480,8 +480,8 @@ th:nth-child(2),th:nth-child(3),th:nth-child(4),td:nth-child(2),td:nth-child(3),
 </div>
 <div class="block"><div class="block-head"><h3>Фото кімнати</h3></div>
 <div class="photo-box"><div id="emptyPhoto" class="photo-empty">Завантажте або зробіть фото кімнати</div><img id="roomPreview" src="" alt="" style="display:none"><div class="camera">📷</div></div>
-<input id="cameraInput" type="file" accept="image/jpeg,image/png,image/webp,image/avif,image/*" capture="environment" hidden>
-<input id="galleryInput" type="file" accept="image/jpeg,image/png,image/webp,image/avif,image/*" hidden>
+<input id="cameraInput" type="file" accept="image/jpeg,image/png,image/webp,image/avif,image/heic,image/heif,image/*" capture="environment" hidden>
+<input id="galleryInput" type="file" accept="image/jpeg,image/png,image/webp,image/avif,image/heic,image/heif,image/*" hidden>
 <div class="photo-actions">
   <button class="btn green" type="button" onclick="document.getElementById('cameraInput')?.click()">📷 Зробити фото</button>
   <button class="btn blue" type="button" onclick="document.getElementById('galleryInput')?.click()">🖼 Обрати з галереї</button>
@@ -1045,6 +1045,57 @@ async function handlePhotoInput(input){
 }
 cameraInput.addEventListener('change',()=>handlePhotoInput(cameraInput));
 galleryInput.addEventListener('change',()=>handlePhotoInput(galleryInput));
+
+let heicConverterPromise77=null;
+function loadHeicConverter77(){
+  if(typeof window.heic2any==='function')return Promise.resolve(window.heic2any);
+  if(heicConverterPromise77)return heicConverterPromise77;
+
+  heicConverterPromise77=new Promise((resolve,reject)=>{
+    const existing=document.getElementById('heic2anyLoader77');
+    if(existing){
+      existing.addEventListener('load',()=>typeof window.heic2any==='function'
+        ?resolve(window.heic2any)
+        :reject(new Error('конвертер HEIC не запустився')),{once:true});
+      existing.addEventListener('error',()=>reject(new Error('не вдалося завантажити конвертер HEIC')),{once:true});
+      return;
+    }
+
+    const script=document.createElement('script');
+    script.id='heic2anyLoader77';
+    script.src='https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js';
+    script.async=true;
+    script.onload=()=>typeof window.heic2any==='function'
+      ?resolve(window.heic2any)
+      :reject(new Error('конвертер HEIC не запустився'));
+    script.onerror=()=>reject(new Error('не вдалося завантажити конвертер HEIC. Перевірте інтернет-з’єднання.'));
+    document.head.appendChild(script);
+  }).catch(error=>{
+    heicConverterPromise77=null;
+    throw error;
+  });
+
+  return heicConverterPromise77;
+}
+
+async function convertHeicToJpeg77(file){
+  const converter=await loadHeicConverter77();
+  const result=await converter({
+    blob:file,
+    toType:'image/jpeg',
+    quality:0.88
+  });
+  const blob=Array.isArray(result)?result[0]:result;
+  if(!(blob instanceof Blob)||!blob.size){
+    throw new Error('HEIC-фото не вдалося перетворити у JPEG');
+  }
+  return new File(
+    [blob],
+    String(file.name||'photo').replace(/\.(heic|heif)$/i,'')+'.jpg',
+    {type:'image/jpeg',lastModified:file.lastModified||Date.now()}
+  );
+}
+
 async function compressImage(file,maxSide=1600,quality=.78,maxBytes=950000){
   if(!file)throw new Error('файл не вибрано');
 
@@ -1071,7 +1122,8 @@ async function compressImage(file,maxSide=1600,quality=.78,maxBytes=950000){
     'application/octet-stream';
 
   if(usableType==='image/heic'||usableType==='image/heif'){
-    throw new Error('Фото HEIC/HEIF не відкривається цим браузером. У камері виберіть формат JPEG або зробіть скриншот фото.');
+    const converted=await convertHeicToJpeg77(file);
+    return compressImage(converted,maxSide,quality,maxBytes);
   }
 
   const blob=new Blob([buffer],{type:usableType});
