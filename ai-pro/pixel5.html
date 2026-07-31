@@ -4179,6 +4179,7 @@ setTimeout(()=>{
 /* ================= PIXEL 6.2 COMPACT PLANNER ================= */
 let plannerRotation62=0;
 let miniPlanScale62=100;
+let plannerTransformOps62=[];
 
 function plannerCenter62(){
   if(!roomPoints.length)return [400,300];
@@ -4189,22 +4190,17 @@ function rotatePoint62(x,y,cx,cy,deg){
   const a=deg*Math.PI/180,dx=x-cx,dy=y-cy;
   return [cx+dx*Math.cos(a)-dy*Math.sin(a),cy+dx*Math.sin(a)+dy*Math.cos(a)];
 }
-function rotatePlannerTo(value){
-  const target=Number(value)||0,delta=target-plannerRotation62;
-  if(!delta){syncPlannerTransformLabels62();return}
+function applyPlannerRotation62(delta){
+  if(!delta||!roomPoints.length)return;
   const [cx,cy]=plannerCenter62();
   roomPoints=roomPoints.map(([x,y])=>rotatePoint62(x,y,cx,cy,delta));
   plannerObjects=plannerObjects.map(o=>{
     const [x,y]=rotatePoint62(o.x,o.y,cx,cy,delta);
     return {...o,x,y,rotation:(Number(o.rotation)||0)+delta};
   });
-  plannerRotation62=target;
-  syncPlannerTransformLabels62();
-  renderPlanner();syncActiveRoomFromUI(false);autosave();
 }
-function mirrorPlanner(axis){
+function applyPlannerMirror62(axis){
   if(!roomPoints.length)return;
-  pushPlanner();
   const [cx,cy]=plannerCenter62();
   roomPoints=roomPoints.map(([x,y])=>axis==='x'?[2*cx-x,y]:[x,2*cy-y]);
   plannerObjects=plannerObjects.map(o=>({
@@ -4213,23 +4209,46 @@ function mirrorPlanner(axis){
     y:axis==='y'?2*cy-o.y:o.y,
     rotation:axis==='x'?180-(Number(o.rotation)||0):-(Number(o.rotation)||0)
   }));
+}
+function rotatePlannerTo(value){
+  const target=Number(value)||0,delta=target-plannerRotation62;
+  if(!delta){syncPlannerTransformLabels62();return}
+  pushPlanner();
+  applyPlannerRotation62(delta);
+  plannerTransformOps62.push({type:'rotate',value:delta});
+  plannerRotation62=target;
+  syncPlannerTransformLabels62();
+  renderPlanner();syncActiveRoomFromUI(false);autosave();
+}
+function mirrorPlanner(axis){
+  if(!roomPoints.length)return;
+  pushPlanner();
+  applyPlannerMirror62(axis);
+  plannerTransformOps62.push({type:'mirror',axis:axis==='y'?'y':'x'});
   renderPlanner();syncActiveRoomFromUI(false);autosave();
 }
 function resetPlannerTransform(){
-  const delta=-plannerRotation62;
-  if(delta){
-    const [cx,cy]=plannerCenter62();
-    roomPoints=roomPoints.map(([x,y])=>rotatePoint62(x,y,cx,cy,delta));
-    plannerObjects=plannerObjects.map(o=>{
-      const [x,y]=rotatePoint62(o.x,o.y,cx,cy,delta);
-      return {...o,x,y,rotation:(Number(o.rotation)||0)+delta};
-    });
+  if(roomPoints.length)pushPlanner();
+
+  for(let i=plannerTransformOps62.length-1;i>=0;i--){
+    const op=plannerTransformOps62[i];
+    if(op?.type==='mirror')applyPlannerMirror62(op.axis);
+    else if(op?.type==='rotate')applyPlannerRotation62(-(Number(op.value)||0));
   }
+
+  plannerTransformOps62=[];
   plannerRotation62=0;
   miniPlanScale62=100;
-  if(document.getElementById('rotatePlanRange'))rotatePlanRange.value=0;
-  if(document.getElementById('miniPlanScaleRange'))miniPlanScaleRange.value=100;
-  syncPlannerTransformLabels62();renderPlanner();syncActiveRoomFromUI(false);autosave();
+
+  const rotateRange=document.getElementById('rotatePlanRange');
+  const scaleRange=document.getElementById('miniPlanScaleRange');
+  if(rotateRange)rotateRange.value=0;
+  if(scaleRange)scaleRange.value=100;
+
+  syncPlannerTransformLabels62();
+  renderPlanner();
+  syncActiveRoomFromUI(false);
+  autosave();
 }
 function syncPlannerTransformLabels62(){
   const v=Math.round(plannerRotation62)+'°';
@@ -4279,6 +4298,7 @@ captureCurrentRoom=function(){
   const r=_captureCurrentRoom62();
   r.plannerRotation=plannerRotation62;
   r.miniPlanScale=miniPlanScale62;
+  r.plannerTransformOps=plannerTransformOps62.map(op=>({...op}));
   return r;
 };
 
@@ -4286,6 +4306,9 @@ const _restoreRoom62=restoreRoom;
 restoreRoom=function(room){
   plannerRotation62=Number(room?.plannerRotation)||0;
   miniPlanScale62=Math.max(50,Math.min(180,Number(room?.miniPlanScale)||100));
+  plannerTransformOps62=Array.isArray(room?.plannerTransformOps)
+    ?room.plannerTransformOps.map(op=>({...op}))
+    :[];
   _restoreRoom62(room);
   syncPlannerTransformLabels62();
   setTimeout(syncMiniPlanner62,0);
@@ -4295,6 +4318,7 @@ const _resetRoomWorkspace62=resetRoomWorkspace;
 resetRoomWorkspace=function(name='Нова кімната'){
   plannerRotation62=0;
   miniPlanScale62=100;
+  plannerTransformOps62=[];
   _resetRoomWorkspace62(name);
   syncPlannerTransformLabels62();
 };
