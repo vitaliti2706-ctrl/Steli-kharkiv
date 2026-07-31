@@ -480,8 +480,8 @@ th:nth-child(2),th:nth-child(3),th:nth-child(4),td:nth-child(2),td:nth-child(3),
 </div>
 <div class="block"><div class="block-head"><h3>Фото кімнати</h3></div>
 <div class="photo-box"><div id="emptyPhoto" class="photo-empty">Завантажте або зробіть фото кімнати</div><img id="roomPreview" src="" alt="" style="display:none"><div class="camera">📷</div></div>
-<input id="cameraInput" type="file" accept="image/*" capture="environment" hidden>
-<input id="galleryInput" type="file" accept="image/*" hidden>
+<input id="cameraInput" type="file" accept="image/jpeg,image/png,image/webp,image/avif,image/*" capture="environment" hidden>
+<input id="galleryInput" type="file" accept="image/jpeg,image/png,image/webp,image/avif,image/*" hidden>
 <div class="photo-actions">
   <button class="btn green" type="button" onclick="document.getElementById('cameraInput')?.click()">📷 Зробити фото</button>
   <button class="btn blue" type="button" onclick="document.getElementById('galleryInput')?.click()">🖼 Обрати з галереї</button>
@@ -1035,12 +1035,108 @@ async function handlePhotoInput(input){
     const kb=Math.round((uploadedImageBase64.length*3/4)/1024);
     photoMeta.textContent=`✅ ${file.name||'Фото'} • приблизно ${kb} КБ • збережено в поточній кімнаті`;
     syncActiveRoomFromUI(false);autosave();
-  }catch(e){photoMeta.textContent='Не вдалося обробити фото: '+e.message;alert('Помилка фото: '+e.message)}
+  }catch(e){
+    const type=file.type||'тип не вказано';
+    const name=file.name||'фото з камери';
+    photoMeta.textContent=`Не вдалося обробити ${name}: ${e.message}`;
+    alert(`Помилка фото: ${e.message}\n\nФайл: ${name}\nТип: ${type}`);
+  }
   finally{input.value=''}
 }
 cameraInput.addEventListener('change',()=>handlePhotoInput(cameraInput));
 galleryInput.addEventListener('change',()=>handlePhotoInput(galleryInput));
-function compressImage(file,maxSide=1600,quality=.78,maxBytes=950000){return new Promise((resolve,reject)=>{const reader=new FileReader();reader.onerror=()=>reject(new Error('не вдалося прочитати файл'));reader.onload=()=>{const img=new Image();img.onerror=()=>reject(new Error('формат фото не підтримується'));img.onload=()=>{let w=img.width,h=img.height,scale=Math.min(1,maxSide/Math.max(w,h));w=Math.max(1,Math.round(w*scale));h=Math.max(1,Math.round(h*scale));const canvas=document.createElement('canvas');canvas.width=w;canvas.height=h;const ctx=canvas.getContext('2d');ctx.drawImage(img,0,0,w,h);let q=quality,data=canvas.toDataURL('image/jpeg',q);while((data.length*3/4)>maxBytes&&q>.46){q-=.08;data=canvas.toDataURL('image/jpeg',q)}resolve(data)};img.src=reader.result};reader.readAsDataURL(file)})} 
+async function compressImage(file,maxSide=1600,quality=.78,maxBytes=950000){
+  if(!file)throw new Error('файл не вибрано');
+
+  const buffer=await file.arrayBuffer().catch(()=>null);
+  if(!buffer)throw new Error('не вдалося прочитати файл');
+
+  const bytes=new Uint8Array(buffer);
+  const ascii=(from,to)=>String.fromCharCode(...bytes.slice(from,to));
+
+  let detectedType='';
+  if(bytes.length>=3&&bytes[0]===0xFF&&bytes[1]===0xD8&&bytes[2]===0xFF)detectedType='image/jpeg';
+  else if(bytes.length>=8&&bytes[0]===0x89&&ascii(1,4)==='PNG')detectedType='image/png';
+  else if(bytes.length>=12&&ascii(0,4)==='RIFF'&&ascii(8,12)==='WEBP')detectedType='image/webp';
+  else if(bytes.length>=6&&(ascii(0,6)==='GIF87a'||ascii(0,6)==='GIF89a'))detectedType='image/gif';
+  else if(bytes.length>=12&&ascii(4,8)==='ftyp'){
+    const brand=ascii(8,12).toLowerCase();
+    if(['heic','heix','hevc','hevx','mif1','msf1'].includes(brand))detectedType='image/heic';
+    else if(['avif','avis'].includes(brand))detectedType='image/avif';
+  }
+
+  const declaredType=String(file.type||'').toLowerCase();
+  const usableType=detectedType||
+    (/^image\/(jpeg|jpg|pjpeg|png|webp|gif|avif)$/i.test(declaredType)?declaredType:'')||
+    'application/octet-stream';
+
+  if(usableType==='image/heic'||usableType==='image/heif'){
+    throw new Error('Фото HEIC/HEIF не відкривається цим браузером. У камері виберіть формат JPEG або зробіть скриншот фото.');
+  }
+
+  const blob=new Blob([buffer],{type:usableType});
+  let source=null;
+  let objectUrl='';
+
+  try{
+    if('createImageBitmap' in window){
+      try{
+        source=await createImageBitmap(blob,{imageOrientation:'from-image'});
+      }catch(_){
+        try{source=await createImageBitmap(blob)}catch(__){}
+      }
+    }
+
+    if(!source){
+      source=await new Promise((resolve,reject)=>{
+        const img=new Image();
+        objectUrl=URL.createObjectURL(blob);
+        img.onload=()=>resolve(img);
+        img.onerror=()=>reject(new Error(
+          usableType==='image/avif'
+            ?'цей браузер не підтримує AVIF-фото'
+            :'браузер не зміг відкрити це зображення'
+        ));
+        img.src=objectUrl;
+      });
+    }
+
+    const sourceWidth=source.naturalWidth||source.width||0;
+    const sourceHeight=source.naturalHeight||source.height||0;
+    if(!sourceWidth||!sourceHeight)throw new Error('не вдалося визначити розмір фото');
+
+    const scale=Math.min(1,maxSide/Math.max(sourceWidth,sourceHeight));
+    const w=Math.max(1,Math.round(sourceWidth*scale));
+    const h=Math.max(1,Math.round(sourceHeight*scale));
+
+    const canvas=document.createElement('canvas');
+    canvas.width=w;
+    canvas.height=h;
+    const ctx=canvas.getContext('2d',{alpha:false});
+    if(!ctx)throw new Error('браузер не підтримує обробку фото');
+
+    ctx.fillStyle='#fff';
+    ctx.fillRect(0,0,w,h);
+    ctx.drawImage(source,0,0,w,h);
+
+    let q=quality;
+    let data=canvas.toDataURL('image/jpeg',q);
+    while((data.length*3/4)>maxBytes&&q>.42){
+      q=Math.max(.42,q-.07);
+      data=canvas.toDataURL('image/jpeg',q);
+    }
+
+    if(!data||!data.startsWith('data:image/jpeg')){
+      throw new Error('не вдалося перетворити фото у JPEG');
+    }
+    return data;
+  }finally{
+    if(objectUrl)URL.revokeObjectURL(objectUrl);
+    if(source&&typeof source.close==='function'){
+      try{source.close()}catch(_){}
+    }
+  }
+} 
 async function generateAI(){if(!uploadedImageBase64){alert('Спочатку завантажте фото кімнати.');return}loader.style.display='block';apiError.style.display='none';const options=AI_OPTIONS.filter(o=>document.getElementById('ai_'+o.id)?.checked).map(o=>o.name);try{const response=await fetch('/api/ai-ceiling',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({imageBase64:uploadedImageBase64,manufacturer:selectedColor.manufacturer,color:selectedColor.name,colorHex:selectedColor.hex,material:selectedTexture,options,customRequest:customPrompt.value.trim(),instruction:'Зберегти геометрію кімнати, стіни, підлогу, вікна та двері. Змінювати лише стелю і вибрані елементи. Реалістична перспектива та освітлення.'})});const data=await response.json().catch(()=>({}));if(!response.ok)throw new Error(data.error||'API '+response.status);if(!data.image)throw new Error('API не повернув поле image');resultImageWrap.innerHTML=`<img src="${data.image}" alt="AI result">`;downloadBtn.href=data.image;autosave()}catch(e){apiError.textContent='AI не запущено: '+e.message+'. Калькулятор і кошторис працюють. Для AI треба оновити серверний /api/ai-ceiling, щоб він приймав нові параметри.';apiError.style.display='block'}finally{loader.style.display='none'}}
 function clearResult(){resultImageWrap.textContent='Завантажте фото, оберіть матеріал і додаткові елементи, потім запустіть AI.';downloadBtn.href='#'}
 function shareCurrent(){navigator.clipboard?.writeText(location.href);alert('Посилання скопійовано')}
