@@ -5,6 +5,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Potolok AI PRO — v33 STABLE MODES</title>
+<!-- 43(22): decimal input fixed for narrow areas and projections -->
+<!-- 43(21): separate window/door controls in finishing openings -->
 <!-- 43(31): admin restored from published 43(17); planner/finance from 43(30) -->
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
@@ -656,6 +658,21 @@ th:nth-child(2),th:nth-child(3),th:nth-child(4),td:nth-child(2),td:nth-child(3),
 }
 </style>
 
+
+<style id="openingsUx81Styles">
+.fin81-opening-actions{display:flex;gap:7px;flex-wrap:wrap}
+.fin81-opening-actions .btn{min-height:38px}
+.fin81-opening-row{position:relative}
+.fin81-opening-title{grid-column:1/-2;padding:8px 10px;border:1px solid #dbeafe;background:#eff6ff;border-radius:9px}
+.fin81-opening-title b{display:block;font-size:10px;color:#075bff}
+.fin81-opening-title span{display:block;margin-top:3px;font-size:8px;color:#64748b}
+@media(max-width:620px){
+ .fin81-openings-head{align-items:flex-start;flex-direction:column}
+ .fin81-opening-actions{display:grid;grid-template-columns:1fr 1fr;width:100%}
+ .fin81-opening-actions .btn{padding:9px 6px;font-size:9px}
+ .fin81-opening-title{grid-column:1/-1}
+}
+</style>
 </head>
 <body>
 <header class="header"><div class="wrap nav"><a class="logo" href="../index.html">Potolok<span>.in.ua</span></a><div class="menu"><a href="../index.html">Головна</a><a href="../gallery.html">Наші роботи</a><a href="#app">Pixel 5</a></div><a class="phone" href="tel:+380974546713">097 454 67 13</a><a class="tg-top" href="https://t.me/Potolok_in_ua">Фото в TG</a></div></header>
@@ -962,7 +979,13 @@ th:nth-child(2),th:nth-child(3),th:nth-child(4),td:nth-child(2),td:nth-child(3),
         <label>Доплата оконної стіни<select id="fin78WindowMode" onchange="fin78ConfigChange()"><option value="percent">Відсоток</option><option value="pricePerArea">Грн за м²</option><option value="fixed">Фіксовано за стіну</option></select></label>
         <label>Значення доплати<input id="fin78WindowSurcharge" type="number" min="0" step="1" value="20" oninput="fin78ConfigChange()"></label>
       </div>
-      <div class="fin78-subhead"><b>Прорізи</b><button class="btn outline" type="button" onclick="addOpening78()">＋ Двері / вікно</button></div>
+      <div class="fin78-subhead fin81-openings-head">
+        <b>Прорізи</b>
+        <div class="fin81-opening-actions">
+          <button class="btn outline" type="button" onclick="addOpening78('window')">🪟 Додати вікно</button>
+          <button class="btn outline" type="button" onclick="addOpening78('door')">🚪 Додати двері</button>
+        </div>
+      </div>
       <div id="fin78OpeningsList" class="fin78-mini-list"></div>
       <div class="fin78-subhead"><b>Складні оконні стіни</b><button class="btn outline" type="button" onclick="addWindowWall78()">＋ Оконна стіна</button></div>
       <div id="fin78WindowWallsList" class="fin78-mini-list"></div>
@@ -11929,15 +11952,40 @@ window.removeFinishing78=function(i){
 };
 
 window.fin78ConfigChange=function(){const fw=ensure78();if(!fw)return;fw.config={height:Math.max(0,Number(document.getElementById('fin78HeightInput')?.value)||0),narrowLimit:Math.max(.1,Number(document.getElementById('fin78NarrowLimit')?.value)||.5),windowMode:document.getElementById('fin78WindowMode')?.value||'percent',windowSurcharge:Math.max(0,Number(document.getElementById('fin78WindowSurcharge')?.value)||0)};save78();renderFinishing78();};
-window.addOpening78=function(){const fw=ensure78();if(!fw)return;fw.openings.push({id:'opening_'+Date.now(),type:'window',width:1.5,height:1.4});save78();renderFinishing78();};
+window.addOpening78=function(type='window'){
+ const fw=ensure78();if(!fw)return;
+ const openingType=type==='door'?'door':'window';
+ fw.openings.push({
+  id:'opening_'+Date.now(),
+  type:openingType,
+  width:openingType==='door'?0.9:1.5,
+  height:openingType==='door'?2.05:1.4
+ });
+ save78();renderFinishing78();
+};
 window.addWindowWall78=function(){const fw=ensure78();if(!fw)return;fw.windowWalls.push({id:'windowwall_'+Date.now(),name:'Оконна стіна',area:0,reason:'Радіатор'});save78();renderFinishing78();};
 window.addNarrow78=function(){const fw=ensure78();if(!fw)return;fw.narrowAreas.push({id:'narrow_'+Date.now(),name:'Виступ',width:.3,length:2.7});save78();renderFinishing78();};
-window.fin78MiniChange=function(group,index,key,value){const fw=ensure78();if(!fw||!fw[group]?.[index])return;fw[group][index][key]=['width','height','length','area'].includes(key)?Math.max(0,Number(value)||0):value;save78();renderFinishing78();};
+window.fin78MiniChange=function(group,index,key,value){const fw=ensure78();if(!fw||!fw[group]?.[index])return;const numeric=['width','height','length','area'].includes(key);const parsed=numeric?Number(String(value).replace(',','.')):value;fw[group][index][key]=numeric?Math.max(0,Number.isFinite(parsed)?parsed:0):value;save78();renderFinishing78();};
 window.fin78MiniRemove=function(group,index){const fw=ensure78();if(!fw||!Array.isArray(fw[group]))return;fw[group].splice(index,1);save78();renderFinishing78();};
 window.windowWallExtra78=function(o){const fw=ensure78(),cfg=fw?.config||{},a=Math.max(0,Number(o?.area)||0),v=Math.max(0,Number(cfg.windowSurcharge)||0);if(cfg.windowMode==='pricePerArea')return a*v;if(cfg.windowMode==='fixed')return v;return a*v/100;};
-window.renderOpenings78=function(){const fw=ensure78(),box=document.getElementById('fin78OpeningsList');if(!fw||!box)return;box.innerHTML=fw.openings.length?fw.openings.map((o,i)=>`<div class="fin78-mini-row"><label>Тип<select onchange="fin78MiniChange('openings',${i},'type',this.value)"><option value="window" ${o.type==='window'?'selected':''}>Вікно</option><option value="door" ${o.type==='door'?'selected':''}>Двері</option></select></label><label>Ширина, м<input type="number" step=".01" value="${Number(o.width)||0}" oninput="fin78MiniChange('openings',${i},'width',this.value)"></label><label>Висота, м<input type="number" step=".01" value="${Number(o.height)||0}" oninput="fin78MiniChange('openings',${i},'height',this.value)"></label><label>Площа<input readonly value="${((Number(o.width)||0)*(Number(o.height)||0)).toFixed(2)} м²"></label><button type="button" onclick="fin78MiniRemove('openings',${i})">×</button></div>`).join(''):'<div class="fin78-empty">Прорізи ще не додані.</div>';};
+window.renderOpenings78=function(){
+ const fw=ensure78(),box=document.getElementById('fin78OpeningsList');
+ if(!fw||!box)return;
+ box.innerHTML=fw.openings.length?fw.openings.map((o,i)=>{
+  const isDoor=o.type==='door';
+  const title=isDoor?'🚪 Двері':'🪟 Вікно';
+  return `<div class="fin78-mini-row fin81-opening-row">
+   <div class="fin81-opening-title"><b>${title} ${i+1}</b><span>Вкажіть ширину та висоту прорізу</span></div>
+   <label>Тип<select onchange="fin78MiniChange('openings',${i},'type',this.value)"><option value="window" ${!isDoor?'selected':''}>Вікно</option><option value="door" ${isDoor?'selected':''}>Двері</option></select></label>
+   <label>Ширина, м<input type="number" step=".01" value="${Number(o.width)||0}" oninput="fin78MiniChange('openings',${i},'width',this.value)"></label>
+   <label>Висота, м<input type="number" step=".01" value="${Number(o.height)||0}" oninput="fin78MiniChange('openings',${i},'height',this.value)"></label>
+   <label>Площа<input readonly value="${((Number(o.width)||0)*(Number(o.height)||0)).toFixed(2)} м²"></label>
+   <button type="button" aria-label="Видалити ${isDoor?'двері':'вікно'}" onclick="fin78MiniRemove('openings',${i})">×</button>
+  </div>`;
+ }).join(''):'<div class="fin78-empty">Прорізи ще не додані. Натисніть «Додати вікно» або «Додати двері».</div>';
+};
 window.renderWindowWalls78=function(){const fw=ensure78(),box=document.getElementById('fin78WindowWallsList');if(!fw||!box)return;box.innerHTML=fw.windowWalls.length?fw.windowWalls.map((o,i)=>`<div class="fin78-mini-row fin78-note-row"><label>Назва<input value="${esc78(o.name||'Оконна стіна')}" oninput="fin78MiniChange('windowWalls',${i},'name',this.value)"></label><label>Причина<select onchange="fin78MiniChange('windowWalls',${i},'reason',this.value)">${['Радіатор','Труби опалення','Складний доступ','Багато відкосів','Інше'].map(v=>`<option ${o.reason===v?'selected':''}>${v}</option>`).join('')}</select></label><label>Площа, м²<input type="number" step=".01" value="${Number(o.area)||0}" oninput="fin78MiniChange('windowWalls',${i},'area',this.value)"></label><label>Доплата<input readonly value="${windowWallExtra78(o).toFixed(0)} грн"></label><button type="button" onclick="fin78MiniRemove('windowWalls',${i})">×</button></div>`).join(''):'<div class="fin78-empty">Складні оконні стіни ще не позначені.</div>';};
-window.renderNarrow78=function(){const fw=ensure78(),box=document.getElementById('fin78NarrowList');if(!fw||!box)return;const limit=Math.max(.1,Number(fw.config?.narrowLimit)||.5);box.innerHTML=fw.narrowAreas.length?fw.narrowAreas.map((o,i)=>{const lm=(Number(o.width)||0)<=limit?(Number(o.length)||0):0;return `<div class="fin78-mini-row"><label>Назва<input value="${esc78(o.name||'Ділянка')}" oninput="fin78MiniChange('narrowAreas',${i},'name',this.value)"></label><label>Ширина, м<input type="number" step=".01" value="${Number(o.width)||0}" oninput="fin78MiniChange('narrowAreas',${i},'width',this.value)"></label><label>Довжина, м<input type="number" step=".01" value="${Number(o.length)||0}" oninput="fin78MiniChange('narrowAreas',${i},'length',this.value)"></label><label>Авто<input readonly value="${lm.toFixed(2)} м.п."></label><button type="button" onclick="fin78MiniRemove('narrowAreas',${i})">×</button></div>`;}).join(''):'<div class="fin78-empty">Вузькі ділянки ще не додані.</div>';};
+window.renderNarrow78=function(){const fw=ensure78(),box=document.getElementById('fin78NarrowList');if(!fw||!box)return;const limit=Math.max(.1,Number(fw.config?.narrowLimit)||.5);box.innerHTML=fw.narrowAreas.length?fw.narrowAreas.map((o,i)=>{const lm=(Number(o.width)||0)<=limit?(Number(o.length)||0):0;return `<div class="fin78-mini-row"><label>Назва<input value="${esc78(o.name||'Ділянка')}" onchange="fin78MiniChange('narrowAreas',${i},'name',this.value)"></label><label>Ширина, м<input type="text" inputmode="decimal" value="${String(Number(o.width)||0).replace('.',',')}" onchange="fin78MiniChange('narrowAreas',${i},'width',this.value)" onblur="fin78MiniChange('narrowAreas',${i},'width',this.value)"></label><label>Довжина, м<input type="text" inputmode="decimal" value="${String(Number(o.length)||0).replace('.',',')}" onchange="fin78MiniChange('narrowAreas',${i},'length',this.value)" onblur="fin78MiniChange('narrowAreas',${i},'length',this.value)"></label><label>Авто<input readonly value="${lm.toFixed(2)} м.п."></label><button type="button" onclick="fin78MiniRemove('narrowAreas',${i})">×</button></div>`;}).join(''):'<div class="fin78-empty">Вузькі ділянки ще не додані.</div>';};
 
 window.refreshFinishingGeometry78=function(){
  const fw=ensure78();if(!fw)return;const g=geometry78();
