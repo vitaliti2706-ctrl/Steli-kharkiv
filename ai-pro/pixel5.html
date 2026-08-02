@@ -5,6 +5,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Potolok AI PRO — v33 STABLE MODES</title>
+<!-- 43(31): admin restored from published 43(17); planner/finance from 43(30) -->
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth}
@@ -488,6 +489,173 @@ th:nth-child(2),th:nth-child(3),th:nth-child(4),td:nth-child(2),td:nth-child(3),
 }
 </style>
 
+
+<style id="pixel4317FilmAutoPlanSafeStyles">
+.film-package4317{
+  margin:10px 0 12px;padding:12px;border:1px solid #bfdbfe;
+  border-radius:14px;background:linear-gradient(180deg,#f8fbff,#fff)
+}
+.film-package-head4317{
+  display:flex;align-items:flex-start;justify-content:space-between;gap:10px
+}
+.film-package-head4317 h4{font-size:13px;line-height:1.25}
+.film-package-head4317 p{font-size:8px;color:#64748b;line-height:1.4;margin-top:4px}
+.film-color4317{
+  display:grid;grid-template-columns:34px 1fr;gap:9px;align-items:center;
+  margin-top:10px;padding:9px;border:1px solid #e5e7eb;border-radius:11px;background:#fff
+}
+.film-color-dot4317{
+  width:34px;height:34px;border-radius:50%;border:1px solid #cbd5e1;
+  box-shadow:inset 0 0 0 4px #fff
+}
+.film-color4317 b{display:block;font-size:10px}
+.film-color4317 span{display:block;font-size:8px;color:#64748b;margin-top:3px}
+.film-textures4317{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:9px
+}
+.film-texture4317{
+  min-height:42px;border:1px solid #dbe3ef;border-radius:10px;background:#fff;
+  color:#334155;font-size:10px;font-weight:950
+}
+.film-texture4317.active{
+  border-color:#075bff;background:#075bff;color:#fff;
+  box-shadow:0 7px 18px rgba(7,91,255,.22)
+}
+.material-row .base-included4317{color:#15803d!important;font-weight:900}
+.pre-plan-result4317{
+  display:none;margin-top:9px;padding:10px;border:1px solid #a7f3d0;
+  border-radius:10px;background:#f0fdf4;color:#047857;font-size:9px;
+  font-weight:850;line-height:1.45
+}
+.pre-plan-result4317.show{display:block}
+</style>
+
+
+<style id="pixel4318ElementsPlanNavStyles">
+.room-plan-elements4318{
+  margin:14px 0;padding:13px;border:1px solid #bfdbfe;border-radius:16px;
+  background:linear-gradient(180deg,#f8fbff,#fff)
+}
+.room-plan-elements-head4318{
+  display:flex;align-items:flex-start;justify-content:space-between;gap:10px
+}
+.room-plan-elements-head4318 h3{font-size:15px;line-height:1.25}
+.room-plan-elements-head4318 p{
+  margin-top:4px;max-width:620px;font-size:8px;color:#64748b;line-height:1.45
+}
+.room-plan-elements-head4318>span{
+  min-width:38px;height:38px;padding:0 8px;border-radius:11px;background:#075bff;
+  color:#fff;display:flex;align-items:center;justify-content:center;
+  font-size:13px;font-weight:950
+}
+.room-plan-elements-rows4318{display:grid;gap:8px;margin-top:11px}
+.room-plan-element4318{
+  display:grid;grid-template-columns:40px minmax(0,1fr) auto;
+  gap:9px;align-items:center;padding:10px;border:1px solid #e5e7eb;
+  border-radius:12px;background:#fff
+}
+.room-plan-element-icon4318{
+  width:40px;height:40px;border-radius:11px;background:#eff6ff;
+  display:flex;align-items:center;justify-content:center;font-size:19px
+}
+.room-plan-element-main4318 b{display:block;font-size:10px}
+.room-plan-element-main4318 span{
+  display:block;margin-top:3px;font-size:8px;color:#64748b;line-height:1.4
+}
+.room-plan-element-price4318{text-align:right}
+.room-plan-element-price4318 b{display:block;font-size:11px;color:#16a34a}
+.room-plan-element-price4318 span{
+  display:block;margin-top:3px;font-size:7px;color:#64748b;white-space:nowrap
+}
+.room-plan-elements-empty4318{
+  padding:15px;border:1px dashed #cbd5e1;border-radius:11px;
+  text-align:center;color:#64748b;font-size:9px
+}
+.room-plan-elements-total4318{
+  display:flex;align-items:center;justify-content:space-between;gap:10px;
+  margin-top:11px;padding:12px 13px;border-radius:12px;background:#071428;color:#fff
+}
+.room-plan-elements-total4318 span{font-size:9px;color:#bfdbfe}
+.room-plan-elements-total4318 b{font-size:20px}
+@media(max-width:470px){
+  .room-plan-element4318{grid-template-columns:36px minmax(0,1fr)}
+  .room-plan-element-icon4318{width:36px;height:36px}
+  .room-plan-element-price4318{grid-column:2;text-align:left}
+  .room-plan-element-price4318 span{white-space:normal}
+}
+</style>
+
+
+<style id="pixel4319GrandTotalDeleteStyles">
+.room-plan-element4318{
+  grid-template-columns:40px minmax(0,1fr) auto 42px!important;
+}
+.element-delete4319{
+  width:42px;height:42px;border:1px solid #fecaca;border-radius:11px;
+  background:#fff;color:#dc2626;font-size:18px;font-weight:950;
+  display:flex;align-items:center;justify-content:center;
+}
+.element-delete4319:active{background:#fff1f2;transform:scale(.97)}
+.element-delete-placeholder4319{width:42px;height:42px}
+.grand-finance4319{
+  margin-top:12px;padding:13px;border:1px solid #bfdbfe;
+  border-radius:16px;background:linear-gradient(180deg,#f8fbff,#fff)
+}
+.grand-finance-row4319{
+  display:flex;justify-content:space-between;align-items:center;gap:12px;
+  padding:10px 4px;border-bottom:1px solid #e5e7eb
+}
+.grand-finance-row4319 span{font-size:10px;color:#64748b}
+.grand-finance-row4319 b{font-size:16px;color:#075bff;white-space:nowrap}
+.grand-finance-total4319{
+  display:flex;justify-content:space-between;align-items:flex-end;gap:14px;
+  margin-top:11px;padding:14px;border-radius:13px;
+  background:linear-gradient(135deg,#071428,#075bff);color:#fff
+}
+.grand-finance-total4319 span{display:block;font-size:12px;font-weight:950}
+.grand-finance-total4319 small{
+  display:block;margin-top:4px;font-size:8px;color:#bfdbfe;line-height:1.35
+}
+.grand-finance-total4319 b{
+  font-size:25px;font-weight:950;white-space:nowrap
+}
+@media(max-width:470px){
+  .room-plan-element4318{
+    grid-template-columns:36px minmax(0,1fr) 40px!important;
+  }
+  .room-plan-element-price4318{
+    grid-column:2!important;text-align:left!important
+  }
+  .element-delete4319{
+    grid-column:3;grid-row:1 / span 2;width:40px;height:40px
+  }
+  .element-delete-placeholder4319{
+    grid-column:3;grid-row:1 / span 2;width:40px;height:40px
+  }
+  .grand-finance-total4319{align-items:flex-start;flex-direction:column}
+  .grand-finance-total4319 b{font-size:28px}
+}
+</style>
+
+
+<style id="pixel4322VisibleDeleteStyles">
+.element-delete4319{
+  display:flex!important;visibility:visible!important;opacity:1!important;
+  position:relative!important;z-index:3!important;
+  flex:0 0 42px!important;
+}
+@media(max-width:470px){
+  .room-plan-element4318{
+    grid-template-columns:36px minmax(0,1fr) 42px!important;
+  }
+  .element-delete4319{
+    grid-column:3!important;grid-row:1 / span 2!important;
+    align-self:center!important;justify-self:end!important;
+  }
+  .room-plan-element-price4318{grid-column:2!important}
+}
+</style>
+
 </head>
 <body>
 <header class="header"><div class="wrap nav"><a class="logo" href="../index.html">Potolok<span>.in.ua</span></a><div class="menu"><a href="../index.html">Головна</a><a href="../gallery.html">Наші роботи</a><a href="#app">Pixel 5</a></div><a class="phone" href="tel:+380974546713">097 454 67 13</a><a class="tg-top" href="https://t.me/Potolok_in_ua">Фото в TG</a></div></header>
@@ -585,6 +753,22 @@ th:nth-child(2),th:nth-child(3),th:nth-child(4),td:nth-child(2),td:nth-child(3),
   </div>
   <div class="room-base-result">У розрахунок: <b id="roomCornersFinal">0 кутів</b> • <b id="roomInsertFinal">без вставки</b></div>
 </div>
+
+<section id="roomPlanElements4318" class="room-plan-elements4318">
+  <div class="room-plan-elements-head4318">
+    <div>
+      <h3>🧩 Додаткові елементи</h3>
+      <p>Кількість і довжина беруться безпосередньо з креслення. Позиції з тарифом автоматично входять у вартість кімнати.</p>
+    </div>
+    <span id="roomPlanElementsBadge4318">0</span>
+  </div>
+  <div id="roomPlanElementsRows4318" class="room-plan-elements-rows4318"></div>
+  <div class="room-plan-elements-total4318">
+    <span>Разом додаткові елементи з плану</span>
+    <b id="roomPlanElementsTotal4318">0 грн</b>
+  </div>
+</section>
+
 <div class="object-totals">
   <div class="object-total"><span>Кімнат</span><b id="objectRoomsTotal">0</b></div>
   <div class="object-total"><span>Загальна площа</span><b id="objectAreaTotal">0 м²</b></div>
@@ -593,6 +777,25 @@ th:nth-child(2),th:nth-child(3),th:nth-child(4),td:nth-child(2),td:nth-child(3),
   <div class="object-total"><span>Внутрішні кути</span><b id="objectInnerTotal">0</b></div>
   <div class="object-total"><span>Вартість об’єкта</span><b id="objectPriceTotal">0 грн</b></div>
 </div>
+
+<section id="grandFinance4319" class="grand-finance4319">
+  <div class="grand-finance-row4319">
+    <span>Базова вартість (площа + кути)</span>
+    <b id="grandBase4319">0 грн</b>
+  </div>
+  <div class="grand-finance-row4319">
+    <span>Додаткові елементи</span>
+    <b id="grandExtras4319">0 грн</b>
+  </div>
+  <div class="grand-finance-total4319">
+    <div>
+      <span>Загальна сума</span>
+      <small>Площа + кути + вибрані додаткові елементи</small>
+    </div>
+    <b id="grandTotal4319">0 грн</b>
+  </div>
+</section>
+
 <div class="notice">Кожна кімната має власний план, фото, параметри, кошторис та AI-налаштування. Усі кімнати зберігаються всередині одного об’єкта за адресою.</div>
 
 </main>
@@ -6943,7 +7146,13 @@ window.openModal60=(title,html)=>{document.getElementById('modalTitle60').textCo
 function injectTabs60(){const tabs=document.querySelector('.tabs-main');if(!tabs)return;if(!tabs.querySelector('[onclick*="reviews"]'))tabs.insertAdjacentHTML('beforeend','<button class="main-tab" onclick="showMainTab(\'reviews\',this);loadPublicReviews60()">⭐ Відгуки</button>');if(!tabs.querySelector('[onclick*="service"]'))tabs.insertAdjacentHTML('beforeend','<button class="main-tab" onclick="showMainTab(\'service\',this);renderService60()">🔒 Адмін</button>')}
 window.renderService60=function(){const root=document.getElementById('serviceRoot60');if(!root)return;if(!serviceToken60){root.innerHTML=`<div class="p60-shell p60-login"><div class="p60-lock">🔒</div><h2>Адмін</h2><p class="p60-note">Закритий розділ адміністратора. Введіть PIN-код.</p><div class="p60-field" style="margin-top:12px"><label>PIN-код</label><input id="servicePin60" type="password" inputmode="numeric" maxlength="12" placeholder="••••••"></div><button class="p60-btn blue" style="width:100%;margin-top:10px" onclick="serviceLogin60()">Увійти</button><div id="serviceStatus60" class="p60-status"></div></div>`;return}loadService60()};
 function serviceStatus60(t,ok=false){const n=document.getElementById('serviceStatus60');if(n){n.textContent=t;n.className='p60-status show '+(ok?'ok':'error')}}
-window.serviceLogin60=async()=>{try{const pin=document.getElementById('servicePin60').value;const d=await api60({action:'serviceLogin',pin});serviceToken60=d.token;sessionStorage.setItem('potolok_service_token',serviceToken60);renderService60()}catch(e){serviceStatus60(e.message)}};
+window.serviceLogin60=async()=>{try{const pin=document.getElementById('servicePin60').value;const d=await api60({action:'serviceLogin',pin});serviceToken60=d.token;sessionStorage.setItem('potolok_service_token',serviceToken60);renderService60();
+const adminTab=[...document.querySelectorAll('.main-tab')]
+  .find(button=>String(button.getAttribute('onclick')||'').includes("'service'"));
+if(adminTab&&typeof showMainTab==='function'){
+  showMainTab('service',adminTab);
+}
+}catch(e){serviceStatus60(e.message)}};
 window.serviceLogout60=()=>{serviceToken60='';serviceRows60=[];sessionStorage.removeItem('potolok_service_token');renderService60()};
 async function loadService60(){const root=document.getElementById('serviceRoot60');root.innerHTML='<div class="p60-shell">Завантаження…</div>';try{const d=await api60({action:'serviceList'});serviceRows60=d.objects||[];window.serviceRows60=serviceRows60;renderServiceList60()}catch(e){serviceToken60='';sessionStorage.removeItem('potolok_service_token');renderService60();serviceStatus60(e.message)}}
 function obj60(r){return r.object_data&&typeof r.object_data==='object'?r.object_data:{}}
@@ -11866,6 +12075,939 @@ document.addEventListener('DOMContentLoaded',()=>{
 
 })();
 </script>
+
+
+<script id="pixel4317FilmAutoPlanSafe">
+(function(){
+'use strict';
+if(window.__pixel4317FilmAutoPlanSafe)return;
+window.__pixel4317FilmAutoPlanSafe=true;
+
+function activeRoom4317(){
+  return (typeof projectRooms!=='undefined'&&Array.isArray(projectRooms))
+    ?projectRooms.find(room=>room.id===activeRoomId)||null
+    :null;
+}
+function textureLabel4317(value){
+  return value==='glossy'?'Глянець':value==='satin'?'Сатин':'Матова';
+}
+function selectedTexture4317(){
+  return document.getElementById('calcTexture')?.value ||
+         window.selectedTexture ||
+         'matte';
+}
+function setTexture4317(value){
+  const calc=document.getElementById('calcTexture');
+  if(calc)calc.value=value;
+
+  if(typeof window.selectedTexture!=='undefined'){
+    window.selectedTexture=value;
+  }else{
+    try{selectedTexture=value}catch(_){}
+  }
+
+  document.querySelectorAll('.film-texture4317').forEach(button=>{
+    button.classList.toggle('active',button.dataset.texture===value);
+  });
+  document.querySelectorAll('.texture-btn').forEach((button,index)=>{
+    button.classList.toggle(
+      'active',
+      ['matte','satin','glossy'][index]===value
+    );
+  });
+
+  if(typeof syncCeilingPackage==='function')syncCeilingPackage();
+  if(typeof updateAISpec==='function')updateAISpec();
+  if(typeof recalc==='function')recalc();
+  if(typeof syncActiveRoomFromUI==='function')syncActiveRoomFromUI(false);
+  if(typeof autosave==='function')autosave();
+  renderFilmPackage4317();
+}
+
+window.setRoomFilmTexture4317=setTexture4317;
+
+function colorData4317(){
+  let color=null;
+  try{color=selectedColor}catch(_){}
+  return color||{name:'Білий 301',manufacturer:'MSD Premium',hex:'#ffffff'};
+}
+function renderFilmPackage4317(){
+  const box=document.getElementById('filmPackage4317');
+  if(!box)return;
+
+  const color=colorData4317();
+  const manufacturer=document.getElementById('calcManufacturer')?.value ||
+                     color.manufacturer ||
+                     'MSD Premium';
+  const texture=selectedTexture4317();
+
+  const title=document.getElementById('filmName4317');
+  const meta=document.getElementById('filmMeta4317');
+  const dot=document.getElementById('filmColorDot4317');
+
+  if(title)title.textContent=`Плівка ${manufacturer}`;
+  if(meta)meta.textContent=`Колір: ${color.name||'Білий 301'} · Фактура: ${textureLabel4317(texture)}`;
+  if(dot)dot.style.background=color.hex||'#fff';
+
+  document.querySelectorAll('.film-texture4317').forEach(button=>{
+    button.classList.toggle('active',button.dataset.texture===texture);
+  });
+}
+
+function installFilmPackage4317(){
+  const summary=document.getElementById('roomMaterialsSummary');
+  if(!summary||document.getElementById('filmPackage4317'))return;
+
+  const box=document.createElement('div');
+  box.id='filmPackage4317';
+  box.className='film-package4317';
+  box.innerHTML=`
+    <div class="film-package-head4317">
+      <div>
+        <h4 id="filmName4317">Плівка MSD Premium</h4>
+        <p>Номер кольору та фактура зберігаються окремо для поточної кімнати.</p>
+      </div>
+    </div>
+    <div class="film-color4317">
+      <div id="filmColorDot4317" class="film-color-dot4317"></div>
+      <div>
+        <b id="filmMeta4317">Колір: Білий 301 · Фактура: Матова</b>
+        <span>Фактуру можна змінити дотиком нижче.</span>
+      </div>
+    </div>
+    <div class="film-textures4317">
+      <button class="film-texture4317" data-texture="matte" type="button"
+              onclick="setRoomFilmTexture4317('matte')">Матова</button>
+      <button class="film-texture4317" data-texture="satin" type="button"
+              onclick="setRoomFilmTexture4317('satin')">Сатин</button>
+      <button class="film-texture4317" data-texture="glossy" type="button"
+              onclick="setRoomFilmTexture4317('glossy')">Глянець</button>
+    </div>`;
+  summary.insertAdjacentElement('beforebegin',box);
+  renderFilmPackage4317();
+}
+
+function improveMaterialWording4317(){
+  const summary=document.getElementById('roomMaterialsSummary');
+  if(!summary)return;
+
+  summary.querySelectorAll('.material-row').forEach(row=>{
+    const text=(row.textContent||'').toLowerCase();
+    if(text.includes('h-подіб')||text.includes('п-подіб')){
+      const secondary=row.querySelector('span');
+      if(secondary){
+        secondary.textContent='Входить у базовий комплект';
+        secondary.classList.add('base-included4317');
+      }
+    }
+  });
+}
+
+function rectangleFromInputs4317(areaValue,perimeterValue){
+  const area=Math.max(0,Number(areaValue)||0);
+  const perimeter=Math.max(0,Number(perimeterValue)||0);
+  if(area<=0)return null;
+
+  if(perimeter>0){
+    const half=perimeter/2;
+    const discriminant=half*half-4*area;
+    if(discriminant>=0){
+      const root=Math.sqrt(discriminant);
+      const a=(half+root)/2;
+      const b=(half-root)/2;
+      if(a>0&&b>0){
+        return{
+          length:Math.max(a,b),
+          width:Math.min(a,b),
+          exactPerimeter:true
+        };
+      }
+    }
+  }
+
+  /* У площі 15 м² це дає стартовий прямокутник 5 × 3 м. */
+  const preferredRatio=5/3;
+  const width=Math.sqrt(area/preferredRatio);
+  const length=area/width;
+  return{length,width,exactPerimeter:false};
+}
+
+function installPrePlanStatus4317(){
+  const button=document.querySelector('[onclick="preliminaryToPlan56()"]');
+  if(!button||document.getElementById('prePlanResult4317'))return;
+  const status=document.createElement('div');
+  status.id='prePlanResult4317';
+  status.className='pre-plan-result4317';
+  button.closest('.p56-flow')?.insertAdjacentElement('afterend',status);
+}
+
+function showPrePlanStatus4317(message){
+  installPrePlanStatus4317();
+  const status=document.getElementById('prePlanResult4317');
+  if(!status)return;
+  status.textContent=message;
+  status.classList.add('show');
+}
+
+const preliminaryBase4317=window.preliminaryToPlan56;
+window.preliminaryToPlan56=function(){
+  const enteredArea=Number(document.getElementById('preArea56')?.value)||0;
+  const enteredPerimeter=Number(document.getElementById('prePerimeter56')?.value)||0;
+  const texture=document.getElementById('preTexture56')?.value||'matte';
+
+  if(enteredArea<=0){
+    return preliminaryBase4317?.apply(this,arguments);
+  }
+
+  const rectangle=rectangleFromInputs4317(enteredArea,enteredPerimeter);
+  if(!rectangle){
+    return preliminaryBase4317?.apply(this,arguments);
+  }
+
+  const hasElements=Array.isArray(plannerObjects)&&plannerObjects.length>0;
+  if(hasElements&&!confirm(
+    'У поточній кімнаті вже є елементи на плані. Перебудувати контур за попередньою площею? Елементи залишаться, але їх положення може знадобитися підкоригувати.'
+  )){
+    return;
+  }
+
+  /*
+   * Не змінюємо осі, режим редагування, стан замка контура,
+   * шаблони або встановлені елементи. Міняємо лише геометрію прямокутника.
+   */
+  if(typeof pushPlanner==='function')pushPlanner();
+
+  roomTemplate='rect';
+  segmentLengths=[
+    Number(rectangle.length.toFixed(2)),
+    Number(rectangle.width.toFixed(2)),
+    Number(rectangle.length.toFixed(2)),
+    Number(rectangle.width.toFixed(2))
+  ];
+
+  if(typeof renderSegmentInputs==='function')renderSegmentInputs();
+  if(typeof buildRoomFromSegments==='function')buildRoomFromSegments(false);
+
+  const actualArea=rectangle.length*rectangle.width;
+  const actualPerimeter=2*(rectangle.length+rectangle.width);
+
+  const areaInput=document.getElementById('area');
+  const perimeterInput=document.getElementById('perimeter');
+  if(areaInput)areaInput.value=actualArea.toFixed(2);
+  if(perimeterInput)perimeterInput.value=actualPerimeter.toFixed(2);
+
+  setTexture4317(texture);
+
+  const wish=document.getElementById('preWish56')?.value||'';
+  const prompt=document.getElementById('customPrompt');
+  if(prompt&&wish)prompt.value=wish;
+
+  const room=activeRoom4317();
+  if(room){
+    room.preliminary={
+      area:enteredArea,
+      perimeter:enteredPerimeter,
+      texture,
+      lighting:document.getElementById('preLight56')?.value||'none',
+      wish
+    };
+  }
+
+  if(typeof renderPlanner==='function')renderPlanner();
+  if(typeof recalc==='function')recalc();
+  if(typeof syncActiveRoomFromUI==='function')syncActiveRoomFromUI(false);
+  if(typeof autosave==='function')autosave();
+
+  showPrePlanStatus4317(
+    `Створено стартовий план ${rectangle.length.toFixed(2)} × ${rectangle.width.toFixed(2)} м · `+
+    `${actualArea.toFixed(2)} м² · периметр ${actualPerimeter.toFixed(2)} м.`+
+    (rectangle.exactPerimeter?'':' Периметр визначено за пропорцією 5:3.')
+  );
+
+  if(typeof goTab==='function')goTab('planner');
+};
+
+/* Зберігаємо інформацію про плівку разом із кімнатою, не втручаючись у план. */
+const captureBase4317=window.captureCurrentRoom;
+if(typeof captureBase4317==='function'){
+  window.captureCurrentRoom=function(){
+    const room=captureBase4317.apply(this,arguments);
+    const color=colorData4317();
+    room.filmPackage4317={
+      manufacturer:document.getElementById('calcManufacturer')?.value||color.manufacturer||'MSD Premium',
+      color:color.name||'Білий 301',
+      colorHex:color.hex||'#ffffff',
+      texture:selectedTexture4317()
+    };
+    return room;
+  };
+}
+
+const restoreBase4317=window.restoreRoom;
+if(typeof restoreBase4317==='function'){
+  window.restoreRoom=function(room){
+    const result=restoreBase4317.apply(this,arguments);
+    const film=room?.filmPackage4317;
+    if(film){
+      const manufacturer=document.getElementById('calcManufacturer');
+      const texture=document.getElementById('calcTexture');
+      if(manufacturer&&film.manufacturer)manufacturer.value=film.manufacturer;
+      if(texture&&film.texture)texture.value=film.texture;
+      if(film.texture)setTexture4317(film.texture);
+    }
+    requestAnimationFrame(()=>{
+      installFilmPackage4317();
+      renderFilmPackage4317();
+      improveMaterialWording4317();
+    });
+    return result;
+  };
+}
+
+/* Обновление информационного блока после штатных перерисовок. */
+const renderMaterialsBase4317=window.renderRoomMaterials;
+if(typeof renderMaterialsBase4317==='function'){
+  window.renderRoomMaterials=function(){
+    const result=renderMaterialsBase4317.apply(this,arguments);
+    installFilmPackage4317();
+    renderFilmPackage4317();
+    improveMaterialWording4317();
+    return result;
+  };
+}
+
+const selectColorBase4317=window.selectColor;
+if(typeof selectColorBase4317==='function'){
+  window.selectColor=function(){
+    const result=selectColorBase4317.apply(this,arguments);
+    requestAnimationFrame(renderFilmPackage4317);
+    return result;
+  };
+}
+
+const setTextureBase4317=window.setTexture;
+if(typeof setTextureBase4317==='function'){
+  window.setTexture=function(value,button){
+    const result=setTextureBase4317.apply(this,arguments);
+    const calc=document.getElementById('calcTexture');
+    if(calc)calc.value=value;
+    requestAnimationFrame(()=>{
+      renderFilmPackage4317();
+      if(typeof renderRoomMaterials==='function')renderRoomMaterials();
+    });
+    return result;
+  };
+}
+
+document.addEventListener('DOMContentLoaded',()=>{
+  setTimeout(()=>{
+    installFilmPackage4317();
+    installPrePlanStatus4317();
+    renderFilmPackage4317();
+    improveMaterialWording4317();
+  },350);
+});
+})();
+</script>
+
+
+<script id="pixel4318ElementsPlanNavFix">
+(function(){
+'use strict';
+if(window.__pixel4318ElementsPlanNavFix)return;
+window.__pixel4318ElementsPlanNavFix=true;
+
+const META4318={
+  light:{icon:'💡',name:'Точкові світильники',unit:'шт',price:200,rowId:'spots'},
+  chandelier:{icon:'✣',name:'Люстра',unit:'шт',price:400,rowId:'chandelier'},
+  pipe1:{icon:'○',name:'Обвід труби 1×',unit:'шт',price:200,rowId:'pipe'},
+  pipe2:{icon:'◎',name:'Обвід труби 2×',unit:'шт',price:400,rowId:'pipe'},
+  vent:{icon:'▦',name:'Вентиляційна решітка',unit:'шт',price:400,rowId:'ventBasic'},
+  door:{icon:'🚪',name:'Двері',unit:'шт',price:0},
+  window:{icon:'▥',name:'Вікна',unit:'шт',price:0},
+  column:{icon:'●',name:'Колона',unit:'шт',price:0},
+
+  lightline:{icon:'━',name:'Світлова лінія',unit:'м.п.',price:1200,rowId:'lightline',linear:true},
+  track:{icon:'▬',name:'Магнітний трек',unit:'м.п.',price:4500,rowId:'trackMagnetic',linear:true},
+  trackMagnetic:{icon:'▬',name:'Магнітний трек',unit:'м.п.',price:4500,rowId:'trackMagnetic',linear:true},
+  surfaceTrack:{icon:'═',name:'Накладний трек',unit:'м.п.',price:1500,rowId:'trackSurface',linear:true},
+  trackSurface:{icon:'═',name:'Накладний трек',unit:'м.п.',price:1500,rowId:'trackSurface',linear:true},
+  cornice:{icon:'▱',name:'Вбудований карниз',unit:'м.п.',price:1200,rowId:'cornice',linear:true},
+  corniceWhite:{icon:'▱',name:'Карниз білий',unit:'м.п.',price:1200,rowId:'corniceWhite',linear:true},
+  corniceBlack:{icon:'▰',name:'Карниз чорний',unit:'м.п.',price:1200,rowId:'corniceBlack',linear:true},
+  corniceLed:{icon:'✨',name:'Карниз з підсвіткою',unit:'м.п.',price:1700,rowId:'corniceLed',linear:true},
+  shadowProfile:{icon:'◼',name:'Тіньовий профіль',unit:'м.п.',price:250,rowId:'shadow',linear:true},
+  shadow:{icon:'◼',name:'Тіньовий профіль',unit:'м.п.',price:250,rowId:'shadow',linear:true},
+  floatingWhite:{icon:'✦',name:'Парящий профіль білий',unit:'м.п.',price:750,rowId:'floatingWhite',linear:true},
+  floatingBlack:{icon:'✦',name:'Парящий профіль чорний',unit:'м.п.',price:750,rowId:'floatingBlack',linear:true},
+  beam:{icon:'▬',name:'Балка',unit:'м.п.',price:0,linear:true},
+  box:{icon:'▭',name:'Короб',unit:'м.п.',price:0,linear:true},
+  curve:{icon:'⌒',name:'Криволінійна конструкція',unit:'м.п.',price:1200,rowId:'curveSimple',linear:true},
+  wave:{icon:'〰',name:'Складна крива / хвиля',unit:'м.п.',price:1800,rowId:'curveHard',linear:true},
+  circle:{icon:'○',name:'Коло',unit:'шт',price:0},
+  oval:{icon:'⬭',name:'Овал',unit:'шт',price:0}
+};
+
+const BIND4318={
+  baseH:{icon:'━',name:'H-профіль — базовий комплект',unit:'м.п.',price:0},
+  baseP:{icon:'━',name:'П-профіль — базовий комплект',unit:'м.п.',price:0},
+  insertWhite:{icon:'▱',name:'Біла вставка по стінах',unit:'м.п.',price:50,rowId:'insertWhite'},
+  insertBlack:{icon:'▰',name:'Чорна вставка по стінах',unit:'м.п.',price:50,rowId:'insertBlack'},
+  shadow:{icon:'◼',name:'Тіньовий профіль по стінах',unit:'м.п.',price:250,rowId:'shadowBlack'},
+  shadowProfile:{icon:'◼',name:'Тіньовий профіль по стінах',unit:'м.п.',price:250,rowId:'shadowBlack'},
+  floatingWhite:{icon:'✦',name:'Парящий білий профіль по стінах',unit:'м.п.',price:750,rowId:'floatingWhite'},
+  floatingBlack:{icon:'✦',name:'Парящий чорний профіль по стінах',unit:'м.п.',price:750,rowId:'floatingBlack'},
+  corniceWhite:{icon:'▱',name:'Карниз білий по стінах',unit:'м.п.',price:1200,rowId:'corniceWhite'},
+  corniceBlack:{icon:'▰',name:'Карниз чорний по стінах',unit:'м.п.',price:1200,rowId:'corniceBlack'},
+  corniceLed:{icon:'✨',name:'Карниз LED по стінах',unit:'м.п.',price:1700,rowId:'corniceLed'},
+  ledStrip:{icon:'💡',name:'LED-стрічка по периметру',unit:'м.п.',price:200,rowId:'ledStrip'}
+};
+
+function esc4318(value){
+  return String(value??'').replace(/[&<>"']/g,c=>({
+    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+  }[c]));
+}
+function money4318(value){
+  return Math.round(Number(value)||0).toLocaleString('uk-UA')+' грн';
+}
+function activeRoom4318(){
+  return (typeof projectRooms!=='undefined'&&Array.isArray(projectRooms))
+    ?projectRooms.find(room=>room.id===activeRoomId)||null
+    :null;
+}
+function objectList4318(){
+  return Array.isArray(plannerObjects)?plannerObjects:[];
+}
+function bindingList4318(){
+  return Array.isArray(perimeterBindings)?perimeterBindings:[];
+}
+function segmentList4318(){
+  return Array.isArray(segmentLengths)?segmentLengths:[];
+}
+function add4318(map,key,meta,qty,length,source){
+  if(!map[key]){
+    map[key]={
+      key,icon:meta.icon||'•',name:meta.name||key,unit:meta.unit||'шт',
+      price:Number(meta.price)||0,rowId:meta.rowId||'',qty:0,length:0,sources:[]
+    };
+  }
+  map[key].qty+=Number(qty)||0;
+  map[key].length+=Number(length)||0;
+  if(source&&!map[key].sources.includes(source))map[key].sources.push(source);
+}
+function summarize4318(){
+  const map={};
+
+  objectList4318().forEach(object=>{
+    if(!object?.type)return;
+    const meta=META4318[object.type]||{
+      icon:'•',name:object.label||object.type,unit:'шт',price:0
+    };
+    const length=meta.linear?Math.max(0,Number(object.length)||0):0;
+    add4318(map,'obj_'+object.type,meta,1,length,'елемент плану');
+  });
+
+  bindingList4318().forEach((types,index)=>{
+    if(!Array.isArray(types))return;
+    types.forEach(type=>{
+      const meta=BIND4318[type];
+      if(!meta)return;
+      const a=typeof pointName==='function'?pointName(index):String(index+1);
+      const b=typeof pointName==='function'
+        ?pointName((index+1)%Math.max(segmentList4318().length,1))
+        :String(index+2);
+      add4318(
+        map,
+        'bind_'+type,
+        meta,
+        1,
+        Math.max(0,Number(segmentList4318()[index])||0),
+        `стіна ${a}–${b}`
+      );
+    });
+  });
+
+  return Object.values(map).map(item=>{
+    const quantity=item.unit==='м.п.'?item.length:item.qty;
+    return{
+      ...item,
+      quantity,
+      sum:quantity*item.price
+    };
+  });
+}
+function rowAlreadyManual4318(rowId){
+  if(!rowId)return false;
+
+  const checkbox=document.getElementById('check_'+rowId);
+  if(checkbox?.checked)return true;
+
+  const profile=document.getElementById('profile_'+rowId);
+  if(profile?.classList.contains('active'))return true;
+
+  return false;
+}
+function plannerRows4318(){
+  return summarize4318()
+    .filter(item=>item.price>0&&item.quantity>0)
+    .filter(item=>!window.rowAlreadyManual4318(item.rowId))
+    .map(item=>({
+      id:'planner_'+item.key,
+      name:item.name+' (з креслення)',
+      unit:item.unit,
+      price:item.price,
+      qty:Number(item.quantity.toFixed(3)),
+      sum:item.sum,
+      planner4318:true
+    }));
+}
+
+/* Подключаем позиции чертежа к штатной смете комнаты. */
+const currentRowsBase4318=window.currentRows;
+window.currentRows=function(){
+  const rows=typeof currentRowsBase4318==='function'
+    ?currentRowsBase4318.apply(this,arguments).map(row=>({...row}))
+    :[];
+
+  const summary=summarize4318();
+
+  /* Штатная люстра всегда была активна — заменяем её количество данными плана. */
+  const chandeliers=summary.find(item=>item.key==='obj_chandelier');
+  if(chandeliers?.qty>0){
+    const existing=rows.find(row=>row.id==='chandelier');
+    if(existing){
+      existing.qty=chandeliers.qty;
+      existing.sum=existing.qty*existing.price;
+      existing.name='Люстра (з креслення)';
+    }
+  }
+
+  const existingIds=new Set(rows.map(row=>row.id));
+  plannerRows4318().forEach(row=>{
+    if(!existingIds.has(row.id)){
+      rows.push(row);
+      existingIds.add(row.id);
+    }
+  });
+
+  return rows;
+};
+
+function render4318(){
+  const rows=window.summarize4318();
+  const box=document.getElementById('roomPlanElementsRows4318');
+  const total=document.getElementById('roomPlanElementsTotal4318');
+  const badge=document.getElementById('roomPlanElementsBadge4318');
+  if(!box||!total||!badge)return;
+
+  const count=rows.reduce((sum,item)=>sum+item.qty,0);
+  badge.textContent=String(count);
+
+  box.innerHTML=rows.length?rows.map(item=>{
+    const quantity=item.unit==='м.п.'
+      ?`${item.quantity.toFixed(2)} м.п.`
+      :`${Math.round(item.quantity)} шт`;
+    const sources=item.sources.length?item.sources.join(', '):'креслення';
+    const included=item.price<=0;
+    const isBaseProfile=item.key==='bind_baseH'||item.key==='bind_baseP';
+    const deleteControl=isBaseProfile
+      ?'<span class="element-delete-placeholder4319" title="Базовий профіль входить у комплект"></span>'
+      :`<button type="button" class="element-delete4319"
+          title="Видалити з плану та розрахунку"
+          aria-label="Видалити ${esc4318(item.name)}"
+          data-delete-key="${item.key}">✕</button>`;
+    return`
+      <div class="room-plan-element4318" data-element-key="${item.key}">
+        <div class="room-plan-element-icon4318">${item.icon}</div>
+        <div class="room-plan-element-main4318">
+          <b>${esc4318(item.name)}</b>
+          <span>${quantity} · ${esc4318(sources)}</span>
+        </div>
+        <div class="room-plan-element-price4318">
+          <b>${included?'входить / інформаційно':money4318(item.sum)}</b>
+          <span>${included?'без окремого тарифу':money4318(item.price)+' / '+item.unit}</span>
+        </div>
+        ${deleteControl}
+      </div>`;
+  }).join(''):'<div class="room-plan-elements-empty4318">На креслення ще не нанесено додаткових елементів.</div>';
+
+  total.textContent=money4318(
+    rows
+      .filter(item=>Number(item.price)>0)
+      .reduce((sum,item)=>sum+(Number(item.sum)||0),0)
+  );
+}
+window.summarize4318=summarize4318;
+window.rowAlreadyManual4318=rowAlreadyManual4318;
+window.renderRoomPlanElements4318=render4318;
+
+/* Чиним реальный переход: goTab находится внутри старого модуля как goTab56. */
+function openPlanner4318(){
+  const planButton=[...document.querySelectorAll('.main-tab')]
+    .find(button=>(button.textContent||'').includes('План'));
+
+  if(typeof window.goTab56==='function'){
+    window.goTab56('planner');
+  }else if(typeof window.showMainTab==='function'&&planButton){
+    window.showMainTab('planner',planButton);
+    window.scrollTo({
+      top:document.getElementById('app')?.offsetTop||0,
+      behavior:'smooth'
+    });
+  }else if(planButton){
+    planButton.click();
+  }
+
+  setTimeout(()=>{
+    const planner=document.getElementById('tab_planner');
+    if(planner&&!planner.classList.contains('active')&&planButton){
+      planButton.click();
+    }
+    document.getElementById('tab_planner')?.scrollIntoView({
+      behavior:'smooth',block:'start'
+    });
+  },80);
+}
+
+const preliminaryBase4318=window.preliminaryToPlan56;
+window.preliminaryToPlan56=function(){
+  const result=preliminaryBase4318?.apply(this,arguments);
+
+  /*
+   * Старый обработчик создаёт геометрию синхронно.
+   * Переход выполняем после него независимо от локальной функции goTab.
+   */
+  setTimeout(()=>{
+    openPlanner4318();
+    render4318();
+  },0);
+
+  return result;
+};
+
+/* Обновляем блок после всех основных операций без изменения контуров и осей. */
+[
+  'renderPlanner',
+  'renderRoomMaterials',
+  'renderRooms',
+  'restoreRoom',
+  'syncActiveRoomFromUI'
+].forEach(name=>{
+  const base=window[name];
+  if(typeof base!=='function')return;
+  window[name]=function(){
+    const result=base.apply(this,arguments);
+    requestAnimationFrame(render4318);
+    return result;
+  };
+});
+
+const recalcBase4318=window.recalc;
+if(typeof recalcBase4318==='function'){
+  window.recalc=function(){
+    const result=recalcBase4318.apply(this,arguments);
+    requestAnimationFrame(render4318);
+    return result;
+  };
+}
+
+document.addEventListener('DOMContentLoaded',()=>{
+  setTimeout(render4318,400);
+});
+})();
+</script>
+
+
+<script id="pixel4319GrandTotalDeleteFix">
+(function(){
+'use strict';
+if(window.__pixel4319GrandTotalDeleteFix)return;
+window.__pixel4319GrandTotalDeleteFix=true;
+
+function number4319(value){
+  const normalized=String(value??'')
+    .replace(/\s/g,'')
+    .replace(',','.')
+    .replace(/[^\d.-]/g,'');
+  return Number(normalized)||0;
+}
+function money4319(value){
+  return Math.round(Number(value)||0).toLocaleString('uk-UA')+' грн';
+}
+function extrasTotal4319(){
+  /*
+   * Єдине джерело: усі платні позиції з креслення.
+   * Не відкидаємо вставку або інші позиції, які також
+   * відображаються у штатному калькуляторі.
+   */
+  if(typeof window.summarize4318==='function'){
+    return window.summarize4318()
+      .filter(item=>Number(item.price)>0)
+      .reduce((sum,item)=>sum+(Number(item.sum)||0),0);
+  }
+
+  return number4319(
+    document.getElementById('roomPlanElementsTotal4318')?.textContent
+  );
+}
+
+function objectTotal4319(){
+  /*
+   * Беремо живий розрахунок поточної кімнати, а не застарілий
+   * текст objectPriceTotal. Для інших кімнат використовуємо
+   * їх збережений calculated.
+   */
+  if(typeof currentCalculatedTotal==='function' &&
+     Array.isArray(projectRooms) &&
+     typeof activeRoomId!=='undefined'){
+
+    let calculated=0;
+
+    projectRooms.forEach(room=>{
+      if(room?.id===activeRoomId){
+        calculated+=Number(currentCalculatedTotal())||0;
+      }else{
+        calculated+=Number(room?.calculated)||0;
+      }
+    });
+
+    if(!projectRooms.length){
+      calculated=Number(currentCalculatedTotal())||0;
+    }
+
+    return typeof priceWithObjectRule==='function'
+      ? Number(priceWithObjectRule(calculated))||0
+      : calculated;
+  }
+
+  return number4319(
+    document.getElementById('objectPriceTotal')?.textContent
+  );
+}
+
+function baseTotal4319(){
+  return Math.max(0,objectTotal4319()-extrasTotal4319());
+}
+
+function updateGrandTotal4319(){
+  const total=objectTotal4319();
+  const extras=extrasTotal4319();
+  const base=Math.max(0,total-extras);
+
+  const baseBox=document.getElementById('grandBase4319');
+  const extrasBox=document.getElementById('grandExtras4319');
+  const totalBox=document.getElementById('grandTotal4319');
+  const objectBox=document.getElementById('objectPriceTotal');
+
+  if(baseBox)baseBox.textContent=money4319(base);
+  if(extrasBox)extrasBox.textContent=money4319(extras);
+  if(totalBox)totalBox.textContent=money4319(total);
+
+  /* Синхронізуємо картку «Вартість об’єкта» з тим самим підсумком. */
+  if(objectBox && number4319(objectBox.textContent)!==Math.round(total)){
+    objectBox.textContent=money4319(total);
+  }
+}
+
+function isBaseProfile4319(key){
+  return key==='bind_baseH'||key==='bind_baseP';
+}
+function canDelete4319(item){
+  return !isBaseProfile4319(item.key);
+}
+function label4319(item){
+  return item?.name||'цей елемент';
+}
+
+window.deletePlanElement4319=function(key){
+  const summary=typeof window.summarize4318==='function'
+    ?window.summarize4318()
+    :[];
+
+  const item=summary.find(row=>row.key===key);
+  const itemName=item?.name||'цей елемент';
+
+  if(!key)return;
+  if(!window.confirm(`Прибрати «${itemName}» з плану та розрахунку?`))return;
+
+  if(key.startsWith('obj_')){
+    const type=key.slice(4);
+
+    /*
+     * Та сама штатна логіка, що у кнопки «Видалити» в плані:
+     * вибираємо об'єкт і викликаємо deleteSelectedObject().
+     * Індекси йдуть від останнього до першого, щоб масив не зсувався.
+     */
+    const indexes=(Array.isArray(plannerObjects)?plannerObjects:[])
+      .map((object,index)=>object?.type===type?index:-1)
+      .filter(index=>index>=0)
+      .sort((a,b)=>b-a);
+
+    if(!indexes.length){
+      window.alert('Елемент уже відсутній на плані.');
+      return;
+    }
+
+    indexes.forEach(index=>{
+      selectedObjectIndex=index;
+      deleteSelectedObject();
+    });
+
+  }else if(key.startsWith('bind_')){
+    const type=key.slice(5);
+
+    if(typeof pushPlanner==='function')pushPlanner();
+
+    perimeterBindings=(Array.isArray(perimeterBindings)?perimeterBindings:[])
+      .map(list=>(Array.isArray(list)?list:[])
+        .filter(value=>value!==type)
+      );
+
+    if(typeof ensureBindings==='function')ensureBindings();
+    if(typeof renderPerimeterBindings==='function')renderPerimeterBindings();
+    if(typeof renderPlanner==='function')renderPlanner();
+    if(typeof showObjectInspector==='function')showObjectInspector();
+  }
+
+  selectedObjectIndex=-1;
+
+  if(typeof renderRoomMaterials==='function')renderRoomMaterials();
+  if(typeof syncActiveRoomFromUI==='function')syncActiveRoomFromUI(false);
+  if(typeof recalc==='function')recalc();
+  if(typeof autosave==='function')autosave();
+
+  requestAnimationFrame(()=>{
+    if(typeof window.renderRoomPlanElements4318==='function'){
+      window.renderRoomPlanElements4318();
+    }
+    if(typeof updateGrandTotal4319==='function'){
+      updateGrandTotal4319();
+    }
+  });
+};
+
+/*
+ * Дополняем существующую функцию рендера, не меняя расчёт и структуру данных.
+ * Кнопка удаляет всю агрегированную позицию:
+ * все светильники, весь карниз данного типа и т. п.
+ */
+const renderBase4319=window.renderRoomPlanElements4318;
+window.renderRoomPlanElements4318=function(){
+  if(typeof renderBase4319==='function')renderBase4319();
+
+  const box=document.getElementById('roomPlanElementsRows4318');
+  if(!box||typeof window.summarize4318!=='function'){
+    updateGrandTotal4319();
+    return;
+  }
+
+  const rows=window.summarize4318();
+  const cards=[...box.querySelectorAll('.room-plan-element4318')];
+
+  cards.forEach((card,index)=>{
+    const item=rows[index];
+    if(!item)return;
+
+    card.querySelector('.element-delete4319,.element-delete-placeholder4319')?.remove();
+
+    if(canDelete4319(item)){
+      const button=document.createElement('button');
+      button.type='button';
+      button.className='element-delete4319';
+      button.title='Видалити з плану та розрахунку';
+      button.setAttribute('aria-label','Видалити '+label4319(item));
+      button.textContent='🗑';
+      button.dataset.deleteKey=item.key;
+      card.appendChild(button);
+    }else{
+      const placeholder=document.createElement('span');
+      placeholder.className='element-delete-placeholder4319';
+      placeholder.title='Базовий профіль не видаляється з комплекту';
+      card.appendChild(placeholder);
+    }
+  });
+
+  updateGrandTotal4319();
+};
+
+/* render4318 вызывает локальную старую функцию, поэтому после неё отдельно
+   добавляем кнопки и общий итог. */
+function refresh4319(){
+  if(typeof window.renderRoomPlanElements4318==='function'){
+    window.renderRoomPlanElements4318();
+  }else{
+    updateGrandTotal4319();
+  }
+}
+
+[
+  'recalc',
+  'renderRooms',
+  'restoreRoom',
+  'syncActiveRoomFromUI',
+  'renderPlanner',
+  'renderRoomMaterials'
+].forEach(name=>{
+  const base=window[name];
+  if(typeof base!=='function')return;
+  window[name]=function(){
+    const result=base.apply(this,arguments);
+    requestAnimationFrame(refresh4319);
+    return result;
+  };
+});
+
+/* Следим только за текстом одного итогового поля — без наблюдения за class,
+   поэтому зацикливания страницы не будет. */
+const priceNode4319=document.getElementById('objectPriceTotal');
+if(priceNode4319){
+  new MutationObserver(updateGrandTotal4319).observe(priceNode4319,{
+    childList:true,subtree:true,characterData:true
+  });
+}
+
+document.addEventListener('DOMContentLoaded',()=>{
+  setTimeout(refresh4319,450);
+});
+})();
+</script>
+
+
+<script id="pixel4325DeleteRealScopeFix">
+(function(){
+'use strict';
+if(window.__pixel4325DeleteRealScopeFix)return;
+window.__pixel4325DeleteRealScopeFix=true;
+
+document.addEventListener('click',function(event){
+  const button=event.target.closest?.(
+    '#roomPlanElementsRows4318 button.element-delete4319'
+  );
+  if(!button)return;
+
+  event.preventDefault();
+  event.stopPropagation();
+
+  const key=button.dataset.deleteKey ||
+    button.closest('[data-element-key]')?.dataset.elementKey;
+
+  if(!key){
+    window.alert('Не знайдено ключ елемента.');
+    return;
+  }
+
+  if(typeof window.deletePlanElement4319!=='function'){
+    window.alert('Функція видалення не завантажилася.');
+    return;
+  }
+
+  window.deletePlanElement4319(key);
+},true);
+})();
+</script>
+
+
 
 </body>
 </html>
