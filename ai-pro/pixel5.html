@@ -5,6 +5,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Potolok AI PRO — v33 STABLE MODES</title>
+<!-- 43(23): room 3/custom contour opening fixed -->
 <!-- 43(22): decimal input fixed for narrow areas and projections -->
 <!-- 43(21): separate window/door controls in finishing openings -->
 <!-- 43(31): admin restored from published 43(17); planner/finance from 43(30) -->
@@ -13056,6 +13057,251 @@ document.addEventListener('click',function(event){
 </script>
 
 
+
+
+<!-- 43(23): robust room switching and custom-plan restore -->
+<script id="room3OpenFix4323">
+(function(){
+  'use strict';
+  if(window.__room3OpenFix4323)return;
+  window.__room3OpenFix4323=true;
+
+  const originalRestoreRoom4323 =
+    typeof window.restoreRoom === 'function'
+      ? window.restoreRoom
+      : (typeof restoreRoom === 'function' ? restoreRoom : null);
+
+  function array4323(value){
+    return Array.isArray(value) ? value : [];
+  }
+
+  function finite4323(value, fallback){
+    const number = Number(String(value ?? '').replace(',', '.'));
+    return Number.isFinite(number) ? number : fallback;
+  }
+
+  function normalPoint4323(point){
+    if(Array.isArray(point) && point.length >= 2){
+      return [finite4323(point[0], 0), finite4323(point[1], 0)];
+    }
+    if(point && typeof point === 'object'){
+      return [
+        finite4323(point.x ?? point[0], 0),
+        finite4323(point.y ?? point[1], 0)
+      ];
+    }
+    return null;
+  }
+
+  function validPoints4323(value){
+    return array4323(value).map(normalPoint4323).filter(Boolean);
+  }
+
+  function expectedSegments4323(template){
+    if(template === 'rect') return 4;
+    if(template === 'lshape') return 6;
+    return 0;
+  }
+
+  function restoreSavedGeometry4323(room){
+    const planner = room && room.planner && typeof room.planner === 'object'
+      ? room.planner
+      : {};
+
+    const savedPoints = validPoints4323(planner.points);
+    const savedObjects = array4323(planner.objects);
+    const savedSegments = array4323(planner.segments)
+      .map(value => finite4323(value, 0))
+      .filter(value => value > 0);
+
+    const template = String(planner.template || 'rect');
+    const expected = expectedSegments4323(template);
+    const nonStandard =
+      template === 'custom' ||
+      (expected && savedSegments.length && savedSegments.length !== expected) ||
+      (!expected && savedPoints.length >= 3);
+
+    if(!nonStandard || savedPoints.length < 3) return false;
+
+    roomTemplate = 'custom';
+    roomPoints = savedPoints;
+    plannerObjects = typeof deepCopy === 'function'
+      ? deepCopy(savedObjects)
+      : JSON.parse(JSON.stringify(savedObjects));
+
+    segmentLengths = savedSegments.length === savedPoints.length
+      ? savedSegments
+      : savedPoints.map((point, index) => {
+          const next = savedPoints[(index + 1) % savedPoints.length];
+          return Math.max(
+            0.01,
+            Math.hypot(next[0] - point[0], next[1] - point[1])
+          );
+        });
+
+    if(typeof customPointTotal !== 'undefined'){
+      customPointTotal = savedPoints.length;
+    }
+
+    if(typeof renderSegmentInputs === 'function') renderSegmentInputs();
+    if(typeof renderPlanner === 'function') renderPlanner();
+    if(typeof applyPlannerView === 'function') applyPlannerView();
+
+    const customBox = document.getElementById('customPointBox');
+    if(customBox) customBox.classList.remove('hidden');
+
+    return true;
+  }
+
+  window.restoreRoom = function(room){
+    if(!room) return;
+
+    const planner = room.planner && typeof room.planner === 'object'
+      ? room.planner
+      : {};
+    const savedPoints = validPoints4323(planner.points);
+    const savedSegments = array4323(planner.segments);
+    const template = String(planner.template || 'rect');
+    const expected = expectedSegments4323(template);
+    const shouldUseSaved =
+      savedPoints.length >= 3 &&
+      (
+        template === 'custom' ||
+        (expected && savedSegments.length && savedSegments.length !== expected) ||
+        !expected
+      );
+
+    if(!shouldUseSaved && originalRestoreRoom4323){
+      return originalRestoreRoom4323(room);
+    }
+
+    roomSyncLock = true;
+    try{
+      activeRoomId = room.id;
+
+      if(typeof roomName !== 'undefined' && roomName){
+        roomName.value = room.name || 'Кімната';
+      }
+
+      uploadedImageBase64 = room.photo || '';
+      if(typeof roomPreview !== 'undefined' && roomPreview){
+        roomPreview.src = uploadedImageBase64 || '';
+        roomPreview.style.display = uploadedImageBase64 ? 'block' : 'none';
+      }
+      if(typeof emptyPhoto !== 'undefined' && emptyPhoto){
+        emptyPhoto.style.display = uploadedImageBase64 ? 'none' : 'flex';
+      }
+
+      const setValue = (id, value) => {
+        const element = document.getElementById(id);
+        if(element) element.value = value ?? 0;
+      };
+      setValue('area', room.area || 0);
+      setValue('perimeter', room.perimeter || 0);
+      setValue('cornersCount', room.corners || 0);
+      setValue('chandelierCount', room.chandeliers || 0);
+      if(room.height) setValue('ceilingHeight', room.height);
+
+      if(typeof selectedColor !== 'undefined'){
+        selectedColor = room.color || (typeof COLORS !== 'undefined' ? COLORS[0] : selectedColor);
+      }
+      if(typeof selectedTexture !== 'undefined'){
+        selectedTexture = room.texture || 'matte';
+      }
+      if(typeof customPrompt !== 'undefined' && customPrompt){
+        customPrompt.value = room.prompt || '';
+      }
+
+      const manufacturer = document.getElementById('calcManufacturer');
+      if(manufacturer) manufacturer.value = room.calcManufacturer || 'MSD Premium';
+      const texture = document.getElementById('calcTexture');
+      if(texture) texture.value = room.calcTexture || 'matte';
+
+      if(typeof clearDynamicSelections === 'function') clearDynamicSelections();
+
+      Object.entries(room.extras?.checked || {}).forEach(([id, on]) => {
+        const check = document.getElementById('check_' + id);
+        const fields = document.getElementById('fields_' + id);
+        if(check) check.checked = !!on;
+        if(fields) fields.classList.toggle('hidden', !on);
+      });
+      Object.entries(room.extras?.qty || {}).forEach(([id, value]) => {
+        const quantity = document.getElementById('qty_' + id);
+        if(quantity) quantity.value = value;
+      });
+      Object.entries(room.profiles || {}).forEach(([id, state]) => {
+        const card = document.getElementById('profile_' + id);
+        const fields = document.getElementById('profileFields_' + id);
+        const quantity = document.getElementById('qty_profile_' + id);
+        if(card) card.classList.toggle('active', !!state?.active);
+        if(fields) fields.classList.toggle('hidden', !state?.active);
+        if(quantity) quantity.value = state?.qty || 1;
+      });
+      Object.entries(room.ai || {}).forEach(([id, on]) => {
+        const element = document.getElementById('ai_' + id);
+        if(element) element.checked = !!on;
+      });
+
+      document.querySelectorAll('.texture-btn').forEach((button, index) => {
+        button.classList.toggle(
+          'active',
+          ['matte', 'satin', 'glossy'][index] === selectedTexture
+        );
+      });
+
+      restoreSavedGeometry4323(room);
+
+      if(typeof renderPalette === 'function') renderPalette();
+      if(typeof updateAISpec === 'function') updateAISpec();
+      if(typeof recalc === 'function') recalc();
+    } catch(error){
+      console.error('Room restore 43(23) failed:', error);
+      alert('Не вдалося відкрити кімнату: ' + (error?.message || error));
+    } finally {
+      roomSyncLock = false;
+      if(typeof renderRooms === 'function') renderRooms();
+    }
+  };
+
+  window.selectRoom = function(id){
+    const wanted = String(id ?? '');
+    const room = Array.isArray(projectRooms)
+      ? projectRooms.find(item => String(item?.id) === wanted)
+      : null;
+
+    if(!room){
+      alert('Кімнату не знайдено у поточному об’єкті.');
+      return;
+    }
+
+    if(String(activeRoomId ?? '') === wanted){
+      if(typeof showMainTab === 'function'){
+        const planTab = [...document.querySelectorAll('.main-tab')]
+          .find(button => String(button.getAttribute('onclick') || '').includes("'planner'"));
+        if(planTab) showMainTab('planner', planTab);
+      }
+      return;
+    }
+
+    try{
+      if(typeof syncActiveRoomFromUI === 'function'){
+        syncActiveRoomFromUI(false);
+      }
+      window.restoreRoom(room);
+      if(typeof autosave === 'function') autosave();
+
+      const planTab = [...document.querySelectorAll('.main-tab')]
+        .find(button => String(button.getAttribute('onclick') || '').includes("'planner'"));
+      if(planTab && typeof showMainTab === 'function'){
+        showMainTab('planner', planTab);
+      }
+    }catch(error){
+      console.error('Room switch 43(23) failed:', error);
+      alert('Не вдалося переключити кімнату: ' + (error?.message || error));
+    }
+  };
+})();
+</script>
 
 </body>
 </html>
