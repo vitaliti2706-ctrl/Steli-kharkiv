@@ -13457,7 +13457,26 @@ const selectRoomBase4325=window.selectRoom;
 if(typeof selectRoomBase4325==='function')window.selectRoom=function(id){const out=selectRoomBase4325.apply(this,arguments);setTimeout(()=>{pushNav4325(false);renderObjectCenter4325()},0);return out};
 
 /* ---------- OBJECT CENTER ---------- */
-function installObjectCenter4325(){const list=document.getElementById('roomList');if(!list||document.getElementById('objectCenter4325'))return;const shell=document.createElement('section');shell.id='objectCenter4325';shell.className='object-center4325';shell.innerHTML=`<div class="object-center-tabs4325"><button type="button" class="object-center-tab4325" data-object-panel4325="all">🏠 Весь об’єкт</button><button type="button" class="object-center-tab4325" data-object-panel4325="elements">🧩 Додаткові елементи</button><button type="button" class="object-center-tab4325" data-object-panel4325="works">🛠 Додаткові роботи</button></div><div id="objectCenterPanel4325" class="object-center-panel4325"></div>`;list.insertAdjacentElement('afterend',shell);shell.addEventListener('click',e=>{const b=e.target.closest('[data-object-panel4325]');if(!b)return;objectPanel4325=b.dataset.objectPanel4325;renderObjectCenter4325();pushNav4325(false)})}
+function installObjectCenter4325(){
+ const list=document.getElementById('roomList');
+ if(!list||document.getElementById('objectCenter4325'))return;
+ const shell=document.createElement('section');
+ shell.id='objectCenter4325';
+ shell.className='object-center4325';
+ shell.innerHTML=`<div class="object-center-tabs4325"><button type="button" class="object-center-tab4325" data-object-panel4325="all">🏠 Весь об’єкт</button><button type="button" class="object-center-tab4325" data-object-panel4325="elements">🧩 Додаткові елементи</button><button type="button" class="object-center-tab4325" data-object-panel4325="works">🛠 Додаткові роботи</button></div><div id="objectCenterPanel4325" class="object-center-panel4325"></div>`;
+ list.insertAdjacentElement('afterend',shell);
+ shell.addEventListener('click',e=>{
+  const b=e.target.closest('[data-object-panel4325]');
+  if(!b)return;
+  e.preventDefault();
+  const next=b.dataset.objectPanel4325||'all';
+  if(typeof window.setFocusMode4344==='function')window.setFocusMode4344('object');
+  objectPanel4325=next;
+  renderObjectCenter4325();
+  pushNav4325(false);
+  requestAnimationFrame(()=>document.getElementById('objectCenter4325')?.scrollIntoView({behavior:'smooth',block:'start'}));
+ });
+}
 function roomFinishing4325(r){const fw=r?.finishingWorks;return Array.isArray(fw?.items)?fw.items.reduce((s,x)=>s+(x.enabled?(Number(x.quantity)||0)*(Number(x.price)||0):0),0):0}
 function roomMaterials4325(r){const list=r?.finishingWorks?.materials;return Array.isArray(list)?list.reduce((s,x)=>s+(Number(x.quantity)||0)*(Number(x.price)||0),0):0}
 function syncAutoWorkQuantities4328(){const rs=rooms4325();const area=rs.reduce((s,r)=>s+(Number(r.area)||0),0);const perimeter=rs.reduce((s,r)=>s+(Number(r.perimeter)||0),0);objectWorks4325.forEach(w=>{if(w?.autoBasis==='area')w.quantity=Number(area.toFixed(2));if(w?.autoBasis==='perimeter')w.quantity=Number(perimeter.toFixed(2))})}
@@ -13493,7 +13512,27 @@ function renderWorks4325(){
   persistWorks4325(true);
  }));
 }
-function renderObjectCenter4325(){installObjectCenter4325();document.querySelectorAll('[data-object-panel4325]').forEach(b=>b.classList.toggle('active',b.dataset.objectPanel4325===objectPanel4325));if(objectPanel4325==='elements')renderElements4325();else if(objectPanel4325==='works')renderWorks4325();else renderAll4325()}
+let objectCenterRendering4325=false;
+function renderObjectCenter4325(){
+ if(objectCenterRendering4325)return;
+ objectCenterRendering4325=true;
+ try{
+  installObjectCenter4325();
+  document.querySelectorAll('[data-object-panel4325]').forEach(b=>{
+   const shouldBeActive=b.dataset.objectPanel4325===objectPanel4325;
+   if(b.classList.contains('active')!==shouldBeActive)b.classList.toggle('active',shouldBeActive);
+  });
+  if(objectPanel4325==='elements')renderElements4325();
+  else if(objectPanel4325==='works')renderWorks4325();
+  else renderAll4325();
+ }catch(error){
+  console.error('43(44) object center render error',error);
+  const panel=document.getElementById('objectCenterPanel4325');
+  if(panel)panel.innerHTML='<div class="object-empty4325">Не вдалося відкрити підсумок об’єкта. Дані кімнат не видалені. Спробуйте натиснути кнопку ще раз.</div>';
+ }finally{
+  objectCenterRendering4325=false;
+ }
+}
 function addWork4325(seed){objectWorks4325.push({id:'work_'+Date.now()+'_'+Math.random().toString(36).slice(2,6),name:'Додаткова робота',unit:'послуга',quantity:1,price:0,...seed});persistWorks4325(true)}
 let worksSaveTimer4326=null;
 function saveWorksDraft4326(){
@@ -14969,23 +15008,21 @@ body.object-focus4342 #objectModeNotice4342{display:block}
 <script id="pixel4342FocusScript">
 (function(){
   'use strict';
-  if(window.__pixel4342Focus)return;
-  window.__pixel4342Focus=true;
+  if(window.__pixel4344Focus)return;
+  window.__pixel4344Focus=true;
 
-  let focusMode4342='room';
+  let focusMode4344='room';
 
-  function roomIdFromCard4342(card){
+  function roomIdFromCard4344(card){
     const el=card?.querySelector?.('[onclick*="selectRoom"]');
     const code=el?.getAttribute?.('onclick')||'';
-    const match=code.match(/selectRoom\(['\"]([^'\"]+)['\"]\)/);
+    const match=code.match(/selectRoom\(['"]([^'"]+)['"]\)/);
     return match?match[1]:'';
   }
-
-  function currentRoomId4342(){
+  function currentRoomId4344(){
     try{return String(activeRoomId??'')}catch(_){return String(window.activeRoomId??'')}
   }
-
-  function ensureNotice4342(){
+  function ensureNotice4344(){
     const shell=document.getElementById('objectCenter4325');
     const panel=document.getElementById('objectCenterPanel4325');
     if(!shell||!panel||document.getElementById('objectModeNotice4342'))return;
@@ -14994,88 +15031,292 @@ body.object-focus4342 #objectModeNotice4342{display:block}
     note.textContent='Зараз відкрито режим всього об’єкта. Окрема кімната залишається збереженою, але не є активним розділом.';
     panel.insertAdjacentElement('beforebegin',note);
   }
-
-  function applyFocus4342(){
-    ensureNotice4342();
-    const objectMode=focusMode4342==='object';
+  function applyFocus4344(){
+    ensureNotice4344();
+    const objectMode=focusMode4344==='object';
     document.body.classList.toggle('object-focus4342',objectMode);
     document.body.classList.toggle('room-focus4342',!objectMode);
-
-    const current=currentRoomId4342();
+    const current=currentRoomId4344();
     document.querySelectorAll('#roomList .room-card').forEach(card=>{
-      if(objectMode){
-        card.classList.remove('active');
-      }else{
-        card.classList.toggle('active',roomIdFromCard4342(card)===current);
-      }
+      const shouldBeActive=!objectMode&&roomIdFromCard4344(card)===current;
+      if(card.classList.contains('active')!==shouldBeActive)card.classList.toggle('active',shouldBeActive);
+    });
+    if(!objectMode){
+      document.querySelectorAll('[data-object-panel4325].active').forEach(button=>button.classList.remove('active'));
+    }
+  }
+  window.setFocusMode4344=function(mode){
+    focusMode4344=mode==='object'?'object':'room';
+    applyFocus4344();
+  };
+
+  const baseRenderRooms4344=window.renderRooms;
+  if(typeof baseRenderRooms4344==='function'){
+    window.renderRooms=function(){
+      const result=baseRenderRooms4344.apply(this,arguments);
+      applyFocus4344();
+      return result;
+    };
+  }
+  const baseSelectRoom4344=window.selectRoom;
+  if(typeof baseSelectRoom4344==='function'){
+    window.selectRoom=function(){
+      focusMode4344='room';
+      const result=baseSelectRoom4344.apply(this,arguments);
+      applyFocus4344();
+      requestAnimationFrame(applyFocus4344);
+      return result;
+    };
+  }
+  const baseLoadObject4344=window.loadObject;
+  if(typeof baseLoadObject4344==='function'){
+    window.loadObject=async function(){
+      focusMode4344='room';
+      const result=await baseLoadObject4344.apply(this,arguments);
+      applyFocus4344();
+      return result;
+    };
+  }
+
+  function start4344(){
+    applyFocus4344();
+    setTimeout(()=>{document.title='Potolok AI PRO — Pixel 43(44)'},100);
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start4344,{once:true});
+  else start4344();
+})();
+</script>
+
+
+<!-- PIXEL 43(44): stable room/object switching -->
+<style id="pixel4344ObjectStabilityStyles">
+body.object-focus4342 #objectCenter4325{contain:layout paint;overflow:visible}
+body.object-focus4342 #objectCenterPanel4325{min-height:120px}
+body.object-focus4342 #tab_object > .grid > aside.controls{overflow:visible!important}
+</style>
+<!-- PIXEL 43(43): clear separation between current room and whole object -->
+<style id="pixel4343RoomObjectHierarchyStyles">
+/* Старі підсумки всього об'єкта більше не змішуються з поточною кімнатою. */
+#tab_object main.panel.main > .object-totals,
+#tab_object main.panel.main > #grandFinance4319,
+#tab_object main.panel.main > .notice{display:none!important}
+
+/* У режимі всього об'єкта прибираємо детальну картку поточної кімнати. */
+body.object-focus4342 #tab_object > .grid > main.panel.main{display:none!important}
+body.object-focus4342 #tab_object > .grid{grid-template-columns:minmax(0,1fr)!important}
+body.object-focus4342 #tab_object > .grid > aside.controls{position:static!important;max-height:none!important;width:100%!important}
+body.object-focus4342 #objectCenter4325{margin-top:14px;padding-top:14px}
+body.object-focus4342 #objectCenterPanel4325{display:block!important}
+
+/* У режимі кімнати лишаємо кнопки переходу до об'єкта, але не показуємо його підсумок. */
+body.room-focus4342 #objectCenterPanel4325{display:none!important}
+
+.room-summary4343{margin:14px 0 0;border:1px solid #93c5fd;border-radius:18px;background:linear-gradient(180deg,#f8fbff,#fff);padding:14px;box-shadow:0 10px 25px rgba(7,91,255,.08)}
+.room-summary-head4343{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:12px}
+.room-summary-kicker4343{display:block;color:#075bff;font-size:8px;font-weight:950;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px}
+.room-summary-head4343 h3{font-size:18px;line-height:1.2;margin:0}
+.room-summary-roomno4343{flex:0 0 auto;border:1px solid #bfdbfe;background:#eff6ff;color:#075bff;border-radius:999px;padding:7px 10px;font-size:9px;font-weight:950}
+.room-summary-metrics4343{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:11px}
+.room-summary-metric4343{border:1px solid #e5e7eb;background:#fff;border-radius:11px;padding:9px}
+.room-summary-metric4343 span{display:block;color:#64748b;font-size:8px}
+.room-summary-metric4343 b{display:block;color:#0f172a;font-size:14px;margin-top:3px}
+.room-summary-lines4343{border:1px solid #dbe3ef;border-radius:13px;background:#fff;padding:0 12px}
+.room-summary-line4343{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:11px 0;border-bottom:1px solid #e5e7eb}
+.room-summary-line4343:last-child{border-bottom:0}
+.room-summary-line4343 span{font-size:9px;color:#475569;line-height:1.35}
+.room-summary-line4343 b{font-size:14px;color:#075bff;white-space:nowrap}
+.room-summary-line4343.extras b{color:#16a34a}
+.room-summary-total4343{margin-top:11px;border-radius:14px;background:linear-gradient(135deg,#071428,#075bff);color:#fff;padding:14px}
+.room-summary-total4343 span{display:block;color:#bfdbfe;font-size:9px}
+.room-summary-total4343 b{display:block;font-size:30px;margin-top:5px}
+.room-summary-note4343{margin-top:9px;color:#64748b;font-size:8px;line-height:1.45}
+.room-summary-note4343 strong{color:#0f172a}
+
+/* Групування додаткових елементів всього об'єкта по кімнатах. */
+.object-room-group4343{margin-top:10px;border:1px solid #bfdbfe;border-radius:13px;background:#f8fbff;padding:9px}
+.object-room-group-head4343{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:7px;padding:2px 2px 7px;border-bottom:1px solid #dbeafe}
+.object-room-group-head4343 b{font-size:11px;color:#0f172a}
+.object-room-group-head4343 span{font-size:10px;font-weight:950;color:#075bff;white-space:nowrap}
+.object-room-group-body4343 .object-element-row4325{margin-top:7px;background:#fff}
+.object-room-group-body4343 .object-element-row4325:first-child{margin-top:0}
+.object-elements-grand4343{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-top:11px;border-radius:12px;background:#071428;color:#fff;padding:12px}
+.object-elements-grand4343 span{font-size:9px;color:#bfdbfe}
+.object-elements-grand4343 b{font-size:20px}
+
+@media(max-width:520px){
+  .room-summary-head4343{flex-direction:column}
+  .room-summary-roomno4343{align-self:flex-start}
+  .room-summary-line4343{align-items:flex-start}
+}
+</style>
+<script id="pixel4343RoomObjectHierarchyScript">
+(function(){
+  'use strict';
+  if(window.__pixel4343RoomObjectHierarchy)return;
+  window.__pixel4343RoomObjectHierarchy=true;
+
+  function num4343(value){
+    const normalized=String(value??'').replace(/\s/g,'').replace(',','.').replace(/[^\d.-]/g,'');
+    return Number(normalized)||0;
+  }
+  function money4343(value){return Math.round(Number(value)||0).toLocaleString('uk-UA')+' грн'}
+  function esc4343(value){return String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+  function rooms4343(){try{return Array.isArray(projectRooms)?projectRooms:[]}catch(_){return Array.isArray(window.projectRooms)?window.projectRooms:[]}}
+  function activeRoom4343(){
+    let id='';
+    try{id=String(activeRoomId??'')}catch(_){id=String(window.activeRoomId??'')}
+    return rooms4343().find(room=>String(room?.id)===id)||null;
+  }
+  function finishing4343(room){
+    const items=room?.finishingWorks?.items;
+    return Array.isArray(items)?items.reduce((sum,item)=>sum+(item?.enabled?(Number(item.quantity)||0)*(Number(item.price)||0):0),0):0;
+  }
+  function materials4343(room){
+    const items=room?.finishingWorks?.materials;
+    return Array.isArray(items)?items.reduce((sum,item)=>sum+(Number(item?.quantity)||0)*(Number(item?.price)||0),0):0;
+  }
+  function paidPlanExtras4343(){
+    try{
+      return typeof window.summarize4318==='function'
+        ?window.summarize4318().filter(item=>Number(item?.price)>0).reduce((sum,item)=>sum+(Number(item?.sum)||0),0)
+        :num4343(document.getElementById('roomPlanElementsTotal4318')?.textContent);
+    }catch(_){return 0}
+  }
+  function liveCeilingTotal4343(){
+    let raw=0;
+    try{raw=typeof currentCalculatedTotal==='function'?Number(currentCalculatedTotal())||0:Number(activeRoom4343()?.calculated)||0}catch(_){raw=Number(activeRoom4343()?.calculated)||0}
+    try{return typeof priceWithObjectRule==='function'?Number(priceWithObjectRule(raw))||0:raw}catch(_){return raw}
+  }
+  function currentRoomNumber4343(room){
+    const index=rooms4343().findIndex(item=>String(item?.id)===String(room?.id));
+    return index>=0?index+1:1;
+  }
+
+  function ensureRoomSummary4343(){
+    const elements=document.getElementById('roomPlanElements4318');
+    if(!elements||document.getElementById('roomFinance4343'))return;
+    const section=document.createElement('section');
+    section.id='roomFinance4343';
+    section.className='room-summary4343';
+    elements.insertAdjacentElement('afterend',section);
+  }
+
+  function renderRoomSummary4343(){
+    ensureRoomSummary4343();
+    const box=document.getElementById('roomFinance4343');
+    if(!box)return;
+    const room=activeRoom4343();
+    if(!room){box.innerHTML='<div class="room-summary-note4343">Оберіть кімнату, щоб побачити її окремий підсумок.</div>';return}
+
+    const name=(document.getElementById('roomName')?.value||room.name||'Кімната').trim()||'Кімната';
+    const area=num4343(document.getElementById('area')?.value||room.area);
+    const perimeter=num4343(document.getElementById('perimeter')?.value||room.perimeter);
+    const extras=paidPlanExtras4343();
+    const ceiling=liveCeilingTotal4343();
+    const base=Math.max(0,ceiling-extras);
+    const finishing=finishing4343(room);
+    const materials=materials4343(room);
+    const total=ceiling+finishing+materials;
+    const number=currentRoomNumber4343(room);
+
+    box.innerHTML=`
+      <div class="room-summary-head4343">
+        <div><span class="room-summary-kicker4343">Підсумок поточної кімнати</span><h3>${esc4343(name)}</h3></div>
+        <span class="room-summary-roomno4343">Кімната ${number}</span>
+      </div>
+      <div class="room-summary-metrics4343">
+        <div class="room-summary-metric4343"><span>Площа кімнати</span><b>${area.toFixed(2)} м²</b></div>
+        <div class="room-summary-metric4343"><span>Периметр кімнати</span><b>${perimeter.toFixed(2)} м</b></div>
+      </div>
+      <div class="room-summary-lines4343">
+        <div class="room-summary-line4343"><span>Базова вартість кімнати<br><small>без платних елементів із плану</small></span><b>${money4343(base)}</b></div>
+        <div class="room-summary-line4343 extras"><span>Додаткові елементи цієї кімнати</span><b>${money4343(extras)}</b></div>
+        <div class="room-summary-line4343"><span>Оздоблення цієї кімнати</span><b>${money4343(finishing)}</b></div>
+        <div class="room-summary-line4343"><span>Матеріали цієї кімнати</span><b>${money4343(materials)}</b></div>
+      </div>
+      <div class="room-summary-total4343"><span>Разом за кімнату «${esc4343(name)}»</span><b>${money4343(total)}</b></div>
+      <div class="room-summary-note4343"><strong>Важливо:</strong> тут показано тільки поточну кімнату. Загальна площа, сума всіх кімнат і роботи всього об’єкта доступні лише через кнопку «Весь об’єкт».</div>`;
+
+    const title=document.querySelector('#tab_object main.panel.main > .block-head h2');
+    if(title)title.textContent='Поточна кімната';
+    const totalLabel=document.querySelector('#roomPlanElements4318 .room-plan-elements-total4318 span');
+    if(totalLabel)totalLabel.textContent='Разом додаткові елементи кімнати «'+name+'»';
+  }
+
+  let renderQueued4343=false;
+  function scheduleRoomSummary4343(){
+    if(renderQueued4343)return;
+    renderQueued4343=true;
+    requestAnimationFrame(()=>{renderQueued4343=false;renderRoomSummary4343()});
+  }
+
+  ['recalc','renderRooms','restoreRoom','syncActiveRoomFromUI','renderRoomPlanElements4318'].forEach(name=>{
+    const base=window[name];
+    if(typeof base!=='function')return;
+    window[name]=function(){
+      const result=base.apply(this,arguments);
+      scheduleRoomSummary4343();
+      return result;
+    };
+  });
+  document.addEventListener('input',event=>{
+    if(event.target?.matches?.('#roomName,#area,#perimeter'))scheduleRoomSummary4343();
+  });
+
+  function groupObjectElements4343(){
+    const panel=document.getElementById('objectCenterPanel4325');
+    const active=document.querySelector('[data-object-panel4325="elements"].active');
+    if(!panel||!active)return;
+    const rows=[...panel.querySelectorAll(':scope > .object-element-row4325')];
+    if(!rows.length)return;
+
+    const header=panel.querySelector(':scope > .object-center-head4325');
+    const groups=new Map();
+    let grand=0;
+    rows.forEach(row=>{
+      const details=row.querySelector('.object-element-row4325 > div:nth-child(2) span')?.textContent||'';
+      const roomName=(details.split(' · ')[0]||'Кімната').trim();
+      const price=num4343(row.querySelector('.object-row-price4325 b')?.textContent);
+      grand+=price;
+      if(!groups.has(roomName))groups.set(roomName,{rows:[],sum:0});
+      groups.get(roomName).rows.push(row);
+      groups.get(roomName).sum+=price;
     });
 
-    if(!objectMode){
-      document.querySelectorAll('[data-object-panel4325]').forEach(button=>button.classList.remove('active'));
+    panel.querySelectorAll('.object-room-group4343,.object-elements-grand4343').forEach(node=>node.remove());
+    groups.forEach((group,roomName)=>{
+      const shell=document.createElement('section');
+      shell.className='object-room-group4343';
+      shell.innerHTML=`<div class="object-room-group-head4343"><b>${esc4343(roomName)}</b><span>${money4343(group.sum)}</span></div><div class="object-room-group-body4343"></div>`;
+      const body=shell.querySelector('.object-room-group-body4343');
+      group.rows.forEach(row=>body.appendChild(row));
+      panel.appendChild(shell);
+    });
+    const grandBox=document.createElement('div');
+    grandBox.className='object-elements-grand4343';
+    grandBox.innerHTML=`<span>Разом додаткові елементи всього об’єкта</span><b>${money4343(grand)}</b>`;
+    panel.appendChild(grandBox);
+    if(header){
+      const headerTotal=header.querySelector(':scope > b');
+      if(headerTotal)headerTotal.textContent=money4343(grand);
     }
   }
 
-  function setFocus4342(mode){
-    focusMode4342=mode==='object'?'object':'room';
-    applyFocus4342();
-    setTimeout(applyFocus4342,0);
-    setTimeout(applyFocus4342,120);
-  }
-
-  const baseRenderRooms4342=window.renderRooms;
-  if(typeof baseRenderRooms4342==='function'){
-    window.renderRooms=function(){
-      const result=baseRenderRooms4342.apply(this,arguments);
-      applyFocus4342();
-      return result;
-    };
-  }
-
-  const baseSelectRoom4342=window.selectRoom;
-  if(typeof baseSelectRoom4342==='function'){
-    window.selectRoom=function(){
-      setFocus4342('room');
-      const result=baseSelectRoom4342.apply(this,arguments);
-      setTimeout(applyFocus4342,40);
-      return result;
-    };
-  }
-
-  const baseLoadObject4342=window.loadObject;
-  if(typeof baseLoadObject4342==='function'){
-    window.loadObject=async function(){
-      setFocus4342('room');
-      const result=await baseLoadObject4342.apply(this,arguments);
-      setTimeout(applyFocus4342,120);
-      return result;
-    };
-  }
-
+  let groupTimer4343=0;
+  function scheduleGroup4343(){clearTimeout(groupTimer4343);groupTimer4343=setTimeout(groupObjectElements4343,30)}
   document.addEventListener('click',event=>{
-    const objectButton=event.target?.closest?.('[data-object-panel4325]');
-    if(objectButton){
-      setFocus4342('object');
-      return;
-    }
-    const roomOpen=event.target?.closest?.('#roomList [onclick*="selectRoom"]');
-    if(roomOpen){
-      setFocus4342('room');
-    }
+    if(event.target?.closest?.('[data-object-panel4325="elements"]'))scheduleGroup4343();
+    if(event.target?.closest?.('#roomList [onclick*="selectRoom"]'))scheduleRoomSummary4343();
   },true);
 
-  const observer4342=new MutationObserver(()=>applyFocus4342());
-  const startObserver4342=()=>{
-    const roomList=document.getElementById('roomList');
-    const objectCenter=document.getElementById('objectCenter4325');
-    if(roomList)observer4342.observe(roomList,{childList:true,subtree:true,attributes:true,attributeFilter:['class']});
-    if(objectCenter)observer4342.observe(objectCenter,{childList:true,subtree:true,attributes:true,attributeFilter:['class']});
-    applyFocus4342();
-  };
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',startObserver4342,{once:true});
-  else startObserver4342();
-
-  setFocus4342('room');
-  setTimeout(()=>{document.title='Potolok AI PRO — Pixel 43(42)'},100);
+  function start4343(){
+    ensureRoomSummary4343();
+    renderRoomSummary4343();
+    setTimeout(scheduleRoomSummary4343,150);
+    setTimeout(()=>{document.title='Potolok AI PRO — Pixel 43(44)'},120);
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start4343,{once:true});
+  else start4343();
 })();
 </script>
 
