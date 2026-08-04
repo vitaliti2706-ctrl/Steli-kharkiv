@@ -14473,6 +14473,15 @@ else setTimeout(install4336,350);
   .object-final-actions4337 .history4338,.share-note4338{grid-column:auto}
 }
 </style>
+
+<style id="estimateShare43340Styles">
+.share-modal43340{position:fixed;inset:0;z-index:650;display:none;align-items:flex-end;justify-content:center;padding:12px;background:rgba(7,20,40,.66)}
+.share-modal43340.open{display:flex}.share-sheet43340{width:min(560px,100%);max-height:92vh;overflow:auto;background:#fff;border-radius:22px;padding:16px;box-shadow:0 30px 90px rgba(0,0,0,.36)}
+.share-head43340{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px}.share-head43340 h3{font-size:19px;margin:0}.share-head43340 p{font-size:9px;line-height:1.45;color:#64748b;margin:5px 0 0}.share-close43340{width:40px;height:40px;flex:0 0 40px;border:1px solid #e5e7eb;background:#fff;border-radius:11px;font-size:23px}
+.share-option43340{width:100%;display:grid;grid-template-columns:42px 1fr;gap:10px;align-items:center;text-align:left;border:1px solid #dbe3ef;background:#fff;border-radius:12px;padding:11px;margin-top:8px;color:#0f172a}.share-option43340.primary{background:#075bff;color:#fff;border-color:#075bff}.share-option43340>span{width:42px;height:42px;border-radius:11px;display:flex;align-items:center;justify-content:center;background:#eef5ff;font-size:21px}.share-option43340.primary>span{background:rgba(255,255,255,.16)}.share-option43340 b{display:block;font-size:11px}.share-option43340 small{display:block;font-size:8px;line-height:1.35;margin-top:3px;color:#64748b}.share-option43340.primary small{color:#dbeafe}.share-option43340:disabled{opacity:.65}
+.share-status43340{display:none;margin-top:10px;border-radius:10px;padding:10px;font-size:9px;font-weight:850;line-height:1.45}.share-status43340.show{display:block}.share-status43340.ok{background:#ecfdf5;color:#047857;border:1px solid #a7f3d0}.share-status43340.error{background:#fff1f2;color:#b91c1c;border:1px solid #fecdd3}.share-status43340.info{background:#eff6ff;color:#075bff;border:1px solid #bfdbfe}
+@media(min-width:760px){.share-modal43340{align-items:center}}
+</style>
 <script id="pixel4338Script">
 (() => {
   'use strict';
@@ -14555,28 +14564,141 @@ else setTimeout(install4336,350);
     }finally{setBusy4338(button,false)}
   };
 
-  window.shareEstimateFile4338=async function(button){
-    setBusy4338(button,true,'⏳ Готуємо файл…');
-    let url='';
+  let sharePayload43340=null;
+
+  function estimateText43340(object){
+    const rooms=Array.isArray(object?.rooms)?object.rooms:[];
+    const works=objectWorks4338(object);
+    const area=rooms.reduce((sum,room)=>sum+num4338(room.area),0);
+    const perimeter=rooms.reduce((sum,room)=>sum+num4338(room.perimeter),0);
+    const ceiling=rooms.reduce((sum,room)=>sum+num4338(room.calculated||room.total),0);
+    const finishing=rooms.reduce((sum,room)=>sum+roomFinishing4338(room),0);
+    const materials=rooms.reduce((sum,room)=>sum+roomMaterials4338(room),0);
+    const worksTotal=works.reduce((sum,work)=>sum+num4338(work.quantity)*num4338(work.price),0);
+    const total=ceiling+finishing+materials+worksTotal;
+    const lines=[
+      'КОШТОРИС POTOLOK.IN.UA',
+      `Клієнт: ${object.clientName||'—'}`,
+      `Телефон: ${object.clientPhone||'—'}`,
+      `Адреса: ${object.address||'—'}`,
+      '',
+      ...rooms.map((room,index)=>`${index+1}. ${room.name||('Кімната '+(index+1))}: ${num4338(room.area).toFixed(2)} м² · ${num4338(room.perimeter).toFixed(2)} м · ${money4338(roomTotal4338(room))}`),
+      '',
+      `Стелі та елементи: ${money4338(ceiling)}`,
+      `Оздоблення: ${money4338(finishing)}`,
+      `Матеріали: ${money4338(materials)}`,
+      `Додаткові роботи: ${money4338(worksTotal)}`,
+      `ЗАГАЛЬНА СУМА: ${money4338(total)}`,
+      '',
+      `Загальна площа: ${area.toFixed(2)} м²`,
+      `Загальний периметр: ${perimeter.toFixed(2)} м`,
+      'Potolok.in.ua · 097 454 67 13'
+    ];
+    return lines.join('\n');
+  }
+
+  function ensureShareModal43340(){
+    let modal=document.getElementById('shareEstimateModal43340');
+    if(modal)return modal;
+    modal=document.createElement('div');
+    modal.id='shareEstimateModal43340';
+    modal.className='share-modal43340';
+    modal.innerHTML=`<div class="share-sheet43340" role="dialog" aria-modal="true" aria-labelledby="shareTitle43340">
+      <div class="share-head43340"><div><h3 id="shareTitle43340">📤 Поділитися кошторисом</h3><p>Оберіть зручний спосіб. Якщо браузер забороняє пряму відправку файла, завантажте його та прикріпіть у месенджері.</p></div><button type="button" class="share-close43340" onclick="closeEstimateShare43340()" aria-label="Закрити">×</button></div>
+      <button type="button" class="share-option43340 primary" onclick="nativeShareEstimate43340(this)"><span>📲</span><div><b>Поділитися файлом</b><small>Відкрити системне меню Telegram, WhatsApp та інших програм</small></div></button>
+      <button type="button" class="share-option43340" onclick="downloadEstimate43340(this)"><span>⬇️</span><div><b>Завантажити файл</b><small>Зберегти HTML-кошторис, щоб потім прикріпити вручну</small></div></button>
+      <button type="button" class="share-option43340" onclick="copyEstimate43340(this)"><span>📋</span><div><b>Скопіювати текст</b><small>Вставити розрахунок прямо в повідомлення</small></div></button>
+      <div id="shareStatus43340" class="share-status43340"></div>
+    </div>`;
+    modal.addEventListener('click',event=>{if(event.target===modal)window.closeEstimateShare43340()});
+    document.body.appendChild(modal);
+    return modal;
+  }
+
+  function shareStatus43340(message,type='info'){
+    const el=document.getElementById('shareStatus43340');
+    if(!el)return;
+    el.textContent=message;
+    el.className='share-status43340 show '+type;
+  }
+
+  function triggerDownload43340(payload){
+    const url=URL.createObjectURL(payload.blob);
+    const link=document.createElement('a');
+    link.href=url;
+    link.download=payload.filename;
+    link.rel='noopener';
+    link.style.display='none';
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),15000);
+  }
+
+  window.closeEstimateShare43340=function(){
+    document.getElementById('shareEstimateModal43340')?.classList.remove('open');
+  };
+
+  window.downloadEstimate43340=function(button){
+    if(!sharePayload43340)return;
+    try{
+      triggerDownload43340(sharePayload43340);
+      shareStatus43340('Файл завантажено. Відкрийте «Завантаження» та надішліть його через потрібний месенджер.','ok');
+    }catch(error){
+      shareStatus43340('Не вдалося завантажити файл: '+(error?.message||error),'error');
+    }
+  };
+
+  window.copyEstimate43340=async function(button){
+    if(!sharePayload43340)return;
+    try{
+      await navigator.clipboard.writeText(sharePayload43340.text);
+      shareStatus43340('Текст кошторису скопійовано. Тепер вставте його у повідомлення.','ok');
+    }catch(_){
+      window.prompt('Скопіюйте кошторис:',sharePayload43340.text);
+    }
+  };
+
+  window.nativeShareEstimate43340=async function(button){
+    if(!sharePayload43340)return;
+    const old=button?.innerHTML;
+    if(button){button.disabled=true;button.innerHTML='<span>⏳</span><div><b>Відкриваємо меню…</b><small>Зачекайте кілька секунд</small></div>'}
+    try{
+      if(!navigator.share)throw new Error('Цей браузер не підтримує системне меню відправки');
+      const file=new File([sharePayload43340.blob],sharePayload43340.filename,{type:'text/html;charset=utf-8'});
+      if(navigator.canShare&&!navigator.canShare({files:[file]}))throw new Error('Браузер не дозволяє надсилати файли напряму');
+      await navigator.share({title:'Кошторис Potolok.in.ua',text:sharePayload43340.shareTitle,files:[file]});
+      window.closeEstimateShare43340();
+    }catch(error){
+      if(error?.name==='AbortError')return;
+      shareStatus43340('Пряма відправка заблокована браузером: '+(error?.message||'невідома помилка')+'. Натисніть «Завантажити файл» нижче.','error');
+    }finally{
+      if(button){button.disabled=false;button.innerHTML=old}
+    }
+  };
+
+  window.shareEstimateFile4338=function(button){
+    setBusy4338(button,true,'⏳ Готуємо кошторис…');
     try{
       if(typeof window.syncActiveRoomFromUI==='function')window.syncActiveRoomFromUI(false);
       if(typeof window.collectObject!=='function')throw new Error('Дані об’єкта недоступні');
       const object=window.collectObject();
       const html=buildEstimateFile4338(object);
       const filename=`Koshtorys-Potolok-${safeFile4338(object.clientName||object.address||object.id)}.html`;
-      const file=new File([html],filename,{type:'text/html;charset=utf-8'});
-      if(navigator.share&&navigator.canShare?.({files:[file]})){
-        await navigator.share({title:'Кошторис Potolok.in.ua',text:`Кошторис об’єкта ${object.address||object.clientName||''}`.trim(),files:[file]});
-      }else{
-        url=URL.createObjectURL(file);
-        const link=document.createElement('a');
-        link.href=url;link.download=filename;document.body.appendChild(link);link.click();link.remove();
-        alert('Файл кошторису завантажено. Тепер його можна надіслати напарнику або будь-кому через месенджер.');
-      }
+      sharePayload43340={
+        object,
+        html,
+        filename,
+        blob:new Blob([html],{type:'text/html;charset=utf-8'}),
+        text:estimateText43340(object),
+        shareTitle:`Кошторис об’єкта ${object.address||object.clientName||''}`.trim()
+      };
+      const modal=ensureShareModal43340();
+      document.getElementById('shareStatus43340').className='share-status43340';
+      modal.classList.add('open');
     }catch(error){
-      if(error?.name!=='AbortError')alert('Не вдалося підготувати файл кошторису: '+error.message);
+      alert('Не вдалося підготувати кошторис: '+(error?.message||error));
     }finally{
-      if(url)setTimeout(()=>URL.revokeObjectURL(url),1500);
       setBusy4338(button,false);
     }
   };
@@ -14589,7 +14711,7 @@ else setTimeout(install4336,350);
     }
     const preButton=document.querySelector('[onclick="preliminaryToPlan56()"]');
     if(preButton)preButton.innerHTML='📐 Зберегти дані та відкрити план';
-    document.title='Potolok AI PRO — Pixel 43(38)';
+    document.title='Potolok AI PRO — Pixel 43(40)';
   }
 
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(install4338,300));
@@ -14823,6 +14945,7 @@ else setTimeout(install4336,350);
   }
 })();
 </script>
+<script id="pixel43340Title">setTimeout(()=>{document.title='Potolok AI PRO — Pixel 43(40)'},80);</script>
 </body>
 </html>
 
