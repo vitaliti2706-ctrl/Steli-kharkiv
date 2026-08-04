@@ -14956,6 +14956,129 @@ else setTimeout(install4336,350);
 })();
 </script>
 <script id="pixel43340Title">setTimeout(()=>{document.title='Potolok AI PRO — Pixel 43(40)'},80);</script>
+
+
+<!-- PIXEL 43(42): mutually exclusive room/object focus -->
+<style id="pixel4342FocusStyles">
+body.room-focus4342 #objectCenterPanel4325{display:none!important}
+body.room-focus4342 .object-center-tab4325.active{background:#fff!important;color:#334155!important;border-color:#bfdbfe!important;box-shadow:none!important}
+body.object-focus4342 #roomList .room-card.active{border-color:#e5e7eb!important;box-shadow:none!important;background:#fff!important}
+#objectModeNotice4342{display:none;margin:0 0 9px;padding:9px 11px;border:1px solid #bfdbfe;border-radius:10px;background:#eff6ff;color:#1e3a8a;font-size:8.5px;font-weight:850;line-height:1.4}
+body.object-focus4342 #objectModeNotice4342{display:block}
+</style>
+<script id="pixel4342FocusScript">
+(function(){
+  'use strict';
+  if(window.__pixel4342Focus)return;
+  window.__pixel4342Focus=true;
+
+  let focusMode4342='room';
+
+  function roomIdFromCard4342(card){
+    const el=card?.querySelector?.('[onclick*="selectRoom"]');
+    const code=el?.getAttribute?.('onclick')||'';
+    const match=code.match(/selectRoom\(['\"]([^'\"]+)['\"]\)/);
+    return match?match[1]:'';
+  }
+
+  function currentRoomId4342(){
+    try{return String(activeRoomId??'')}catch(_){return String(window.activeRoomId??'')}
+  }
+
+  function ensureNotice4342(){
+    const shell=document.getElementById('objectCenter4325');
+    const panel=document.getElementById('objectCenterPanel4325');
+    if(!shell||!panel||document.getElementById('objectModeNotice4342'))return;
+    const note=document.createElement('div');
+    note.id='objectModeNotice4342';
+    note.textContent='Зараз відкрито режим всього об’єкта. Окрема кімната залишається збереженою, але не є активним розділом.';
+    panel.insertAdjacentElement('beforebegin',note);
+  }
+
+  function applyFocus4342(){
+    ensureNotice4342();
+    const objectMode=focusMode4342==='object';
+    document.body.classList.toggle('object-focus4342',objectMode);
+    document.body.classList.toggle('room-focus4342',!objectMode);
+
+    const current=currentRoomId4342();
+    document.querySelectorAll('#roomList .room-card').forEach(card=>{
+      if(objectMode){
+        card.classList.remove('active');
+      }else{
+        card.classList.toggle('active',roomIdFromCard4342(card)===current);
+      }
+    });
+
+    if(!objectMode){
+      document.querySelectorAll('[data-object-panel4325]').forEach(button=>button.classList.remove('active'));
+    }
+  }
+
+  function setFocus4342(mode){
+    focusMode4342=mode==='object'?'object':'room';
+    applyFocus4342();
+    setTimeout(applyFocus4342,0);
+    setTimeout(applyFocus4342,120);
+  }
+
+  const baseRenderRooms4342=window.renderRooms;
+  if(typeof baseRenderRooms4342==='function'){
+    window.renderRooms=function(){
+      const result=baseRenderRooms4342.apply(this,arguments);
+      applyFocus4342();
+      return result;
+    };
+  }
+
+  const baseSelectRoom4342=window.selectRoom;
+  if(typeof baseSelectRoom4342==='function'){
+    window.selectRoom=function(){
+      setFocus4342('room');
+      const result=baseSelectRoom4342.apply(this,arguments);
+      setTimeout(applyFocus4342,40);
+      return result;
+    };
+  }
+
+  const baseLoadObject4342=window.loadObject;
+  if(typeof baseLoadObject4342==='function'){
+    window.loadObject=async function(){
+      setFocus4342('room');
+      const result=await baseLoadObject4342.apply(this,arguments);
+      setTimeout(applyFocus4342,120);
+      return result;
+    };
+  }
+
+  document.addEventListener('click',event=>{
+    const objectButton=event.target?.closest?.('[data-object-panel4325]');
+    if(objectButton){
+      setFocus4342('object');
+      return;
+    }
+    const roomOpen=event.target?.closest?.('#roomList [onclick*="selectRoom"]');
+    if(roomOpen){
+      setFocus4342('room');
+    }
+  },true);
+
+  const observer4342=new MutationObserver(()=>applyFocus4342());
+  const startObserver4342=()=>{
+    const roomList=document.getElementById('roomList');
+    const objectCenter=document.getElementById('objectCenter4325');
+    if(roomList)observer4342.observe(roomList,{childList:true,subtree:true,attributes:true,attributeFilter:['class']});
+    if(objectCenter)observer4342.observe(objectCenter,{childList:true,subtree:true,attributes:true,attributeFilter:['class']});
+    applyFocus4342();
+  };
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',startObserver4342,{once:true});
+  else startObserver4342();
+
+  setFocus4342('room');
+  setTimeout(()=>{document.title='Potolok AI PRO — Pixel 43(42)'},100);
+})();
+</script>
+
 </body>
 </html>
 
