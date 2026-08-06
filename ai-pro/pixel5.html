@@ -1,4 +1,4 @@
-<!-- FILE: PIXEL 5.6 FULL HISTORY FIX | EXPECTED ~3150 LINES -->
+<!-- FILE: PIXEL 5.6 FULL HISTORY FIX | EXPECTED ~3150 LINES | 43.91 room delete -->
 <!DOCTYPE html>
 <!-- 43.61: current-room header now shows active room area/perimeter, not object totals -->
 
@@ -1043,7 +1043,7 @@ th:nth-child(2),th:nth-child(3),th:nth-child(4),td:nth-child(2),td:nth-child(3),
 
     <div class="fin78-total">
       <div><span>Разом по оздобленню цієї кімнати</span><b id="fin78Total">0 грн</b></div>
-      <small>Сума входить до підсумку цієї кімнати та загального кошторису об’єкта.</small>
+      <small>Сума входить до підсумку кімнати та загального кошторису об’єкта.</small>
     </div>
   </div>
 </section>
@@ -1906,8 +1906,9 @@ function renderRooms(){
         <span>${Number(r.area||0).toFixed(2)} м² • ${Number(r.perimeter||0).toFixed(2)} м • ${money(minimumOrderApplies()?Math.max(Number(r.calculated)||0,5000):(Number(r.calculated)||0))}</span>
       </div>
       <div class="room-card-actions">
-        <button type="button" onclick="selectRoom('${r.id}')">Відкрити</button>
-        <button type="button" class="room-clear4362" onclick="deleteRoom('${r.id}')">🧹 Очистити</button>
+        <button type="button" class="room-open4391" onclick="selectRoom('${r.id}')">Відкрити</button>
+        <button type="button" class="room-clear4362 room-clear4391" onclick="clearRoomElements4389('${r.id}')">🧹 Очистити</button>
+        <button type="button" class="room-delete4391" onclick="deleteRoom('${r.id}')">🗑 Видалити</button>
       </div>
     </div>`).join(''):'<div class="room-empty">Додайте першу кімнату.</div>';
   const m=objectMetricsNoSync();
@@ -15705,7 +15706,7 @@ window.shareEstimateFile4338=function(){
 const observer4345=new MutationObserver(()=>queueRefresh4345());
 function start4345(){
   objectToken4345='';loadMaterials4345(true);syncMaterialsToRooms4345();
-  observer4345.observe(document.body,{childList:true,subtree:true});
+  false && observer4345.observe(document.body,{childList:true,subtree:true});
   queueRefresh4345();setTimeout(queueRefresh4345,300);setTimeout(queueRefresh4345,1000);
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start4345,{once:true});else start4345();
@@ -16199,11 +16200,11 @@ function patchRoomSummaryText4347(){
   const extrasLine=lines.find(line=>/Додаткові елементи/.test(line.textContent||''));
   if(baseLine){
     const span=baseLine.querySelector('span');
-    if(span)span.innerHTML='<strong>Базова ціна натяжної стелі</strong><small class="room-summary-desc4347">без додаткових елементів (карнизів, вставок, освітлення, вентиляції тощо)</small>';
+    if(span){const html='<strong>Базова ціна натяжної стелі</strong><small class="room-summary-desc4347">без додаткових елементів (карнизів, вставок, освітлення, вентиляції тощо)</small>';if(span.innerHTML!==html)span.innerHTML=html}
   }
   if(extrasLine){
     const span=extrasLine.querySelector('span');
-    if(span)span.innerHTML='<strong>Додаткові елементи цієї кімнати</strong><small class="room-summary-desc4347">(карнизи, освітлення, вентиляція та інше)</small>';
+    if(span){const html='<strong>Додаткові елементи цієї кімнати</strong><small class="room-summary-desc4347">(карнизи, освітлення, вентиляція та інше)</small>';if(span.innerHTML!==html)span.innerHTML=html}
   }
 }
 
@@ -16214,9 +16215,9 @@ function patchScopeButtons4347(){
   const elements=document.querySelector('[data-object-panel4325="elements"]');
   const works=document.querySelector('[data-object-panel4325="works"]');
   const finishing=document.getElementById('roomFinishing4346');
-  if(elements)elements.innerHTML='🧩 Додаткові елементи<span class="scope-name4347">'+esc4347(roomScope)+'</span>';
-  if(works)works.innerHTML='🛠 Додаткові роботи<span class="scope-name4347">Весь об’єкт</span>';
-  if(finishing)finishing.innerHTML='🧱 Оздоблення<span class="scope-name4347">'+esc4347(roomScope)+'</span>';
+  if(elements){const html='🧩 Додаткові елементи<span class="scope-name4347">'+esc4347(roomScope)+'</span>';if(elements.innerHTML!==html)elements.innerHTML=html}
+  if(works){const html='🛠 Додаткові роботи<span class="scope-name4347">Весь об’єкт</span>';if(works.innerHTML!==html)works.innerHTML=html}
+  if(finishing){const html='🧱 Оздоблення<span class="scope-name4347">'+esc4347(roomScope)+'</span>';if(finishing.innerHTML!==html)finishing.innerHTML=html}
 }
 
 function ensurePlannerSummary4347(){
@@ -16311,7 +16312,7 @@ document.addEventListener('click',event=>{
 
 function observe4347(){
   const targets=[document.getElementById('plannerSvg'),document.getElementById('roomPlanElements4318'),document.getElementById('roomFinance4343')].filter(Boolean);
-  targets.forEach(target=>new MutationObserver(()=>queue4347(20)).observe(target,{childList:true,subtree:true,attributes:true}));
+  /* Pixel 43.90 anti-freeze: redundant observer disabled; function wrappers and input/change/click hooks remain active. */
 }
 function start4347(){
   patchAll4347();
@@ -16484,7 +16485,7 @@ function install4348(){
     /* Capture phase blocks the old inline selectRoom() before it can open the plan. */
     list.addEventListener('click',roomListClick4348,true);
     list.addEventListener('keydown',roomListKey4348,true);
-    new MutationObserver(decorateCards4348).observe(list,{childList:true,subtree:true});
+    /* Pixel 43.90 anti-freeze: renderRooms wrapper already refreshes room cards. */
   }
   decorateCards4348();
 }
@@ -16883,7 +16884,7 @@ const bodyObserver4349=new MutationObserver(mutations=>{
 });
 function start4349(){
   migrateLegacy4349();
-  bodyObserver4349.observe(document.body,{childList:true,subtree:true});
+  false && bodyObserver4349.observe(document.body,{childList:true,subtree:true});
   patchAll4349();
   setTimeout(()=>{migrateLegacy4349();patchAll4349()},250);
   setTimeout(patchAll4349,900);
@@ -17143,7 +17144,7 @@ const observer4350=new MutationObserver(mutations=>{
 });
 function start4350(){
   detachLegacySummaryObserver4350();
-  observer4350.observe(document.body,{childList:true,subtree:true,characterData:true});
+  false && observer4350.observe(document.body,{childList:true,subtree:true,characterData:true});
   patchAll4350();
   setTimeout(patchAll4350,180);
   setTimeout(patchAll4350,700);
@@ -17414,7 +17415,7 @@ const observer4352=new MutationObserver(mutations=>{
 function start4352(){
   /* Clean any DOM residue from a previously opened 43(51) file. */
   document.querySelectorAll('.quick-toggle4351,[data-quick-toggle4351],.quick-panel4351').forEach(node=>node.remove());
-  observer4352.observe(document.body,{childList:true,subtree:true,characterData:false});
+  false && observer4352.observe(document.body,{childList:true,subtree:true,characterData:false});
   patch4352();setTimeout(patch4352,200);setTimeout(patch4352,800)
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start4352,{once:true});else start4352();
@@ -17423,6 +17424,258 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 
 </body>
 </html>
+
+<!-- PIXEL 43(53): robust estimate sharing from local file + friendly local history fallback -->
+
+<!-- 43.88: removed malformed legacy share module 43.53; preserved active preliminary modules -->
+<!-- PIXEL 43(74): preliminary lighting now auto-populates the plan -->
+<script id="pixel4374PreliminaryLightingScript">
+(function(){
+'use strict';
+if(window.__pixel4374PreliminaryLighting)return;
+window.__pixel4374PreliminaryLighting=true;
+const VERSION4374='43.74';
+
+function deepClone4374(v){
+  try{return typeof deepCopy==='function'?deepCopy(v):JSON.parse(JSON.stringify(v));}
+  catch(_){return Array.isArray(v)?v.slice():v;}
+}
+function num4374(v){
+  return Math.max(0,Number(String(v??'').replace(/\s/g,'').replace(',','.'))||0);
+}
+function rooms4374(){
+  try{return Array.isArray(projectRooms)?projectRooms:[]}
+  catch(_){return Array.isArray(window.projectRooms)?window.projectRooms:[]}
+}
+function activeId4374(){
+  try{return String(activeRoomId??'')}
+  catch(_){return String(window.activeRoomId??'')}
+}
+function activeRoom4374(){
+  const id=activeId4374();
+  return rooms4374().find(room=>String(room?.id||'')===id)||null;
+}
+function ensurePre4374(room){
+  if(!room)return {lighting:'none',spotsCount:0,wish:'',texture:'matte'};
+  room.preliminary=room.preliminary||{area:0,perimeter:0,texture:'matte',lighting:'none',wish:''};
+  if(!('spotsCount' in room.preliminary))room.preliminary.spotsCount=0;
+  return room.preliminary;
+}
+function bounds4374(){
+  const pts=Array.isArray(roomPoints)?roomPoints:[];
+  if(!pts.length)return {minX:0,maxX:0,minY:0,maxY:0,width:0,height:0,cx:0,cy:0};
+  const xs=pts.map(p=>Number(p?.[0]||0)), ys=pts.map(p=>Number(p?.[1]||0));
+  const minX=Math.min.apply(null,xs), maxX=Math.max.apply(null,xs), minY=Math.min.apply(null,ys), maxY=Math.max.apply(null,ys);
+  return {minX,maxX,minY,maxY,width:maxX-minX,height:maxY-minY,cx:(minX+maxX)/2,cy:(minY+maxY)/2};
+}
+function centroid4374(){
+  const pts=Array.isArray(roomPoints)?roomPoints:[];
+  if(!pts.length)return {x:0,y:0};
+  let twiceArea=0,cx=0,cy=0;
+  for(let i=0;i<pts.length;i++){
+    const a=pts[i], b=pts[(i+1)%pts.length];
+    const cross=(a[0]*b[1]-b[0]*a[1]);
+    twiceArea+=cross;
+    cx+=(a[0]+b[0])*cross;
+    cy+=(a[1]+b[1])*cross;
+  }
+  if(Math.abs(twiceArea)<1e-6){
+    const b=bounds4374();
+    return {x:b.cx,y:b.cy};
+  }
+  return {x:cx/(3*twiceArea),y:cy/(3*twiceArea)};
+}
+function plannerScale4374(){
+  try{if(typeof plannerScale==='function'){const s=Number(plannerScale()); if(Number.isFinite(s)&&s>0)return s;}}catch(_){ }
+  const pts=Array.isArray(roomPoints)?roomPoints:[];
+  if(pts.length<2)return 60;
+  let screenPer=0;
+  for(let i=0;i<pts.length;i++){
+    const a=pts[i],b=pts[(i+1)%pts.length];
+    screenPer+=Math.hypot((b[0]||0)-(a[0]||0),(b[1]||0)-(a[1]||0));
+  }
+  let realPer=0;
+  if(Array.isArray(segmentLengths)&&segmentLengths.length===pts.length){
+    realPer=segmentLengths.reduce((s,v)=>s+num4374(v),0);
+  }
+  if(!(realPer>0)){
+    try{realPer=num4374(polygonMetrics?.().perimeter);}catch(_){ }
+  }
+  return realPer>0?screenPer/realPer:60;
+}
+function edgeLengths4374(){
+  const pts=Array.isArray(roomPoints)?roomPoints:[];
+  return pts.map((p,i)=>{
+    if(Array.isArray(segmentLengths)&&segmentLengths[i]>0)return num4374(segmentLengths[i]);
+    const q=pts[(i+1)%pts.length];
+    return Math.hypot((q?.[0]||0)-(p?.[0]||0),(q?.[1]||0)-(p?.[1]||0));
+  });
+}
+function pointOnPerimeter4374(distance){
+  const pts=Array.isArray(roomPoints)?roomPoints:[];
+  const lens=edgeLengths4374();
+  const total=lens.reduce((s,v)=>s+v,0);
+  if(!pts.length||!(total>0))return null;
+  let d=((distance%total)+total)%total;
+  for(let i=0;i<pts.length;i++){
+    const len=lens[i]||0;
+    if(d<=len||i===pts.length-1){
+      const a=pts[i],b=pts[(i+1)%pts.length];
+      const t=len>0?Math.min(1,Math.max(0,d/len)):0;
+      return {x:a[0]+(b[0]-a[0])*t,y:a[1]+(b[1]-a[1])*t};
+    }
+    d-=len;
+  }
+  return null;
+}
+function inward4374(point,offsetPx){
+  const c=centroid4374();
+  const vx=(c.x-point.x), vy=(c.y-point.y);
+  const len=Math.hypot(vx,vy)||1;
+  return {x:point.x+vx/len*offsetPx,y:point.y+vy/len*offsetPx};
+}
+function autoTag4374(obj){
+  obj=obj||{};
+  obj.__preliminaryAutoLighting4374=true;
+  obj.autoSource='preliminaryLighting4374';
+  return obj;
+}
+function clearAutoLighting4374(){
+  const current=Array.isArray(plannerObjects)?plannerObjects:[];
+  plannerObjects=current.filter(obj=>!(obj&&obj.__preliminaryAutoLighting4374));
+}
+function centerChandelier4374(){
+  const b=bounds4374();
+  return autoTag4374({type:'chandelier',x:Number(b.cx.toFixed(2)),y:Number(b.cy.toFixed(2))});
+}
+function distributeSpots4374(count){
+  const total=edgeLengths4374().reduce((s,v)=>s+v,0);
+  if(!(total>0)||count<=0)return [];
+  const pxOffset=Math.max(18,Math.min(42,plannerScale4374()*0.55));
+  const spots=[];
+  for(let i=0;i<count;i++){
+    const dist=total*((i+0.5)/count);
+    const edgePoint=pointOnPerimeter4374(dist);
+    if(!edgePoint)continue;
+    const p=inward4374(edgePoint,pxOffset);
+    spots.push(autoTag4374({type:'light',x:Number(p.x.toFixed(2)),y:Number(p.y.toFixed(2))}));
+  }
+  return spots;
+}
+function syncCalc4374(){
+  const current=Array.isArray(plannerObjects)?plannerObjects:[];
+  const lights=current.filter(o=>o?.type==='light').length;
+  const chandeliers=current.filter(o=>o?.type==='chandelier').length;
+  const ch=document.getElementById('chandelierCount');
+  if(ch)ch.value=String(chandeliers);
+  const spotCheck=document.getElementById('check_spots');
+  const spotFields=document.getElementById('fields_spots');
+  const spotQty=document.getElementById('qty_spots');
+  if(spotCheck)spotCheck.checked=lights>0;
+  if(spotFields)spotFields.classList.toggle('hidden',!(lights>0));
+  if(spotQty&&lights>0)spotQty.value=String(lights);
+  try{if(typeof recalc==='function')recalc();}catch(_){ }
+}
+function persist4374(){
+  const room=activeRoom4374();
+  if(room){
+    room.planner=room.planner||{};
+    room.planner.objects=deepClone4374(plannerObjects||[]);
+    room.chandeliers=(plannerObjects||[]).filter(o=>o?.type==='chandelier').length;
+  }
+  try{if(typeof renderPlanner==='function')renderPlanner();}catch(_){ }
+  syncCalc4374();
+  try{if(typeof syncActiveRoomFromUI==='function')syncActiveRoomFromUI(true);}catch(_){ }
+  try{if(typeof renderRooms==='function')renderRooms();}catch(_){ }
+  try{if(typeof updateSummary==='function')updateSummary();}catch(_){ }
+  try{if(typeof renderObjectCenter4325==='function')renderObjectCenter4325();}catch(_){ }
+  try{if(typeof autosave==='function')autosave();}catch(_){ }
+  document.title='Potolok AI PRO — Pixel '+VERSION4374;
+}
+function resolveSpotsCount4374(pre,askUser){
+  let count=Math.round(num4374(pre?.spotsCount||0));
+  if((!count||count<1)&&Array.isArray(plannerObjects)){
+    count=plannerObjects.filter(o=>o?.__preliminaryAutoLighting4374&&o?.type==='light').length;
+  }
+  if((!count||count<1) && askUser){
+    const answer=window.prompt('Вкажіть кількість точкових світильників для автоматичного розміщення по плану', String(count||4));
+    if(answer===null)return null;
+    count=Math.max(1,Math.round(num4374(answer)||4));
+  }
+  if(!count||count<1)count=4;
+  if(pre)pre.spotsCount=count;
+  return count;
+}
+function applyPreliminaryLighting4374(options){
+  const opts=options||{};
+  const room=activeRoom4374();
+  if(!room||!Array.isArray(roomPoints)||roomPoints.length<4)return false;
+  const pre=ensurePre4374(room);
+  const select=document.getElementById('preLight56');
+  const lighting=(select?.value||pre.lighting||'none');
+  pre.lighting=lighting;
+
+  clearAutoLighting4374();
+
+  if(lighting==='none' || lighting==='track'){
+    persist4374();
+    return true;
+  }
+
+  if(lighting==='chandelier' || lighting==='mixed'){
+    plannerObjects.push(centerChandelier4374());
+  }
+  if(lighting==='spots' || lighting==='mixed'){
+    const count=resolveSpotsCount4374(pre,opts.askSpots!==false);
+    if(count===null)return false;
+    plannerObjects.push.apply(plannerObjects,distributeSpots4374(count));
+  }
+
+  persist4374();
+  return true;
+}
+
+const basePreliminaryToPlan4374=window.preliminaryToPlan56;
+window.preliminaryToPlan56=function(){
+  const result=typeof basePreliminaryToPlan4374==='function'
+    ? basePreliminaryToPlan4374.apply(this,arguments)
+    : true;
+  if(result!==false){
+    setTimeout(()=>applyPreliminaryLighting4374({askSpots:false}),60);
+    setTimeout(()=>applyPreliminaryLighting4374({askSpots:false}),180);
+  }
+  return result;
+};
+
+function onLightChange4374(){
+  const value=document.getElementById('preLight56')?.value||'none';
+  const room=activeRoom4374();
+  if(room){
+    const pre=ensurePre4374(room);
+    pre.lighting=value;
+  }
+  if(value==='spots' || value==='mixed')applyPreliminaryLighting4374({askSpots:true});
+  else applyPreliminaryLighting4374({askSpots:false});
+}
+
+function bind4374(){
+  const select=document.getElementById('preLight56');
+  if(select && !select.dataset.pixel4374Bound){
+    select.dataset.pixel4374Bound='1';
+    select.addEventListener('change',onLightChange4374);
+  }
+}
+
+function start4374(){
+  bind4374();
+  setTimeout(bind4374,300);
+  setTimeout(bind4374,1000);
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start4374,{once:true});
+else start4374();
+})();
+</script>
+
 
 <!-- PIXEL 43(75): preliminary magnetic track by running metres -->
 <script id="pixel4375PreliminaryTrackScript">
@@ -17793,43 +18046,11 @@ const observer4377=new MutationObserver(mutations=>{
 
 function start4377(){
   render4377();
-  observer4377.observe(document.body,{subtree:true,childList:true});
+  false && observer4377.observe(document.body,{subtree:true,childList:true});
   queue4377(160);queue4377(600);queue4377(1200);
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start4377,{once:true});
 else start4377();
-})();
-</script>
-
-</body></html>`;
-}
-function status4353(t,type='info'){const el=document.getElementById('shareStatus4353');if(!el)return;el.textContent=t;el.className='show '+type}
-function download4353(){const p=window.__sharePayload4353;if(!p)return;const u=URL.createObjectURL(p.blob),a=document.createElement('a');a.href=u;a.download=p.filename;a.style.display='none';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),15000)}
-function modal4353(){let el=document.getElementById('shareEstimateModal4353');if(el)return el;el=document.createElement('div');el.id='shareEstimateModal4353';el.innerHTML=`<div class="share-sheet4353"><div class="share-head4353"><div><h3>📤 Поділитися кошторисом</h3><p>Головна кнопка надсилає саме HTML-файл кошторису. Текст винесено в окрему кнопку.</p></div><button class="share-close4353" onclick="closeShare4353()">×</button></div><button class="share-option4353 primary" onclick="nativeShare4353(this)"><span>📄</span><div><b>Надіслати кошторис файлом</b><small>HTML-файл з підписами «Площа кімнати» та «Периметр кімнати»</small></div></button><button class="share-option4353" onclick="downloadShare4353()"><span>⬇️</span><div><b>Завантажити файл</b><small>Зберегти готовий кошторис у «Завантаження»</small></div></button><button class="share-option4353" onclick="shareText4355(this)"><span>💬</span><div><b>Надіслати текстом</b><small>Окремий текст для Telegram, Viber або WhatsApp</small></div></button><button class="share-option4353" onclick="copyShare4353()"><span>📋</span><div><b>Скопіювати текст</b><small>Скопіювати кошторис у буфер обміну</small></div></button><div id="shareStatus4353"></div></div>`;el.addEventListener('click',ev=>{if(ev.target===el)window.closeShare4353()});document.body.appendChild(el);return el}
-window.closeShare4353=()=>document.getElementById('shareEstimateModal4353')?.classList.remove('open');
-window.downloadShare4353=()=>{try{download4353();status4353('Файл кошторису завантажено.','ok')}catch(err){status4353('Не вдалося завантажити файл: '+(err?.message||err),'error')}};
-window.copyShare4353=async()=>{const p=window.__sharePayload4353;if(!p)return;try{await navigator.clipboard.writeText(p.text);status4353('Текст кошторису скопійовано.','ok')}catch(_){prompt('Скопіюйте кошторис:',p.text)}};
-window.nativeShare4353=async function(btn){const p=window.__sharePayload4353;if(!p)return;const old=btn.innerHTML;btn.disabled=true;btn.innerHTML='<span>⏳</span><div><b>Готуємо файл…</b></div>';try{
-  const f=new File([p.blob],p.filename,{type:'text/html;charset=utf-8'});
-  if(navigator.share&&(!navigator.canShare||navigator.canShare({files:[f]}))){
-    try{await navigator.share({title:'Кошторис Potolok.in.ua',text:'Кошторис об’єкта Potolok.in.ua',files:[f]});window.closeShare4353();return}
-    catch(err){if(err?.name==='AbortError')return}
-  }
-  download4353();
-  status4353('Телефон не дозволив прикріпити HTML напряму. Файл завантажено — надішліть його з папки «Завантаження».','ok');
- }catch(err){
-  try{download4353();status4353('Пряма відправка недоступна. Готовий файл завантажено.','ok')}
-  catch(_){status4353('Не вдалося створити файл кошторису.','error')}
- }finally{btn.disabled=false;btn.innerHTML=old}};
-window.shareText4355=async function(btn){const p=window.__sharePayload4353;if(!p)return;const old=btn.innerHTML;btn.disabled=true;btn.innerHTML='<span>⏳</span><div><b>Готуємо текст…</b></div>';try{
-  if(navigator.share){try{await navigator.share({title:'Кошторис Potolok.in.ua',text:p.text});window.closeShare4353();return}catch(err){if(err?.name==='AbortError')return}}
-  try{await navigator.clipboard.writeText(p.text);status4353('Текст кошторису скопійовано.','ok')}catch(_){prompt('Скопіюйте кошторис:',p.text)}
- }finally{btn.disabled=false;btn.innerHTML=old}};
-window.shareEstimateFile4338=function(button){const old=button?.textContent;try{if(button){button.disabled=true;button.textContent='⏳ Готуємо кошторис…'}if(typeof window.syncActiveRoomFromUI==='function')window.syncActiveRoomFromUI(false);if(typeof window.collectObject!=='function')throw new Error('Дані об’єкта недоступні');const o=window.collectObject(),html=html4353(o),filename='Koshtorys-Potolok-'+file4353(o?.clientName||o?.address||o?.id)+'.html';window.__sharePayload4353={object:o,html,filename,blob:new Blob([html],{type:'text/html;charset=utf-8'}),text:text4353(o)};const md=modal4353();document.getElementById('shareStatus4353').className='';md.classList.add('open')}catch(err){alert('Не вдалося підготувати кошторис: '+(err?.message||err))}finally{if(button){button.disabled=false;button.textContent=old}}};
-const previousSave4353=window.saveObjectToHistory4338;
-window.saveObjectToHistory4338=async function(button){if(!isLocal4353())return previousSave4353?.call(this,button);const old=button?.textContent;try{if(button){button.disabled=true;button.textContent='⏳ Зберігаємо локально…'}if(typeof window.syncActiveRoomFromUI==='function')window.syncActiveRoomFromUI(true);const o=window.collectObject?.();if(!o)throw new Error('Дані об’єкта недоступні');if(typeof window.dbPutObject==='function')await window.dbPutObject(o);else{const key='potolok_pixel5_local_objects';const arr=JSON.parse(localStorage.getItem(key)||'[]').filter(x=>x?.id!==o.id);arr.unshift(o);localStorage.setItem(key,JSON.stringify(arr))}await window.renderHistory?.();alert('Локальну копію збережено на цьому телефоні. Хмарна історія запрацює після запуску файлу через сайт potolok.in.ua.')}catch(err){alert('Не вдалося зберегти локальну копію: '+(err?.message||err))}finally{if(button){button.disabled=false;button.textContent=old}}};
-/* 43(56): периметр підписано як погонні метри у файлі та тексті кошторису */
-document.title='Potolok AI PRO — Pixel 43(56)';
 })();
 </script>
 
@@ -18014,7 +18235,7 @@ const observer4358=new MutationObserver(mutations=>{
   }
 });
 function start4358(){
-  observer4358.observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['class']});
+  false && observer4358.observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['class']});
   patch4358();
   setTimeout(patch4358,180);
   setTimeout(patch4358,700);
@@ -18236,7 +18457,7 @@ const observer4359=new MutationObserver(mutations=>{
 });
 function start4359(){
   rememberAll4359();
-  observer4359.observe(document.body,{childList:true,subtree:true});
+  false && observer4359.observe(document.body,{childList:true,subtree:true});
   queue4359();queue4359(180);queue4359(700);
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start4359,{once:true});else start4359();
@@ -18328,7 +18549,7 @@ const observer4360=new MutationObserver(mutations=>{
 });
 
 function start4360(){
-  observer4360.observe(document.body,{childList:true,subtree:true});
+  false && observer4360.observe(document.body,{childList:true,subtree:true});
   queueWholeObjectActions4360();
   queueWholeObjectActions4360(120);
   queueWholeObjectActions4360(500);
@@ -18356,15 +18577,40 @@ else start4360();
   gap:8px;
   flex-wrap:nowrap;
 }
-#roomList .room-card-actions .room-clear4362{
+#roomList .room-card-actions button{
+  min-height:36px;
+  white-space:nowrap;
+}
+#roomList .room-card-actions .room-open4391{
+  flex:1 1 auto;
+}
+#roomList .room-card-actions .room-clear4362.room-clear4391{
   color:#dc2626 !important;
   background:#fff7f7 !important;
   border:1px solid #fecaca !important;
-  min-width:108px;
+  min-width:0;
+  padding-left:10px;
+  padding-right:10px;
   font-weight:900;
+  font-size:8px;
+  flex:0 0 auto;
 }
-#roomList .room-card-actions .room-clear4362:active{
+#roomList .room-card-actions .room-clear4362.room-clear4391:active{
   background:#fee2e2 !important;
+}
+#roomList .room-card-actions .room-delete4391{
+  color:#b91c1c !important;
+  background:#fff !important;
+  border:1px solid #fecaca !important;
+  min-width:0;
+  padding-left:10px;
+  padding-right:10px;
+  font-weight:900;
+  font-size:8px;
+  flex:0 0 auto;
+}
+#roomList .room-card-actions .room-delete4391:active{
+  background:#fff1f2 !important;
 }
 #templateModal4325 .template-sheet4325{
   padding-bottom:0;
@@ -18383,9 +18629,11 @@ else start4360();
   min-height:54px;
 }
 @media(max-width:520px){
-  #roomList .room-card-actions{gap:6px}
+  #roomList .room-card-actions{gap:6px;flex-wrap:wrap}
+  #roomList .room-card-actions .room-open4391{flex:1 1 100%}
+  #roomList .room-card-actions .room-clear4362.room-clear4391,
+  #roomList .room-card-actions .room-delete4391{flex:1 1 calc(50% - 3px)}
   #roomList .room-card-actions button{padding-left:10px;padding-right:10px}
-  #roomList .room-card-actions .room-clear4362{min-width:100px}
 }
 </style>
 <script id="pixel4362VersionScript">
@@ -19088,7 +19336,7 @@ const observer4365=new MutationObserver(mutations=>{
   }
 });
 function start4365(){
-  observer4365.observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:['class']});
+  false && observer4365.observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:['class']});
   queue4365();
   setTimeout(()=>queue4365(),250);
   setTimeout(()=>queue4365(),900);
@@ -19583,7 +19831,7 @@ const observer4367=new MutationObserver(mutations=>{
 function start4367(){
   ensurePreview4367();
   updatePreview4367();
-  observer4367.observe(document.body,{subtree:true,childList:true});
+  false && observer4367.observe(document.body,{subtree:true,childList:true});
   queue4367();queue4367(250);queue4367(800);
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start4367,{once:true});
@@ -19858,7 +20106,7 @@ const observer4368=new MutationObserver(mutations=>{
 });
 function start4368(){
   ensureControls4368();
-  observer4368.observe(document.body,{subtree:true,childList:true});
+  false && observer4368.observe(document.body,{subtree:true,childList:true});
   scheduleInstall4368(180);
   scheduleInstall4368(650);
 }
@@ -20164,7 +20412,7 @@ const observer4370=new MutationObserver(mutations=>{
   }
 });
 function start4370(){
-  observer4370.observe(document.body,{subtree:true,childList:true});
+  false && observer4370.observe(document.body,{subtree:true,childList:true});
   syncAllPlanWorks4370();
   queueRefresh4370();
   setTimeout(()=>{syncAllPlanWorks4370();queueRefresh4370()},250);
@@ -20443,7 +20691,7 @@ const observer4371=new MutationObserver(mutations=>{
 function start4371(){
   const changed=migrateAll4371();
   if(changed){try{if(typeof window.autosave==='function')window.autosave()}catch(_){ }}
-  observer4371.observe(document.body,{subtree:true,childList:true});
+  false && observer4371.observe(document.body,{subtree:true,childList:true});
   patch4371();setTimeout(patch4371,220);setTimeout(patch4371,850);
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start4371,{once:true});else start4371();
@@ -20729,7 +20977,7 @@ const observer4372=new MutationObserver(mutations=>{
   }
 });
 function start4372(){
-  observer4372.observe(document.body,{subtree:true,childList:true});
+  false && observer4372.observe(document.body,{subtree:true,childList:true});
   renderSignature4372='';
   try{window.renderRoomPlanElements4318?.()}catch(_){ }
   patch4372();
@@ -21539,7 +21787,7 @@ const observer78=new MutationObserver(mutations=>{
   let relevant=false;for(const mutation of mutations){for(const node of mutation.addedNodes||[]){if(node?.nodeType===1&&(node.id==='objectRoomFinanceActions4370'||node.id==='plannerFinanceActions4349'||node.querySelector?.('#objectRoomFinanceActions4370,#plannerFinanceActions4349,#preShapeCard4367'))){relevant=true;break}}if(relevant)break}
   if(relevant){removeDuplicateActions78();queueUi78(40)}
 });
-function start78(){ensureUi78();syncUi78();removeDuplicateActions78();observer78.observe(document.body,{subtree:true,childList:true});queueUi78(250);queueUi78(800);setTimeout(()=>{if(livePoints78().length>=3)apply78({quiet:true})},360);setTimeout(()=>{if(livePoints78().length>=3)apply78({quiet:true})},980);document.title='Potolok AI PRO — Pixel '+VERSION78;setTimeout(()=>{document.title='Potolok AI PRO — Pixel '+VERSION78},1600)}
+function start78(){ensureUi78();syncUi78();removeDuplicateActions78();false && observer78.observe(document.body,{subtree:true,childList:true});queueUi78(250);queueUi78(800);setTimeout(()=>{if(livePoints78().length>=3)apply78({quiet:true})},360);setTimeout(()=>{if(livePoints78().length>=3)apply78({quiet:true})},980);document.title='Potolok AI PRO — Pixel '+VERSION78;setTimeout(()=>{document.title='Potolok AI PRO — Pixel '+VERSION78},1600)}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start78,{once:true});else start78();
 })();
 </script>
@@ -21932,7 +22180,7 @@ function install4384(){
   wrapObjectDelete4384();
   const roots=[by4384('tab_object'),by4384('tab_planner')].filter(Boolean);
   const observer=new MutationObserver(()=>{if(!mutating4384)schedule4384()});
-  roots.forEach(root=>observer.observe(root,{subtree:true,childList:true}));
+  /* Pixel 43.90 anti-freeze: navigation refreshes through click, pageshow and resize hooks. */
   document.addEventListener('click',event=>{
     const nav=event.target?.closest?.('[data-nav4384]');
     if(nav){event.preventDefault();event.stopImmediatePropagation();openTab4384(nav.dataset.nav4384);return}
@@ -21964,8 +22212,6 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 
 
 
-
-<!-- 43.87 FIXED: removed broken obsolete 43(53) share block; corrected finishing summary note -->
 <!-- PIXEL 43(87): stable preliminary area/perimeter typing on mobile -->
 <style id="pixel4387StablePreliminaryInputStyles">
 html.pixel4387-pre-editing,
@@ -22067,6 +22313,572 @@ window.addEventListener('keydown',event=>{
 },true);
 
 document.title='Potolok AI PRO — Pixel '+VERSION4387;
+})();
+</script>
+
+
+<script id="pixel4388EmergencyRepairScript">
+(function(){
+'use strict';
+window.__pixel4388EmergencyRepair=true;
+function mark4388(){
+  document.documentElement.dataset.pixelVersion='43.88';
+  try{document.title='Potolok AI PRO — Pixel 43.88'}catch(_){ }
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',mark4388,{once:true});else mark4388();
+})();
+</script>
+
+
+<!-- PIXEL 43(89): room-list clear keeps the room, contour and dimensions -->
+<script id="pixel4389ClearRoomElementsScript">
+(function(){
+'use strict';
+if(window.__pixel4389ClearRoomElements)return;
+window.__pixel4389ClearRoomElements=true;
+
+function copy4389(value){
+  try{return typeof deepCopy==='function'?deepCopy(value):JSON.parse(JSON.stringify(value))}
+  catch(_){return value}
+}
+function rooms4389(){
+  try{return Array.isArray(projectRooms)?projectRooms:[]}
+  catch(_){return Array.isArray(window.projectRooms)?window.projectRooms:[]}
+}
+function room4389(id){return rooms4389().find(room=>String(room?.id)===String(id))||null}
+function listHas4389(value){
+  if(!Array.isArray(value))return false;
+  return value.some(item=>Array.isArray(item)?item.length>0:Boolean(item));
+}
+function stateHas4389(state){
+  if(!state||typeof state!=='object')return false;
+  return Boolean(state.chandelier||state.spots||state.track||
+    (state.corniceType&&state.corniceType!=='none')||
+    (state.insertType&&state.insertType!=='none'));
+}
+function hasElements4389(room){
+  if(!room)return false;
+  const objects=Array.isArray(room.planner?.objects)?room.planner.objects:[];
+  const checked=Object.values(room.extras?.checked||{}).some(Boolean);
+  const profiles=Object.values(room.profiles||{}).some(item=>Boolean(item?.active));
+  const layout=room.preliminary?.layout4378;
+  return objects.length>0||checked||profiles||listHas4389(room.perimeterBindings)||
+    stateHas4389(layout)||Number(room.chandeliers||0)>0||
+    (room.insertPackage&&room.insertPackage!=='none');
+}
+function emptyLayout4389(room){
+  const perimeter=Math.max(0,Number(room?.perimeter||room?.preliminary?.perimeter)||0);
+  return{
+    chandelier:false,
+    spots:false,
+    spotsCount:0,
+    track:false,
+    trackLength:2,
+    corniceType:'none',
+    corniceLength:Math.max(.3,Math.min(3,perimeter/4||2)),
+    insertType:'none',
+    insertLength:Math.max(.1,perimeter||1)
+  };
+}
+function resetStored4389(room){
+  if(!room)return;
+  room.planner=room.planner||{};
+  room.planner.objects=[];
+  room.extras={checked:{},qty:{}};
+  room.profiles={};
+  room.perimeterBindings=[];
+  room.chandeliers=0;
+  room.insertPackage='none';
+  room.rows=[];
+  room.preliminary=Object.assign({},room.preliminary||{}, {
+    lighting:'none',
+    spotsCount:0,
+    trackLength:2,
+    insertType:'none',
+    insertLength:Math.max(.1,Number(room.perimeter||room.preliminary?.perimeter)||1),
+    layout4378:emptyLayout4389(room),
+    autoInsertSnapshot4378:'',
+    autoInsertPackage4378:false
+  });
+}
+function resetLiveControls4389(){
+  try{if(typeof clearDynamicSelections==='function')clearDynamicSelections()}catch(_){ }
+  const set=(id,value)=>{const element=document.getElementById(id);if(element)element.value=value};
+  const check=(id,value=false)=>{const element=document.getElementById(id);if(element)element.checked=value};
+  set('chandelierCount','0');
+  set('preLight56','none');
+  check('pre78Chandelier');
+  check('pre78Spots');
+  check('pre78Track');
+  set('pre78SpotsCount','');
+  set('pre78TrackLength','2');
+  set('pre78CorniceType','none');
+  set('pre78InsertType','none');
+  try{if(typeof updateRoomInsert47==='function')updateRoomInsert47('none')}catch(_){ }
+}
+function refresh4389(){
+  try{if(typeof renderPlanner==='function')renderPlanner()}catch(_){ }
+  try{if(typeof showObjectInspector==='function')showObjectInspector()}catch(_){ }
+  try{if(typeof recalc==='function')recalc()}catch(_){ }
+  try{if(typeof renderRoomPlanElements4318==='function')renderRoomPlanElements4318()}catch(_){ }
+  try{if(typeof updateSummary==='function')updateSummary()}catch(_){ }
+  try{if(typeof renderRooms==='function')renderRooms()}catch(_){ }
+  try{if(typeof renderObjectCenter4325==='function')renderObjectCenter4325()}catch(_){ }
+  try{if(typeof autosave==='function')autosave()}catch(_){ }
+}
+
+window.clearRoomElements4389=function(id){
+  try{if(typeof syncActiveRoomFromUI==='function')syncActiveRoomFromUI(false)}catch(_){ }
+  let room=room4389(id);
+  if(!room)return;
+  const name=room.name||'Кімната';
+  if(!hasElements4389(room)){
+    alert('У кімнаті «'+name+'» немає додаткових елементів для очищення. Кімнату залишено без змін.');
+    return;
+  }
+  if(!confirm('Очистити всі додаткові елементи кімнати «'+name+'»? Контур, розміри, фото, оздоблення та додаткові роботи залишаться.'))return;
+
+  try{
+    if(String(activeRoomId)!==String(id)&&typeof restoreRoom==='function')restoreRoom(room);
+  }catch(_){ }
+  room=room4389(id)||room;
+  const keptPlanner=copy4389(room.planner||{});
+  resetStored4389(room);
+  room.planner=Object.assign({},keptPlanner,{objects:[]});
+
+  try{plannerObjects=[]}catch(_){window.plannerObjects=[]}
+  try{perimeterBindings=[]}catch(_){window.perimeterBindings=[]}
+  try{selectedObjectIndex=-1}catch(_){window.selectedObjectIndex=-1}
+  resetLiveControls4389();
+
+  try{if(typeof recalc==='function')recalc()}catch(_){ }
+  try{if(typeof syncActiveRoomFromUI==='function')syncActiveRoomFromUI(false)}catch(_){ }
+  const saved=room4389(id);
+  if(saved){
+    const currentPlanner=saved.planner||{};
+    saved.planner=Object.assign({},keptPlanner,currentPlanner,{objects:[]});
+    saved.perimeterBindings=[];
+    saved.extras={checked:{},qty:{}};
+    saved.profiles={};
+    saved.chandeliers=0;
+    saved.insertPackage='none';
+    saved.preliminary=Object.assign({},saved.preliminary||room.preliminary||{},room.preliminary||{}, {
+      lighting:'none',spotsCount:0,trackLength:2,insertType:'none',
+      layout4378:emptyLayout4389(saved),autoInsertSnapshot4378:'',autoInsertPackage4378:false
+    });
+  }
+  refresh4389();
+  document.documentElement.dataset.pixelVersion='43.89';
+  document.title='Potolok AI PRO — Pixel 43.89';
+};
+
+function mark4389(){
+  document.documentElement.dataset.pixelVersion='43.89';
+  try{document.title='Potolok AI PRO — Pixel 43.89'}catch(_){ }
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',mark4389,{once:true});else mark4389();
+})();
+</script>
+
+
+
+<!-- PIXEL 43.90: anti-freeze observer cleanup -->
+<script id="pixel4390AntiFreezeScript">
+(function(){
+'use strict';
+if(window.__pixel4390AntiFreeze)return;
+window.__pixel4390AntiFreeze=true;
+const VERSION4390='43.93';
+function mark4390(){
+  document.documentElement.dataset.pixelVersion=VERSION4390;
+  const wanted='Potolok AI PRO — Pixel '+VERSION4390;
+  if(document.title!==wanted)document.title=wanted;
+}
+function install4390(){
+  mark4390();
+  const title=document.querySelector('title');
+  if(title){
+    new MutationObserver(mark4390).observe(title,{childList:true,characterData:true,subtree:true});
+  }
+  window.addEventListener('pageshow',mark4390,{passive:true});
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install4390,{once:true});else install4390();
+})();
+</script>
+
+
+<!-- PIXEL 43.92: red X removes preliminary decorative insert only -->
+<script id="pixel4392InsertXFix">
+(function(){
+'use strict';
+if(window.__pixel4392InsertXFix)return;
+window.__pixel4392InsertXFix=true;
+
+function copy4392(value){try{return JSON.parse(JSON.stringify(value))}catch(_){return value}}
+function rooms4392(){try{return Array.isArray(projectRooms)?projectRooms:[]}catch(_){return Array.isArray(window.projectRooms)?window.projectRooms:[]}}
+function activeId4392(){try{return String(activeRoomId??'')}catch(_){return String(window.activeRoomId??'')}}
+function activeRoom4392(){return rooms4392().find(room=>String(room?.id||'')===activeId4392())||null}
+function isInsert4392(value){return ['insertWhite','insertBlack'].includes(String(value||''))}
+function cleanBindings4392(value){return (Array.isArray(value)?value:[]).map(list=>(Array.isArray(list)?list:[]).filter(type=>!isInsert4392(type)))}
+function cleanObjects4392(value){return (Array.isArray(value)?value:[]).filter(object=>!isInsert4392(object?.type))}
+function setValue4392(id,value){const node=document.getElementById(id);if(node)node.value=value}
+
+function clearStoredInsert4392(room){
+  if(!room)return;
+  room.insertPackage='none';
+  room.perimeterBindings=cleanBindings4392(room.perimeterBindings);
+  room.planner=room.planner||{};
+  room.planner.objects=cleanObjects4392(room.planner.objects);
+  room.extras=room.extras||{checked:{},qty:{}};
+  room.extras.checked=room.extras.checked||{};
+  room.extras.qty=room.extras.qty||{};
+  room.extras.checked.insertWhite=false;
+  room.extras.checked.insertBlack=false;
+  room.extras.qty.insertWhite=0;
+  room.extras.qty.insertBlack=0;
+  room.preliminary=room.preliminary||{};
+  room.preliminary.insertType='none';
+  room.preliminary.manualPerimeterInsert4381=false;
+  room.preliminary.autoInsertSnapshot4378='';
+  room.preliminary.autoInsertPackage4378=false;
+  room.preliminary.layout4378=Object.assign({},room.preliminary.layout4378||{}, {insertType:'none'});
+  if(Array.isArray(room.rows))room.rows=room.rows.filter(row=>!isInsert4392(row?.rowId||row?.type));
+}
+
+function clearLiveInsert4392(){
+  try{plannerObjects=cleanObjects4392(plannerObjects)}catch(_){window.plannerObjects=cleanObjects4392(window.plannerObjects)}
+  try{perimeterBindings=cleanBindings4392(perimeterBindings)}catch(_){window.perimeterBindings=cleanBindings4392(window.perimeterBindings)}
+  try{selectedObjectIndex=-1}catch(_){window.selectedObjectIndex=-1}
+  setValue4392('calcInsert','none');
+  setValue4392('roomPackageInsert','none');
+  setValue4392('objectInsert47','none');
+  setValue4392('pre78InsertType','none');
+  ['insertWhite','insertBlack'].forEach(id=>{
+    const check=document.getElementById('check_'+id);if(check)check.checked=false;
+    const qty=document.getElementById('qty_'+id);if(qty)qty.value='';
+    document.getElementById('fields_'+id)?.classList.add('hidden');
+  });
+  document.getElementById('preInsertOverlay4381')?.remove();
+}
+
+function redraw4392(){
+  try{if(typeof ensureBindings==='function')ensureBindings()}catch(_){ }
+  try{if(typeof renderPerimeterBindings==='function')renderPerimeterBindings()}catch(_){ }
+  try{if(typeof renderPlanner==='function')renderPlanner()}catch(_){ }
+  try{if(typeof recalc==='function')recalc()}catch(_){ }
+  try{if(typeof window.renderRoomPlanElements4318==='function')window.renderRoomPlanElements4318()}catch(_){ }
+  try{if(typeof window.renderObjectCenter4325==='function')window.renderObjectCenter4325()}catch(_){ }
+  try{if(typeof window.renderRooms==='function')window.renderRooms()}catch(_){ }
+  try{if(typeof updateSummary==='function')updateSummary()}catch(_){ }
+  try{if(typeof autosave==='function')autosave()}catch(_){ }
+}
+
+function removeInsert4392(){
+  const room=activeRoom4392();
+  if(!room)return;
+  try{if(typeof pushPlanner==='function')pushPlanner()}catch(_){ }
+  clearStoredInsert4392(room);
+  clearLiveInsert4392();
+
+  /* Trigger the existing preliminary-layout saver with “Без вставки”. */
+  const preliminarySelect=document.getElementById('pre78InsertType');
+  if(preliminarySelect){
+    preliminarySelect.value='none';
+    preliminarySelect.dispatchEvent(new Event('change',{bubbles:true}));
+  }
+
+  try{if(typeof syncActiveRoomFromUI==='function')syncActiveRoomFromUI(false)}catch(_){ }
+  clearStoredInsert4392(activeRoom4392());
+  clearLiveInsert4392();
+  redraw4392();
+
+  /* Neutralize any already queued preliminary redraw from the previous selection. */
+  [80,280].forEach(delay=>setTimeout(()=>{
+    clearStoredInsert4392(activeRoom4392());
+    clearLiveInsert4392();
+    redraw4392();
+  },delay));
+}
+
+const deleteBase4392=window.deletePlanElement4319;
+window.deletePlanElement4319=function(key){
+  const normalized=String(key||'');
+  if(!['bind_insertWhite','bind_insertBlack','obj_insertWhite','obj_insertBlack'].includes(normalized)){
+    return typeof deleteBase4392==='function'?deleteBase4392.apply(this,arguments):undefined;
+  }
+  const black=normalized.includes('Black');
+  if(!window.confirm('Прибрати '+(black?'чорну':'білу')+' вставку з плану та розрахунку?'))return;
+  removeInsert4392();
+};
+
+document.documentElement.dataset.pixelVersion='43.93';
+document.title='Potolok AI PRO — Pixel 43.93';
+})();
+</script>
+
+
+
+<!-- PIXEL 43.93: clear photo-to-AI flow and separate object management -->
+<style id="pixel4393UiOrderStyles">
+.ai-photo-next4393{
+  margin-top:12px;padding:13px;border:1px solid #93c5fd;border-radius:15px;
+  background:linear-gradient(180deg,#eff6ff,#fff);box-shadow:0 8px 20px rgba(7,91,255,.08)
+}
+.ai-photo-next4393-head{display:flex;align-items:flex-start;gap:10px}
+.ai-photo-next4393-icon{width:40px;height:40px;flex:0 0 40px;border-radius:12px;background:#dbeafe;display:flex;align-items:center;justify-content:center;font-size:20px}
+.ai-photo-next4393 b{display:block;font-size:12px;color:#0f172a}
+.ai-photo-next4393 p{margin-top:4px;font-size:9px;line-height:1.45;color:#64748b}
+.ai-photo-next4393-status{margin-top:9px;padding:8px 9px;border-radius:9px;background:#fff;border:1px solid #dbeafe;font-size:9px;font-weight:900;color:#475569}
+.ai-photo-next4393-status.ready{background:#ecfdf5;border-color:#86efac;color:#15803d}
+.ai-photo-next4393-btn{width:100%;min-height:50px;margin-top:10px;border:0;border-radius:12px;background:linear-gradient(135deg,#075bff,#2563eb);color:#fff;font-size:12px;font-weight:950;box-shadow:0 10px 22px rgba(7,91,255,.24)}
+.object-actions4393{margin-top:16px;padding:13px;border:1px solid #dbe3ef;border-radius:15px;background:#fff}
+.object-actions4393-head{margin-bottom:10px}
+.object-actions4393-head b{display:block;font-size:13px;color:#0f172a}
+.object-actions4393-head span{display:block;margin-top:4px;font-size:9px;line-height:1.45;color:#64748b}
+.object-actions4393-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.object-actions4393-grid .btn{margin:0;min-height:46px}
+.object-actions4393-grid .client4393{grid-column:1/-1}
+@media(max-width:430px){
+  .object-actions4393-grid{grid-template-columns:1fr}
+  .object-actions4393-grid .client4393{grid-column:auto}
+}
+</style>
+<script id="pixel4393UiOrderScript">
+(function(){
+'use strict';
+if(window.__pixel4393UiOrder)return;
+window.__pixel4393UiOrder=true;
+
+function photoReady4393(){
+  try{return Boolean(window.uploadedImageBase64||uploadedImageBase64)}catch(_){return false}
+}
+function refreshAiStatus4393(){
+  const status=document.getElementById('aiPhotoStatus4393');
+  if(!status)return;
+  const ready=photoReady4393();
+  status.classList.toggle('ready',ready);
+  status.textContent=ready
+    ? '✅ Основне фото вибрано. Можна переходити до AI-редактора.'
+    : 'Спочатку зробіть фото або виберіть його з галереї.';
+}
+window.openAiFromPhoto4393=function(){
+  if(!photoReady4393()){
+    alert('Спочатку зробіть фото або виберіть його з галереї.');
+    return;
+  }
+  try{if(typeof syncActiveRoomFromUI==='function')syncActiveRoomFromUI(false)}catch(_){ }
+  try{if(typeof autosave==='function')autosave()}catch(_){ }
+  if(typeof window.goTab56==='function')window.goTab56('ai');
+  else{
+    const aiButton=[...document.querySelectorAll('.main-tab')].find(button=>button.textContent.includes('AI'));
+    if(aiButton&&typeof window.showMainTab==='function')window.showMainTab('ai',aiButton);
+    window.scrollTo({top:document.getElementById('app')?.offsetTop||0,behavior:'smooth'});
+  }
+};
+
+function install4393(){
+  const photoBlock=document.querySelector('#tab_object .photo-box')?.closest('.block');
+  if(!photoBlock||document.getElementById('aiPhotoNext4393'))return;
+
+  const gallery=photoBlock.querySelector('.p55-block');
+  const aiBox=document.createElement('section');
+  aiBox.id='aiPhotoNext4393';
+  aiBox.className='ai-photo-next4393';
+  aiBox.innerHTML=`
+    <div class="ai-photo-next4393-head">
+      <div class="ai-photo-next4393-icon">✨</div>
+      <div><b>Наступний крок — AI-візуалізація</b><p>Вибране основне фото буде автоматично передано в AI-редактор. Там можна обрати стелю, фактуру, освітлення та інші елементи.</p></div>
+    </div>
+    <div id="aiPhotoStatus4393" class="ai-photo-next4393-status"></div>
+    <button type="button" class="ai-photo-next4393-btn" onclick="openAiFromPhoto4393()">✨ Перейти в AI-редактор</button>`;
+  (gallery||photoBlock).insertAdjacentElement('afterend',aiBox);
+
+  const oldRow=photoBlock.nextElementSibling;
+  const publish=document.getElementById('publishClientCardBtn56');
+  const publishStatus=document.getElementById('publishClientCardStatus56');
+  const management=document.createElement('section');
+  management.id='objectActions4393';
+  management.className='object-actions4393';
+  management.innerHTML=`
+    <div class="object-actions4393-head"><b>⚙️ Керування всім об’єктом</b><span>Ці дії стосуються всіх кімнат, фотографій, планів і розрахунків об’єкта, а не лише поточного фото.</span></div>
+    <div class="object-actions4393-grid"></div>`;
+  const grid=management.querySelector('.object-actions4393-grid');
+
+  if(oldRow?.classList.contains('btn-row')){
+    [...oldRow.querySelectorAll('button')].forEach((button,index)=>{
+      button.textContent=index===0?'☁️ Зберегти весь об’єкт':'＋ Почати новий об’єкт';
+      grid.appendChild(button);
+    });
+    oldRow.remove();
+  }
+  if(publish){
+    publish.textContent='🔐 Створити доступ клієнту';
+    publish.classList.remove('btn-full','mt');
+    publish.classList.add('client4393');
+    grid.appendChild(publish);
+  }
+  if(publishStatus)management.appendChild(publishStatus);
+  aiBox.insertAdjacentElement('afterend',management);
+
+  const refreshLater=()=>setTimeout(refreshAiStatus4393,40);
+  photoBlock.addEventListener('click',refreshLater,true);
+  photoBlock.addEventListener('change',refreshLater,true);
+  refreshAiStatus4393();
+  [120,500].forEach(delay=>setTimeout(refreshAiStatus4393,delay));
+}
+
+function mark4393(){
+  document.documentElement.dataset.pixelVersion='43.93';
+  document.title='Potolok AI PRO — Pixel 43.93';
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{install4393();mark4393()},{once:true});
+else{install4393();mark4393()}
+window.addEventListener('pageshow',()=>{install4393();mark4393()},{passive:true});
+})();
+</script>
+
+<!-- PIXEL 43.94: object actions moved to the true end of the object -->
+<style id="pixel4394ObjectEndStyles">
+.object-end-actions4394{padding:18px 0 22px}
+.object-end-actions4394 .object-actions4393{margin:0;padding:16px;border-radius:18px;box-shadow:0 10px 28px rgba(15,23,42,.07)}
+.object-end-actions4394 .object-actions4393-head{margin-bottom:13px}
+.object-end-actions4394 .object-actions4393-head b{font-size:17px}
+.object-end-actions4394 .object-actions4393-head span{font-size:10px;max-width:760px}
+.object-end-actions4394 .object-actions4393-grid{grid-template-columns:1fr 1fr;gap:10px}
+.object-end-actions4394 .object-actions4393-grid .btn{min-height:50px;border-radius:12px;font-size:11px;font-weight:950}
+.object-end-actions4394 .share4394{background:#075bff;color:#fff;border-color:#075bff;box-shadow:0 8px 18px rgba(7,91,255,.20)}
+.object-end-actions4394 .delete4394{background:#fff1f2;color:#b91c1c;border:1px solid #fecaca}
+.object-end-actions4394 .delete4394:active{background:#fee2e2}
+#objectHiddenClientActions4394{display:none!important}
+@media(max-width:520px){
+  .object-end-actions4394{padding:14px 0 18px}
+  .object-end-actions4394 .object-actions4393-grid{grid-template-columns:1fr}
+}
+</style>
+<script id="pixel4394ObjectEndScript">
+(function(){
+'use strict';
+if(window.__pixel4394ObjectEnd)return;
+window.__pixel4394ObjectEnd=true;
+
+function readJson4394(key,fallback){
+  try{const value=JSON.parse(localStorage.getItem(key)||'');return value??fallback}catch(_){return fallback}
+}
+function writeJson4394(key,value){
+  try{localStorage.setItem(key,JSON.stringify(value))}catch(_){ }
+}
+
+window.shareCurrentObject4394=function(button){
+  try{if(typeof syncActiveRoomFromUI==='function')syncActiveRoomFromUI(false)}catch(_){ }
+  try{if(typeof autosave==='function')autosave()}catch(_){ }
+  if(typeof window.shareEstimateFile4338==='function')return window.shareEstimateFile4338(button);
+  if(typeof window.openEstimateShare4345==='function')return window.openEstimateShare4345();
+  if(typeof window.openEstimateShare43340==='function')return window.openEstimateShare43340();
+  alert('Функція поширення об’єкта поки недоступна. Спочатку збережіть об’єкт.');
+};
+
+window.deleteCurrentObject4394=async function(){
+  let id='';
+  try{id=String(activeObjectId||'')}catch(_){ }
+  let name='поточний об’єкт';
+  try{
+    const client=(document.getElementById('clientName')?.value||'').trim();
+    const address=(document.getElementById('objectAddress')?.value||'').trim();
+    name=client||address||name;
+  }catch(_){ }
+  if(!confirm('Видалити «'+name+'» повністю? Будуть видалені всі кімнати, фото, плани та розрахунки цього об’єкта. Цю дію неможливо скасувати.'))return;
+
+  if(id){
+    try{if(typeof dbDeleteObject==='function')await dbDeleteObject(id)}catch(error){console.warn('43.94 IndexedDB delete',error)}
+
+    ['potolok_pixel5_objects','potolok_pixel56_objects_fallback'].forEach(key=>{
+      const list=readJson4394(key,[]);
+      if(Array.isArray(list))writeJson4394(key,list.filter(item=>String(item?.id)!==id));
+    });
+
+    const historyMeta=readJson4394('potolok_pixel53_history_meta',[]);
+    if(Array.isArray(historyMeta))writeJson4394('potolok_pixel53_history_meta',historyMeta.filter(item=>String(item?.id)!==id));
+
+    const cloudMeta=readJson4394('potolok_pixel54_cloud_meta',{});
+    const cloudId=cloudMeta&&typeof cloudMeta==='object'?(cloudMeta[id]?.cloudId||''):'';
+    if(cloudMeta&&typeof cloudMeta==='object'){
+      delete cloudMeta[id];
+      writeJson4394('potolok_pixel54_cloud_meta',cloudMeta);
+    }
+    if(cloudId&&location.protocol!=='content:'){
+      try{await fetch('/api/objects?id='+encodeURIComponent(cloudId),{method:'DELETE',headers:{'Content-Type':'application/json'}})}catch(error){console.warn('43.94 cloud delete',error)}
+    }
+  }
+
+  ['potolok_pixel51_draft','potolok_pixel5_draft'].forEach(key=>localStorage.removeItem(key));
+  try{if(typeof newObject==='function')newObject()}catch(error){console.warn('43.94 new object',error)}
+  try{if(typeof window.renderHistory==='function')await window.renderHistory()}catch(_){ }
+  try{
+    const objectTab=document.querySelector('.main-tab[onclick*="object"]');
+    if(objectTab&&typeof showMainTab==='function')showMainTab('object',objectTab);
+  }catch(_){ }
+  window.scrollTo({top:0,behavior:'smooth'});
+  alert('Об’єкт видалено. Створено чистий новий об’єкт.');
+};
+
+function relocate4394(){
+  const management=document.getElementById('objectActions4393');
+  const request=document.querySelector('.ai-request-section');
+  if(!management||!request)return false;
+
+  let endSection=document.getElementById('objectEndActions4394');
+  if(!endSection){
+    endSection=document.createElement('section');
+    endSection.id='objectEndActions4394';
+    endSection.className='object-end-actions4394';
+    endSection.innerHTML='<div class="wrap"></div>';
+    request.insertAdjacentElement('beforebegin',endSection);
+  }
+  endSection.querySelector('.wrap').appendChild(management);
+
+  const head=management.querySelector('.object-actions4393-head');
+  if(head)head.innerHTML='<b>⚙️ Керування об’єктом</b><span>Фінальні дії для всього об’єкта після перевірки кімнат, плану та кошторису.</span>';
+
+  const grid=management.querySelector('.object-actions4393-grid');
+  if(!grid)return false;
+
+  const buttons=[...grid.querySelectorAll('button')];
+  const save=buttons.find(button=>/saveCloudHistory56|saveObject|Зберегти/.test(button.getAttribute('onclick')||button.textContent));
+  const start=buttons.find(button=>/startAnotherObject|newObject|Почати/.test(button.getAttribute('onclick')||button.textContent));
+  const client=document.getElementById('publishClientCardBtn56');
+  const clientStatus=document.getElementById('publishClientCardStatus56');
+
+  let hidden=document.getElementById('objectHiddenClientActions4394');
+  if(!hidden){hidden=document.createElement('div');hidden.id='objectHiddenClientActions4394';document.body.appendChild(hidden)}
+  if(client)hidden.appendChild(client);
+  if(clientStatus)hidden.appendChild(clientStatus);
+
+  grid.innerHTML='';
+  if(save){save.textContent='☁️ Зберегти весь об’єкт';save.className='btn green';grid.appendChild(save)}
+
+  const share=document.createElement('button');
+  share.type='button';share.className='btn share4394';share.textContent='📤 Поділитися об’єктом';
+  share.onclick=function(){shareCurrentObject4394(this)};
+  grid.appendChild(share);
+
+  if(start){start.textContent='＋ Почати новий об’єкт';start.className='btn outline';grid.appendChild(start)}
+
+  const remove=document.createElement('button');
+  remove.type='button';remove.className='btn delete4394';remove.textContent='🗑 Видалити об’єкт';
+  remove.onclick=deleteCurrentObject4394;
+  grid.appendChild(remove);
+
+  return true;
+}
+
+function start4394(){
+  relocate4394();
+  [60,180,500,1000].forEach(delay=>setTimeout(relocate4394,delay));
+  document.documentElement.dataset.pixelVersion='43.94';
+  document.title='Potolok AI PRO — Pixel 43.94';
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start4394,{once:true});else start4394();
+window.addEventListener('pageshow',start4394,{passive:true});
 })();
 </script>
 
