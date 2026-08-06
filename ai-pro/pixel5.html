@@ -14683,196 +14683,6 @@ else setTimeout(install4336,350);
 <!-- 43(57): perimeter labels in live room/object summaries show м/пог.; share labels retained -->
 
 <!-- PIXEL 43(85): room-specific preliminary spot auto-activation + stable mobile scrolling -->
-
-
-<!-- PIXEL 43.95: stable window/door size input without full rerender -->
-<style id="pixel4395OpeningInputStyles">
-#fin78OpeningsList{display:grid;gap:10px}
-#fin78OpeningsList .fin81-opening-row{
-  display:grid!important;
-  grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;
-  gap:9px!important;
-  position:relative;
-  padding:11px!important;
-  border:1px solid #dbe3ef;
-  border-radius:13px;
-  background:#fff;
-}
-#fin78OpeningsList .fin81-opening-title{
-  grid-column:1/-1!important;
-  padding:9px 48px 9px 10px!important;
-}
-#fin78OpeningsList .fin81-opening-row label{
-  display:flex!important;
-  flex-direction:column!important;
-  gap:5px!important;
-  min-width:0;
-  font-size:10px!important;
-  line-height:1.25!important;
-  font-weight:850!important;
-  color:#334155!important;
-}
-#fin78OpeningsList .fin81-opening-row label.fin95-type,
-#fin78OpeningsList .fin81-opening-row label.fin95-area{grid-column:1/-1!important}
-#fin78OpeningsList .fin81-opening-row input,
-#fin78OpeningsList .fin81-opening-row select{
-  width:100%!important;
-  min-width:0!important;
-  min-height:44px!important;
-  border:1px solid #cbd5e1!important;
-  border-radius:10px!important;
-  padding:10px 11px!important;
-  background:#f8fafc!important;
-  color:#0f172a!important;
-  font-size:16px!important;
-  line-height:1.2!important;
-  outline:none!important;
-}
-#fin78OpeningsList .fin81-opening-row input:focus,
-#fin78OpeningsList .fin81-opening-row select:focus{
-  border-color:#075bff!important;
-  box-shadow:0 0 0 3px rgba(7,91,255,.12)!important;
-  background:#fff!important;
-}
-#fin78OpeningsList .fin95-area input{color:#075bff!important;font-weight:950!important}
-#fin78OpeningsList .fin95-remove{
-  position:absolute!important;
-  top:14px!important;
-  right:13px!important;
-  width:36px!important;
-  height:36px!important;
-  min-height:36px!important;
-  border:1px solid #fecaca!important;
-  border-radius:10px!important;
-  background:#fff7f7!important;
-  color:#dc2626!important;
-  font-size:20px!important;
-  font-weight:950!important;
-  z-index:2!important;
-}
-#fin78OpeningsList .fin95-hint{
-  grid-column:1/-1;
-  margin-top:-2px;
-  color:#64748b;
-  font-size:8px;
-  line-height:1.4;
-}
-@media(max-width:390px){
-  #fin78OpeningsList .fin81-opening-row{grid-template-columns:1fr!important}
-  #fin78OpeningsList .fin81-opening-row label{grid-column:1!important}
-  #fin78OpeningsList .fin81-opening-title{grid-column:1!important}
-}
-</style>
-<script id="pixel4395OpeningInputFix">
-(function(){
-'use strict';
-let saveTimer4395=0;
-
-function number4395(value){
-  const raw=String(value??'').trim().replace(/\s+/g,'').replace(',','.');
-  if(raw===''||raw==='.'||raw==='-')return null;
-  const valueNumber=Number(raw);
-  return Number.isFinite(valueNumber)?Math.max(0,valueNumber):null;
-}
-function opening4395(index){
-  try{
-    const fw=typeof ensure78==='function'?ensure78():null;
-    return fw&&Array.isArray(fw.openings)?fw.openings[index]:null;
-  }catch(_){return null}
-}
-function queueSave4395(immediate){
-  clearTimeout(saveTimer4395);
-  const run=function(){
-    try{if(typeof save78==='function')save78();else if(typeof autosave==='function')autosave()}catch(_){ }
-  };
-  if(immediate)run();else saveTimer4395=setTimeout(run,650);
-}
-function setText4395(id,value){const el=document.getElementById(id);if(el)el.textContent=value}
-function refreshOpeningTotals4395(index,input){
-  const item=opening4395(index);
-  if(!item)return;
-  const row=input?.closest?.('[data-opening4395]')||document.querySelector('[data-opening4395="'+index+'"]');
-  const area=Math.max(0,Number(item.width)||0)*Math.max(0,Number(item.height)||0);
-  const areaInput=row?.querySelector?.('[data-opening-area4395]');
-  if(areaInput)areaInput.value=area.toFixed(2)+' м²';
-
-  let fw=null,g=null;
-  try{fw=ensure78();g=geometry78()}catch(_){ }
-  if(!fw||!g)return;
-  setText4395('fin78Height',g.height.toFixed(2)+' м');
-  setText4395('fin78GrossWalls',g.grossWalls.toFixed(2)+' м²');
-  setText4395('fin78Openings',g.openingsArea.toFixed(2)+' м²');
-  setText4395('fin78NetWalls',g.netWalls.toFixed(2)+' м²');
-
-  if(Array.isArray(fw.items)){
-    fw.items.forEach(function(work,workIndex){
-      if(work?.quantityMode!=='auto')return;
-      const quantity=typeof qty78==='function'?qty78(work.source,g):0;
-      work.quantity=quantity;
-      const card=document.querySelector('[data-fin78="'+workIndex+'"]');
-      if(!card)return;
-      const quantityInput=card.querySelector('.fin79-unit-wrap input');
-      if(quantityInput&&document.activeElement!==quantityInput)quantityInput.value=Number(quantity||0).toFixed(2);
-      const sum=card.querySelector('.fin78-sum');
-      if(sum&&typeof money78==='function')sum.textContent=money78(work.enabled?quantity*(Number(work.price)||0):0);
-    });
-    fw.total=fw.items.reduce(function(total,work){return total+(work.enabled?(Number(work.quantity)||0)*(Number(work.price)||0):0)},0);
-    if(typeof money78==='function')setText4395('fin78Total',money78(fw.total));
-  }
-  try{if(typeof updateFinance79==='function')updateFinance79()}catch(_){ }
-}
-
-window.fin78OpeningInput4395=function(index,key,value,input){
-  const item=opening4395(index);
-  if(!item||!['width','height'].includes(key))return;
-  const parsed=number4395(value);
-  if(parsed!==null)item[key]=parsed;
-  else if(String(value).trim()==='')item[key]=0;
-  refreshOpeningTotals4395(index,input);
-  queueSave4395(false);
-};
-window.fin78OpeningCommit4395=function(index,key,value,input){
-  const item=opening4395(index);
-  if(!item||!['width','height'].includes(key))return;
-  const parsed=number4395(value);
-  item[key]=parsed===null?0:parsed;
-  if(input)input.value=String(item[key]).replace('.',',');
-  refreshOpeningTotals4395(index,input);
-  queueSave4395(true);
-};
-
-window.renderOpenings78=function(){
-  const fw=typeof ensure78==='function'?ensure78():null;
-  const box=document.getElementById('fin78OpeningsList');
-  if(!fw||!box)return;
-  box.innerHTML=fw.openings.length?fw.openings.map(function(o,i){
-    const isDoor=o.type==='door';
-    const title=isDoor?'🚪 Двері':'🪟 Вікно';
-    const width=String(Number(o.width)||0).replace('.',',');
-    const height=String(Number(o.height)||0).replace('.',',');
-    const area=((Number(o.width)||0)*(Number(o.height)||0)).toFixed(2);
-    return '<div class="fin78-mini-row fin81-opening-row" data-opening4395="'+i+'">'+
-      '<div class="fin81-opening-title"><b>'+title+' '+(i+1)+'</b><span>Спочатку ширина, потім висота. Поле більше не перескакує.</span></div>'+
-      '<label class="fin95-type">Тип<select onchange="fin78MiniChange(\'openings\','+i+',\'type\',this.value)"><option value="window" '+(!isDoor?'selected':'')+'>Вікно</option><option value="door" '+(isDoor?'selected':'')+'>Двері</option></select></label>'+
-      '<label>Ширина, м<input type="text" inputmode="decimal" autocomplete="off" value="'+width+'" oninput="fin78OpeningInput4395('+i+',\'width\',this.value,this)" onchange="fin78OpeningCommit4395('+i+',\'width\',this.value,this)" onblur="fin78OpeningCommit4395('+i+',\'width\',this.value,this)"></label>'+
-      '<label>Висота, м<input type="text" inputmode="decimal" autocomplete="off" value="'+height+'" oninput="fin78OpeningInput4395('+i+',\'height\',this.value,this)" onchange="fin78OpeningCommit4395('+i+',\'height\',this.value,this)" onblur="fin78OpeningCommit4395('+i+',\'height\',this.value,this)"></label>'+
-      '<label class="fin95-area">Площа<input data-opening-area4395 readonly value="'+area+' м²"></label>'+
-      '<div class="fin95-hint">Можна вводити через кому: наприклад 1,35 × 1,40 м.</div>'+
-      '<button class="fin95-remove" type="button" aria-label="Видалити '+(isDoor?'двері':'вікно')+'" onclick="fin78MiniRemove(\'openings\','+i+')">×</button>'+
-    '</div>';
-  }).join(''):'<div class="fin78-empty">Прорізи ще не додані. Натисніть «Додати вікно» або «Додати двері».</div>';
-};
-
-function mark4395(){
-  document.documentElement.dataset.pixelVersion='43.95';
-  document.title='Potolok AI PRO — Pixel 43.95';
-  try{if(document.getElementById('tab_finishing')?.classList.contains('active'))window.renderOpenings78()}catch(_){ }
-}
-if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',mark4395,{once:true});else mark4395();
-window.addEventListener('pageshow',mark4395,{passive:true});
-})();
-</script>
-
 </body></html>`;
   }
 
@@ -23071,5 +22881,195 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 window.addEventListener('pageshow',start4394,{passive:true});
 })();
 </script>
+
+
+<!-- PIXEL 43.96: stable window/door size input without full rerender -->
+<style id="pixel4396OpeningInputStyles">
+#fin78OpeningsList{display:grid;gap:10px}
+#fin78OpeningsList .fin81-opening-row{
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;
+  gap:9px!important;
+  position:relative;
+  padding:11px!important;
+  border:1px solid #dbe3ef;
+  border-radius:13px;
+  background:#fff;
+}
+#fin78OpeningsList .fin81-opening-title{
+  grid-column:1/-1!important;
+  padding:9px 48px 9px 10px!important;
+}
+#fin78OpeningsList .fin81-opening-row label{
+  display:flex!important;
+  flex-direction:column!important;
+  gap:5px!important;
+  min-width:0;
+  font-size:10px!important;
+  line-height:1.25!important;
+  font-weight:850!important;
+  color:#334155!important;
+}
+#fin78OpeningsList .fin81-opening-row label.fin95-type,
+#fin78OpeningsList .fin81-opening-row label.fin95-area{grid-column:1/-1!important}
+#fin78OpeningsList .fin81-opening-row input,
+#fin78OpeningsList .fin81-opening-row select{
+  width:100%!important;
+  min-width:0!important;
+  min-height:44px!important;
+  border:1px solid #cbd5e1!important;
+  border-radius:10px!important;
+  padding:10px 11px!important;
+  background:#f8fafc!important;
+  color:#0f172a!important;
+  font-size:16px!important;
+  line-height:1.2!important;
+  outline:none!important;
+}
+#fin78OpeningsList .fin81-opening-row input:focus,
+#fin78OpeningsList .fin81-opening-row select:focus{
+  border-color:#075bff!important;
+  box-shadow:0 0 0 3px rgba(7,91,255,.12)!important;
+  background:#fff!important;
+}
+#fin78OpeningsList .fin95-area input{color:#075bff!important;font-weight:950!important}
+#fin78OpeningsList .fin95-remove{
+  position:absolute!important;
+  top:14px!important;
+  right:13px!important;
+  width:36px!important;
+  height:36px!important;
+  min-height:36px!important;
+  border:1px solid #fecaca!important;
+  border-radius:10px!important;
+  background:#fff7f7!important;
+  color:#dc2626!important;
+  font-size:20px!important;
+  font-weight:950!important;
+  z-index:2!important;
+}
+#fin78OpeningsList .fin95-hint{
+  grid-column:1/-1;
+  margin-top:-2px;
+  color:#64748b;
+  font-size:8px;
+  line-height:1.4;
+}
+@media(max-width:390px){
+  #fin78OpeningsList .fin81-opening-row{grid-template-columns:1fr!important}
+  #fin78OpeningsList .fin81-opening-row label{grid-column:1!important}
+  #fin78OpeningsList .fin81-opening-title{grid-column:1!important}
+}
+</style>
+<script id="pixel4396OpeningInputFix">
+(function(){
+'use strict';
+let saveTimer4395=0;
+
+function number4395(value){
+  const raw=String(value??'').trim().replace(/\s+/g,'').replace(',','.');
+  if(raw===''||raw==='.'||raw==='-')return null;
+  const valueNumber=Number(raw);
+  return Number.isFinite(valueNumber)?Math.max(0,valueNumber):null;
+}
+function opening4395(index){
+  try{
+    const fw=typeof ensure78==='function'?ensure78():null;
+    return fw&&Array.isArray(fw.openings)?fw.openings[index]:null;
+  }catch(_){return null}
+}
+function queueSave4395(immediate){
+  clearTimeout(saveTimer4395);
+  const run=function(){
+    try{if(typeof save78==='function')save78();else if(typeof autosave==='function')autosave()}catch(_){ }
+  };
+  if(immediate)run();else saveTimer4395=setTimeout(run,650);
+}
+function setText4395(id,value){const el=document.getElementById(id);if(el)el.textContent=value}
+function refreshOpeningTotals4395(index,input){
+  const item=opening4395(index);
+  if(!item)return;
+  const row=input?.closest?.('[data-opening4395]')||document.querySelector('[data-opening4395="'+index+'"]');
+  const area=Math.max(0,Number(item.width)||0)*Math.max(0,Number(item.height)||0);
+  const areaInput=row?.querySelector?.('[data-opening-area4395]');
+  if(areaInput)areaInput.value=area.toFixed(2)+' м²';
+
+  let fw=null,g=null;
+  try{fw=ensure78();g=geometry78()}catch(_){ }
+  if(!fw||!g)return;
+  setText4395('fin78Height',g.height.toFixed(2)+' м');
+  setText4395('fin78GrossWalls',g.grossWalls.toFixed(2)+' м²');
+  setText4395('fin78Openings',g.openingsArea.toFixed(2)+' м²');
+  setText4395('fin78NetWalls',g.netWalls.toFixed(2)+' м²');
+
+  if(Array.isArray(fw.items)){
+    fw.items.forEach(function(work,workIndex){
+      if(work?.quantityMode!=='auto')return;
+      const quantity=typeof qty78==='function'?qty78(work.source,g):0;
+      work.quantity=quantity;
+      const card=document.querySelector('[data-fin78="'+workIndex+'"]');
+      if(!card)return;
+      const quantityInput=card.querySelector('.fin79-unit-wrap input');
+      if(quantityInput&&document.activeElement!==quantityInput)quantityInput.value=Number(quantity||0).toFixed(2);
+      const sum=card.querySelector('.fin78-sum');
+      if(sum&&typeof money78==='function')sum.textContent=money78(work.enabled?quantity*(Number(work.price)||0):0);
+    });
+    fw.total=fw.items.reduce(function(total,work){return total+(work.enabled?(Number(work.quantity)||0)*(Number(work.price)||0):0)},0);
+    if(typeof money78==='function')setText4395('fin78Total',money78(fw.total));
+  }
+  try{if(typeof updateFinance79==='function')updateFinance79()}catch(_){ }
+}
+
+window.fin78OpeningInput4395=function(index,key,value,input){
+  const item=opening4395(index);
+  if(!item||!['width','height'].includes(key))return;
+  const parsed=number4395(value);
+  if(parsed!==null)item[key]=parsed;
+  else if(String(value).trim()==='')item[key]=0;
+  refreshOpeningTotals4395(index,input);
+  queueSave4395(false);
+};
+window.fin78OpeningCommit4395=function(index,key,value,input){
+  const item=opening4395(index);
+  if(!item||!['width','height'].includes(key))return;
+  const parsed=number4395(value);
+  item[key]=parsed===null?0:parsed;
+  if(input)input.value=String(item[key]).replace('.',',');
+  refreshOpeningTotals4395(index,input);
+  queueSave4395(true);
+};
+
+window.renderOpenings78=function(){
+  const fw=typeof ensure78==='function'?ensure78():null;
+  const box=document.getElementById('fin78OpeningsList');
+  if(!fw||!box)return;
+  box.innerHTML=fw.openings.length?fw.openings.map(function(o,i){
+    const isDoor=o.type==='door';
+    const title=isDoor?'🚪 Двері':'🪟 Вікно';
+    const width=String(Number(o.width)||0).replace('.',',');
+    const height=String(Number(o.height)||0).replace('.',',');
+    const area=((Number(o.width)||0)*(Number(o.height)||0)).toFixed(2);
+    return '<div class="fin78-mini-row fin81-opening-row" data-opening4395="'+i+'">'+
+      '<div class="fin81-opening-title"><b>'+title+' '+(i+1)+'</b><span>Спочатку ширина, потім висота. Поле більше не перескакує.</span></div>'+
+      '<label class="fin95-type">Тип<select onchange="fin78MiniChange(\'openings\','+i+',\'type\',this.value)"><option value="window" '+(!isDoor?'selected':'')+'>Вікно</option><option value="door" '+(isDoor?'selected':'')+'>Двері</option></select></label>'+
+      '<label>Ширина, м<input type="text" inputmode="decimal" autocomplete="off" value="'+width+'" oninput="fin78OpeningInput4395('+i+',\'width\',this.value,this)" onchange="fin78OpeningCommit4395('+i+',\'width\',this.value,this)" onblur="fin78OpeningCommit4395('+i+',\'width\',this.value,this)"></label>'+
+      '<label>Висота, м<input type="text" inputmode="decimal" autocomplete="off" value="'+height+'" oninput="fin78OpeningInput4395('+i+',\'height\',this.value,this)" onchange="fin78OpeningCommit4395('+i+',\'height\',this.value,this)" onblur="fin78OpeningCommit4395('+i+',\'height\',this.value,this)"></label>'+
+      '<label class="fin95-area">Площа<input data-opening-area4395 readonly value="'+area+' м²"></label>'+
+      '<div class="fin95-hint">Можна вводити через кому: наприклад 1,35 × 1,40 м.</div>'+
+      '<button class="fin95-remove" type="button" aria-label="Видалити '+(isDoor?'двері':'вікно')+'" onclick="fin78MiniRemove(\'openings\','+i+')">×</button>'+
+    '</div>';
+  }).join(''):'<div class="fin78-empty">Прорізи ще не додані. Натисніть «Додати вікно» або «Додати двері».</div>';
+};
+
+function mark4395(){
+  document.documentElement.dataset.pixelVersion='43.96';
+  document.title='Potolok AI PRO — Pixel 43.96';
+  try{if(document.getElementById('tab_finishing')?.classList.contains('active'))window.renderOpenings78()}catch(_){ }
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',mark4395,{once:true});else mark4395();
+window.addEventListener('pageshow',mark4395,{passive:true});
+})();
+</script>
+
 
 </body></html>
