@@ -7375,12 +7375,11 @@ window.clientPlan60=i=>{
       bindSvg+=`<line x1="${p[0]+nx*off}" y1="${p[1]+ny*off}" x2="${q[0]+nx*off}" y2="${q[1]+ny*off}" stroke="${m[1]}" stroke-width="${m[2]}" stroke-linecap="round" style="${style}"/>`;
     });
     const val=segs[j]>0?segs[j]:0;
-    const dist=28;
-    bindSvg+=`<text x="${mx+nx*dist}" y="${my+ny*dist}" text-anchor="middle" dominant-baseline="middle" font-size="15" font-weight="800" fill="#1d4ed8">${val?val.toFixed(2)+' м':''}</text>`;
-    if(list.length){
-      const names=list.map(t=>bindMeta[t]?.[0]||t).join(' + ');
-      bindSvg+=`<text x="${mx+nx*50}" y="${my+ny*50}" text-anchor="middle" dominant-baseline="middle" font-size="10" font-weight="700" fill="#334155">${escAttr(names)}</text>`;
-    }
+    let dist=28;
+    let dimFont=15;
+    if(val>0&&val<0.35){dist=42+(j%2)*16;dimFont=12}
+    else if(val>0&&val<0.80){dist=34+(j%2)*10;dimFont=13}
+    bindSvg+=`<text x="${mx+nx*dist}" y="${my+ny*dist}" text-anchor="middle" dominant-baseline="middle" font-size="${dimFont}" font-weight="900" fill="#1d4ed8" paint-order="stroke" stroke="#ffffff" stroke-width="6" stroke-linejoin="round">${val?val.toFixed(2)+' м':''}</text>`;
   });
 
   const profileTypes=new Set(['corniceWhite','corniceBlack','corniceLed','insertWhite','insertBlack','shadowProfile','floatingWhite','floatingBlack']);
@@ -7430,8 +7429,14 @@ window.clientPlan60=i=>{
   const names={door:'Двері',window:'Вікно',pipe1:'Труба',pipe2:'Подвійна труба',vent:'Вентиляція',column:'Колона',light:'Точковий світильник',chandelier:'Люстра',track:'Магнітний трек',surfaceTrack:'Накладний трек',lightline:'Світлова лінія',cornice:'Карниз',corniceWhite:'Карниз білий',corniceBlack:'Карниз чорний',corniceLed:'Карниз LED',insertWhite:'Вставка біла',insertBlack:'Вставка чорна',shadowProfile:'Тіньовий профіль',floatingWhite:'Парящий білий',floatingBlack:'Парящий чорний',beam:'Балка',box:'Короб',circle:'Круг',oval:'Овал',curve:'Крива',wave:'Хвиля'};
   const counts={};objs.forEach(o=>{const n=names[o?.type]||o?.type||'Елемент';counts[n]=(counts[n]||0)+1});
   const summary=Object.entries(counts).map(([n,c])=>`<span style="display:inline-block;margin:3px 5px 3px 0;padding:5px 8px;border:1px solid #dbe3ef;border-radius:999px;background:#fff">${e60(n)} × ${c}</span>`).join('');
+  const wallSummary=binds.map((list,j)=>{
+    if(!Array.isArray(list)||!list.length)return'';
+    const wallName=pointName(j)+pointName((j+1)%pts.length);
+    const wallItems=list.map(t=>bindMeta[t]?.[0]||t).join(' + ');
+    return `<span style="display:inline-block;margin:3px 5px 3px 0;padding:5px 8px;border:1px solid #dbe3ef;border-radius:999px;background:#fff"><b>${wallName}</b>: ${e60(wallItems)}</span>`;
+  }).join('');
 
-  openModal60('📐 '+e60(r.name||'План'),`<div class="p60-note" style="margin-bottom:10px"><b>Площа:</b> ${area.toFixed(2)} м² &nbsp; <b>Периметр:</b> ${per.toFixed(2)} м<br><span style="color:#64748b">Перегляд без редагування — геометрія та елементи взяті з робочого плану кімнати.</span></div><svg class="p60-plan-svg" viewBox="${vbX} ${vbY} ${vbW} ${vbH}" preserveAspectRatio="xMidYMid meet" style="width:100%;height:auto;max-height:68vh;background:#fff;border:1px solid #dbe3ef;border-radius:14px"><polygon points="${poly}" fill="rgba(7,91,255,.10)" stroke="#075bff" stroke-width="4"/>${bindSvg}${objLayer}${pointsSvg}</svg>${summary?`<div class="p60-note" style="margin-top:10px"><b>Елементи:</b><br>${summary}</div>`:''}`);
+  openModal60('📐 '+e60(r.name||'План'),`<div class="p60-note" style="margin-bottom:10px"><b>Площа:</b> ${area.toFixed(2)} м² &nbsp; <b>Периметр:</b> ${per.toFixed(2)} м<br><span style="color:#64748b">Перегляд без редагування — геометрія та елементи взяті з робочого плану кімнати.</span></div><svg class="p60-plan-svg" viewBox="${vbX} ${vbY} ${vbW} ${vbH}" preserveAspectRatio="xMidYMid meet" style="width:100%;height:auto;max-height:68vh;background:#fff;border:1px solid #dbe3ef;border-radius:14px"><polygon points="${poly}" fill="rgba(7,91,255,.10)" stroke="#075bff" stroke-width="4"/>${bindSvg}${objLayer}${pointsSvg}</svg>${wallSummary?`<div class="p60-note" style="margin-top:10px"><b>Профілі / матеріали по стінах:</b><br>${wallSummary}</div>`:''}${summary?`<div class="p60-note" style="margin-top:10px"><b>Елементи:</b><br>${summary}</div>`:''}`);
 };
 window.clientSchedule60=()=>{const ev=Array.isArray(currentClientView60?.schedule)?currentClientView60.schedule:[];openModal60('📅 Графік виконання',ev.length?ev.map(x=>`<div class="p60-review"><b>${e60(x.date)} ${e60(x.time||'')}</b><p>${e60(x.type||'Подія')} ${e60(x.note||'')}</p></div>`).join(''):'<div class="p60-note">Подій ще не заплановано.</div>')};
 window.openReviewForm60=()=>{reviewStars60=5;openModal60('⭐ Залишити відгук',`<div class="p60-field"><label>Оцінка</label><div class="p60-stars">${[1,2,3,4,5].map(n=>`<button class="on" id="star60_${n}" onclick="setStars60(${n})">★</button>`).join('')}</div></div><div class="p60-field"><label>Ваше ім’я</label><input id="reviewName60" value="${e60(currentClientView60?.clientName||'')}"></div><div class="p60-field" style="margin-top:9px"><label>Відгук</label><textarea id="reviewText60" placeholder="Розкажіть про якість роботи"></textarea></div><button class="p60-btn blue" style="width:100%;margin-top:10px" onclick="submitReview60()">Надіслати відгук</button>`)};
