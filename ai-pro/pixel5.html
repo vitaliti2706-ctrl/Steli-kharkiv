@@ -676,20 +676,6 @@ th:nth-child(2),th:nth-child(3),th:nth-child(4),td:nth-child(2),td:nth-child(3),
  .fin81-opening-title{grid-column:1/-1}
 }
 </style>
-
-<style id="clientDirect4403cStyles">
-body.client-direct-4403c .hero,
-body.client-direct-4403c #pixelBack4325,
-body.client-direct-4403c #quickCalcHandle40,
-body.client-direct-4403c #quickCalcBackdrop40,
-body.client-direct-4403c #quickCalcDrawer40,
-body.client-direct-4403c #objectEndActions4394,
-body.client-direct-4403c #objectActions4393,
-body.client-direct-4403c .ai-request-section{display:none!important}
-body.client-direct-4403c .tabs-main{grid-template-columns:1fr!important}
-body.client-direct-4403c .tabs-main .main-tab{display:none!important}
-body.client-direct-4403c .tabs-main .main-tab[onclick*="clientcard"]{display:block!important}
-</style>
 </head>
 <body>
 <header class="header"><div class="wrap nav"><a class="logo" href="../index.html">Potolok<span>.in.ua</span></a><div class="menu"><a href="../index.html">Головна</a><a href="../gallery.html">Наші роботи</a><a href="#app">Pixel 5</a></div><a class="phone" href="tel:+380974546713">097 454 67 13</a><a class="tg-top" href="https://t.me/Potolok_in_ua">Фото в TG</a></div></header>
@@ -7350,47 +7336,102 @@ window.clientPlan60=i=>{
   const r=currentClientView60?.rooms?.[i];
   if(!r)return openModal60('📐 План','<div class="p60-note">Не вдалося завантажити кімнату.</div>');
   const planner=r.planner||{};
-  const rawPts=Array.isArray(planner.points)?planner.points:[];
-  const pts=rawPts.map(p=>Array.isArray(p)?{x:Number(p[0])||0,y:Number(p[1])||0}:{x:Number(p?.x)||0,y:Number(p?.y)||0});
+  const raw=Array.isArray(planner.points)?planner.points:[];
+  const pts=raw.map(p=>Array.isArray(p)?[Number(p[0])||0,Number(p[1])||0]:[Number(p?.x)||0,Number(p?.y)||0]);
   if(pts.length<2)return openModal60('📐 '+e60(r.name||'План'),'<div class="p60-note">План цієї кімнати не збережено.</div>');
 
   const segs=Array.isArray(planner.segments)?planner.segments.map(v=>Number(v)||0):[];
   const objs=Array.isArray(planner.objects)?planner.objects:[];
-  const xs=pts.map(p=>p.x),ys=pts.map(p=>p.y);
-  const minx=Math.min(...xs),maxx=Math.max(...xs),miny=Math.min(...ys),maxy=Math.max(...ys);
-  const rawW=Math.max(1,maxx-minx),rawH=Math.max(1,maxy-miny);
-  const VW=640,VH=420,PAD=70;
-  const scale=Math.min((VW-PAD*2)/rawW,(VH-PAD*2)/rawH);
-  const map=p=>({x:PAD+(p.x-minx)*scale,y:PAD+(p.y-miny)*scale});
-  const mp=pts.map(map);
-  const cx=mp.reduce((a,p)=>a+p.x,0)/mp.length,cy=mp.reduce((a,p)=>a+p.y,0)/mp.length;
-  const poly=mp.map(p=>`${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
+  const binds=Array.isArray(r.perimeterBindings)?r.perimeterBindings:[];
+  const screenPer=pts.reduce((s,p,j)=>{const q=pts[(j+1)%pts.length];return s+Math.hypot(q[0]-p[0],q[1]-p[1])},0);
+  const realPer=segs.reduce((s,v)=>s+(Number(v)||0),0)||Number(r.perimeter||r.metrics?.perimeter||0)||1;
+  const pxPerM=screenPer>0&&realPer>0?screenPer/realPer:90;
+  const xs=pts.map(p=>p[0]),ys=pts.map(p=>p[1]);
+  const minX=Math.min(...xs),maxX=Math.max(...xs),minY=Math.min(...ys),maxY=Math.max(...ys);
+  const margin=Math.max(70,pxPerM*.75);
+  const vbX=minX-margin,vbY=minY-margin,vbW=Math.max(260,maxX-minX+margin*2),vbH=Math.max(220,maxY-minY+margin*2);
+  const center={x:pts.reduce((s,p)=>s+p[0],0)/pts.length,y:pts.reduce((s,p)=>s+p[1],0)/pts.length};
 
-  const dimSvg=mp.map((p,j)=>{
-    const q=mp[(j+1)%mp.length];
-    const dx=q.x-p.x,dy=q.y-p.y,len=Math.hypot(dx,dy)||1;
-    let nx=-dy/len,ny=dx/len;
-    const mx=(p.x+q.x)/2,my=(p.y+q.y)/2;
-    if(nx*(cx-mx)+ny*(cy-my)>0){nx=-nx;ny=-ny}
-    const tx=mx+nx*30,ty=my+ny*30;
+  const escAttr=s=>e60(String(s??''));
+  const pointName=j=>{let n=j+1,out='';while(n){n--;out=String.fromCharCode(65+n%26)+out;n=Math.floor(n/26)}return out};
+  const poly=pts.map(p=>`${p[0]},${p[1]}`).join(' ');
+
+  const bindMeta={
+    baseH:['H-профіль','#075bff',7],baseP:['П-профіль','#a16207',7],insertWhite:['Вставка біла','#ffffff',5],insertBlack:['Вставка чорна','#111827',5],
+    shadow:['Тіньовий','#111827',5],floating:['Парящий','#38bdf8',5],cornice:['Карниз','#f59e0b',5],corniceLed:['Карниз LED','#f97316',5],ledStrip:['LED','#facc15',5],
+    porcelain:['Керамограніт / плитка','#dc2626',5],finishPainted:['Фініш: пофарбована стіна','#ec4899',5],wallRedBrick:['Основа: цегла червона','#b45309',5],wallWhiteBrick:['Основа: цегла біла','#cbd5e1',5],wallConcrete:['Основа: бетон','#64748b',5],wallDrywall:['Основа: гіпсокартон','#22c55e',5]
+  };
+
+  let bindSvg='';
+  pts.forEach((p,j)=>{
+    const q=pts[(j+1)%pts.length],dx=q[0]-p[0],dy=q[1]-p[1],len=Math.hypot(dx,dy)||1;
+    let nx=-dy/len,ny=dx/len,mx=(p[0]+q[0])/2,my=(p[1]+q[1])/2;
+    if(nx*(center.x-mx)+ny*(center.y-my)>0){nx=-nx;ny=-ny}
+    const list=Array.isArray(binds[j])?binds[j]:[];
+    list.forEach((type,k)=>{
+      const m=bindMeta[type];if(!m)return;
+      const off=(k-(list.length-1)/2)*8;
+      const style=type==='insertWhite'?'filter:drop-shadow(0 0 2px #64748b)':'';
+      bindSvg+=`<line x1="${p[0]+nx*off}" y1="${p[1]+ny*off}" x2="${q[0]+nx*off}" y2="${q[1]+ny*off}" stroke="${m[1]}" stroke-width="${m[2]}" stroke-linecap="round" style="${style}"/>`;
+    });
     const val=segs[j]>0?segs[j]:0;
-    return `<text x="${tx.toFixed(1)}" y="${ty.toFixed(1)}" text-anchor="middle" dominant-baseline="middle" font-size="15" font-weight="800" fill="#1d4ed8">${val?val.toFixed(2)+' м':''}</text>`;
-  }).join('');
-
-  const pointSvg=mp.map((p,j)=>`<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="6" fill="#fff" stroke="#075bff" stroke-width="3"/><text x="${(p.x+12).toFixed(1)}" y="${(p.y-11).toFixed(1)}" font-size="14" font-weight="800" fill="#0f172a">${String.fromCharCode(65+(j%26))}</text>`).join('');
-
-  const names={door:'Двері',window:'Вікно',light:'Світильник',chandelier:'Люстра',vent:'Вентиляція',track:'Магнітний трек',surfaceTrack:'Накладний трек',lightline:'Світлова лінія',corniceWhite:'Карниз білий',corniceBlack:'Карниз чорний',corniceLed:'Карниз LED',insertWhite:'Вставка біла',insertBlack:'Вставка чорна',shadowProfile:'Тіньовий профіль',floatingWhite:'Парящий профіль',floatingBlack:'Парящий профіль',beam:'Балка',box:'Короб',pipe1:'Труба',pipe2:'Подвійна труба',column:'Колона'};
-  const objSvg=objs.map((o,j)=>{
-    const a=map({x:Number(o?.x)||0,y:Number(o?.y)||0});
-    if(o?.x2!=null&&o?.y2!=null){
-      const b=map({x:Number(o.x2)||0,y:Number(o.y2)||0});
-      return `<line x1="${a.x.toFixed(1)}" y1="${a.y.toFixed(1)}" x2="${b.x.toFixed(1)}" y2="${b.y.toFixed(1)}" stroke="#0f172a" stroke-width="5" stroke-linecap="round"/><circle cx="${a.x.toFixed(1)}" cy="${a.y.toFixed(1)}" r="11" fill="#fff" stroke="#0f172a" stroke-width="2"/><text x="${a.x.toFixed(1)}" y="${(a.y+4).toFixed(1)}" text-anchor="middle" font-size="10" font-weight="900">${j+1}</text>`;
+    const dist=28;
+    bindSvg+=`<text x="${mx+nx*dist}" y="${my+ny*dist}" text-anchor="middle" dominant-baseline="middle" font-size="15" font-weight="800" fill="#1d4ed8">${val?val.toFixed(2)+' м':''}</text>`;
+    if(list.length){
+      const names=list.map(t=>bindMeta[t]?.[0]||t).join(' + ');
+      bindSvg+=`<text x="${mx+nx*50}" y="${my+ny*50}" text-anchor="middle" dominant-baseline="middle" font-size="10" font-weight="700" fill="#334155">${escAttr(names)}</text>`;
     }
-    return `<circle cx="${a.x.toFixed(1)}" cy="${a.y.toFixed(1)}" r="12" fill="#fff" stroke="#0f172a" stroke-width="3"/><text x="${a.x.toFixed(1)}" y="${(a.y+4).toFixed(1)}" text-anchor="middle" font-size="10" font-weight="900">${j+1}</text>`;
-  }).join('');
-  const legend=objs.length?`<div class="p60-note" style="margin-top:10px"><b>Елементи плану:</b><br>${objs.map((o,j)=>`${j+1}. ${e60(names[o?.type]||o?.type||'Елемент')}`).join('<br>')}</div>`:'';
+  });
+
+  const profileTypes=new Set(['corniceWhite','corniceBlack','corniceLed','insertWhite','insertBlack','shadowProfile','floatingWhite','floatingBlack']);
+  function objSvg(o){
+    if(!o)return'';
+    const type=String(o.type||'');
+    if(o.__preliminaryPerimeterInsert4380){
+      let remain=Math.min(Math.max(0,Number(o.length)||Number(o.requestedLength4379)||0),realPer),s='';
+      for(let j=0;j<pts.length&&remain>.0001;j++){
+        const p=pts[j],q=pts[(j+1)%pts.length],rl=Math.max(0,segs[j]||0);if(!(rl>0))continue;
+        const take=Math.min(rl,remain),ratio=Math.min(1,take/rl),ex=p[0]+(q[0]-p[0])*ratio,ey=p[1]+(q[1]-p[1])*ratio;
+        const dx=q[0]-p[0],dy=q[1]-p[1],ll=Math.hypot(dx,dy)||1;let nx=-dy/ll,ny=dx/ll,mx=(p[0]+q[0])/2,my=(p[1]+q[1])/2;
+        if(nx*(center.x-mx)+ny*(center.y-my)>0){nx=-nx;ny=-ny}
+        const off=6,x1=p[0]+nx*off,y1=p[1]+ny*off,x2=ex+nx*off,y2=ey+ny*off;
+        const main=type==='insertBlack'?'#111827':'#ffffff',outline=type==='insertBlack'?'#ffffff':'#64748b';
+        s+=`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${outline}" stroke-width="8" stroke-linecap="round" opacity=".8"/><line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${main}" stroke-width="4.5" stroke-linecap="round"/>`;
+        remain-=take;
+      }
+      return s;
+    }
+    const x=Number(o.x)||0,y=Number(o.y)||0,rot=Number(o.rotation)||0;
+    const L=Math.max(10,(Number(o.length)||1)*pxPerM),W=Math.max(8,(Number(o.width)||.2)*pxPerM);
+    const stroke='#0f172a',blue='#075bff';let body='';
+    if(profileTypes.has(type)){
+      let fill='#fff',st=stroke;if(['corniceBlack','insertBlack','shadowProfile','floatingBlack'].includes(type))fill='#111827';if(type==='corniceLed'){fill='#fff7cc';st='#f59e0b'}if(type==='floatingWhite'||type==='floatingBlack')st='#f59e0b';
+      body+=`<rect x="${-L/2}" y="${-W/2}" width="${L}" height="${W}" rx="${Math.min(6,W/2)}" fill="${fill}" stroke="${st}" stroke-width="3"/>`;
+      if(type==='corniceLed'||type.startsWith('floating'))body+=`<line x1="${-L/2+4}" y1="${W/2+4}" x2="${L/2-4}" y2="${W/2+4}" stroke="#facc15" stroke-width="5"/>`;
+    }else if(type==='door')body+=`<line x1="0" y1="0" x2="${L}" y2="0" stroke="${stroke}" stroke-width="5"/><path d="M0 0 A${L} ${L} 0 0 1 ${L} ${-L}" fill="none" stroke="${blue}" stroke-width="2" stroke-dasharray="5 4"/>`;
+    else if(type==='window')body+=`<rect x="${-L/2}" y="${-W/2}" width="${L}" height="${W}" fill="#dbeafe" stroke="${stroke}" stroke-width="2"/><line x1="${-L/2}" y1="0" x2="${L/2}" y2="0" stroke="${blue}" stroke-width="2"/>`;
+    else if(type==='pipe1')body+=`<circle cx="0" cy="0" r="${W/2}" fill="#fff" stroke="${stroke}" stroke-width="3"/>`;
+    else if(type==='pipe2')body+=`<circle cx="${-W*.55}" cy="0" r="${W/2}" fill="#fff" stroke="${stroke}" stroke-width="3"/><circle cx="${W*.55}" cy="0" r="${W/2}" fill="#fff" stroke="${stroke}" stroke-width="3"/>`;
+    else if(type==='vent'){body+=`<rect x="${-L/2}" y="${-W/2}" width="${L}" height="${W}" fill="#fff" stroke="${stroke}" stroke-width="3"/>`;for(let j=-2;j<=2;j++)body+=`<line x1="${-L/2+5}" y1="${j*W/6}" x2="${L/2-5}" y2="${j*W/6}" stroke="${blue}" stroke-width="1.5"/>`}
+    else if(type==='light')body+=`<circle cx="0" cy="0" r="${W/2}" fill="#fff" stroke="${stroke}" stroke-width="2"/><line x1="${-W*.35}" y1="${-W*.35}" x2="${W*.35}" y2="${W*.35}" stroke="${stroke}"/><line x1="${-W*.35}" y1="${W*.35}" x2="${W*.35}" y2="${-W*.35}" stroke="${stroke}"/>`;
+    else if(type==='chandelier')body+=`<circle cx="0" cy="0" r="${W/2}" fill="#fff" stroke="${stroke}" stroke-width="3"/><circle cx="0" cy="0" r="${W/5}" fill="${blue}"/>`;
+    else if(type==='circle'||type==='column')body+=`<ellipse cx="0" cy="0" rx="${L/2}" ry="${W/2}" fill="rgba(100,116,139,.15)" stroke="${stroke}" stroke-width="3"/>`;
+    else if(type==='oval')body+=`<ellipse cx="0" cy="0" rx="${L/2}" ry="${W/2}" fill="rgba(7,91,255,.08)" stroke="${blue}" stroke-width="3"/>`;
+    else if(type==='curve')body+=`<path d="M${-L/2} 0 Q0 ${-W} ${L/2} 0" fill="none" stroke="${blue}" stroke-width="5"/>`;
+    else if(type==='wave')body+=`<path d="M${-L/2} 0 C${-L/3} ${-W},${-L/6} ${W},0 0 C${L/6} ${-W},${L/3} ${W},${L/2} 0" fill="none" stroke="#f59e0b" stroke-width="5"/>`;
+    else{let fill=type==='lightline'?'#facc15':type==='track'?'#111827':type==='surfaceTrack'?'#475569':type==='cornice'?'#dbeafe':type==='beam'?'#94a3b8':'rgba(148,163,184,.25)';body+=`<rect x="${-L/2}" y="${-W/2}" width="${L}" height="${W}" rx="${Math.min(8,W/3)}" fill="${fill}" stroke="${type==='lightline'?'#f59e0b':stroke}" stroke-width="2"/>`}
+    if(o.label)body+=`<text x="0" y="${-W/2-8}" text-anchor="middle" font-size="13" font-weight="900" fill="#0f172a">${escAttr(o.label)}</text>`;
+    return `<g transform="translate(${x} ${y}) rotate(${rot})">${body}</g>`;
+  }
+
+  const objLayer=objs.map(objSvg).join('');
+  const pointsSvg=pts.map((p,j)=>`<circle cx="${p[0]}" cy="${p[1]}" r="7" fill="#fff" stroke="#075bff" stroke-width="3"/><text x="${p[0]+12}" y="${p[1]-12}" font-size="14" font-weight="800" fill="#0f172a">${pointName(j)}</text>`).join('');
   const area=Number(r.area||r.metrics?.area||0),per=Number(r.perimeter||r.metrics?.perimeter||0);
-  openModal60('📐 '+e60(r.name||'План'),`<div class="p60-note" style="margin-bottom:10px"><b>Площа:</b> ${area.toFixed(2)} м² &nbsp; <b>Периметр:</b> ${per.toFixed(2)} м</div><svg class="p60-plan-svg" viewBox="0 0 ${VW} ${VH}" style="width:100%;height:auto;background:#fff;border:1px solid #dbe3ef;border-radius:14px"><polygon points="${poly}" fill="#dbeafe" stroke="#075bff" stroke-width="4"/>${dimSvg}${objSvg}${pointSvg}</svg>${legend}`);
+  const names={door:'Двері',window:'Вікно',pipe1:'Труба',pipe2:'Подвійна труба',vent:'Вентиляція',column:'Колона',light:'Точковий світильник',chandelier:'Люстра',track:'Магнітний трек',surfaceTrack:'Накладний трек',lightline:'Світлова лінія',cornice:'Карниз',corniceWhite:'Карниз білий',corniceBlack:'Карниз чорний',corniceLed:'Карниз LED',insertWhite:'Вставка біла',insertBlack:'Вставка чорна',shadowProfile:'Тіньовий профіль',floatingWhite:'Парящий білий',floatingBlack:'Парящий чорний',beam:'Балка',box:'Короб',circle:'Круг',oval:'Овал',curve:'Крива',wave:'Хвиля'};
+  const counts={};objs.forEach(o=>{const n=names[o?.type]||o?.type||'Елемент';counts[n]=(counts[n]||0)+1});
+  const summary=Object.entries(counts).map(([n,c])=>`<span style="display:inline-block;margin:3px 5px 3px 0;padding:5px 8px;border:1px solid #dbe3ef;border-radius:999px;background:#fff">${e60(n)} × ${c}</span>`).join('');
+
+  openModal60('📐 '+e60(r.name||'План'),`<div class="p60-note" style="margin-bottom:10px"><b>Площа:</b> ${area.toFixed(2)} м² &nbsp; <b>Периметр:</b> ${per.toFixed(2)} м<br><span style="color:#64748b">Перегляд без редагування — геометрія та елементи взяті з робочого плану кімнати.</span></div><svg class="p60-plan-svg" viewBox="${vbX} ${vbY} ${vbW} ${vbH}" preserveAspectRatio="xMidYMid meet" style="width:100%;height:auto;max-height:68vh;background:#fff;border:1px solid #dbe3ef;border-radius:14px"><polygon points="${poly}" fill="rgba(7,91,255,.10)" stroke="#075bff" stroke-width="4"/>${bindSvg}${objLayer}${pointsSvg}</svg>${summary?`<div class="p60-note" style="margin-top:10px"><b>Елементи:</b><br>${summary}</div>`:''}`);
 };
 window.clientSchedule60=()=>{const ev=Array.isArray(currentClientView60?.schedule)?currentClientView60.schedule:[];openModal60('📅 Графік виконання',ev.length?ev.map(x=>`<div class="p60-review"><b>${e60(x.date)} ${e60(x.time||'')}</b><p>${e60(x.type||'Подія')} ${e60(x.note||'')}</p></div>`).join(''):'<div class="p60-note">Подій ще не заплановано.</div>')};
 window.openReviewForm60=()=>{reviewStars60=5;openModal60('⭐ Залишити відгук',`<div class="p60-field"><label>Оцінка</label><div class="p60-stars">${[1,2,3,4,5].map(n=>`<button class="on" id="star60_${n}" onclick="setStars60(${n})">★</button>`).join('')}</div></div><div class="p60-field"><label>Ваше ім’я</label><input id="reviewName60" value="${e60(currentClientView60?.clientName||'')}"></div><div class="p60-field" style="margin-top:9px"><label>Відгук</label><textarea id="reviewText60" placeholder="Розкажіть про якість роботи"></textarea></div><button class="p60-btn blue" style="width:100%;margin-top:10px" onclick="submitReview60()">Надіслати відгук</button>`)};
@@ -8735,8 +8776,6 @@ body.client-card-mode61 .ai-request-section{display:none!important}
     ).trim();
 
     if (!objectNumber || !accessKey) return;
-
-    document.body.classList.add('client-direct-4403c');
 
     const numberInput =
       document.getElementById('clientObjectNumber56');
