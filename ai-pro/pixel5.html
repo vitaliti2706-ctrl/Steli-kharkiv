@@ -14683,6 +14683,252 @@ else setTimeout(install4336,350);
 <!-- 43(57): perimeter labels in live room/object summaries show м/пог.; share labels retained -->
 
 <!-- PIXEL 43(85): room-specific preliminary spot auto-activation + stable mobile scrolling -->
+
+
+<!-- PIXEL 44.03: client card plan fix + client-only view cleanup -->
+<style id="pixel4403ClientViewStyles">
+body.client-view-4403 .tabs-main{
+  grid-template-columns:minmax(0,1fr)!important;
+}
+body.client-view-4403 .tabs-main .main-tab:not([onclick*="'clientcard'"]){
+  display:none!important;
+}
+body.client-view-4403 .tabs-main .main-tab[onclick*="'clientcard'"]{
+  display:block!important;
+}
+body.client-view-4403 #quickCalcHandle40,
+body.client-view-4403 #quickCalcBackdrop40,
+body.client-view-4403 #quickCalcDrawer40,
+body.client-view-4403 #objectEndActions4394,
+body.client-view-4403 #objectActions4393,
+body.client-view-4403 #objectHiddenClientActions4394,
+body.client-view-4403 .ai-request-section,
+body.client-view-4403 .planner-inline-actions,
+body.client-view-4403 .service-shell60,
+body.client-view-4403 #publishClientCardBtn56,
+body.client-view-4403 #publishClientCardStatus56{
+  display:none!important;
+}
+body.client-view-4403 .p60-plan-wrap4403{
+  display:grid;gap:12px;
+}
+body.client-view-4403 .p60-plan-note4403,
+.p60-plan-note4403{
+  border:1px solid #dbe3ef;border-radius:14px;background:#f8fafc;padding:10px 12px;font-size:12px;line-height:1.45;color:#334155;
+}
+.p60-plan-svg4403{width:100%;height:auto;display:block;background:#fff;border:1px solid #dbe3ef;border-radius:16px}
+.p60-plan-metrics4403{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.p60-plan-metrics4403 .box{border:1px solid #dbe3ef;border-radius:14px;background:#f8fafc;padding:10px}
+.p60-plan-metrics4403 .box span{display:block;font-size:11px;color:#64748b;margin-bottom:4px}
+.p60-plan-metrics4403 .box b{font-size:16px;color:#0f172a}
+.p60-plan-legend4403{display:flex;flex-wrap:wrap;gap:8px}
+.p60-plan-legend4403 .chip{border:1px solid #dbe3ef;background:#fff;border-radius:999px;padding:6px 10px;font-size:12px;font-weight:700;color:#334155}
+@media (max-width:640px){
+  .p60-plan-metrics4403{grid-template-columns:1fr}
+}
+</style>
+<script id="pixel4403ClientViewFix">
+(() => {
+  'use strict';
+  if (window.__pixel4403ClientFix) return;
+  window.__pixel4403ClientFix = true;
+
+  const DIRECT_KEY = 'potolok_client_direct_4403';
+  if (String(location.hash || '').includes('clientObject=') && String(location.hash || '').includes('clientKey=')) {
+    try { sessionStorage.setItem(DIRECT_KEY, '1'); } catch (_) {}
+  }
+
+  function esc4403(value){
+    return String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+  }
+
+  function number4403(value){
+    const n = Number(value);
+    return Number.isFinite(n) ? n : 0;
+  }
+
+  function normalizePoint4403(point){
+    if (Array.isArray(point)) return {x:number4403(point[0]), y:number4403(point[1])};
+    if (point && typeof point === 'object') return {x:number4403(point.x), y:number4403(point.y)};
+    return {x:0,y:0};
+  }
+
+  function planData4403(room){
+    const planner = room?.planner || {};
+    const points = Array.isArray(planner.points) ? planner.points.map(normalizePoint4403).filter(p => Number.isFinite(p.x) && Number.isFinite(p.y)) : [];
+    const objects = Array.isArray(planner.objects) ? planner.objects.map(obj => ({...obj, x:number4403(obj?.x), y:number4403(obj?.y)})) : [];
+    const segments = Array.isArray(planner.segments) ? planner.segments.map(number4403) : [];
+    return {points, objects, segments};
+  }
+
+  function centroid4403(points){
+    if (!points.length) return {x:300, y:180};
+    return {
+      x: points.reduce((s,p) => s + p.x, 0) / points.length,
+      y: points.reduce((s,p) => s + p.y, 0) / points.length
+    };
+  }
+
+  function lineDistance4403(a,b){
+    return Math.hypot(number4403(b.x)-number4403(a.x), number4403(b.y)-number4403(a.y));
+  }
+
+  function buildPlanHtml4403(room){
+    const {points, objects, segments} = planData4403(room);
+    if (points.length < 2) {
+      return '<div class="p60-plan-note4403">План цієї кімнати не збережено.</div>';
+    }
+
+    const xs = points.map(p => p.x), ys = points.map(p => p.y);
+    const minX = Math.min(...xs), maxX = Math.max(...xs), minY = Math.min(...ys), maxY = Math.max(...ys);
+    const rawW = Math.max(1, maxX - minX), rawH = Math.max(1, maxY - minY);
+    const viewW = 640, viewH = 380, pad = 56;
+    const scale = Math.min((viewW - pad * 2) / rawW, (viewH - pad * 2) / rawH);
+
+    const mapPoint = p => ({ x: pad + (p.x - minX) * scale, y: pad + (p.y - minY) * scale });
+    const mapped = points.map(mapPoint);
+    const centroid = centroid4403(mapped);
+    const polygon = mapped.map(p => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
+
+    const edgeLabels = mapped.map((p, i) => {
+      const q = mapped[(i + 1) % mapped.length];
+      const segValue = segments[i] > 0 ? segments[i] : lineDistance4403(points[i], points[(i+1)%points.length]);
+      const mx = (p.x + q.x) / 2;
+      const my = (p.y + q.y) / 2;
+      const dx = q.x - p.x, dy = q.y - p.y;
+      const len = Math.hypot(dx, dy) || 1;
+      let nx = -dy / len, ny = dx / len;
+      if (nx * (centroid.x - mx) + ny * (centroid.y - my) > 0) { nx *= -1; ny *= -1; }
+      const tx = mx + nx * 26;
+      const ty = my + ny * 26;
+      const letter = String.fromCharCode(65 + (i % 26));
+      return `
+        <text x="${(p.x + 14).toFixed(1)}" y="${(p.y - 10).toFixed(1)}" font-size="15" font-weight="800" fill="#0f172a">${letter}</text>
+        <line x1="${p.x.toFixed(1)}" y1="${p.y.toFixed(1)}" x2="${q.x.toFixed(1)}" y2="${q.y.toFixed(1)}" stroke="#94a3b8" stroke-width="2" stroke-dasharray="4 4"/>
+        <text x="${tx.toFixed(1)}" y="${ty.toFixed(1)}" text-anchor="middle" font-size="14" font-weight="800" fill="#1d4ed8">${segValue.toFixed(2)} м</text>
+      `;
+    }).join('');
+
+    const objectIcons = {
+      door:'🚪', window:'🪟', light:'●', chandelier:'◉', vent:'▦',
+      track:'▬', surfaceTrack:'▬', lightline:'▬', corniceWhite:'▭', corniceBlack:'▭', corniceLed:'▭',
+      insertWhite:'—', insertBlack:'—', shadowProfile:'▰', floatingWhite:'▱', floatingBlack:'▱',
+      beam:'▮', box:'▣', pipe1:'◌', pipe2:'◎', column:'▢'
+    };
+    const objectNames = {
+      door:'Двері', window:'Вікно', light:'Світильник', chandelier:'Люстра', vent:'Вентиляція',
+      track:'Магнітний трек', surfaceTrack:'Накладний трек', lightline:'Світлова лінія',
+      corniceWhite:'Карниз білий', corniceBlack:'Карниз чорний', corniceLed:'Карниз LED',
+      insertWhite:'Вставка біла', insertBlack:'Вставка чорна', shadowProfile:'Тіньовий профіль',
+      floatingWhite:'Парящий білий', floatingBlack:'Парящий чорний', beam:'Балка', box:'Короб',
+      pipe1:'Труба', pipe2:'Подвійна труба', column:'Колона'
+    };
+
+    const objectSvg = objects.map((obj, i) => {
+      const p = mapPoint(obj);
+      const icon = objectIcons[obj.type] || '•';
+      return `<text x="${p.x.toFixed(1)}" y="${p.y.toFixed(1)}" text-anchor="middle" dominant-baseline="middle" font-size="20">${icon}</text>`;
+    }).join('');
+
+    const counts = {};
+    objects.forEach(obj => {
+      const key = objectNames[obj.type] || obj.type || 'Елемент';
+      counts[key] = (counts[key] || 0) + 1;
+    });
+    const legend = Object.entries(counts).map(([name, count]) => `<span class="chip">${esc4403(name)} × ${count}</span>`).join('');
+
+    const area = number4403(room?.area || room?.metrics?.area);
+    const per = number4403(room?.perimeter || room?.metrics?.perimeter);
+    return `
+      <div class="p60-plan-wrap4403">
+        <div class="p60-plan-metrics4403">
+          <div class="box"><span>Кімната</span><b>${esc4403(room?.name || 'План')}</b></div>
+          <div class="box"><span>Площа</span><b>${area.toFixed(2)} м²</b></div>
+          <div class="box"><span>Периметр</span><b>${per.toFixed(2)} м</b></div>
+        </div>
+        <svg class="p60-plan-svg4403" viewBox="0 0 ${viewW} ${viewH}" aria-label="План кімнати">
+          <rect x="10" y="10" width="${viewW-20}" height="${viewH-20}" rx="18" fill="#ffffff"/>
+          <polygon points="${polygon}" fill="#dbeafe" stroke="#075bff" stroke-width="4"></polygon>
+          ${edgeLabels}
+          ${objectSvg}
+          ${mapped.map(p => `<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="5.5" fill="#fff" stroke="#075bff" stroke-width="3"></circle>`).join('')}
+        </svg>
+        ${legend ? `<div class="p60-plan-note4403"><b>Елементи плану:</b><div class="p60-plan-legend4403">${legend}</div></div>` : '<div class="p60-plan-note4403">На цьому плані немає додаткових елементів — показано тільки контур і розміри стін.</div>'}
+      </div>`;
+  }
+
+  function isClientViewActive4403(){
+    const tab = document.getElementById('tab_clientcard');
+    const card = document.getElementById('clientObjectCard56');
+    return !!(tab && card && tab.classList.contains('active') && card.classList.contains('show'));
+  }
+
+  function applyClientMode4403(){
+    const active = isClientViewActive4403();
+    document.body.classList.toggle('client-view-4403', active);
+    if (!active) {
+      const onlyClient = document.querySelector('.tabs-main .main-tab[onclick*="\'clientcard\'"]');
+      if (onlyClient) onlyClient.style.display = '';
+    }
+  }
+
+  const originalClose4403 = window.closeClientObject56;
+  if (typeof originalClose4403 === 'function') {
+    window.closeClientObject56 = function(){
+      const result = originalClose4403.apply(this, arguments);
+      setTimeout(applyClientMode4403, 20);
+      return result;
+    };
+  }
+
+  const originalOpen4403 = window.openClientObject56;
+  if (typeof originalOpen4403 === 'function') {
+    window.openClientObject56 = async function(){
+      const result = await originalOpen4403.apply(this, arguments);
+      setTimeout(applyClientMode4403, 120);
+      return result;
+    };
+  }
+
+  window.clientPlan60 = function(i){
+    const room = window.currentClientView60?.rooms?.[i];
+    if (!room) return;
+    const title = '📐 ' + esc4403(room.name || ('Кімната ' + (i + 1)));
+    if (typeof window.openModal60 === 'function') {
+      window.openModal60(title, buildPlanHtml4403(room));
+    } else {
+      alert('Не вдалося відкрити перегляд плану.');
+    }
+  };
+
+  function watch4403(){
+    applyClientMode4403();
+    const card = document.getElementById('clientObjectCard56');
+    const tab = document.getElementById('tab_clientcard');
+    if (card && !card.__watch4403) {
+      card.__watch4403 = true;
+      new MutationObserver(() => setTimeout(applyClientMode4403, 20)).observe(card, {attributes:true, attributeFilter:['class'], childList:true, subtree:false});
+    }
+    if (tab && !tab.__watch4403) {
+      tab.__watch4403 = true;
+      new MutationObserver(() => setTimeout(applyClientMode4403, 20)).observe(tab, {attributes:true, attributeFilter:['class']});
+    }
+    document.querySelectorAll('.main-tab').forEach(btn => {
+      if (btn.__bind4403) return;
+      btn.__bind4403 = true;
+      btn.addEventListener('click', () => setTimeout(applyClientMode4403, 40));
+    });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', watch4403, {once:true});
+  } else {
+    watch4403();
+  }
+  window.addEventListener('pageshow', () => setTimeout(watch4403, 60), {passive:true});
+})();
+</script>
+
 </body></html>`;
   }
 
@@ -15680,7 +15926,253 @@ function buildEstimateHtml4345(object){
   const roomHtml=rooms.map((room,index)=>{const roomTotal=(num4345(room.calculated)||num4345(room.total))+roomFinishing4345(room);return `<section class="room"><div class="room-head"><div><h3>${esc4345(room.name||('Кімната '+(index+1)))}</h3><p>${num4345(room.area).toFixed(2)} м² · ${num4345(room.perimeter).toFixed(2)} м</p></div><strong>${money4345(roomTotal)}</strong></div><h4>Стеля та елементи</h4><table><thead><tr><th>Позиція</th><th>Кількість</th><th>Ціна</th><th>Сума</th></tr></thead><tbody>${detailRows4345(room)}</tbody></table>${finishingRows4345(room)}</section>`}).join('');
   const matsHtml=`<section class="room"><div class="room-head"><div><h3>Матеріали всього об’єкта</h3><p>Не прив’язані до окремих кімнат</p></div><strong>${money4345(materials)}</strong></div>${mats.length?`<table><thead><tr><th>Матеріал</th><th>Кількість</th><th>Ціна</th><th>Сума</th></tr></thead><tbody>${mats.map(m=>`<tr><td>${esc4345(m.name||'Матеріал')}</td><td>${num4345(m.quantity).toLocaleString('uk-UA',{maximumFractionDigits:2})} ${esc4345(m.unit||'')}</td><td>${money4345(m.price)}</td><td><b>${money4345(materialTotal4345(m))}</b></td></tr>`).join('')}</tbody></table>`:'<p>Матеріали ще не додані.</p>'}</section>`;
   const worksHtml=works.length?`<section class="room"><div class="room-head"><div><h3>Додаткові роботи об’єкта</h3></div><strong>${money4345(worksTotal)}</strong></div><table><thead><tr><th>Робота</th><th>Кількість</th><th>Ціна</th><th>Сума</th></tr></thead><tbody>${works.map(w=>`<tr><td>${esc4345(w.name||'Додаткова робота')}</td><td>${num4345(w.quantity).toLocaleString('uk-UA',{maximumFractionDigits:2})} ${esc4345(w.unit||'')}</td><td>${money4345(w.price)}</td><td><b>${money4345(num4345(w.quantity)*num4345(w.price))}</b></td></tr>`).join('')}</tbody></table></section>`:'';
-  return `<!doctype html><html lang="uk"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Кошторис Potolok.in.ua</title><style>*{box-sizing:border-box}body{margin:0;background:#f4f7fb;color:#0f172a;font-family:Arial,sans-serif}.wrap{max-width:920px;margin:auto;padding:22px}.head,.room,.summary{background:#fff;border:1px solid #dbe3ef;border-radius:16px;padding:18px;margin-bottom:14px}.brand{font-size:28px;font-weight:950}.brand span{color:#075bff}.head-grid,.summary-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:9px;margin-top:14px}.box{background:#f8fafc;border:1px solid #e5e7eb;border-radius:10px;padding:10px}.box span{display:block;color:#64748b;font-size:12px}.box b{display:block;margin-top:4px}.room-head{display:flex;justify-content:space-between;gap:14px;align-items:flex-start}.room h3{margin:0;font-size:19px}.room h4{margin:16px 0 7px}.room p{margin:5px 0 0;color:#64748b}.room strong{color:#075bff;font-size:20px;white-space:nowrap}table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:9px 7px;border-bottom:1px solid #e5e7eb;text-align:left}th:nth-child(n+2),td:nth-child(n+2){text-align:right}.muted{color:#94a3b8;text-align:center!important}.grand{margin-top:12px;background:linear-gradient(135deg,#071428,#075bff);color:#fff;border-radius:14px;padding:16px}.grand span{display:block;color:#bfdbfe}.grand b{display:block;font-size:34px;margin-top:6px}.note{font-size:12px;color:#64748b;line-height:1.5}@media(max-width:600px){.wrap{padding:10px}.head-grid,.summary-grid{grid-template-columns:1fr}.room-head{flex-direction:column}table{font-size:11px}th,td{padding:7px 4px}}</style></head><body><main class="wrap"><section class="head"><div class="brand">Potolok<span>.in.ua</span></div><h1>Кошторис об’єкта</h1><div class="head-grid"><div class="box"><span>Клієнт</span><b>${esc4345(object.clientName||'—')}</b></div><div class="box"><span>Телефон</span><b>${esc4345(object.clientPhone||'—')}</b></div><div class="box"><span>Адреса</span><b>${esc4345(object.address||'—')}</b></div><div class="box"><span>Дата заміру</span><b>${esc4345(object.date||'—')}</b></div></div></section>${roomHtml||'<section class="room">Кімнати ще не додані.</section>'}${matsHtml}${worksHtml}<section class="summary"><h2>Підсумок об’єкта</h2><div class="summary-grid"><div class="box"><span>Кімнат</span><b>${rooms.length}</b></div><div class="box"><span>Загальна площа</span><b>${area.toFixed(2)} м²</b></div><div class="box"><span>Загальний периметр</span><b>${perimeter.toFixed(2)} м/пог.</b></div><div class="box"><span>Стелі та елементи</span><b>${money4345(ceiling)}</b></div><div class="box"><span>Оздоблення</span><b>${money4345(finishing)}</b></div><div class="box"><span>Матеріали всього об’єкта</span><b>${money4345(materials)}</b></div><div class="box"><span>Додаткові роботи</span><b>${money4345(worksTotal)}</b></div></div><div class="grand"><span>Загальна сума</span><b>${money4345(total)}</b></div></section><p class="note">Матеріали винесені в окремий загальний блок і не включені до сум окремих кімнат. Potolok.in.ua · 097 454 67 13.</p></main></body></html>`;
+  return `<!doctype html><html lang="uk"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Кошторис Potolok.in.ua</title><style>*{box-sizing:border-box}body{margin:0;background:#f4f7fb;color:#0f172a;font-family:Arial,sans-serif}.wrap{max-width:920px;margin:auto;padding:22px}.head,.room,.summary{background:#fff;border:1px solid #dbe3ef;border-radius:16px;padding:18px;margin-bottom:14px}.brand{font-size:28px;font-weight:950}.brand span{color:#075bff}.head-grid,.summary-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:9px;margin-top:14px}.box{background:#f8fafc;border:1px solid #e5e7eb;border-radius:10px;padding:10px}.box span{display:block;color:#64748b;font-size:12px}.box b{display:block;margin-top:4px}.room-head{display:flex;justify-content:space-between;gap:14px;align-items:flex-start}.room h3{margin:0;font-size:19px}.room h4{margin:16px 0 7px}.room p{margin:5px 0 0;color:#64748b}.room strong{color:#075bff;font-size:20px;white-space:nowrap}table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:9px 7px;border-bottom:1px solid #e5e7eb;text-align:left}th:nth-child(n+2),td:nth-child(n+2){text-align:right}.muted{color:#94a3b8;text-align:center!important}.grand{margin-top:12px;background:linear-gradient(135deg,#071428,#075bff);color:#fff;border-radius:14px;padding:16px}.grand span{display:block;color:#bfdbfe}.grand b{display:block;font-size:34px;margin-top:6px}.note{font-size:12px;color:#64748b;line-height:1.5}@media(max-width:600px){.wrap{padding:10px}.head-grid,.summary-grid{grid-template-columns:1fr}.room-head{flex-direction:column}table{font-size:11px}th,td{padding:7px 4px}}</style></head><body><main class="wrap"><section class="head"><div class="brand">Potolok<span>.in.ua</span></div><h1>Кошторис об’єкта</h1><div class="head-grid"><div class="box"><span>Клієнт</span><b>${esc4345(object.clientName||'—')}</b></div><div class="box"><span>Телефон</span><b>${esc4345(object.clientPhone||'—')}</b></div><div class="box"><span>Адреса</span><b>${esc4345(object.address||'—')}</b></div><div class="box"><span>Дата заміру</span><b>${esc4345(object.date||'—')}</b></div></div></section>${roomHtml||'<section class="room">Кімнати ще не додані.</section>'}${matsHtml}${worksHtml}<section class="summary"><h2>Підсумок об’єкта</h2><div class="summary-grid"><div class="box"><span>Кімнат</span><b>${rooms.length}</b></div><div class="box"><span>Загальна площа</span><b>${area.toFixed(2)} м²</b></div><div class="box"><span>Загальний периметр</span><b>${perimeter.toFixed(2)} м/пог.</b></div><div class="box"><span>Стелі та елементи</span><b>${money4345(ceiling)}</b></div><div class="box"><span>Оздоблення</span><b>${money4345(finishing)}</b></div><div class="box"><span>Матеріали всього об’єкта</span><b>${money4345(materials)}</b></div><div class="box"><span>Додаткові роботи</span><b>${money4345(worksTotal)}</b></div></div><div class="grand"><span>Загальна сума</span><b>${money4345(total)}</b></div></section><p class="note">Матеріали винесені в окремий загальний блок і не включені до сум окремих кімнат. Potolok.in.ua · 097 454 67 13.</p></main>
+
+<!-- PIXEL 44.03: client card plan fix + client-only view cleanup -->
+<style id="pixel4403ClientViewStyles">
+body.client-view-4403 .tabs-main{
+  grid-template-columns:minmax(0,1fr)!important;
+}
+body.client-view-4403 .tabs-main .main-tab:not([onclick*="'clientcard'"]){
+  display:none!important;
+}
+body.client-view-4403 .tabs-main .main-tab[onclick*="'clientcard'"]{
+  display:block!important;
+}
+body.client-view-4403 #quickCalcHandle40,
+body.client-view-4403 #quickCalcBackdrop40,
+body.client-view-4403 #quickCalcDrawer40,
+body.client-view-4403 #objectEndActions4394,
+body.client-view-4403 #objectActions4393,
+body.client-view-4403 #objectHiddenClientActions4394,
+body.client-view-4403 .ai-request-section,
+body.client-view-4403 .planner-inline-actions,
+body.client-view-4403 .service-shell60,
+body.client-view-4403 #publishClientCardBtn56,
+body.client-view-4403 #publishClientCardStatus56{
+  display:none!important;
+}
+body.client-view-4403 .p60-plan-wrap4403{
+  display:grid;gap:12px;
+}
+body.client-view-4403 .p60-plan-note4403,
+.p60-plan-note4403{
+  border:1px solid #dbe3ef;border-radius:14px;background:#f8fafc;padding:10px 12px;font-size:12px;line-height:1.45;color:#334155;
+}
+.p60-plan-svg4403{width:100%;height:auto;display:block;background:#fff;border:1px solid #dbe3ef;border-radius:16px}
+.p60-plan-metrics4403{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.p60-plan-metrics4403 .box{border:1px solid #dbe3ef;border-radius:14px;background:#f8fafc;padding:10px}
+.p60-plan-metrics4403 .box span{display:block;font-size:11px;color:#64748b;margin-bottom:4px}
+.p60-plan-metrics4403 .box b{font-size:16px;color:#0f172a}
+.p60-plan-legend4403{display:flex;flex-wrap:wrap;gap:8px}
+.p60-plan-legend4403 .chip{border:1px solid #dbe3ef;background:#fff;border-radius:999px;padding:6px 10px;font-size:12px;font-weight:700;color:#334155}
+@media (max-width:640px){
+  .p60-plan-metrics4403{grid-template-columns:1fr}
+}
+</style>
+<script id="pixel4403ClientViewFix">
+(() => {
+  'use strict';
+  if (window.__pixel4403ClientFix) return;
+  window.__pixel4403ClientFix = true;
+
+  const DIRECT_KEY = 'potolok_client_direct_4403';
+  if (String(location.hash || '').includes('clientObject=') && String(location.hash || '').includes('clientKey=')) {
+    try { sessionStorage.setItem(DIRECT_KEY, '1'); } catch (_) {}
+  }
+
+  function esc4403(value){
+    return String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+  }
+
+  function number4403(value){
+    const n = Number(value);
+    return Number.isFinite(n) ? n : 0;
+  }
+
+  function normalizePoint4403(point){
+    if (Array.isArray(point)) return {x:number4403(point[0]), y:number4403(point[1])};
+    if (point && typeof point === 'object') return {x:number4403(point.x), y:number4403(point.y)};
+    return {x:0,y:0};
+  }
+
+  function planData4403(room){
+    const planner = room?.planner || {};
+    const points = Array.isArray(planner.points) ? planner.points.map(normalizePoint4403).filter(p => Number.isFinite(p.x) && Number.isFinite(p.y)) : [];
+    const objects = Array.isArray(planner.objects) ? planner.objects.map(obj => ({...obj, x:number4403(obj?.x), y:number4403(obj?.y)})) : [];
+    const segments = Array.isArray(planner.segments) ? planner.segments.map(number4403) : [];
+    return {points, objects, segments};
+  }
+
+  function centroid4403(points){
+    if (!points.length) return {x:300, y:180};
+    return {
+      x: points.reduce((s,p) => s + p.x, 0) / points.length,
+      y: points.reduce((s,p) => s + p.y, 0) / points.length
+    };
+  }
+
+  function lineDistance4403(a,b){
+    return Math.hypot(number4403(b.x)-number4403(a.x), number4403(b.y)-number4403(a.y));
+  }
+
+  function buildPlanHtml4403(room){
+    const {points, objects, segments} = planData4403(room);
+    if (points.length < 2) {
+      return '<div class="p60-plan-note4403">План цієї кімнати не збережено.</div>';
+    }
+
+    const xs = points.map(p => p.x), ys = points.map(p => p.y);
+    const minX = Math.min(...xs), maxX = Math.max(...xs), minY = Math.min(...ys), maxY = Math.max(...ys);
+    const rawW = Math.max(1, maxX - minX), rawH = Math.max(1, maxY - minY);
+    const viewW = 640, viewH = 380, pad = 56;
+    const scale = Math.min((viewW - pad * 2) / rawW, (viewH - pad * 2) / rawH);
+
+    const mapPoint = p => ({ x: pad + (p.x - minX) * scale, y: pad + (p.y - minY) * scale });
+    const mapped = points.map(mapPoint);
+    const centroid = centroid4403(mapped);
+    const polygon = mapped.map(p => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
+
+    const edgeLabels = mapped.map((p, i) => {
+      const q = mapped[(i + 1) % mapped.length];
+      const segValue = segments[i] > 0 ? segments[i] : lineDistance4403(points[i], points[(i+1)%points.length]);
+      const mx = (p.x + q.x) / 2;
+      const my = (p.y + q.y) / 2;
+      const dx = q.x - p.x, dy = q.y - p.y;
+      const len = Math.hypot(dx, dy) || 1;
+      let nx = -dy / len, ny = dx / len;
+      if (nx * (centroid.x - mx) + ny * (centroid.y - my) > 0) { nx *= -1; ny *= -1; }
+      const tx = mx + nx * 26;
+      const ty = my + ny * 26;
+      const letter = String.fromCharCode(65 + (i % 26));
+      return `
+        <text x="${(p.x + 14).toFixed(1)}" y="${(p.y - 10).toFixed(1)}" font-size="15" font-weight="800" fill="#0f172a">${letter}</text>
+        <line x1="${p.x.toFixed(1)}" y1="${p.y.toFixed(1)}" x2="${q.x.toFixed(1)}" y2="${q.y.toFixed(1)}" stroke="#94a3b8" stroke-width="2" stroke-dasharray="4 4"/>
+        <text x="${tx.toFixed(1)}" y="${ty.toFixed(1)}" text-anchor="middle" font-size="14" font-weight="800" fill="#1d4ed8">${segValue.toFixed(2)} м</text>
+      `;
+    }).join('');
+
+    const objectIcons = {
+      door:'🚪', window:'🪟', light:'●', chandelier:'◉', vent:'▦',
+      track:'▬', surfaceTrack:'▬', lightline:'▬', corniceWhite:'▭', corniceBlack:'▭', corniceLed:'▭',
+      insertWhite:'—', insertBlack:'—', shadowProfile:'▰', floatingWhite:'▱', floatingBlack:'▱',
+      beam:'▮', box:'▣', pipe1:'◌', pipe2:'◎', column:'▢'
+    };
+    const objectNames = {
+      door:'Двері', window:'Вікно', light:'Світильник', chandelier:'Люстра', vent:'Вентиляція',
+      track:'Магнітний трек', surfaceTrack:'Накладний трек', lightline:'Світлова лінія',
+      corniceWhite:'Карниз білий', corniceBlack:'Карниз чорний', corniceLed:'Карниз LED',
+      insertWhite:'Вставка біла', insertBlack:'Вставка чорна', shadowProfile:'Тіньовий профіль',
+      floatingWhite:'Парящий білий', floatingBlack:'Парящий чорний', beam:'Балка', box:'Короб',
+      pipe1:'Труба', pipe2:'Подвійна труба', column:'Колона'
+    };
+
+    const objectSvg = objects.map((obj, i) => {
+      const p = mapPoint(obj);
+      const icon = objectIcons[obj.type] || '•';
+      return `<text x="${p.x.toFixed(1)}" y="${p.y.toFixed(1)}" text-anchor="middle" dominant-baseline="middle" font-size="20">${icon}</text>`;
+    }).join('');
+
+    const counts = {};
+    objects.forEach(obj => {
+      const key = objectNames[obj.type] || obj.type || 'Елемент';
+      counts[key] = (counts[key] || 0) + 1;
+    });
+    const legend = Object.entries(counts).map(([name, count]) => `<span class="chip">${esc4403(name)} × ${count}</span>`).join('');
+
+    const area = number4403(room?.area || room?.metrics?.area);
+    const per = number4403(room?.perimeter || room?.metrics?.perimeter);
+    return `
+      <div class="p60-plan-wrap4403">
+        <div class="p60-plan-metrics4403">
+          <div class="box"><span>Кімната</span><b>${esc4403(room?.name || 'План')}</b></div>
+          <div class="box"><span>Площа</span><b>${area.toFixed(2)} м²</b></div>
+          <div class="box"><span>Периметр</span><b>${per.toFixed(2)} м</b></div>
+        </div>
+        <svg class="p60-plan-svg4403" viewBox="0 0 ${viewW} ${viewH}" aria-label="План кімнати">
+          <rect x="10" y="10" width="${viewW-20}" height="${viewH-20}" rx="18" fill="#ffffff"/>
+          <polygon points="${polygon}" fill="#dbeafe" stroke="#075bff" stroke-width="4"></polygon>
+          ${edgeLabels}
+          ${objectSvg}
+          ${mapped.map(p => `<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="5.5" fill="#fff" stroke="#075bff" stroke-width="3"></circle>`).join('')}
+        </svg>
+        ${legend ? `<div class="p60-plan-note4403"><b>Елементи плану:</b><div class="p60-plan-legend4403">${legend}</div></div>` : '<div class="p60-plan-note4403">На цьому плані немає додаткових елементів — показано тільки контур і розміри стін.</div>'}
+      </div>`;
+  }
+
+  function isClientViewActive4403(){
+    const tab = document.getElementById('tab_clientcard');
+    const card = document.getElementById('clientObjectCard56');
+    return !!(tab && card && tab.classList.contains('active') && card.classList.contains('show'));
+  }
+
+  function applyClientMode4403(){
+    const active = isClientViewActive4403();
+    document.body.classList.toggle('client-view-4403', active);
+    if (!active) {
+      const onlyClient = document.querySelector('.tabs-main .main-tab[onclick*="\'clientcard\'"]');
+      if (onlyClient) onlyClient.style.display = '';
+    }
+  }
+
+  const originalClose4403 = window.closeClientObject56;
+  if (typeof originalClose4403 === 'function') {
+    window.closeClientObject56 = function(){
+      const result = originalClose4403.apply(this, arguments);
+      setTimeout(applyClientMode4403, 20);
+      return result;
+    };
+  }
+
+  const originalOpen4403 = window.openClientObject56;
+  if (typeof originalOpen4403 === 'function') {
+    window.openClientObject56 = async function(){
+      const result = await originalOpen4403.apply(this, arguments);
+      setTimeout(applyClientMode4403, 120);
+      return result;
+    };
+  }
+
+  window.clientPlan60 = function(i){
+    const room = window.currentClientView60?.rooms?.[i];
+    if (!room) return;
+    const title = '📐 ' + esc4403(room.name || ('Кімната ' + (i + 1)));
+    if (typeof window.openModal60 === 'function') {
+      window.openModal60(title, buildPlanHtml4403(room));
+    } else {
+      alert('Не вдалося відкрити перегляд плану.');
+    }
+  };
+
+  function watch4403(){
+    applyClientMode4403();
+    const card = document.getElementById('clientObjectCard56');
+    const tab = document.getElementById('tab_clientcard');
+    if (card && !card.__watch4403) {
+      card.__watch4403 = true;
+      new MutationObserver(() => setTimeout(applyClientMode4403, 20)).observe(card, {attributes:true, attributeFilter:['class'], childList:true, subtree:false});
+    }
+    if (tab && !tab.__watch4403) {
+      tab.__watch4403 = true;
+      new MutationObserver(() => setTimeout(applyClientMode4403, 20)).observe(tab, {attributes:true, attributeFilter:['class']});
+    }
+    document.querySelectorAll('.main-tab').forEach(btn => {
+      if (btn.__bind4403) return;
+      btn.__bind4403 = true;
+      btn.addEventListener('click', () => setTimeout(applyClientMode4403, 40));
+    });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', watch4403, {once:true});
+  } else {
+    watch4403();
+  }
+  window.addEventListener('pageshow', () => setTimeout(watch4403, 60), {passive:true});
+})();
+</script>
+
+</body></html>`;
 }
 function estimateText4345(object){
   const rooms=Array.isArray(object?.rooms)?object.rooms:[],mats=Array.isArray(object?.objectMaterials4345)?object.objectMaterials4345:[],works=objectWorks4345(object);
@@ -16851,7 +17343,253 @@ function estimateHtml4349(object){
   const works=list.reduce((sum,room)=>sum+roomWorksTotal4349(room),0);
   const area=list.reduce((sum,room)=>sum+num(room?.area),0),perimeter=list.reduce((sum,room)=>sum+num(room?.perimeter),0);
   const total=ceiling+finishing+works+matsTotal;
-  return `<!doctype html><html lang="uk"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Кошторис Potolok.in.ua</title><style>*{box-sizing:border-box}body{margin:0;background:#f4f7fb;color:#0f172a;font-family:Arial,sans-serif}.wrap{max-width:920px;margin:auto;padding:22px}.head,.room,.summary{background:#fff;border:1px solid #dbe3ef;border-radius:16px;padding:18px;margin-bottom:14px}.brand{font-size:28px;font-weight:950}.brand span{color:#075bff}.head-grid,.summary-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:9px;margin-top:14px}.box{background:#f8fafc;border:1px solid #e5e7eb;border-radius:10px;padding:10px}.box span{display:block;color:#64748b;font-size:12px}.box b{display:block;margin-top:4px}.room-head{display:flex;justify-content:space-between;gap:14px;align-items:flex-start}.room h3{margin:0;font-size:19px}.room h4{margin:16px 0 7px}.room p{margin:5px 0 0;color:#64748b}.room strong{color:#075bff;font-size:20px;white-space:nowrap}table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:9px 7px;border-bottom:1px solid #e5e7eb;text-align:left}th:nth-child(n+2),td:nth-child(n+2){text-align:right}.muted{color:#94a3b8;text-align:center!important}.grand{margin-top:12px;background:linear-gradient(135deg,#071428,#075bff);color:#fff;border-radius:14px;padding:16px}.grand span{display:block;color:#bfdbfe}.grand b{display:block;font-size:34px;margin-top:6px}.note{font-size:12px;color:#64748b;line-height:1.5}@media(max-width:600px){.wrap{padding:10px}.head-grid,.summary-grid{grid-template-columns:1fr}.room-head{flex-direction:column}table{font-size:11px}th,td{padding:7px 4px}}</style></head><body><main class="wrap"><section class="head"><div class="brand">Potolok<span>.in.ua</span></div><h1>Кошторис об’єкта</h1><div class="head-grid"><div class="box"><span>Клієнт</span><b>${esc(object?.clientName||'—')}</b></div><div class="box"><span>Телефон</span><b>${esc(object?.clientPhone||'—')}</b></div><div class="box"><span>Адреса</span><b>${esc(object?.address||'—')}</b></div><div class="box"><span>Дата заміру</span><b>${esc(object?.date||'—')}</b></div></div></section>${roomHtml||'<section class="room">Кімнати ще не додані.</section>'}${matsHtml}<section class="summary"><h2>Підсумок об’єкта</h2><div class="summary-grid"><div class="box"><span>Кімнат</span><b>${list.length}</b></div><div class="box"><span>Загальна площа</span><b>${area.toFixed(2)} м²</b></div><div class="box"><span>Загальний периметр</span><b>${perimeter.toFixed(2)} м/пог.</b></div><div class="box"><span>Стелі та елементи</span><b>${money(ceiling)}</b></div><div class="box"><span>Оздоблення</span><b>${money(finishing)}</b></div><div class="box"><span>Додаткові роботи кімнат</span><b>${money(works)}</b></div><div class="box"><span>Матеріали всього об’єкта</span><b>${money(matsTotal)}</b></div></div><div class="grand"><span>Загальна сума</span><b>${money(total)}</b></div></section><p class="note">Додаткові роботи розподілені по кімнатах. Матеріали показані окремим загальним списком. Potolok.in.ua · 097 454 67 13.</p></main></body></html>`;
+  return `<!doctype html><html lang="uk"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Кошторис Potolok.in.ua</title><style>*{box-sizing:border-box}body{margin:0;background:#f4f7fb;color:#0f172a;font-family:Arial,sans-serif}.wrap{max-width:920px;margin:auto;padding:22px}.head,.room,.summary{background:#fff;border:1px solid #dbe3ef;border-radius:16px;padding:18px;margin-bottom:14px}.brand{font-size:28px;font-weight:950}.brand span{color:#075bff}.head-grid,.summary-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:9px;margin-top:14px}.box{background:#f8fafc;border:1px solid #e5e7eb;border-radius:10px;padding:10px}.box span{display:block;color:#64748b;font-size:12px}.box b{display:block;margin-top:4px}.room-head{display:flex;justify-content:space-between;gap:14px;align-items:flex-start}.room h3{margin:0;font-size:19px}.room h4{margin:16px 0 7px}.room p{margin:5px 0 0;color:#64748b}.room strong{color:#075bff;font-size:20px;white-space:nowrap}table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:9px 7px;border-bottom:1px solid #e5e7eb;text-align:left}th:nth-child(n+2),td:nth-child(n+2){text-align:right}.muted{color:#94a3b8;text-align:center!important}.grand{margin-top:12px;background:linear-gradient(135deg,#071428,#075bff);color:#fff;border-radius:14px;padding:16px}.grand span{display:block;color:#bfdbfe}.grand b{display:block;font-size:34px;margin-top:6px}.note{font-size:12px;color:#64748b;line-height:1.5}@media(max-width:600px){.wrap{padding:10px}.head-grid,.summary-grid{grid-template-columns:1fr}.room-head{flex-direction:column}table{font-size:11px}th,td{padding:7px 4px}}</style></head><body><main class="wrap"><section class="head"><div class="brand">Potolok<span>.in.ua</span></div><h1>Кошторис об’єкта</h1><div class="head-grid"><div class="box"><span>Клієнт</span><b>${esc(object?.clientName||'—')}</b></div><div class="box"><span>Телефон</span><b>${esc(object?.clientPhone||'—')}</b></div><div class="box"><span>Адреса</span><b>${esc(object?.address||'—')}</b></div><div class="box"><span>Дата заміру</span><b>${esc(object?.date||'—')}</b></div></div></section>${roomHtml||'<section class="room">Кімнати ще не додані.</section>'}${matsHtml}<section class="summary"><h2>Підсумок об’єкта</h2><div class="summary-grid"><div class="box"><span>Кімнат</span><b>${list.length}</b></div><div class="box"><span>Загальна площа</span><b>${area.toFixed(2)} м²</b></div><div class="box"><span>Загальний периметр</span><b>${perimeter.toFixed(2)} м/пог.</b></div><div class="box"><span>Стелі та елементи</span><b>${money(ceiling)}</b></div><div class="box"><span>Оздоблення</span><b>${money(finishing)}</b></div><div class="box"><span>Додаткові роботи кімнат</span><b>${money(works)}</b></div><div class="box"><span>Матеріали всього об’єкта</span><b>${money(matsTotal)}</b></div></div><div class="grand"><span>Загальна сума</span><b>${money(total)}</b></div></section><p class="note">Додаткові роботи розподілені по кімнатах. Матеріали показані окремим загальним списком. Potolok.in.ua · 097 454 67 13.</p></main>
+
+<!-- PIXEL 44.03: client card plan fix + client-only view cleanup -->
+<style id="pixel4403ClientViewStyles">
+body.client-view-4403 .tabs-main{
+  grid-template-columns:minmax(0,1fr)!important;
+}
+body.client-view-4403 .tabs-main .main-tab:not([onclick*="'clientcard'"]){
+  display:none!important;
+}
+body.client-view-4403 .tabs-main .main-tab[onclick*="'clientcard'"]{
+  display:block!important;
+}
+body.client-view-4403 #quickCalcHandle40,
+body.client-view-4403 #quickCalcBackdrop40,
+body.client-view-4403 #quickCalcDrawer40,
+body.client-view-4403 #objectEndActions4394,
+body.client-view-4403 #objectActions4393,
+body.client-view-4403 #objectHiddenClientActions4394,
+body.client-view-4403 .ai-request-section,
+body.client-view-4403 .planner-inline-actions,
+body.client-view-4403 .service-shell60,
+body.client-view-4403 #publishClientCardBtn56,
+body.client-view-4403 #publishClientCardStatus56{
+  display:none!important;
+}
+body.client-view-4403 .p60-plan-wrap4403{
+  display:grid;gap:12px;
+}
+body.client-view-4403 .p60-plan-note4403,
+.p60-plan-note4403{
+  border:1px solid #dbe3ef;border-radius:14px;background:#f8fafc;padding:10px 12px;font-size:12px;line-height:1.45;color:#334155;
+}
+.p60-plan-svg4403{width:100%;height:auto;display:block;background:#fff;border:1px solid #dbe3ef;border-radius:16px}
+.p60-plan-metrics4403{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.p60-plan-metrics4403 .box{border:1px solid #dbe3ef;border-radius:14px;background:#f8fafc;padding:10px}
+.p60-plan-metrics4403 .box span{display:block;font-size:11px;color:#64748b;margin-bottom:4px}
+.p60-plan-metrics4403 .box b{font-size:16px;color:#0f172a}
+.p60-plan-legend4403{display:flex;flex-wrap:wrap;gap:8px}
+.p60-plan-legend4403 .chip{border:1px solid #dbe3ef;background:#fff;border-radius:999px;padding:6px 10px;font-size:12px;font-weight:700;color:#334155}
+@media (max-width:640px){
+  .p60-plan-metrics4403{grid-template-columns:1fr}
+}
+</style>
+<script id="pixel4403ClientViewFix">
+(() => {
+  'use strict';
+  if (window.__pixel4403ClientFix) return;
+  window.__pixel4403ClientFix = true;
+
+  const DIRECT_KEY = 'potolok_client_direct_4403';
+  if (String(location.hash || '').includes('clientObject=') && String(location.hash || '').includes('clientKey=')) {
+    try { sessionStorage.setItem(DIRECT_KEY, '1'); } catch (_) {}
+  }
+
+  function esc4403(value){
+    return String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+  }
+
+  function number4403(value){
+    const n = Number(value);
+    return Number.isFinite(n) ? n : 0;
+  }
+
+  function normalizePoint4403(point){
+    if (Array.isArray(point)) return {x:number4403(point[0]), y:number4403(point[1])};
+    if (point && typeof point === 'object') return {x:number4403(point.x), y:number4403(point.y)};
+    return {x:0,y:0};
+  }
+
+  function planData4403(room){
+    const planner = room?.planner || {};
+    const points = Array.isArray(planner.points) ? planner.points.map(normalizePoint4403).filter(p => Number.isFinite(p.x) && Number.isFinite(p.y)) : [];
+    const objects = Array.isArray(planner.objects) ? planner.objects.map(obj => ({...obj, x:number4403(obj?.x), y:number4403(obj?.y)})) : [];
+    const segments = Array.isArray(planner.segments) ? planner.segments.map(number4403) : [];
+    return {points, objects, segments};
+  }
+
+  function centroid4403(points){
+    if (!points.length) return {x:300, y:180};
+    return {
+      x: points.reduce((s,p) => s + p.x, 0) / points.length,
+      y: points.reduce((s,p) => s + p.y, 0) / points.length
+    };
+  }
+
+  function lineDistance4403(a,b){
+    return Math.hypot(number4403(b.x)-number4403(a.x), number4403(b.y)-number4403(a.y));
+  }
+
+  function buildPlanHtml4403(room){
+    const {points, objects, segments} = planData4403(room);
+    if (points.length < 2) {
+      return '<div class="p60-plan-note4403">План цієї кімнати не збережено.</div>';
+    }
+
+    const xs = points.map(p => p.x), ys = points.map(p => p.y);
+    const minX = Math.min(...xs), maxX = Math.max(...xs), minY = Math.min(...ys), maxY = Math.max(...ys);
+    const rawW = Math.max(1, maxX - minX), rawH = Math.max(1, maxY - minY);
+    const viewW = 640, viewH = 380, pad = 56;
+    const scale = Math.min((viewW - pad * 2) / rawW, (viewH - pad * 2) / rawH);
+
+    const mapPoint = p => ({ x: pad + (p.x - minX) * scale, y: pad + (p.y - minY) * scale });
+    const mapped = points.map(mapPoint);
+    const centroid = centroid4403(mapped);
+    const polygon = mapped.map(p => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
+
+    const edgeLabels = mapped.map((p, i) => {
+      const q = mapped[(i + 1) % mapped.length];
+      const segValue = segments[i] > 0 ? segments[i] : lineDistance4403(points[i], points[(i+1)%points.length]);
+      const mx = (p.x + q.x) / 2;
+      const my = (p.y + q.y) / 2;
+      const dx = q.x - p.x, dy = q.y - p.y;
+      const len = Math.hypot(dx, dy) || 1;
+      let nx = -dy / len, ny = dx / len;
+      if (nx * (centroid.x - mx) + ny * (centroid.y - my) > 0) { nx *= -1; ny *= -1; }
+      const tx = mx + nx * 26;
+      const ty = my + ny * 26;
+      const letter = String.fromCharCode(65 + (i % 26));
+      return `
+        <text x="${(p.x + 14).toFixed(1)}" y="${(p.y - 10).toFixed(1)}" font-size="15" font-weight="800" fill="#0f172a">${letter}</text>
+        <line x1="${p.x.toFixed(1)}" y1="${p.y.toFixed(1)}" x2="${q.x.toFixed(1)}" y2="${q.y.toFixed(1)}" stroke="#94a3b8" stroke-width="2" stroke-dasharray="4 4"/>
+        <text x="${tx.toFixed(1)}" y="${ty.toFixed(1)}" text-anchor="middle" font-size="14" font-weight="800" fill="#1d4ed8">${segValue.toFixed(2)} м</text>
+      `;
+    }).join('');
+
+    const objectIcons = {
+      door:'🚪', window:'🪟', light:'●', chandelier:'◉', vent:'▦',
+      track:'▬', surfaceTrack:'▬', lightline:'▬', corniceWhite:'▭', corniceBlack:'▭', corniceLed:'▭',
+      insertWhite:'—', insertBlack:'—', shadowProfile:'▰', floatingWhite:'▱', floatingBlack:'▱',
+      beam:'▮', box:'▣', pipe1:'◌', pipe2:'◎', column:'▢'
+    };
+    const objectNames = {
+      door:'Двері', window:'Вікно', light:'Світильник', chandelier:'Люстра', vent:'Вентиляція',
+      track:'Магнітний трек', surfaceTrack:'Накладний трек', lightline:'Світлова лінія',
+      corniceWhite:'Карниз білий', corniceBlack:'Карниз чорний', corniceLed:'Карниз LED',
+      insertWhite:'Вставка біла', insertBlack:'Вставка чорна', shadowProfile:'Тіньовий профіль',
+      floatingWhite:'Парящий білий', floatingBlack:'Парящий чорний', beam:'Балка', box:'Короб',
+      pipe1:'Труба', pipe2:'Подвійна труба', column:'Колона'
+    };
+
+    const objectSvg = objects.map((obj, i) => {
+      const p = mapPoint(obj);
+      const icon = objectIcons[obj.type] || '•';
+      return `<text x="${p.x.toFixed(1)}" y="${p.y.toFixed(1)}" text-anchor="middle" dominant-baseline="middle" font-size="20">${icon}</text>`;
+    }).join('');
+
+    const counts = {};
+    objects.forEach(obj => {
+      const key = objectNames[obj.type] || obj.type || 'Елемент';
+      counts[key] = (counts[key] || 0) + 1;
+    });
+    const legend = Object.entries(counts).map(([name, count]) => `<span class="chip">${esc4403(name)} × ${count}</span>`).join('');
+
+    const area = number4403(room?.area || room?.metrics?.area);
+    const per = number4403(room?.perimeter || room?.metrics?.perimeter);
+    return `
+      <div class="p60-plan-wrap4403">
+        <div class="p60-plan-metrics4403">
+          <div class="box"><span>Кімната</span><b>${esc4403(room?.name || 'План')}</b></div>
+          <div class="box"><span>Площа</span><b>${area.toFixed(2)} м²</b></div>
+          <div class="box"><span>Периметр</span><b>${per.toFixed(2)} м</b></div>
+        </div>
+        <svg class="p60-plan-svg4403" viewBox="0 0 ${viewW} ${viewH}" aria-label="План кімнати">
+          <rect x="10" y="10" width="${viewW-20}" height="${viewH-20}" rx="18" fill="#ffffff"/>
+          <polygon points="${polygon}" fill="#dbeafe" stroke="#075bff" stroke-width="4"></polygon>
+          ${edgeLabels}
+          ${objectSvg}
+          ${mapped.map(p => `<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="5.5" fill="#fff" stroke="#075bff" stroke-width="3"></circle>`).join('')}
+        </svg>
+        ${legend ? `<div class="p60-plan-note4403"><b>Елементи плану:</b><div class="p60-plan-legend4403">${legend}</div></div>` : '<div class="p60-plan-note4403">На цьому плані немає додаткових елементів — показано тільки контур і розміри стін.</div>'}
+      </div>`;
+  }
+
+  function isClientViewActive4403(){
+    const tab = document.getElementById('tab_clientcard');
+    const card = document.getElementById('clientObjectCard56');
+    return !!(tab && card && tab.classList.contains('active') && card.classList.contains('show'));
+  }
+
+  function applyClientMode4403(){
+    const active = isClientViewActive4403();
+    document.body.classList.toggle('client-view-4403', active);
+    if (!active) {
+      const onlyClient = document.querySelector('.tabs-main .main-tab[onclick*="\'clientcard\'"]');
+      if (onlyClient) onlyClient.style.display = '';
+    }
+  }
+
+  const originalClose4403 = window.closeClientObject56;
+  if (typeof originalClose4403 === 'function') {
+    window.closeClientObject56 = function(){
+      const result = originalClose4403.apply(this, arguments);
+      setTimeout(applyClientMode4403, 20);
+      return result;
+    };
+  }
+
+  const originalOpen4403 = window.openClientObject56;
+  if (typeof originalOpen4403 === 'function') {
+    window.openClientObject56 = async function(){
+      const result = await originalOpen4403.apply(this, arguments);
+      setTimeout(applyClientMode4403, 120);
+      return result;
+    };
+  }
+
+  window.clientPlan60 = function(i){
+    const room = window.currentClientView60?.rooms?.[i];
+    if (!room) return;
+    const title = '📐 ' + esc4403(room.name || ('Кімната ' + (i + 1)));
+    if (typeof window.openModal60 === 'function') {
+      window.openModal60(title, buildPlanHtml4403(room));
+    } else {
+      alert('Не вдалося відкрити перегляд плану.');
+    }
+  };
+
+  function watch4403(){
+    applyClientMode4403();
+    const card = document.getElementById('clientObjectCard56');
+    const tab = document.getElementById('tab_clientcard');
+    if (card && !card.__watch4403) {
+      card.__watch4403 = true;
+      new MutationObserver(() => setTimeout(applyClientMode4403, 20)).observe(card, {attributes:true, attributeFilter:['class'], childList:true, subtree:false});
+    }
+    if (tab && !tab.__watch4403) {
+      tab.__watch4403 = true;
+      new MutationObserver(() => setTimeout(applyClientMode4403, 20)).observe(tab, {attributes:true, attributeFilter:['class']});
+    }
+    document.querySelectorAll('.main-tab').forEach(btn => {
+      if (btn.__bind4403) return;
+      btn.__bind4403 = true;
+      btn.addEventListener('click', () => setTimeout(applyClientMode4403, 40));
+    });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', watch4403, {once:true});
+  } else {
+    watch4403();
+  }
+  window.addEventListener('pageshow', () => setTimeout(watch4403, 60), {passive:true});
+})();
+</script>
+
+</body></html>`;
 }
 window.shareEstimateFile4338=async function(button){
   const old=button?.innerHTML;
@@ -17419,6 +18157,252 @@ function start4352(){
   patch4352();setTimeout(patch4352,200);setTimeout(patch4352,800)
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start4352,{once:true});else start4352();
+})();
+</script>
+
+
+
+<!-- PIXEL 44.03: client card plan fix + client-only view cleanup -->
+<style id="pixel4403ClientViewStyles">
+body.client-view-4403 .tabs-main{
+  grid-template-columns:minmax(0,1fr)!important;
+}
+body.client-view-4403 .tabs-main .main-tab:not([onclick*="'clientcard'"]){
+  display:none!important;
+}
+body.client-view-4403 .tabs-main .main-tab[onclick*="'clientcard'"]{
+  display:block!important;
+}
+body.client-view-4403 #quickCalcHandle40,
+body.client-view-4403 #quickCalcBackdrop40,
+body.client-view-4403 #quickCalcDrawer40,
+body.client-view-4403 #objectEndActions4394,
+body.client-view-4403 #objectActions4393,
+body.client-view-4403 #objectHiddenClientActions4394,
+body.client-view-4403 .ai-request-section,
+body.client-view-4403 .planner-inline-actions,
+body.client-view-4403 .service-shell60,
+body.client-view-4403 #publishClientCardBtn56,
+body.client-view-4403 #publishClientCardStatus56{
+  display:none!important;
+}
+body.client-view-4403 .p60-plan-wrap4403{
+  display:grid;gap:12px;
+}
+body.client-view-4403 .p60-plan-note4403,
+.p60-plan-note4403{
+  border:1px solid #dbe3ef;border-radius:14px;background:#f8fafc;padding:10px 12px;font-size:12px;line-height:1.45;color:#334155;
+}
+.p60-plan-svg4403{width:100%;height:auto;display:block;background:#fff;border:1px solid #dbe3ef;border-radius:16px}
+.p60-plan-metrics4403{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.p60-plan-metrics4403 .box{border:1px solid #dbe3ef;border-radius:14px;background:#f8fafc;padding:10px}
+.p60-plan-metrics4403 .box span{display:block;font-size:11px;color:#64748b;margin-bottom:4px}
+.p60-plan-metrics4403 .box b{font-size:16px;color:#0f172a}
+.p60-plan-legend4403{display:flex;flex-wrap:wrap;gap:8px}
+.p60-plan-legend4403 .chip{border:1px solid #dbe3ef;background:#fff;border-radius:999px;padding:6px 10px;font-size:12px;font-weight:700;color:#334155}
+@media (max-width:640px){
+  .p60-plan-metrics4403{grid-template-columns:1fr}
+}
+</style>
+<script id="pixel4403ClientViewFix">
+(() => {
+  'use strict';
+  if (window.__pixel4403ClientFix) return;
+  window.__pixel4403ClientFix = true;
+
+  const DIRECT_KEY = 'potolok_client_direct_4403';
+  if (String(location.hash || '').includes('clientObject=') && String(location.hash || '').includes('clientKey=')) {
+    try { sessionStorage.setItem(DIRECT_KEY, '1'); } catch (_) {}
+  }
+
+  function esc4403(value){
+    return String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+  }
+
+  function number4403(value){
+    const n = Number(value);
+    return Number.isFinite(n) ? n : 0;
+  }
+
+  function normalizePoint4403(point){
+    if (Array.isArray(point)) return {x:number4403(point[0]), y:number4403(point[1])};
+    if (point && typeof point === 'object') return {x:number4403(point.x), y:number4403(point.y)};
+    return {x:0,y:0};
+  }
+
+  function planData4403(room){
+    const planner = room?.planner || {};
+    const points = Array.isArray(planner.points) ? planner.points.map(normalizePoint4403).filter(p => Number.isFinite(p.x) && Number.isFinite(p.y)) : [];
+    const objects = Array.isArray(planner.objects) ? planner.objects.map(obj => ({...obj, x:number4403(obj?.x), y:number4403(obj?.y)})) : [];
+    const segments = Array.isArray(planner.segments) ? planner.segments.map(number4403) : [];
+    return {points, objects, segments};
+  }
+
+  function centroid4403(points){
+    if (!points.length) return {x:300, y:180};
+    return {
+      x: points.reduce((s,p) => s + p.x, 0) / points.length,
+      y: points.reduce((s,p) => s + p.y, 0) / points.length
+    };
+  }
+
+  function lineDistance4403(a,b){
+    return Math.hypot(number4403(b.x)-number4403(a.x), number4403(b.y)-number4403(a.y));
+  }
+
+  function buildPlanHtml4403(room){
+    const {points, objects, segments} = planData4403(room);
+    if (points.length < 2) {
+      return '<div class="p60-plan-note4403">План цієї кімнати не збережено.</div>';
+    }
+
+    const xs = points.map(p => p.x), ys = points.map(p => p.y);
+    const minX = Math.min(...xs), maxX = Math.max(...xs), minY = Math.min(...ys), maxY = Math.max(...ys);
+    const rawW = Math.max(1, maxX - minX), rawH = Math.max(1, maxY - minY);
+    const viewW = 640, viewH = 380, pad = 56;
+    const scale = Math.min((viewW - pad * 2) / rawW, (viewH - pad * 2) / rawH);
+
+    const mapPoint = p => ({ x: pad + (p.x - minX) * scale, y: pad + (p.y - minY) * scale });
+    const mapped = points.map(mapPoint);
+    const centroid = centroid4403(mapped);
+    const polygon = mapped.map(p => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
+
+    const edgeLabels = mapped.map((p, i) => {
+      const q = mapped[(i + 1) % mapped.length];
+      const segValue = segments[i] > 0 ? segments[i] : lineDistance4403(points[i], points[(i+1)%points.length]);
+      const mx = (p.x + q.x) / 2;
+      const my = (p.y + q.y) / 2;
+      const dx = q.x - p.x, dy = q.y - p.y;
+      const len = Math.hypot(dx, dy) || 1;
+      let nx = -dy / len, ny = dx / len;
+      if (nx * (centroid.x - mx) + ny * (centroid.y - my) > 0) { nx *= -1; ny *= -1; }
+      const tx = mx + nx * 26;
+      const ty = my + ny * 26;
+      const letter = String.fromCharCode(65 + (i % 26));
+      return `
+        <text x="${(p.x + 14).toFixed(1)}" y="${(p.y - 10).toFixed(1)}" font-size="15" font-weight="800" fill="#0f172a">${letter}</text>
+        <line x1="${p.x.toFixed(1)}" y1="${p.y.toFixed(1)}" x2="${q.x.toFixed(1)}" y2="${q.y.toFixed(1)}" stroke="#94a3b8" stroke-width="2" stroke-dasharray="4 4"/>
+        <text x="${tx.toFixed(1)}" y="${ty.toFixed(1)}" text-anchor="middle" font-size="14" font-weight="800" fill="#1d4ed8">${segValue.toFixed(2)} м</text>
+      `;
+    }).join('');
+
+    const objectIcons = {
+      door:'🚪', window:'🪟', light:'●', chandelier:'◉', vent:'▦',
+      track:'▬', surfaceTrack:'▬', lightline:'▬', corniceWhite:'▭', corniceBlack:'▭', corniceLed:'▭',
+      insertWhite:'—', insertBlack:'—', shadowProfile:'▰', floatingWhite:'▱', floatingBlack:'▱',
+      beam:'▮', box:'▣', pipe1:'◌', pipe2:'◎', column:'▢'
+    };
+    const objectNames = {
+      door:'Двері', window:'Вікно', light:'Світильник', chandelier:'Люстра', vent:'Вентиляція',
+      track:'Магнітний трек', surfaceTrack:'Накладний трек', lightline:'Світлова лінія',
+      corniceWhite:'Карниз білий', corniceBlack:'Карниз чорний', corniceLed:'Карниз LED',
+      insertWhite:'Вставка біла', insertBlack:'Вставка чорна', shadowProfile:'Тіньовий профіль',
+      floatingWhite:'Парящий білий', floatingBlack:'Парящий чорний', beam:'Балка', box:'Короб',
+      pipe1:'Труба', pipe2:'Подвійна труба', column:'Колона'
+    };
+
+    const objectSvg = objects.map((obj, i) => {
+      const p = mapPoint(obj);
+      const icon = objectIcons[obj.type] || '•';
+      return `<text x="${p.x.toFixed(1)}" y="${p.y.toFixed(1)}" text-anchor="middle" dominant-baseline="middle" font-size="20">${icon}</text>`;
+    }).join('');
+
+    const counts = {};
+    objects.forEach(obj => {
+      const key = objectNames[obj.type] || obj.type || 'Елемент';
+      counts[key] = (counts[key] || 0) + 1;
+    });
+    const legend = Object.entries(counts).map(([name, count]) => `<span class="chip">${esc4403(name)} × ${count}</span>`).join('');
+
+    const area = number4403(room?.area || room?.metrics?.area);
+    const per = number4403(room?.perimeter || room?.metrics?.perimeter);
+    return `
+      <div class="p60-plan-wrap4403">
+        <div class="p60-plan-metrics4403">
+          <div class="box"><span>Кімната</span><b>${esc4403(room?.name || 'План')}</b></div>
+          <div class="box"><span>Площа</span><b>${area.toFixed(2)} м²</b></div>
+          <div class="box"><span>Периметр</span><b>${per.toFixed(2)} м</b></div>
+        </div>
+        <svg class="p60-plan-svg4403" viewBox="0 0 ${viewW} ${viewH}" aria-label="План кімнати">
+          <rect x="10" y="10" width="${viewW-20}" height="${viewH-20}" rx="18" fill="#ffffff"/>
+          <polygon points="${polygon}" fill="#dbeafe" stroke="#075bff" stroke-width="4"></polygon>
+          ${edgeLabels}
+          ${objectSvg}
+          ${mapped.map(p => `<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="5.5" fill="#fff" stroke="#075bff" stroke-width="3"></circle>`).join('')}
+        </svg>
+        ${legend ? `<div class="p60-plan-note4403"><b>Елементи плану:</b><div class="p60-plan-legend4403">${legend}</div></div>` : '<div class="p60-plan-note4403">На цьому плані немає додаткових елементів — показано тільки контур і розміри стін.</div>'}
+      </div>`;
+  }
+
+  function isClientViewActive4403(){
+    const tab = document.getElementById('tab_clientcard');
+    const card = document.getElementById('clientObjectCard56');
+    return !!(tab && card && tab.classList.contains('active') && card.classList.contains('show'));
+  }
+
+  function applyClientMode4403(){
+    const active = isClientViewActive4403();
+    document.body.classList.toggle('client-view-4403', active);
+    if (!active) {
+      const onlyClient = document.querySelector('.tabs-main .main-tab[onclick*="\'clientcard\'"]');
+      if (onlyClient) onlyClient.style.display = '';
+    }
+  }
+
+  const originalClose4403 = window.closeClientObject56;
+  if (typeof originalClose4403 === 'function') {
+    window.closeClientObject56 = function(){
+      const result = originalClose4403.apply(this, arguments);
+      setTimeout(applyClientMode4403, 20);
+      return result;
+    };
+  }
+
+  const originalOpen4403 = window.openClientObject56;
+  if (typeof originalOpen4403 === 'function') {
+    window.openClientObject56 = async function(){
+      const result = await originalOpen4403.apply(this, arguments);
+      setTimeout(applyClientMode4403, 120);
+      return result;
+    };
+  }
+
+  window.clientPlan60 = function(i){
+    const room = window.currentClientView60?.rooms?.[i];
+    if (!room) return;
+    const title = '📐 ' + esc4403(room.name || ('Кімната ' + (i + 1)));
+    if (typeof window.openModal60 === 'function') {
+      window.openModal60(title, buildPlanHtml4403(room));
+    } else {
+      alert('Не вдалося відкрити перегляд плану.');
+    }
+  };
+
+  function watch4403(){
+    applyClientMode4403();
+    const card = document.getElementById('clientObjectCard56');
+    const tab = document.getElementById('tab_clientcard');
+    if (card && !card.__watch4403) {
+      card.__watch4403 = true;
+      new MutationObserver(() => setTimeout(applyClientMode4403, 20)).observe(card, {attributes:true, attributeFilter:['class'], childList:true, subtree:false});
+    }
+    if (tab && !tab.__watch4403) {
+      tab.__watch4403 = true;
+      new MutationObserver(() => setTimeout(applyClientMode4403, 20)).observe(tab, {attributes:true, attributeFilter:['class']});
+    }
+    document.querySelectorAll('.main-tab').forEach(btn => {
+      if (btn.__bind4403) return;
+      btn.__bind4403 = true;
+      btn.addEventListener('click', () => setTimeout(applyClientMode4403, 40));
+    });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', watch4403, {once:true});
+  } else {
+    watch4403();
+  }
+  window.addEventListener('pageshow', () => setTimeout(watch4403, 60), {passive:true});
 })();
 </script>
 
@@ -23892,7 +24876,253 @@ function estimateText4399(object){
 function esc4399(s){return String(s??'').replace(/[&<>\"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
 function download4399(text,object){
  const safe=(clean4399(object?.clientName)||'object').replace(/[^a-zA-Z0-9а-яА-ЯіІїЇєЄґҐ_-]+/g,'-');
- const html='<!doctype html><html lang="uk"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Кошторис</title><style>body{font-family:Arial,sans-serif;background:#f5f7fb;margin:0;padding:20px;color:#0f172a}pre{white-space:pre-wrap;background:#fff;border:1px solid #dbe3ef;border-radius:16px;padding:18px;line-height:1.5;font-size:15px}</style></head><body><pre>'+esc4399(text)+'</pre></body></html>';
+ const html='<!doctype html><html lang="uk"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Кошторис</title><style>body{font-family:Arial,sans-serif;background:#f5f7fb;margin:0;padding:20px;color:#0f172a}pre{white-space:pre-wrap;background:#fff;border:1px solid #dbe3ef;border-radius:16px;padding:18px;line-height:1.5;font-size:15px}</style></head><body><pre>'+esc4399(text)+'</pre>
+
+<!-- PIXEL 44.03: client card plan fix + client-only view cleanup -->
+<style id="pixel4403ClientViewStyles">
+body.client-view-4403 .tabs-main{
+  grid-template-columns:minmax(0,1fr)!important;
+}
+body.client-view-4403 .tabs-main .main-tab:not([onclick*="'clientcard'"]){
+  display:none!important;
+}
+body.client-view-4403 .tabs-main .main-tab[onclick*="'clientcard'"]{
+  display:block!important;
+}
+body.client-view-4403 #quickCalcHandle40,
+body.client-view-4403 #quickCalcBackdrop40,
+body.client-view-4403 #quickCalcDrawer40,
+body.client-view-4403 #objectEndActions4394,
+body.client-view-4403 #objectActions4393,
+body.client-view-4403 #objectHiddenClientActions4394,
+body.client-view-4403 .ai-request-section,
+body.client-view-4403 .planner-inline-actions,
+body.client-view-4403 .service-shell60,
+body.client-view-4403 #publishClientCardBtn56,
+body.client-view-4403 #publishClientCardStatus56{
+  display:none!important;
+}
+body.client-view-4403 .p60-plan-wrap4403{
+  display:grid;gap:12px;
+}
+body.client-view-4403 .p60-plan-note4403,
+.p60-plan-note4403{
+  border:1px solid #dbe3ef;border-radius:14px;background:#f8fafc;padding:10px 12px;font-size:12px;line-height:1.45;color:#334155;
+}
+.p60-plan-svg4403{width:100%;height:auto;display:block;background:#fff;border:1px solid #dbe3ef;border-radius:16px}
+.p60-plan-metrics4403{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.p60-plan-metrics4403 .box{border:1px solid #dbe3ef;border-radius:14px;background:#f8fafc;padding:10px}
+.p60-plan-metrics4403 .box span{display:block;font-size:11px;color:#64748b;margin-bottom:4px}
+.p60-plan-metrics4403 .box b{font-size:16px;color:#0f172a}
+.p60-plan-legend4403{display:flex;flex-wrap:wrap;gap:8px}
+.p60-plan-legend4403 .chip{border:1px solid #dbe3ef;background:#fff;border-radius:999px;padding:6px 10px;font-size:12px;font-weight:700;color:#334155}
+@media (max-width:640px){
+  .p60-plan-metrics4403{grid-template-columns:1fr}
+}
+</style>
+<script id="pixel4403ClientViewFix">
+(() => {
+  'use strict';
+  if (window.__pixel4403ClientFix) return;
+  window.__pixel4403ClientFix = true;
+
+  const DIRECT_KEY = 'potolok_client_direct_4403';
+  if (String(location.hash || '').includes('clientObject=') && String(location.hash || '').includes('clientKey=')) {
+    try { sessionStorage.setItem(DIRECT_KEY, '1'); } catch (_) {}
+  }
+
+  function esc4403(value){
+    return String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+  }
+
+  function number4403(value){
+    const n = Number(value);
+    return Number.isFinite(n) ? n : 0;
+  }
+
+  function normalizePoint4403(point){
+    if (Array.isArray(point)) return {x:number4403(point[0]), y:number4403(point[1])};
+    if (point && typeof point === 'object') return {x:number4403(point.x), y:number4403(point.y)};
+    return {x:0,y:0};
+  }
+
+  function planData4403(room){
+    const planner = room?.planner || {};
+    const points = Array.isArray(planner.points) ? planner.points.map(normalizePoint4403).filter(p => Number.isFinite(p.x) && Number.isFinite(p.y)) : [];
+    const objects = Array.isArray(planner.objects) ? planner.objects.map(obj => ({...obj, x:number4403(obj?.x), y:number4403(obj?.y)})) : [];
+    const segments = Array.isArray(planner.segments) ? planner.segments.map(number4403) : [];
+    return {points, objects, segments};
+  }
+
+  function centroid4403(points){
+    if (!points.length) return {x:300, y:180};
+    return {
+      x: points.reduce((s,p) => s + p.x, 0) / points.length,
+      y: points.reduce((s,p) => s + p.y, 0) / points.length
+    };
+  }
+
+  function lineDistance4403(a,b){
+    return Math.hypot(number4403(b.x)-number4403(a.x), number4403(b.y)-number4403(a.y));
+  }
+
+  function buildPlanHtml4403(room){
+    const {points, objects, segments} = planData4403(room);
+    if (points.length < 2) {
+      return '<div class="p60-plan-note4403">План цієї кімнати не збережено.</div>';
+    }
+
+    const xs = points.map(p => p.x), ys = points.map(p => p.y);
+    const minX = Math.min(...xs), maxX = Math.max(...xs), minY = Math.min(...ys), maxY = Math.max(...ys);
+    const rawW = Math.max(1, maxX - minX), rawH = Math.max(1, maxY - minY);
+    const viewW = 640, viewH = 380, pad = 56;
+    const scale = Math.min((viewW - pad * 2) / rawW, (viewH - pad * 2) / rawH);
+
+    const mapPoint = p => ({ x: pad + (p.x - minX) * scale, y: pad + (p.y - minY) * scale });
+    const mapped = points.map(mapPoint);
+    const centroid = centroid4403(mapped);
+    const polygon = mapped.map(p => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
+
+    const edgeLabels = mapped.map((p, i) => {
+      const q = mapped[(i + 1) % mapped.length];
+      const segValue = segments[i] > 0 ? segments[i] : lineDistance4403(points[i], points[(i+1)%points.length]);
+      const mx = (p.x + q.x) / 2;
+      const my = (p.y + q.y) / 2;
+      const dx = q.x - p.x, dy = q.y - p.y;
+      const len = Math.hypot(dx, dy) || 1;
+      let nx = -dy / len, ny = dx / len;
+      if (nx * (centroid.x - mx) + ny * (centroid.y - my) > 0) { nx *= -1; ny *= -1; }
+      const tx = mx + nx * 26;
+      const ty = my + ny * 26;
+      const letter = String.fromCharCode(65 + (i % 26));
+      return `
+        <text x="${(p.x + 14).toFixed(1)}" y="${(p.y - 10).toFixed(1)}" font-size="15" font-weight="800" fill="#0f172a">${letter}</text>
+        <line x1="${p.x.toFixed(1)}" y1="${p.y.toFixed(1)}" x2="${q.x.toFixed(1)}" y2="${q.y.toFixed(1)}" stroke="#94a3b8" stroke-width="2" stroke-dasharray="4 4"/>
+        <text x="${tx.toFixed(1)}" y="${ty.toFixed(1)}" text-anchor="middle" font-size="14" font-weight="800" fill="#1d4ed8">${segValue.toFixed(2)} м</text>
+      `;
+    }).join('');
+
+    const objectIcons = {
+      door:'🚪', window:'🪟', light:'●', chandelier:'◉', vent:'▦',
+      track:'▬', surfaceTrack:'▬', lightline:'▬', corniceWhite:'▭', corniceBlack:'▭', corniceLed:'▭',
+      insertWhite:'—', insertBlack:'—', shadowProfile:'▰', floatingWhite:'▱', floatingBlack:'▱',
+      beam:'▮', box:'▣', pipe1:'◌', pipe2:'◎', column:'▢'
+    };
+    const objectNames = {
+      door:'Двері', window:'Вікно', light:'Світильник', chandelier:'Люстра', vent:'Вентиляція',
+      track:'Магнітний трек', surfaceTrack:'Накладний трек', lightline:'Світлова лінія',
+      corniceWhite:'Карниз білий', corniceBlack:'Карниз чорний', corniceLed:'Карниз LED',
+      insertWhite:'Вставка біла', insertBlack:'Вставка чорна', shadowProfile:'Тіньовий профіль',
+      floatingWhite:'Парящий білий', floatingBlack:'Парящий чорний', beam:'Балка', box:'Короб',
+      pipe1:'Труба', pipe2:'Подвійна труба', column:'Колона'
+    };
+
+    const objectSvg = objects.map((obj, i) => {
+      const p = mapPoint(obj);
+      const icon = objectIcons[obj.type] || '•';
+      return `<text x="${p.x.toFixed(1)}" y="${p.y.toFixed(1)}" text-anchor="middle" dominant-baseline="middle" font-size="20">${icon}</text>`;
+    }).join('');
+
+    const counts = {};
+    objects.forEach(obj => {
+      const key = objectNames[obj.type] || obj.type || 'Елемент';
+      counts[key] = (counts[key] || 0) + 1;
+    });
+    const legend = Object.entries(counts).map(([name, count]) => `<span class="chip">${esc4403(name)} × ${count}</span>`).join('');
+
+    const area = number4403(room?.area || room?.metrics?.area);
+    const per = number4403(room?.perimeter || room?.metrics?.perimeter);
+    return `
+      <div class="p60-plan-wrap4403">
+        <div class="p60-plan-metrics4403">
+          <div class="box"><span>Кімната</span><b>${esc4403(room?.name || 'План')}</b></div>
+          <div class="box"><span>Площа</span><b>${area.toFixed(2)} м²</b></div>
+          <div class="box"><span>Периметр</span><b>${per.toFixed(2)} м</b></div>
+        </div>
+        <svg class="p60-plan-svg4403" viewBox="0 0 ${viewW} ${viewH}" aria-label="План кімнати">
+          <rect x="10" y="10" width="${viewW-20}" height="${viewH-20}" rx="18" fill="#ffffff"/>
+          <polygon points="${polygon}" fill="#dbeafe" stroke="#075bff" stroke-width="4"></polygon>
+          ${edgeLabels}
+          ${objectSvg}
+          ${mapped.map(p => `<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="5.5" fill="#fff" stroke="#075bff" stroke-width="3"></circle>`).join('')}
+        </svg>
+        ${legend ? `<div class="p60-plan-note4403"><b>Елементи плану:</b><div class="p60-plan-legend4403">${legend}</div></div>` : '<div class="p60-plan-note4403">На цьому плані немає додаткових елементів — показано тільки контур і розміри стін.</div>'}
+      </div>`;
+  }
+
+  function isClientViewActive4403(){
+    const tab = document.getElementById('tab_clientcard');
+    const card = document.getElementById('clientObjectCard56');
+    return !!(tab && card && tab.classList.contains('active') && card.classList.contains('show'));
+  }
+
+  function applyClientMode4403(){
+    const active = isClientViewActive4403();
+    document.body.classList.toggle('client-view-4403', active);
+    if (!active) {
+      const onlyClient = document.querySelector('.tabs-main .main-tab[onclick*="\'clientcard\'"]');
+      if (onlyClient) onlyClient.style.display = '';
+    }
+  }
+
+  const originalClose4403 = window.closeClientObject56;
+  if (typeof originalClose4403 === 'function') {
+    window.closeClientObject56 = function(){
+      const result = originalClose4403.apply(this, arguments);
+      setTimeout(applyClientMode4403, 20);
+      return result;
+    };
+  }
+
+  const originalOpen4403 = window.openClientObject56;
+  if (typeof originalOpen4403 === 'function') {
+    window.openClientObject56 = async function(){
+      const result = await originalOpen4403.apply(this, arguments);
+      setTimeout(applyClientMode4403, 120);
+      return result;
+    };
+  }
+
+  window.clientPlan60 = function(i){
+    const room = window.currentClientView60?.rooms?.[i];
+    if (!room) return;
+    const title = '📐 ' + esc4403(room.name || ('Кімната ' + (i + 1)));
+    if (typeof window.openModal60 === 'function') {
+      window.openModal60(title, buildPlanHtml4403(room));
+    } else {
+      alert('Не вдалося відкрити перегляд плану.');
+    }
+  };
+
+  function watch4403(){
+    applyClientMode4403();
+    const card = document.getElementById('clientObjectCard56');
+    const tab = document.getElementById('tab_clientcard');
+    if (card && !card.__watch4403) {
+      card.__watch4403 = true;
+      new MutationObserver(() => setTimeout(applyClientMode4403, 20)).observe(card, {attributes:true, attributeFilter:['class'], childList:true, subtree:false});
+    }
+    if (tab && !tab.__watch4403) {
+      tab.__watch4403 = true;
+      new MutationObserver(() => setTimeout(applyClientMode4403, 20)).observe(tab, {attributes:true, attributeFilter:['class']});
+    }
+    document.querySelectorAll('.main-tab').forEach(btn => {
+      if (btn.__bind4403) return;
+      btn.__bind4403 = true;
+      btn.addEventListener('click', () => setTimeout(applyClientMode4403, 40));
+    });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', watch4403, {once:true});
+  } else {
+    watch4403();
+  }
+  window.addEventListener('pageshow', () => setTimeout(watch4403, 60), {passive:true});
+})();
+</script>
+
+</body></html>';
  const blob=new Blob([html],{type:'text/html;charset=utf-8'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='Koshtorys-Potolok-'+safe+'.html';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),2000);
 }
 window.shareEstimateFile4338=async function(button){
@@ -23950,7 +25180,253 @@ function prepare4400(){
  let html='';
  if(typeof estimateHtml4349==='function')html=estimateHtml4349(object);
  else if(typeof buildEstimateHtml4345==='function')html=buildEstimateHtml4345(object);
- else {const txt=typeof estimateText4399==='function'?estimateText4399(object):'Кошторис Potolok.in.ua';html='<!doctype html><html lang="uk"><head><meta charset="utf-8"></head><body><pre>'+String(txt).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]))+'</pre></body></html>'}
+ else {const txt=typeof estimateText4399==='function'?estimateText4399(object):'Кошторис Potolok.in.ua';html='<!doctype html><html lang="uk"><head><meta charset="utf-8"></head><body><pre>'+String(txt).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]))+'</pre>
+
+<!-- PIXEL 44.03: client card plan fix + client-only view cleanup -->
+<style id="pixel4403ClientViewStyles">
+body.client-view-4403 .tabs-main{
+  grid-template-columns:minmax(0,1fr)!important;
+}
+body.client-view-4403 .tabs-main .main-tab:not([onclick*="'clientcard'"]){
+  display:none!important;
+}
+body.client-view-4403 .tabs-main .main-tab[onclick*="'clientcard'"]{
+  display:block!important;
+}
+body.client-view-4403 #quickCalcHandle40,
+body.client-view-4403 #quickCalcBackdrop40,
+body.client-view-4403 #quickCalcDrawer40,
+body.client-view-4403 #objectEndActions4394,
+body.client-view-4403 #objectActions4393,
+body.client-view-4403 #objectHiddenClientActions4394,
+body.client-view-4403 .ai-request-section,
+body.client-view-4403 .planner-inline-actions,
+body.client-view-4403 .service-shell60,
+body.client-view-4403 #publishClientCardBtn56,
+body.client-view-4403 #publishClientCardStatus56{
+  display:none!important;
+}
+body.client-view-4403 .p60-plan-wrap4403{
+  display:grid;gap:12px;
+}
+body.client-view-4403 .p60-plan-note4403,
+.p60-plan-note4403{
+  border:1px solid #dbe3ef;border-radius:14px;background:#f8fafc;padding:10px 12px;font-size:12px;line-height:1.45;color:#334155;
+}
+.p60-plan-svg4403{width:100%;height:auto;display:block;background:#fff;border:1px solid #dbe3ef;border-radius:16px}
+.p60-plan-metrics4403{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.p60-plan-metrics4403 .box{border:1px solid #dbe3ef;border-radius:14px;background:#f8fafc;padding:10px}
+.p60-plan-metrics4403 .box span{display:block;font-size:11px;color:#64748b;margin-bottom:4px}
+.p60-plan-metrics4403 .box b{font-size:16px;color:#0f172a}
+.p60-plan-legend4403{display:flex;flex-wrap:wrap;gap:8px}
+.p60-plan-legend4403 .chip{border:1px solid #dbe3ef;background:#fff;border-radius:999px;padding:6px 10px;font-size:12px;font-weight:700;color:#334155}
+@media (max-width:640px){
+  .p60-plan-metrics4403{grid-template-columns:1fr}
+}
+</style>
+<script id="pixel4403ClientViewFix">
+(() => {
+  'use strict';
+  if (window.__pixel4403ClientFix) return;
+  window.__pixel4403ClientFix = true;
+
+  const DIRECT_KEY = 'potolok_client_direct_4403';
+  if (String(location.hash || '').includes('clientObject=') && String(location.hash || '').includes('clientKey=')) {
+    try { sessionStorage.setItem(DIRECT_KEY, '1'); } catch (_) {}
+  }
+
+  function esc4403(value){
+    return String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+  }
+
+  function number4403(value){
+    const n = Number(value);
+    return Number.isFinite(n) ? n : 0;
+  }
+
+  function normalizePoint4403(point){
+    if (Array.isArray(point)) return {x:number4403(point[0]), y:number4403(point[1])};
+    if (point && typeof point === 'object') return {x:number4403(point.x), y:number4403(point.y)};
+    return {x:0,y:0};
+  }
+
+  function planData4403(room){
+    const planner = room?.planner || {};
+    const points = Array.isArray(planner.points) ? planner.points.map(normalizePoint4403).filter(p => Number.isFinite(p.x) && Number.isFinite(p.y)) : [];
+    const objects = Array.isArray(planner.objects) ? planner.objects.map(obj => ({...obj, x:number4403(obj?.x), y:number4403(obj?.y)})) : [];
+    const segments = Array.isArray(planner.segments) ? planner.segments.map(number4403) : [];
+    return {points, objects, segments};
+  }
+
+  function centroid4403(points){
+    if (!points.length) return {x:300, y:180};
+    return {
+      x: points.reduce((s,p) => s + p.x, 0) / points.length,
+      y: points.reduce((s,p) => s + p.y, 0) / points.length
+    };
+  }
+
+  function lineDistance4403(a,b){
+    return Math.hypot(number4403(b.x)-number4403(a.x), number4403(b.y)-number4403(a.y));
+  }
+
+  function buildPlanHtml4403(room){
+    const {points, objects, segments} = planData4403(room);
+    if (points.length < 2) {
+      return '<div class="p60-plan-note4403">План цієї кімнати не збережено.</div>';
+    }
+
+    const xs = points.map(p => p.x), ys = points.map(p => p.y);
+    const minX = Math.min(...xs), maxX = Math.max(...xs), minY = Math.min(...ys), maxY = Math.max(...ys);
+    const rawW = Math.max(1, maxX - minX), rawH = Math.max(1, maxY - minY);
+    const viewW = 640, viewH = 380, pad = 56;
+    const scale = Math.min((viewW - pad * 2) / rawW, (viewH - pad * 2) / rawH);
+
+    const mapPoint = p => ({ x: pad + (p.x - minX) * scale, y: pad + (p.y - minY) * scale });
+    const mapped = points.map(mapPoint);
+    const centroid = centroid4403(mapped);
+    const polygon = mapped.map(p => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
+
+    const edgeLabels = mapped.map((p, i) => {
+      const q = mapped[(i + 1) % mapped.length];
+      const segValue = segments[i] > 0 ? segments[i] : lineDistance4403(points[i], points[(i+1)%points.length]);
+      const mx = (p.x + q.x) / 2;
+      const my = (p.y + q.y) / 2;
+      const dx = q.x - p.x, dy = q.y - p.y;
+      const len = Math.hypot(dx, dy) || 1;
+      let nx = -dy / len, ny = dx / len;
+      if (nx * (centroid.x - mx) + ny * (centroid.y - my) > 0) { nx *= -1; ny *= -1; }
+      const tx = mx + nx * 26;
+      const ty = my + ny * 26;
+      const letter = String.fromCharCode(65 + (i % 26));
+      return `
+        <text x="${(p.x + 14).toFixed(1)}" y="${(p.y - 10).toFixed(1)}" font-size="15" font-weight="800" fill="#0f172a">${letter}</text>
+        <line x1="${p.x.toFixed(1)}" y1="${p.y.toFixed(1)}" x2="${q.x.toFixed(1)}" y2="${q.y.toFixed(1)}" stroke="#94a3b8" stroke-width="2" stroke-dasharray="4 4"/>
+        <text x="${tx.toFixed(1)}" y="${ty.toFixed(1)}" text-anchor="middle" font-size="14" font-weight="800" fill="#1d4ed8">${segValue.toFixed(2)} м</text>
+      `;
+    }).join('');
+
+    const objectIcons = {
+      door:'🚪', window:'🪟', light:'●', chandelier:'◉', vent:'▦',
+      track:'▬', surfaceTrack:'▬', lightline:'▬', corniceWhite:'▭', corniceBlack:'▭', corniceLed:'▭',
+      insertWhite:'—', insertBlack:'—', shadowProfile:'▰', floatingWhite:'▱', floatingBlack:'▱',
+      beam:'▮', box:'▣', pipe1:'◌', pipe2:'◎', column:'▢'
+    };
+    const objectNames = {
+      door:'Двері', window:'Вікно', light:'Світильник', chandelier:'Люстра', vent:'Вентиляція',
+      track:'Магнітний трек', surfaceTrack:'Накладний трек', lightline:'Світлова лінія',
+      corniceWhite:'Карниз білий', corniceBlack:'Карниз чорний', corniceLed:'Карниз LED',
+      insertWhite:'Вставка біла', insertBlack:'Вставка чорна', shadowProfile:'Тіньовий профіль',
+      floatingWhite:'Парящий білий', floatingBlack:'Парящий чорний', beam:'Балка', box:'Короб',
+      pipe1:'Труба', pipe2:'Подвійна труба', column:'Колона'
+    };
+
+    const objectSvg = objects.map((obj, i) => {
+      const p = mapPoint(obj);
+      const icon = objectIcons[obj.type] || '•';
+      return `<text x="${p.x.toFixed(1)}" y="${p.y.toFixed(1)}" text-anchor="middle" dominant-baseline="middle" font-size="20">${icon}</text>`;
+    }).join('');
+
+    const counts = {};
+    objects.forEach(obj => {
+      const key = objectNames[obj.type] || obj.type || 'Елемент';
+      counts[key] = (counts[key] || 0) + 1;
+    });
+    const legend = Object.entries(counts).map(([name, count]) => `<span class="chip">${esc4403(name)} × ${count}</span>`).join('');
+
+    const area = number4403(room?.area || room?.metrics?.area);
+    const per = number4403(room?.perimeter || room?.metrics?.perimeter);
+    return `
+      <div class="p60-plan-wrap4403">
+        <div class="p60-plan-metrics4403">
+          <div class="box"><span>Кімната</span><b>${esc4403(room?.name || 'План')}</b></div>
+          <div class="box"><span>Площа</span><b>${area.toFixed(2)} м²</b></div>
+          <div class="box"><span>Периметр</span><b>${per.toFixed(2)} м</b></div>
+        </div>
+        <svg class="p60-plan-svg4403" viewBox="0 0 ${viewW} ${viewH}" aria-label="План кімнати">
+          <rect x="10" y="10" width="${viewW-20}" height="${viewH-20}" rx="18" fill="#ffffff"/>
+          <polygon points="${polygon}" fill="#dbeafe" stroke="#075bff" stroke-width="4"></polygon>
+          ${edgeLabels}
+          ${objectSvg}
+          ${mapped.map(p => `<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="5.5" fill="#fff" stroke="#075bff" stroke-width="3"></circle>`).join('')}
+        </svg>
+        ${legend ? `<div class="p60-plan-note4403"><b>Елементи плану:</b><div class="p60-plan-legend4403">${legend}</div></div>` : '<div class="p60-plan-note4403">На цьому плані немає додаткових елементів — показано тільки контур і розміри стін.</div>'}
+      </div>`;
+  }
+
+  function isClientViewActive4403(){
+    const tab = document.getElementById('tab_clientcard');
+    const card = document.getElementById('clientObjectCard56');
+    return !!(tab && card && tab.classList.contains('active') && card.classList.contains('show'));
+  }
+
+  function applyClientMode4403(){
+    const active = isClientViewActive4403();
+    document.body.classList.toggle('client-view-4403', active);
+    if (!active) {
+      const onlyClient = document.querySelector('.tabs-main .main-tab[onclick*="\'clientcard\'"]');
+      if (onlyClient) onlyClient.style.display = '';
+    }
+  }
+
+  const originalClose4403 = window.closeClientObject56;
+  if (typeof originalClose4403 === 'function') {
+    window.closeClientObject56 = function(){
+      const result = originalClose4403.apply(this, arguments);
+      setTimeout(applyClientMode4403, 20);
+      return result;
+    };
+  }
+
+  const originalOpen4403 = window.openClientObject56;
+  if (typeof originalOpen4403 === 'function') {
+    window.openClientObject56 = async function(){
+      const result = await originalOpen4403.apply(this, arguments);
+      setTimeout(applyClientMode4403, 120);
+      return result;
+    };
+  }
+
+  window.clientPlan60 = function(i){
+    const room = window.currentClientView60?.rooms?.[i];
+    if (!room) return;
+    const title = '📐 ' + esc4403(room.name || ('Кімната ' + (i + 1)));
+    if (typeof window.openModal60 === 'function') {
+      window.openModal60(title, buildPlanHtml4403(room));
+    } else {
+      alert('Не вдалося відкрити перегляд плану.');
+    }
+  };
+
+  function watch4403(){
+    applyClientMode4403();
+    const card = document.getElementById('clientObjectCard56');
+    const tab = document.getElementById('tab_clientcard');
+    if (card && !card.__watch4403) {
+      card.__watch4403 = true;
+      new MutationObserver(() => setTimeout(applyClientMode4403, 20)).observe(card, {attributes:true, attributeFilter:['class'], childList:true, subtree:false});
+    }
+    if (tab && !tab.__watch4403) {
+      tab.__watch4403 = true;
+      new MutationObserver(() => setTimeout(applyClientMode4403, 20)).observe(tab, {attributes:true, attributeFilter:['class']});
+    }
+    document.querySelectorAll('.main-tab').forEach(btn => {
+      if (btn.__bind4403) return;
+      btn.__bind4403 = true;
+      btn.addEventListener('click', () => setTimeout(applyClientMode4403, 40));
+    });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', watch4403, {once:true});
+  } else {
+    watch4403();
+  }
+  window.addEventListener('pageshow', () => setTimeout(watch4403, 60), {passive:true});
+})();
+</script>
+
+</body></html>'}
  const text=typeof estimateText4399==='function'?estimateText4399(object):(typeof estimateText4345==='function'?estimateText4345(object):'Кошторис Potolok.in.ua');
  const filename='Koshtorys-Potolok-'+safe4400(object?.clientName||object?.address||object?.id)+'.html';
  payload4400={object,html,text,filename,blob:new Blob([html],{type:'text/html;charset=utf-8'})};
@@ -24095,7 +25571,253 @@ ${roomHtml||'<section class="card"><b>Кімнати ще не додані.</b>
 ${materialsHtml}
 <section class="card"><h2 style="margin:0">Підсумок об’єкта</h2><div class="summary-grid"><div class="info"><small>Кімнат</small><b>${rooms.length}</b></div><div class="info"><small>Загальна площа</small><b>${area.toFixed(2)} м²</b></div><div class="info"><small>Загальний периметр</small><b>${perimeter.toFixed(2)} м/пог.</b></div><div class="info"><small>Стелі та елементи</small><b>${money4401(ceilingTotal)}</b></div><div class="info"><small>Оздоблення</small><b>${money4401(finishTotal)}</b></div><div class="info"><small>Додаткові роботи</small><b>${money4401(extraTotal)}</b></div><div class="info"><small>Матеріали</small><b>${money4401(matsTotal)}</b></div></div><div class="grand"><small>ЗАГАЛЬНА СУМА</small><b>${money4401(total)}</b></div></section>
 <div class="note">Ціна попередня. Остаточна вартість після заміру. Файл містить готовий кошторис і не потребує доступу до кабінету Potolok.in.ua для перегляду.<br>Potolok.in.ua · 097 454 67 13</div>
-</main></body></html>`;
+</main>
+
+<!-- PIXEL 44.03: client card plan fix + client-only view cleanup -->
+<style id="pixel4403ClientViewStyles">
+body.client-view-4403 .tabs-main{
+  grid-template-columns:minmax(0,1fr)!important;
+}
+body.client-view-4403 .tabs-main .main-tab:not([onclick*="'clientcard'"]){
+  display:none!important;
+}
+body.client-view-4403 .tabs-main .main-tab[onclick*="'clientcard'"]{
+  display:block!important;
+}
+body.client-view-4403 #quickCalcHandle40,
+body.client-view-4403 #quickCalcBackdrop40,
+body.client-view-4403 #quickCalcDrawer40,
+body.client-view-4403 #objectEndActions4394,
+body.client-view-4403 #objectActions4393,
+body.client-view-4403 #objectHiddenClientActions4394,
+body.client-view-4403 .ai-request-section,
+body.client-view-4403 .planner-inline-actions,
+body.client-view-4403 .service-shell60,
+body.client-view-4403 #publishClientCardBtn56,
+body.client-view-4403 #publishClientCardStatus56{
+  display:none!important;
+}
+body.client-view-4403 .p60-plan-wrap4403{
+  display:grid;gap:12px;
+}
+body.client-view-4403 .p60-plan-note4403,
+.p60-plan-note4403{
+  border:1px solid #dbe3ef;border-radius:14px;background:#f8fafc;padding:10px 12px;font-size:12px;line-height:1.45;color:#334155;
+}
+.p60-plan-svg4403{width:100%;height:auto;display:block;background:#fff;border:1px solid #dbe3ef;border-radius:16px}
+.p60-plan-metrics4403{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.p60-plan-metrics4403 .box{border:1px solid #dbe3ef;border-radius:14px;background:#f8fafc;padding:10px}
+.p60-plan-metrics4403 .box span{display:block;font-size:11px;color:#64748b;margin-bottom:4px}
+.p60-plan-metrics4403 .box b{font-size:16px;color:#0f172a}
+.p60-plan-legend4403{display:flex;flex-wrap:wrap;gap:8px}
+.p60-plan-legend4403 .chip{border:1px solid #dbe3ef;background:#fff;border-radius:999px;padding:6px 10px;font-size:12px;font-weight:700;color:#334155}
+@media (max-width:640px){
+  .p60-plan-metrics4403{grid-template-columns:1fr}
+}
+</style>
+<script id="pixel4403ClientViewFix">
+(() => {
+  'use strict';
+  if (window.__pixel4403ClientFix) return;
+  window.__pixel4403ClientFix = true;
+
+  const DIRECT_KEY = 'potolok_client_direct_4403';
+  if (String(location.hash || '').includes('clientObject=') && String(location.hash || '').includes('clientKey=')) {
+    try { sessionStorage.setItem(DIRECT_KEY, '1'); } catch (_) {}
+  }
+
+  function esc4403(value){
+    return String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+  }
+
+  function number4403(value){
+    const n = Number(value);
+    return Number.isFinite(n) ? n : 0;
+  }
+
+  function normalizePoint4403(point){
+    if (Array.isArray(point)) return {x:number4403(point[0]), y:number4403(point[1])};
+    if (point && typeof point === 'object') return {x:number4403(point.x), y:number4403(point.y)};
+    return {x:0,y:0};
+  }
+
+  function planData4403(room){
+    const planner = room?.planner || {};
+    const points = Array.isArray(planner.points) ? planner.points.map(normalizePoint4403).filter(p => Number.isFinite(p.x) && Number.isFinite(p.y)) : [];
+    const objects = Array.isArray(planner.objects) ? planner.objects.map(obj => ({...obj, x:number4403(obj?.x), y:number4403(obj?.y)})) : [];
+    const segments = Array.isArray(planner.segments) ? planner.segments.map(number4403) : [];
+    return {points, objects, segments};
+  }
+
+  function centroid4403(points){
+    if (!points.length) return {x:300, y:180};
+    return {
+      x: points.reduce((s,p) => s + p.x, 0) / points.length,
+      y: points.reduce((s,p) => s + p.y, 0) / points.length
+    };
+  }
+
+  function lineDistance4403(a,b){
+    return Math.hypot(number4403(b.x)-number4403(a.x), number4403(b.y)-number4403(a.y));
+  }
+
+  function buildPlanHtml4403(room){
+    const {points, objects, segments} = planData4403(room);
+    if (points.length < 2) {
+      return '<div class="p60-plan-note4403">План цієї кімнати не збережено.</div>';
+    }
+
+    const xs = points.map(p => p.x), ys = points.map(p => p.y);
+    const minX = Math.min(...xs), maxX = Math.max(...xs), minY = Math.min(...ys), maxY = Math.max(...ys);
+    const rawW = Math.max(1, maxX - minX), rawH = Math.max(1, maxY - minY);
+    const viewW = 640, viewH = 380, pad = 56;
+    const scale = Math.min((viewW - pad * 2) / rawW, (viewH - pad * 2) / rawH);
+
+    const mapPoint = p => ({ x: pad + (p.x - minX) * scale, y: pad + (p.y - minY) * scale });
+    const mapped = points.map(mapPoint);
+    const centroid = centroid4403(mapped);
+    const polygon = mapped.map(p => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
+
+    const edgeLabels = mapped.map((p, i) => {
+      const q = mapped[(i + 1) % mapped.length];
+      const segValue = segments[i] > 0 ? segments[i] : lineDistance4403(points[i], points[(i+1)%points.length]);
+      const mx = (p.x + q.x) / 2;
+      const my = (p.y + q.y) / 2;
+      const dx = q.x - p.x, dy = q.y - p.y;
+      const len = Math.hypot(dx, dy) || 1;
+      let nx = -dy / len, ny = dx / len;
+      if (nx * (centroid.x - mx) + ny * (centroid.y - my) > 0) { nx *= -1; ny *= -1; }
+      const tx = mx + nx * 26;
+      const ty = my + ny * 26;
+      const letter = String.fromCharCode(65 + (i % 26));
+      return `
+        <text x="${(p.x + 14).toFixed(1)}" y="${(p.y - 10).toFixed(1)}" font-size="15" font-weight="800" fill="#0f172a">${letter}</text>
+        <line x1="${p.x.toFixed(1)}" y1="${p.y.toFixed(1)}" x2="${q.x.toFixed(1)}" y2="${q.y.toFixed(1)}" stroke="#94a3b8" stroke-width="2" stroke-dasharray="4 4"/>
+        <text x="${tx.toFixed(1)}" y="${ty.toFixed(1)}" text-anchor="middle" font-size="14" font-weight="800" fill="#1d4ed8">${segValue.toFixed(2)} м</text>
+      `;
+    }).join('');
+
+    const objectIcons = {
+      door:'🚪', window:'🪟', light:'●', chandelier:'◉', vent:'▦',
+      track:'▬', surfaceTrack:'▬', lightline:'▬', corniceWhite:'▭', corniceBlack:'▭', corniceLed:'▭',
+      insertWhite:'—', insertBlack:'—', shadowProfile:'▰', floatingWhite:'▱', floatingBlack:'▱',
+      beam:'▮', box:'▣', pipe1:'◌', pipe2:'◎', column:'▢'
+    };
+    const objectNames = {
+      door:'Двері', window:'Вікно', light:'Світильник', chandelier:'Люстра', vent:'Вентиляція',
+      track:'Магнітний трек', surfaceTrack:'Накладний трек', lightline:'Світлова лінія',
+      corniceWhite:'Карниз білий', corniceBlack:'Карниз чорний', corniceLed:'Карниз LED',
+      insertWhite:'Вставка біла', insertBlack:'Вставка чорна', shadowProfile:'Тіньовий профіль',
+      floatingWhite:'Парящий білий', floatingBlack:'Парящий чорний', beam:'Балка', box:'Короб',
+      pipe1:'Труба', pipe2:'Подвійна труба', column:'Колона'
+    };
+
+    const objectSvg = objects.map((obj, i) => {
+      const p = mapPoint(obj);
+      const icon = objectIcons[obj.type] || '•';
+      return `<text x="${p.x.toFixed(1)}" y="${p.y.toFixed(1)}" text-anchor="middle" dominant-baseline="middle" font-size="20">${icon}</text>`;
+    }).join('');
+
+    const counts = {};
+    objects.forEach(obj => {
+      const key = objectNames[obj.type] || obj.type || 'Елемент';
+      counts[key] = (counts[key] || 0) + 1;
+    });
+    const legend = Object.entries(counts).map(([name, count]) => `<span class="chip">${esc4403(name)} × ${count}</span>`).join('');
+
+    const area = number4403(room?.area || room?.metrics?.area);
+    const per = number4403(room?.perimeter || room?.metrics?.perimeter);
+    return `
+      <div class="p60-plan-wrap4403">
+        <div class="p60-plan-metrics4403">
+          <div class="box"><span>Кімната</span><b>${esc4403(room?.name || 'План')}</b></div>
+          <div class="box"><span>Площа</span><b>${area.toFixed(2)} м²</b></div>
+          <div class="box"><span>Периметр</span><b>${per.toFixed(2)} м</b></div>
+        </div>
+        <svg class="p60-plan-svg4403" viewBox="0 0 ${viewW} ${viewH}" aria-label="План кімнати">
+          <rect x="10" y="10" width="${viewW-20}" height="${viewH-20}" rx="18" fill="#ffffff"/>
+          <polygon points="${polygon}" fill="#dbeafe" stroke="#075bff" stroke-width="4"></polygon>
+          ${edgeLabels}
+          ${objectSvg}
+          ${mapped.map(p => `<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="5.5" fill="#fff" stroke="#075bff" stroke-width="3"></circle>`).join('')}
+        </svg>
+        ${legend ? `<div class="p60-plan-note4403"><b>Елементи плану:</b><div class="p60-plan-legend4403">${legend}</div></div>` : '<div class="p60-plan-note4403">На цьому плані немає додаткових елементів — показано тільки контур і розміри стін.</div>'}
+      </div>`;
+  }
+
+  function isClientViewActive4403(){
+    const tab = document.getElementById('tab_clientcard');
+    const card = document.getElementById('clientObjectCard56');
+    return !!(tab && card && tab.classList.contains('active') && card.classList.contains('show'));
+  }
+
+  function applyClientMode4403(){
+    const active = isClientViewActive4403();
+    document.body.classList.toggle('client-view-4403', active);
+    if (!active) {
+      const onlyClient = document.querySelector('.tabs-main .main-tab[onclick*="\'clientcard\'"]');
+      if (onlyClient) onlyClient.style.display = '';
+    }
+  }
+
+  const originalClose4403 = window.closeClientObject56;
+  if (typeof originalClose4403 === 'function') {
+    window.closeClientObject56 = function(){
+      const result = originalClose4403.apply(this, arguments);
+      setTimeout(applyClientMode4403, 20);
+      return result;
+    };
+  }
+
+  const originalOpen4403 = window.openClientObject56;
+  if (typeof originalOpen4403 === 'function') {
+    window.openClientObject56 = async function(){
+      const result = await originalOpen4403.apply(this, arguments);
+      setTimeout(applyClientMode4403, 120);
+      return result;
+    };
+  }
+
+  window.clientPlan60 = function(i){
+    const room = window.currentClientView60?.rooms?.[i];
+    if (!room) return;
+    const title = '📐 ' + esc4403(room.name || ('Кімната ' + (i + 1)));
+    if (typeof window.openModal60 === 'function') {
+      window.openModal60(title, buildPlanHtml4403(room));
+    } else {
+      alert('Не вдалося відкрити перегляд плану.');
+    }
+  };
+
+  function watch4403(){
+    applyClientMode4403();
+    const card = document.getElementById('clientObjectCard56');
+    const tab = document.getElementById('tab_clientcard');
+    if (card && !card.__watch4403) {
+      card.__watch4403 = true;
+      new MutationObserver(() => setTimeout(applyClientMode4403, 20)).observe(card, {attributes:true, attributeFilter:['class'], childList:true, subtree:false});
+    }
+    if (tab && !tab.__watch4403) {
+      tab.__watch4403 = true;
+      new MutationObserver(() => setTimeout(applyClientMode4403, 20)).observe(tab, {attributes:true, attributeFilter:['class']});
+    }
+    document.querySelectorAll('.main-tab').forEach(btn => {
+      if (btn.__bind4403) return;
+      btn.__bind4403 = true;
+      btn.addEventListener('click', () => setTimeout(applyClientMode4403, 40));
+    });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', watch4403, {once:true});
+  } else {
+    watch4403();
+  }
+  window.addEventListener('pageshow', () => setTimeout(watch4403, 60), {passive:true});
+})();
+</script>
+
+</body></html>`;
 }
 
 function buildEstimateText4401(source){
@@ -24312,7 +26034,253 @@ function buildEstimateHtml4402(source,options){
   const matsHtml=options.materials&&mats.length?`<section class="card room"><div class="room-head"><div><h2>Матеріали всього об’єкта</h2><div class="room-meta"><span>Окремий загальний список матеріалів</span></div></div><div class="room-total">${money4402(t.materials)}</div></div>${table4402('Матеріали',mats,'work')}</section>`:'';
   const total=selectedTotal4402(object,options),area=rooms.length?rooms.reduce((s,r)=>s+num4402(r?.area||r?.metrics?.area),0):num4402(object.area),perimeter=rooms.length?rooms.reduce((s,r)=>s+num4402(r?.perimeter||r?.metrics?.perimeter),0):num4402(object.perimeter),objectNumber=clean4402(object.objectNumber||object.object_number||object.cloudObjectNumber||'');
   const summary=[];if(options.ceiling)summary.push(`<div class="info"><small>Натяжні стелі</small><b>${money4402(t.ceiling)}</b></div>`);if(options.finishing)summary.push(`<div class="info"><small>Оздоблення</small><b>${money4402(t.finishing)}</b></div>`);if(options.additional)summary.push(`<div class="info"><small>Додаткові роботи</small><b>${money4402(t.additional)}</b></div>`);if(options.materials)summary.push(`<div class="info"><small>Матеріали об’єкта</small><b>${money4402(t.materials)}</b></div>`);
-  return `<!doctype html><html lang="uk"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Кошторис Potolok.in.ua${objectNumber?' — '+esc4402(objectNumber):''}</title><style>*{box-sizing:border-box}html,body{margin:0;padding:0;background:#f4f7fb;color:#0f172a;font-family:Arial,Helvetica,sans-serif}body{padding:16px}.wrap{width:min(940px,100%);margin:0 auto}.card{background:#fff;border:1px solid #dbe3ef;border-radius:18px;padding:18px;margin:0 0 14px;box-shadow:0 4px 16px rgba(15,23,42,.04)}.brand{font-size:29px;font-weight:900;letter-spacing:-.5px}.brand span{color:#075bff}.title{margin:8px 0 0;font-size:25px}.info-grid,.summary-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin-top:14px}.info{background:#f8fafc;border:1px solid #e5e7eb;border-radius:11px;padding:10px}.info small{display:block;color:#64748b;font-size:12px;margin-bottom:4px}.info b{font-size:15px;overflow-wrap:anywhere}.room-head{display:flex;justify-content:space-between;align-items:flex-start;gap:14px}.room h2{font-size:20px;margin:0}.room-meta{display:flex;flex-wrap:wrap;gap:10px;margin-top:6px;color:#64748b;font-size:13px}.room-total{font-size:22px;font-weight:900;color:#075bff;white-space:nowrap}.room h4{margin:17px 0 8px;font-size:15px}.table-wrap{width:100%;overflow-x:auto}table{width:100%;border-collapse:collapse;min-width:560px;font-size:13px}th,td{padding:9px 7px;border-bottom:1px solid #e5e7eb;text-align:left;vertical-align:top}th{color:#475569;background:#f8fafc}th:nth-child(n+2),td:nth-child(n+2){text-align:right}.room-subtotals{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}.room-subtotals span{background:#f8fafc;border-radius:9px;padding:8px 10px;font-size:12px}.empty{margin-top:12px;background:#f8fafc;border:1px dashed #cbd5e1;border-radius:10px;padding:10px;color:#64748b}.grand{margin-top:14px;background:linear-gradient(135deg,#071428,#075bff);border-radius:15px;padding:17px;color:#fff}.grand small{display:block;color:#bfdbfe}.grand b{display:block;font-size:35px;margin-top:5px}.note{font-size:12px;line-height:1.5;color:#64748b;padding:2px 4px 18px}@media(max-width:640px){body{padding:8px}.card{padding:13px;border-radius:14px}.info-grid,.summary-grid{grid-template-columns:1fr}.room-head{flex-direction:column}.room-total{font-size:20px}.title{font-size:22px}.brand{font-size:26px}}</style></head><body><main class="wrap"><section class="card"><div class="brand">Potolok<span>.in.ua</span></div><h1 class="title">Кошторис об’єкта</h1><div class="info-grid">${objectNumber?`<div class="info"><small>Номер об’єкта</small><b>${esc4402(objectNumber)}</b></div>`:''}<div class="info"><small>Клієнт</small><b>${esc4402(object.clientName||'—')}</b></div><div class="info"><small>Телефон</small><b>${esc4402(object.clientPhone||'—')}</b></div><div class="info"><small>Адреса</small><b>${esc4402(object.address||'—')}</b></div><div class="info"><small>Дата заміру</small><b>${esc4402(object.date||'—')}</b></div></div></section>${roomHtml}${matsHtml}<section class="card"><h2 style="margin:0">Підсумок кошторису</h2><div class="summary-grid"><div class="info"><small>Кімнат</small><b>${rooms.length}</b></div><div class="info"><small>Загальна площа</small><b>${area.toFixed(2)} м²</b></div><div class="info"><small>Загальний периметр</small><b>${perimeter.toFixed(2)} м/пог.</b></div>${summary.join('')}</div><div class="grand"><small>РАЗОМ ЗА ОБРАНИМИ РОЗДІЛАМИ</small><b>${money4402(total)}</b></div></section><div class="note">У цьому файлі показані тільки розділи, обрані перед відправленням. Інші розділи об’єкта не видалені з історії — вони просто не включені в цей кошторис.<br>Ціна попередня. Остаточна вартість після погодження робіт.<br>Potolok.in.ua · 097 454 67 13</div></main></body></html>`;
+  return `<!doctype html><html lang="uk"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Кошторис Potolok.in.ua${objectNumber?' — '+esc4402(objectNumber):''}</title><style>*{box-sizing:border-box}html,body{margin:0;padding:0;background:#f4f7fb;color:#0f172a;font-family:Arial,Helvetica,sans-serif}body{padding:16px}.wrap{width:min(940px,100%);margin:0 auto}.card{background:#fff;border:1px solid #dbe3ef;border-radius:18px;padding:18px;margin:0 0 14px;box-shadow:0 4px 16px rgba(15,23,42,.04)}.brand{font-size:29px;font-weight:900;letter-spacing:-.5px}.brand span{color:#075bff}.title{margin:8px 0 0;font-size:25px}.info-grid,.summary-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin-top:14px}.info{background:#f8fafc;border:1px solid #e5e7eb;border-radius:11px;padding:10px}.info small{display:block;color:#64748b;font-size:12px;margin-bottom:4px}.info b{font-size:15px;overflow-wrap:anywhere}.room-head{display:flex;justify-content:space-between;align-items:flex-start;gap:14px}.room h2{font-size:20px;margin:0}.room-meta{display:flex;flex-wrap:wrap;gap:10px;margin-top:6px;color:#64748b;font-size:13px}.room-total{font-size:22px;font-weight:900;color:#075bff;white-space:nowrap}.room h4{margin:17px 0 8px;font-size:15px}.table-wrap{width:100%;overflow-x:auto}table{width:100%;border-collapse:collapse;min-width:560px;font-size:13px}th,td{padding:9px 7px;border-bottom:1px solid #e5e7eb;text-align:left;vertical-align:top}th{color:#475569;background:#f8fafc}th:nth-child(n+2),td:nth-child(n+2){text-align:right}.room-subtotals{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}.room-subtotals span{background:#f8fafc;border-radius:9px;padding:8px 10px;font-size:12px}.empty{margin-top:12px;background:#f8fafc;border:1px dashed #cbd5e1;border-radius:10px;padding:10px;color:#64748b}.grand{margin-top:14px;background:linear-gradient(135deg,#071428,#075bff);border-radius:15px;padding:17px;color:#fff}.grand small{display:block;color:#bfdbfe}.grand b{display:block;font-size:35px;margin-top:5px}.note{font-size:12px;line-height:1.5;color:#64748b;padding:2px 4px 18px}@media(max-width:640px){body{padding:8px}.card{padding:13px;border-radius:14px}.info-grid,.summary-grid{grid-template-columns:1fr}.room-head{flex-direction:column}.room-total{font-size:20px}.title{font-size:22px}.brand{font-size:26px}}</style></head><body><main class="wrap"><section class="card"><div class="brand">Potolok<span>.in.ua</span></div><h1 class="title">Кошторис об’єкта</h1><div class="info-grid">${objectNumber?`<div class="info"><small>Номер об’єкта</small><b>${esc4402(objectNumber)}</b></div>`:''}<div class="info"><small>Клієнт</small><b>${esc4402(object.clientName||'—')}</b></div><div class="info"><small>Телефон</small><b>${esc4402(object.clientPhone||'—')}</b></div><div class="info"><small>Адреса</small><b>${esc4402(object.address||'—')}</b></div><div class="info"><small>Дата заміру</small><b>${esc4402(object.date||'—')}</b></div></div></section>${roomHtml}${matsHtml}<section class="card"><h2 style="margin:0">Підсумок кошторису</h2><div class="summary-grid"><div class="info"><small>Кімнат</small><b>${rooms.length}</b></div><div class="info"><small>Загальна площа</small><b>${area.toFixed(2)} м²</b></div><div class="info"><small>Загальний периметр</small><b>${perimeter.toFixed(2)} м/пог.</b></div>${summary.join('')}</div><div class="grand"><small>РАЗОМ ЗА ОБРАНИМИ РОЗДІЛАМИ</small><b>${money4402(total)}</b></div></section><div class="note">У цьому файлі показані тільки розділи, обрані перед відправленням. Інші розділи об’єкта не видалені з історії — вони просто не включені в цей кошторис.<br>Ціна попередня. Остаточна вартість після погодження робіт.<br>Potolok.in.ua · 097 454 67 13</div></main>
+
+<!-- PIXEL 44.03: client card plan fix + client-only view cleanup -->
+<style id="pixel4403ClientViewStyles">
+body.client-view-4403 .tabs-main{
+  grid-template-columns:minmax(0,1fr)!important;
+}
+body.client-view-4403 .tabs-main .main-tab:not([onclick*="'clientcard'"]){
+  display:none!important;
+}
+body.client-view-4403 .tabs-main .main-tab[onclick*="'clientcard'"]{
+  display:block!important;
+}
+body.client-view-4403 #quickCalcHandle40,
+body.client-view-4403 #quickCalcBackdrop40,
+body.client-view-4403 #quickCalcDrawer40,
+body.client-view-4403 #objectEndActions4394,
+body.client-view-4403 #objectActions4393,
+body.client-view-4403 #objectHiddenClientActions4394,
+body.client-view-4403 .ai-request-section,
+body.client-view-4403 .planner-inline-actions,
+body.client-view-4403 .service-shell60,
+body.client-view-4403 #publishClientCardBtn56,
+body.client-view-4403 #publishClientCardStatus56{
+  display:none!important;
+}
+body.client-view-4403 .p60-plan-wrap4403{
+  display:grid;gap:12px;
+}
+body.client-view-4403 .p60-plan-note4403,
+.p60-plan-note4403{
+  border:1px solid #dbe3ef;border-radius:14px;background:#f8fafc;padding:10px 12px;font-size:12px;line-height:1.45;color:#334155;
+}
+.p60-plan-svg4403{width:100%;height:auto;display:block;background:#fff;border:1px solid #dbe3ef;border-radius:16px}
+.p60-plan-metrics4403{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.p60-plan-metrics4403 .box{border:1px solid #dbe3ef;border-radius:14px;background:#f8fafc;padding:10px}
+.p60-plan-metrics4403 .box span{display:block;font-size:11px;color:#64748b;margin-bottom:4px}
+.p60-plan-metrics4403 .box b{font-size:16px;color:#0f172a}
+.p60-plan-legend4403{display:flex;flex-wrap:wrap;gap:8px}
+.p60-plan-legend4403 .chip{border:1px solid #dbe3ef;background:#fff;border-radius:999px;padding:6px 10px;font-size:12px;font-weight:700;color:#334155}
+@media (max-width:640px){
+  .p60-plan-metrics4403{grid-template-columns:1fr}
+}
+</style>
+<script id="pixel4403ClientViewFix">
+(() => {
+  'use strict';
+  if (window.__pixel4403ClientFix) return;
+  window.__pixel4403ClientFix = true;
+
+  const DIRECT_KEY = 'potolok_client_direct_4403';
+  if (String(location.hash || '').includes('clientObject=') && String(location.hash || '').includes('clientKey=')) {
+    try { sessionStorage.setItem(DIRECT_KEY, '1'); } catch (_) {}
+  }
+
+  function esc4403(value){
+    return String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+  }
+
+  function number4403(value){
+    const n = Number(value);
+    return Number.isFinite(n) ? n : 0;
+  }
+
+  function normalizePoint4403(point){
+    if (Array.isArray(point)) return {x:number4403(point[0]), y:number4403(point[1])};
+    if (point && typeof point === 'object') return {x:number4403(point.x), y:number4403(point.y)};
+    return {x:0,y:0};
+  }
+
+  function planData4403(room){
+    const planner = room?.planner || {};
+    const points = Array.isArray(planner.points) ? planner.points.map(normalizePoint4403).filter(p => Number.isFinite(p.x) && Number.isFinite(p.y)) : [];
+    const objects = Array.isArray(planner.objects) ? planner.objects.map(obj => ({...obj, x:number4403(obj?.x), y:number4403(obj?.y)})) : [];
+    const segments = Array.isArray(planner.segments) ? planner.segments.map(number4403) : [];
+    return {points, objects, segments};
+  }
+
+  function centroid4403(points){
+    if (!points.length) return {x:300, y:180};
+    return {
+      x: points.reduce((s,p) => s + p.x, 0) / points.length,
+      y: points.reduce((s,p) => s + p.y, 0) / points.length
+    };
+  }
+
+  function lineDistance4403(a,b){
+    return Math.hypot(number4403(b.x)-number4403(a.x), number4403(b.y)-number4403(a.y));
+  }
+
+  function buildPlanHtml4403(room){
+    const {points, objects, segments} = planData4403(room);
+    if (points.length < 2) {
+      return '<div class="p60-plan-note4403">План цієї кімнати не збережено.</div>';
+    }
+
+    const xs = points.map(p => p.x), ys = points.map(p => p.y);
+    const minX = Math.min(...xs), maxX = Math.max(...xs), minY = Math.min(...ys), maxY = Math.max(...ys);
+    const rawW = Math.max(1, maxX - minX), rawH = Math.max(1, maxY - minY);
+    const viewW = 640, viewH = 380, pad = 56;
+    const scale = Math.min((viewW - pad * 2) / rawW, (viewH - pad * 2) / rawH);
+
+    const mapPoint = p => ({ x: pad + (p.x - minX) * scale, y: pad + (p.y - minY) * scale });
+    const mapped = points.map(mapPoint);
+    const centroid = centroid4403(mapped);
+    const polygon = mapped.map(p => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
+
+    const edgeLabels = mapped.map((p, i) => {
+      const q = mapped[(i + 1) % mapped.length];
+      const segValue = segments[i] > 0 ? segments[i] : lineDistance4403(points[i], points[(i+1)%points.length]);
+      const mx = (p.x + q.x) / 2;
+      const my = (p.y + q.y) / 2;
+      const dx = q.x - p.x, dy = q.y - p.y;
+      const len = Math.hypot(dx, dy) || 1;
+      let nx = -dy / len, ny = dx / len;
+      if (nx * (centroid.x - mx) + ny * (centroid.y - my) > 0) { nx *= -1; ny *= -1; }
+      const tx = mx + nx * 26;
+      const ty = my + ny * 26;
+      const letter = String.fromCharCode(65 + (i % 26));
+      return `
+        <text x="${(p.x + 14).toFixed(1)}" y="${(p.y - 10).toFixed(1)}" font-size="15" font-weight="800" fill="#0f172a">${letter}</text>
+        <line x1="${p.x.toFixed(1)}" y1="${p.y.toFixed(1)}" x2="${q.x.toFixed(1)}" y2="${q.y.toFixed(1)}" stroke="#94a3b8" stroke-width="2" stroke-dasharray="4 4"/>
+        <text x="${tx.toFixed(1)}" y="${ty.toFixed(1)}" text-anchor="middle" font-size="14" font-weight="800" fill="#1d4ed8">${segValue.toFixed(2)} м</text>
+      `;
+    }).join('');
+
+    const objectIcons = {
+      door:'🚪', window:'🪟', light:'●', chandelier:'◉', vent:'▦',
+      track:'▬', surfaceTrack:'▬', lightline:'▬', corniceWhite:'▭', corniceBlack:'▭', corniceLed:'▭',
+      insertWhite:'—', insertBlack:'—', shadowProfile:'▰', floatingWhite:'▱', floatingBlack:'▱',
+      beam:'▮', box:'▣', pipe1:'◌', pipe2:'◎', column:'▢'
+    };
+    const objectNames = {
+      door:'Двері', window:'Вікно', light:'Світильник', chandelier:'Люстра', vent:'Вентиляція',
+      track:'Магнітний трек', surfaceTrack:'Накладний трек', lightline:'Світлова лінія',
+      corniceWhite:'Карниз білий', corniceBlack:'Карниз чорний', corniceLed:'Карниз LED',
+      insertWhite:'Вставка біла', insertBlack:'Вставка чорна', shadowProfile:'Тіньовий профіль',
+      floatingWhite:'Парящий білий', floatingBlack:'Парящий чорний', beam:'Балка', box:'Короб',
+      pipe1:'Труба', pipe2:'Подвійна труба', column:'Колона'
+    };
+
+    const objectSvg = objects.map((obj, i) => {
+      const p = mapPoint(obj);
+      const icon = objectIcons[obj.type] || '•';
+      return `<text x="${p.x.toFixed(1)}" y="${p.y.toFixed(1)}" text-anchor="middle" dominant-baseline="middle" font-size="20">${icon}</text>`;
+    }).join('');
+
+    const counts = {};
+    objects.forEach(obj => {
+      const key = objectNames[obj.type] || obj.type || 'Елемент';
+      counts[key] = (counts[key] || 0) + 1;
+    });
+    const legend = Object.entries(counts).map(([name, count]) => `<span class="chip">${esc4403(name)} × ${count}</span>`).join('');
+
+    const area = number4403(room?.area || room?.metrics?.area);
+    const per = number4403(room?.perimeter || room?.metrics?.perimeter);
+    return `
+      <div class="p60-plan-wrap4403">
+        <div class="p60-plan-metrics4403">
+          <div class="box"><span>Кімната</span><b>${esc4403(room?.name || 'План')}</b></div>
+          <div class="box"><span>Площа</span><b>${area.toFixed(2)} м²</b></div>
+          <div class="box"><span>Периметр</span><b>${per.toFixed(2)} м</b></div>
+        </div>
+        <svg class="p60-plan-svg4403" viewBox="0 0 ${viewW} ${viewH}" aria-label="План кімнати">
+          <rect x="10" y="10" width="${viewW-20}" height="${viewH-20}" rx="18" fill="#ffffff"/>
+          <polygon points="${polygon}" fill="#dbeafe" stroke="#075bff" stroke-width="4"></polygon>
+          ${edgeLabels}
+          ${objectSvg}
+          ${mapped.map(p => `<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="5.5" fill="#fff" stroke="#075bff" stroke-width="3"></circle>`).join('')}
+        </svg>
+        ${legend ? `<div class="p60-plan-note4403"><b>Елементи плану:</b><div class="p60-plan-legend4403">${legend}</div></div>` : '<div class="p60-plan-note4403">На цьому плані немає додаткових елементів — показано тільки контур і розміри стін.</div>'}
+      </div>`;
+  }
+
+  function isClientViewActive4403(){
+    const tab = document.getElementById('tab_clientcard');
+    const card = document.getElementById('clientObjectCard56');
+    return !!(tab && card && tab.classList.contains('active') && card.classList.contains('show'));
+  }
+
+  function applyClientMode4403(){
+    const active = isClientViewActive4403();
+    document.body.classList.toggle('client-view-4403', active);
+    if (!active) {
+      const onlyClient = document.querySelector('.tabs-main .main-tab[onclick*="\'clientcard\'"]');
+      if (onlyClient) onlyClient.style.display = '';
+    }
+  }
+
+  const originalClose4403 = window.closeClientObject56;
+  if (typeof originalClose4403 === 'function') {
+    window.closeClientObject56 = function(){
+      const result = originalClose4403.apply(this, arguments);
+      setTimeout(applyClientMode4403, 20);
+      return result;
+    };
+  }
+
+  const originalOpen4403 = window.openClientObject56;
+  if (typeof originalOpen4403 === 'function') {
+    window.openClientObject56 = async function(){
+      const result = await originalOpen4403.apply(this, arguments);
+      setTimeout(applyClientMode4403, 120);
+      return result;
+    };
+  }
+
+  window.clientPlan60 = function(i){
+    const room = window.currentClientView60?.rooms?.[i];
+    if (!room) return;
+    const title = '📐 ' + esc4403(room.name || ('Кімната ' + (i + 1)));
+    if (typeof window.openModal60 === 'function') {
+      window.openModal60(title, buildPlanHtml4403(room));
+    } else {
+      alert('Не вдалося відкрити перегляд плану.');
+    }
+  };
+
+  function watch4403(){
+    applyClientMode4403();
+    const card = document.getElementById('clientObjectCard56');
+    const tab = document.getElementById('tab_clientcard');
+    if (card && !card.__watch4403) {
+      card.__watch4403 = true;
+      new MutationObserver(() => setTimeout(applyClientMode4403, 20)).observe(card, {attributes:true, attributeFilter:['class'], childList:true, subtree:false});
+    }
+    if (tab && !tab.__watch4403) {
+      tab.__watch4403 = true;
+      new MutationObserver(() => setTimeout(applyClientMode4403, 20)).observe(tab, {attributes:true, attributeFilter:['class']});
+    }
+    document.querySelectorAll('.main-tab').forEach(btn => {
+      if (btn.__bind4403) return;
+      btn.__bind4403 = true;
+      btn.addEventListener('click', () => setTimeout(applyClientMode4403, 40));
+    });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', watch4403, {once:true});
+  } else {
+    watch4403();
+  }
+  window.addEventListener('pageshow', () => setTimeout(watch4403, 60), {passive:true});
+})();
+</script>
+
+</body></html>`;
 }
 function buildEstimateText4402(source,options){
   const object=copy4402(source||{}),rooms=Array.isArray(object.rooms)?object.rooms:[],t=totals4402(object),lines=['Кошторис Potolok.in.ua'];
@@ -24354,6 +26322,252 @@ async function adminRow4402(id){let rows=Array.isArray(window.serviceRows60)?win
 window.shareAdminEstimate4401=async function(id,button){const old=button?.innerHTML;try{if(button){button.disabled=true;button.textContent='⏳ Кошторис…'}const row=await adminRow4402(id),base=row?.object_data&&typeof row.object_data==='object'?copy4402(row.object_data):{};base.objectNumber=row?.object_number||base.objectNumber||'';base.cloudId=row?.id||base.cloudId||'';openChoice4402(base)}catch(error){alert('Не вдалося відкрити кошторис з історії: '+(error?.message||error))}finally{if(button){button.disabled=false;button.innerHTML=old}}};
 
 document.documentElement.dataset.pixelVersion=VERSION4402;try{document.title='Potolok AI PRO — Pixel '+VERSION4402}catch(_){ }
+})();
+</script>
+
+
+
+<!-- PIXEL 44.03: client card plan fix + client-only view cleanup -->
+<style id="pixel4403ClientViewStyles">
+body.client-view-4403 .tabs-main{
+  grid-template-columns:minmax(0,1fr)!important;
+}
+body.client-view-4403 .tabs-main .main-tab:not([onclick*="'clientcard'"]){
+  display:none!important;
+}
+body.client-view-4403 .tabs-main .main-tab[onclick*="'clientcard'"]{
+  display:block!important;
+}
+body.client-view-4403 #quickCalcHandle40,
+body.client-view-4403 #quickCalcBackdrop40,
+body.client-view-4403 #quickCalcDrawer40,
+body.client-view-4403 #objectEndActions4394,
+body.client-view-4403 #objectActions4393,
+body.client-view-4403 #objectHiddenClientActions4394,
+body.client-view-4403 .ai-request-section,
+body.client-view-4403 .planner-inline-actions,
+body.client-view-4403 .service-shell60,
+body.client-view-4403 #publishClientCardBtn56,
+body.client-view-4403 #publishClientCardStatus56{
+  display:none!important;
+}
+body.client-view-4403 .p60-plan-wrap4403{
+  display:grid;gap:12px;
+}
+body.client-view-4403 .p60-plan-note4403,
+.p60-plan-note4403{
+  border:1px solid #dbe3ef;border-radius:14px;background:#f8fafc;padding:10px 12px;font-size:12px;line-height:1.45;color:#334155;
+}
+.p60-plan-svg4403{width:100%;height:auto;display:block;background:#fff;border:1px solid #dbe3ef;border-radius:16px}
+.p60-plan-metrics4403{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.p60-plan-metrics4403 .box{border:1px solid #dbe3ef;border-radius:14px;background:#f8fafc;padding:10px}
+.p60-plan-metrics4403 .box span{display:block;font-size:11px;color:#64748b;margin-bottom:4px}
+.p60-plan-metrics4403 .box b{font-size:16px;color:#0f172a}
+.p60-plan-legend4403{display:flex;flex-wrap:wrap;gap:8px}
+.p60-plan-legend4403 .chip{border:1px solid #dbe3ef;background:#fff;border-radius:999px;padding:6px 10px;font-size:12px;font-weight:700;color:#334155}
+@media (max-width:640px){
+  .p60-plan-metrics4403{grid-template-columns:1fr}
+}
+</style>
+<script id="pixel4403ClientViewFix">
+(() => {
+  'use strict';
+  if (window.__pixel4403ClientFix) return;
+  window.__pixel4403ClientFix = true;
+
+  const DIRECT_KEY = 'potolok_client_direct_4403';
+  if (String(location.hash || '').includes('clientObject=') && String(location.hash || '').includes('clientKey=')) {
+    try { sessionStorage.setItem(DIRECT_KEY, '1'); } catch (_) {}
+  }
+
+  function esc4403(value){
+    return String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+  }
+
+  function number4403(value){
+    const n = Number(value);
+    return Number.isFinite(n) ? n : 0;
+  }
+
+  function normalizePoint4403(point){
+    if (Array.isArray(point)) return {x:number4403(point[0]), y:number4403(point[1])};
+    if (point && typeof point === 'object') return {x:number4403(point.x), y:number4403(point.y)};
+    return {x:0,y:0};
+  }
+
+  function planData4403(room){
+    const planner = room?.planner || {};
+    const points = Array.isArray(planner.points) ? planner.points.map(normalizePoint4403).filter(p => Number.isFinite(p.x) && Number.isFinite(p.y)) : [];
+    const objects = Array.isArray(planner.objects) ? planner.objects.map(obj => ({...obj, x:number4403(obj?.x), y:number4403(obj?.y)})) : [];
+    const segments = Array.isArray(planner.segments) ? planner.segments.map(number4403) : [];
+    return {points, objects, segments};
+  }
+
+  function centroid4403(points){
+    if (!points.length) return {x:300, y:180};
+    return {
+      x: points.reduce((s,p) => s + p.x, 0) / points.length,
+      y: points.reduce((s,p) => s + p.y, 0) / points.length
+    };
+  }
+
+  function lineDistance4403(a,b){
+    return Math.hypot(number4403(b.x)-number4403(a.x), number4403(b.y)-number4403(a.y));
+  }
+
+  function buildPlanHtml4403(room){
+    const {points, objects, segments} = planData4403(room);
+    if (points.length < 2) {
+      return '<div class="p60-plan-note4403">План цієї кімнати не збережено.</div>';
+    }
+
+    const xs = points.map(p => p.x), ys = points.map(p => p.y);
+    const minX = Math.min(...xs), maxX = Math.max(...xs), minY = Math.min(...ys), maxY = Math.max(...ys);
+    const rawW = Math.max(1, maxX - minX), rawH = Math.max(1, maxY - minY);
+    const viewW = 640, viewH = 380, pad = 56;
+    const scale = Math.min((viewW - pad * 2) / rawW, (viewH - pad * 2) / rawH);
+
+    const mapPoint = p => ({ x: pad + (p.x - minX) * scale, y: pad + (p.y - minY) * scale });
+    const mapped = points.map(mapPoint);
+    const centroid = centroid4403(mapped);
+    const polygon = mapped.map(p => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
+
+    const edgeLabels = mapped.map((p, i) => {
+      const q = mapped[(i + 1) % mapped.length];
+      const segValue = segments[i] > 0 ? segments[i] : lineDistance4403(points[i], points[(i+1)%points.length]);
+      const mx = (p.x + q.x) / 2;
+      const my = (p.y + q.y) / 2;
+      const dx = q.x - p.x, dy = q.y - p.y;
+      const len = Math.hypot(dx, dy) || 1;
+      let nx = -dy / len, ny = dx / len;
+      if (nx * (centroid.x - mx) + ny * (centroid.y - my) > 0) { nx *= -1; ny *= -1; }
+      const tx = mx + nx * 26;
+      const ty = my + ny * 26;
+      const letter = String.fromCharCode(65 + (i % 26));
+      return `
+        <text x="${(p.x + 14).toFixed(1)}" y="${(p.y - 10).toFixed(1)}" font-size="15" font-weight="800" fill="#0f172a">${letter}</text>
+        <line x1="${p.x.toFixed(1)}" y1="${p.y.toFixed(1)}" x2="${q.x.toFixed(1)}" y2="${q.y.toFixed(1)}" stroke="#94a3b8" stroke-width="2" stroke-dasharray="4 4"/>
+        <text x="${tx.toFixed(1)}" y="${ty.toFixed(1)}" text-anchor="middle" font-size="14" font-weight="800" fill="#1d4ed8">${segValue.toFixed(2)} м</text>
+      `;
+    }).join('');
+
+    const objectIcons = {
+      door:'🚪', window:'🪟', light:'●', chandelier:'◉', vent:'▦',
+      track:'▬', surfaceTrack:'▬', lightline:'▬', corniceWhite:'▭', corniceBlack:'▭', corniceLed:'▭',
+      insertWhite:'—', insertBlack:'—', shadowProfile:'▰', floatingWhite:'▱', floatingBlack:'▱',
+      beam:'▮', box:'▣', pipe1:'◌', pipe2:'◎', column:'▢'
+    };
+    const objectNames = {
+      door:'Двері', window:'Вікно', light:'Світильник', chandelier:'Люстра', vent:'Вентиляція',
+      track:'Магнітний трек', surfaceTrack:'Накладний трек', lightline:'Світлова лінія',
+      corniceWhite:'Карниз білий', corniceBlack:'Карниз чорний', corniceLed:'Карниз LED',
+      insertWhite:'Вставка біла', insertBlack:'Вставка чорна', shadowProfile:'Тіньовий профіль',
+      floatingWhite:'Парящий білий', floatingBlack:'Парящий чорний', beam:'Балка', box:'Короб',
+      pipe1:'Труба', pipe2:'Подвійна труба', column:'Колона'
+    };
+
+    const objectSvg = objects.map((obj, i) => {
+      const p = mapPoint(obj);
+      const icon = objectIcons[obj.type] || '•';
+      return `<text x="${p.x.toFixed(1)}" y="${p.y.toFixed(1)}" text-anchor="middle" dominant-baseline="middle" font-size="20">${icon}</text>`;
+    }).join('');
+
+    const counts = {};
+    objects.forEach(obj => {
+      const key = objectNames[obj.type] || obj.type || 'Елемент';
+      counts[key] = (counts[key] || 0) + 1;
+    });
+    const legend = Object.entries(counts).map(([name, count]) => `<span class="chip">${esc4403(name)} × ${count}</span>`).join('');
+
+    const area = number4403(room?.area || room?.metrics?.area);
+    const per = number4403(room?.perimeter || room?.metrics?.perimeter);
+    return `
+      <div class="p60-plan-wrap4403">
+        <div class="p60-plan-metrics4403">
+          <div class="box"><span>Кімната</span><b>${esc4403(room?.name || 'План')}</b></div>
+          <div class="box"><span>Площа</span><b>${area.toFixed(2)} м²</b></div>
+          <div class="box"><span>Периметр</span><b>${per.toFixed(2)} м</b></div>
+        </div>
+        <svg class="p60-plan-svg4403" viewBox="0 0 ${viewW} ${viewH}" aria-label="План кімнати">
+          <rect x="10" y="10" width="${viewW-20}" height="${viewH-20}" rx="18" fill="#ffffff"/>
+          <polygon points="${polygon}" fill="#dbeafe" stroke="#075bff" stroke-width="4"></polygon>
+          ${edgeLabels}
+          ${objectSvg}
+          ${mapped.map(p => `<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="5.5" fill="#fff" stroke="#075bff" stroke-width="3"></circle>`).join('')}
+        </svg>
+        ${legend ? `<div class="p60-plan-note4403"><b>Елементи плану:</b><div class="p60-plan-legend4403">${legend}</div></div>` : '<div class="p60-plan-note4403">На цьому плані немає додаткових елементів — показано тільки контур і розміри стін.</div>'}
+      </div>`;
+  }
+
+  function isClientViewActive4403(){
+    const tab = document.getElementById('tab_clientcard');
+    const card = document.getElementById('clientObjectCard56');
+    return !!(tab && card && tab.classList.contains('active') && card.classList.contains('show'));
+  }
+
+  function applyClientMode4403(){
+    const active = isClientViewActive4403();
+    document.body.classList.toggle('client-view-4403', active);
+    if (!active) {
+      const onlyClient = document.querySelector('.tabs-main .main-tab[onclick*="\'clientcard\'"]');
+      if (onlyClient) onlyClient.style.display = '';
+    }
+  }
+
+  const originalClose4403 = window.closeClientObject56;
+  if (typeof originalClose4403 === 'function') {
+    window.closeClientObject56 = function(){
+      const result = originalClose4403.apply(this, arguments);
+      setTimeout(applyClientMode4403, 20);
+      return result;
+    };
+  }
+
+  const originalOpen4403 = window.openClientObject56;
+  if (typeof originalOpen4403 === 'function') {
+    window.openClientObject56 = async function(){
+      const result = await originalOpen4403.apply(this, arguments);
+      setTimeout(applyClientMode4403, 120);
+      return result;
+    };
+  }
+
+  window.clientPlan60 = function(i){
+    const room = window.currentClientView60?.rooms?.[i];
+    if (!room) return;
+    const title = '📐 ' + esc4403(room.name || ('Кімната ' + (i + 1)));
+    if (typeof window.openModal60 === 'function') {
+      window.openModal60(title, buildPlanHtml4403(room));
+    } else {
+      alert('Не вдалося відкрити перегляд плану.');
+    }
+  };
+
+  function watch4403(){
+    applyClientMode4403();
+    const card = document.getElementById('clientObjectCard56');
+    const tab = document.getElementById('tab_clientcard');
+    if (card && !card.__watch4403) {
+      card.__watch4403 = true;
+      new MutationObserver(() => setTimeout(applyClientMode4403, 20)).observe(card, {attributes:true, attributeFilter:['class'], childList:true, subtree:false});
+    }
+    if (tab && !tab.__watch4403) {
+      tab.__watch4403 = true;
+      new MutationObserver(() => setTimeout(applyClientMode4403, 20)).observe(tab, {attributes:true, attributeFilter:['class']});
+    }
+    document.querySelectorAll('.main-tab').forEach(btn => {
+      if (btn.__bind4403) return;
+      btn.__bind4403 = true;
+      btn.addEventListener('click', () => setTimeout(applyClientMode4403, 40));
+    });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', watch4403, {once:true});
+  } else {
+    watch4403();
+  }
+  window.addEventListener('pageshow', () => setTimeout(watch4403, 60), {passive:true});
 })();
 </script>
 
