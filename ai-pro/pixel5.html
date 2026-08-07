@@ -24358,224 +24358,116 @@ document.documentElement.dataset.pixelVersion=VERSION4402;try{document.title='Po
 </script>
 
 
-<!-- PIXEL 44.03: client view fixed from clean 44.02 -->
-<style id="pixel4403ClientCss">
-body.client-public-4403 .hero,
-body.client-public-4403 .tabs-main,
-body.client-public-4403 #pixelBack4325,
-body.client-public-4403 #quickCalcHandle40,
-body.client-public-4403 #quickCalcBackdrop40,
-body.client-public-4403 #quickCalcDrawer40,
-body.client-public-4403 #objectEndActions4394,
-body.client-public-4403 #objectActions4393,
-body.client-public-4403 #objectHiddenClientActions4394{
-  display:none!important;
-}
-body.client-public-4403 .app{padding-top:14px!important}
-.client-plan-wrap4403{display:grid;gap:12px}
-.client-plan-stats4403{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
-.client-plan-stats4403>div{border:1px solid #dbe3ef;border-radius:12px;background:#f8fafc;padding:10px}
-.client-plan-stats4403 span{display:block;font-size:10px;color:#64748b;margin-bottom:4px}
-.client-plan-stats4403 b{font-size:15px;color:#0f172a}
-.client-plan-svg4403{width:100%;height:auto;display:block;border:1px solid #dbe3ef;border-radius:16px;background:#fff}
-.client-plan-elements4403,.client-plan-note4403{border:1px solid #dbe3ef;border-radius:12px;background:#f8fafc;padding:10px;font-size:11px;color:#334155;line-height:1.45}
-.client-plan-elements4403>b{display:block;margin-bottom:7px}
-.client-plan-elements4403>div{display:flex;flex-wrap:wrap;gap:6px}
-.client-plan-chip4403{display:inline-block;border:1px solid #cbd5e1;border-radius:999px;background:#fff;padding:5px 8px;font-size:10px;font-weight:800;color:#334155}
-@media(max-width:520px){.client-plan-stats4403{grid-template-columns:1fr 1fr}.client-plan-stats4403>div:last-child{grid-column:1/-1}}
+<!-- PIXEL 44.03b: CLIENT VIEW FIX, based ONLY on 44.02 -->
+<style id="pixel4403bClientStyles">
+body.client-only-4403b .hero,
+body.client-only-4403b .tabs-main,
+body.client-only-4403b #pixelBack4325,
+body.client-only-4403b #quickCalcHandle40,
+body.client-only-4403b #quickCalcBackdrop40,
+body.client-only-4403b #quickCalcDrawer40,
+body.client-only-4403b #objectEndActions4394,
+body.client-only-4403b #objectActions4393,
+body.client-only-4403b #objectHiddenClientActions4394,
+body.client-only-4403b .ai-request-section,
+body.client-only-4403b #publishClientCardBtn56,
+body.client-only-4403b #publishClientCardStatus56{display:none!important}
+.client-plan4403b{display:grid;gap:12px}
+.client-plan4403b svg{display:block;width:100%;height:auto;background:#fff;border:1px solid #dbe3ef;border-radius:16px}
+.client-plan-metrics4403b{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.client-plan-metrics4403b>div{border:1px solid #dbe3ef;border-radius:12px;background:#f8fafc;padding:10px}
+.client-plan-metrics4403b span{display:block;color:#64748b;font-size:11px;margin-bottom:3px}
+.client-plan-metrics4403b b{font-size:15px;color:#0f172a}
+.client-plan-note4403b{border:1px solid #dbe3ef;border-radius:12px;background:#f8fafc;padding:10px 12px;color:#475569;font-size:12px;line-height:1.45}
+.client-plan-chips4403b{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.client-plan-chips4403b i{font-style:normal;border:1px solid #dbe3ef;border-radius:999px;background:#fff;padding:5px 9px;font-size:11px;font-weight:800;color:#334155}
+@media(max-width:640px){.client-plan-metrics4403b{grid-template-columns:1fr}}
 </style>
-
-<script id="pixel4403ClientPlanFix">
-(() => {
+<script id="pixel4403bClientScript">
+(function(){
   'use strict';
-  if (window.__pixel4403ClientPlanFix) return;
-  window.__pixel4403ClientPlanFix = true;
+  if(window.__pixel4403bInstalled)return;
+  window.__pixel4403bInstalled=true;
 
-  const esc4403 = value => String(value ?? '').replace(/[&<>"']/g, ch => ({
-    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
-  }[ch]));
-  const num4403 = value => {
-    const n = Number(value);
-    return Number.isFinite(n) ? n : 0;
-  };
-
-  function trueClient4403(){
-    const card = document.getElementById('clientObjectCard56');
-    const tab = document.getElementById('tab_clientcard');
-    const adminToken = (() => { try { return sessionStorage.getItem('potolok_service_token') || ''; } catch (_) { return ''; } })();
-    return !!(card?.classList.contains('show') && tab?.classList.contains('active') && !adminToken);
+  function esc4403b(v){return String(v??'').replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+  function num4403b(v){var n=Number(v);return Number.isFinite(n)?n:0}
+  function point4403b(p){
+    if(Array.isArray(p))return{x:num4403b(p[0]),y:num4403b(p[1])};
+    if(p&&typeof p==='object')return{x:num4403b(p.x),y:num4403b(p.y)};
+    return{x:0,y:0};
   }
-
-  function applyClientShell4403(){
-    document.body.classList.toggle('client-public-4403', trueClient4403());
+  function clientData4403b(){
+    try{return typeof currentClientView60!=='undefined'?currentClientView60:null}catch(_){return null}
   }
-
-  function normPoint4403(point){
-    if (Array.isArray(point)) return {x:num4403(point[0]), y:num4403(point[1])};
-    if (point && typeof point === 'object') return {x:num4403(point.x), y:num4403(point.y)};
-    return {x:0,y:0};
+  function activateClientOnly4403b(){
+    var tab=document.getElementById('tab_clientcard');
+    var card=document.getElementById('clientObjectCard56');
+    var visitor=true;try{visitor=!sessionStorage.getItem('potolok_service_token')}catch(_){}
+    var active=!!(visitor&&tab&&card&&tab.classList.contains('active')&&card.classList.contains('show'));
+    document.body.classList.toggle('client-only-4403b',active);
   }
-
-  function planRoom4403(index){
-    try {
-      return (typeof currentClientView60 !== 'undefined' && currentClientView60?.rooms?.[index]) || null;
-    } catch (_) {
-      return null;
-    }
-  }
-
-  function mappedPlan4403(room){
-    const planner = room?.planner || {};
-    const raw = Array.isArray(planner.points) ? planner.points.map(normPoint4403) : [];
-    if (raw.length < 2) return null;
-
-    const xs = raw.map(p => p.x), ys = raw.map(p => p.y);
-    const minX = Math.min(...xs), maxX = Math.max(...xs), minY = Math.min(...ys), maxY = Math.max(...ys);
-    const rawW = Math.max(1, maxX - minX), rawH = Math.max(1, maxY - minY);
-    const vw = 680, vh = 430, pad = 72;
-    const scale = Math.min((vw - pad * 2) / rawW, (vh - pad * 2) / rawH);
-    const usedW = rawW * scale, usedH = rawH * scale;
-    const ox = (vw - usedW) / 2;
-    const oy = (vh - usedH) / 2;
-    const map = p => ({x:ox + (p.x - minX) * scale, y:oy + (p.y - minY) * scale});
-    const points = raw.map(map);
-
-    const segs = Array.isArray(planner.segments) ? planner.segments.map(num4403) : [];
-    const pxLens = raw.map((p,i) => {
-      const q = raw[(i+1)%raw.length];
-      return Math.hypot(q.x-p.x, q.y-p.y);
+  function map4403b(p,minX,minY,scale,pad){return{x:pad+(p.x-minX)*scale,y:pad+(p.y-minY)*scale}}
+  function clientPlanHtml4403b(room){
+    var planner=room&&room.planner?room.planner:{};
+    var pts=Array.isArray(planner.points)?planner.points.map(point4403b):[];
+    if(pts.length<2)return'<div class="client-plan-note4403b">План цієї кімнати не збережено.</div>';
+    var segs=Array.isArray(planner.segments)?planner.segments.map(num4403b):[];
+    var objects=Array.isArray(planner.objects)?planner.objects:[];
+    var xs=pts.map(function(p){return p.x}),ys=pts.map(function(p){return p.y});
+    var minX=Math.min.apply(null,xs),maxX=Math.max.apply(null,xs),minY=Math.min.apply(null,ys),maxY=Math.max.apply(null,ys);
+    var rawW=Math.max(1,maxX-minX),rawH=Math.max(1,maxY-minY),W=680,H=430,pad=70;
+    var scale=Math.min((W-pad*2)/rawW,(H-pad*2)/rawH);
+    var m=pts.map(function(p){return map4403b(p,minX,minY,scale,pad)});
+    var cx=m.reduce(function(s,p){return s+p.x},0)/m.length,cy=m.reduce(function(s,p){return s+p.y},0)/m.length;
+    var poly=m.map(function(p){return p.x.toFixed(1)+','+p.y.toFixed(1)}).join(' ');
+    var edges='';
+    m.forEach(function(p,i){
+      var q=m[(i+1)%m.length],rp=pts[i],rq=pts[(i+1)%pts.length];
+      var dx=q.x-p.x,dy=q.y-p.y,len=Math.hypot(dx,dy)||1,mx=(p.x+q.x)/2,my=(p.y+q.y)/2;
+      var nx=-dy/len,ny=dx/len;if(nx*(cx-mx)+ny*(cy-my)>0){nx=-nx;ny=-ny}
+      var tx=mx+nx*30,ty=my+ny*30;
+      var real=segs[i]>0?segs[i]:Math.hypot(rq.x-rp.x,rq.y-rp.y);
+      var letter=String.fromCharCode(65+(i%26));
+      edges+='<text x="'+(p.x+12).toFixed(1)+'" y="'+(p.y-10).toFixed(1)+'" font-size="15" font-weight="900" fill="#0f172a">'+letter+'</text>';
+      edges+='<text x="'+tx.toFixed(1)+'" y="'+ty.toFixed(1)+'" text-anchor="middle" dominant-baseline="middle" font-size="14" font-weight="900" fill="#075bff">'+real.toFixed(2)+' м</text>';
     });
-    const pxTotal = pxLens.reduce((s,v)=>s+v,0) || 1;
-    const roomPerimeter = num4403(room?.perimeter || room?.metrics?.perimeter);
-    const meterScale = roomPerimeter > 0 ? roomPerimeter / pxTotal : 0;
-    const lengths = raw.map((_,i) => segs[i] > 0 ? segs[i] : (meterScale ? pxLens[i] * meterScale : 0));
-
-    return {planner, raw, points, lengths, map, vw, vh};
-  }
-
-  function planSvg4403(room){
-    const data = mappedPlan4403(room);
-    if (!data) return '<div class="p60-note">План цієї кімнати не збережено.</div>';
-    const {planner, raw, points, lengths, map, vw, vh} = data;
-    const poly = points.map(p => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
-    const cx = points.reduce((s,p)=>s+p.x,0)/points.length;
-    const cy = points.reduce((s,p)=>s+p.y,0)/points.length;
-
-    const dims = points.map((p,i) => {
-      const q = points[(i+1)%points.length];
-      const dx=q.x-p.x, dy=q.y-p.y, len=Math.hypot(dx,dy)||1;
-      let nx=-dy/len, ny=dx/len;
-      const mx=(p.x+q.x)/2, my=(p.y+q.y)/2;
-      if (nx*(cx-mx)+ny*(cy-my)>0){ nx=-nx; ny=-ny; }
-      const tx=mx+nx*34, ty=my+ny*34;
-      const name = String.fromCharCode(65+(i%26));
-      const dimText = lengths[i] > 0 ? `${lengths[i].toFixed(2)} м` : '';
-      return `
-        <text x="${(p.x+12).toFixed(1)}" y="${(p.y-12).toFixed(1)}" font-size="15" font-weight="900" fill="#0f172a">${name}</text>
-        ${dimText ? `<rect x="${(tx-31).toFixed(1)}" y="${(ty-13).toFixed(1)}" width="62" height="23" rx="8" fill="#ffffff" opacity="0.94"/><text x="${tx.toFixed(1)}" y="${(ty+4).toFixed(1)}" text-anchor="middle" font-size="13" font-weight="900" fill="#075bff">${dimText}</text>` : ''}
-      `;
-    }).join('');
-
-    const typeLabel = {
-      door:'Двері',window:'Вікно',light:'Світильник',chandelier:'Люстра',vent:'Вентиляція',
-      track:'Магнітний трек',surfaceTrack:'Накладний трек',lightline:'Світлова лінія',
-      corniceWhite:'Карниз',corniceBlack:'Карниз',corniceLed:'Карниз LED',insertWhite:'Вставка',insertBlack:'Вставка',
-      shadowProfile:'Тіньовий профіль',floatingWhite:'Парящий профіль',floatingBlack:'Парящий профіль',
-      beam:'Балка',box:'Короб',pipe1:'Труба',pipe2:'Труби',column:'Колона'
-    };
-    const typeIcon = {
-      door:'🚪',window:'🪟',light:'●',chandelier:'◉',vent:'▦',track:'▬',surfaceTrack:'▬',lightline:'━',
-      corniceWhite:'▭',corniceBlack:'▭',corniceLed:'▭',insertWhite:'—',insertBlack:'—',shadowProfile:'▰',
-      floatingWhite:'▱',floatingBlack:'▱',beam:'▮',box:'▣',pipe1:'◌',pipe2:'◎',column:'▢'
-    };
-
-    const objects = Array.isArray(planner.objects) ? planner.objects : [];
-    const objectSvg = objects.map((obj, idx) => {
-      const a = map(normPoint4403(obj));
-      const hasEnd = obj && obj.x2 != null && obj.y2 != null;
-      const label = esc4403(typeLabel[obj?.type] || obj?.type || `Елемент ${idx+1}`);
-      if (hasEnd) {
-        const b = map({x:num4403(obj.x2), y:num4403(obj.y2)});
-        const mx=(a.x+b.x)/2, my=(a.y+b.y)/2;
-        return `<line x1="${a.x.toFixed(1)}" y1="${a.y.toFixed(1)}" x2="${b.x.toFixed(1)}" y2="${b.y.toFixed(1)}" stroke="#334155" stroke-width="7" stroke-linecap="round"/><text x="${mx.toFixed(1)}" y="${(my-10).toFixed(1)}" text-anchor="middle" font-size="12" font-weight="800" fill="#334155">${label}</text>`;
+    var names={door:'Двері',window:'Вікно',light:'Світильник',spot:'Світильник',chandelier:'Люстра',vent:'Вентиляція',track:'Магнітний трек',surfaceTrack:'Накладний трек',lightline:'Світлова лінія',corniceWhite:'Карниз',corniceBlack:'Карниз',corniceLed:'Карниз LED',shadowProfile:'Тіньовий профіль',floatingWhite:'Парящий профіль',floatingBlack:'Парящий профіль',beam:'Балка',box:'Короб',pipe1:'Труба',pipe2:'Труба',column:'Колона'};
+    var icons={door:'🚪',window:'🪟',light:'●',spot:'●',chandelier:'◉',vent:'▦',track:'▬',surfaceTrack:'▬',lightline:'━',corniceWhite:'▭',corniceBlack:'▭',corniceLed:'▭',shadowProfile:'▰',floatingWhite:'▱',floatingBlack:'▱',beam:'▮',box:'▣',pipe1:'◌',pipe2:'◎',column:'▢'};
+    var counts={},objSvg='';
+    objects.forEach(function(o){
+      var name=names[o.type]||o.type||'Елемент';counts[name]=(counts[name]||0)+1;
+      var a=map4403b(point4403b(o),minX,minY,scale,pad);
+      if(o&&o.x2!=null&&o.y2!=null){
+        var b=map4403b({x:num4403b(o.x2),y:num4403b(o.y2)},minX,minY,scale,pad);
+        objSvg+='<line x1="'+a.x.toFixed(1)+'" y1="'+a.y.toFixed(1)+'" x2="'+b.x.toFixed(1)+'" y2="'+b.y.toFixed(1)+'" stroke="#334155" stroke-width="5" stroke-linecap="round"/>';
+      }else{
+        objSvg+='<text x="'+a.x.toFixed(1)+'" y="'+a.y.toFixed(1)+'" text-anchor="middle" dominant-baseline="middle" font-size="22">'+(icons[o.type]||'•')+'</text>';
       }
-      return `<text x="${a.x.toFixed(1)}" y="${a.y.toFixed(1)}" text-anchor="middle" dominant-baseline="middle" font-size="22">${typeIcon[obj?.type] || '•'}</text>`;
-    }).join('');
-
-    const counts = {};
-    objects.forEach(obj => {
-      const label = typeLabel[obj?.type] || obj?.type || 'Елемент';
-      counts[label] = (counts[label] || 0) + 1;
     });
-    const chips = Object.entries(counts).map(([name,count]) => `<span class="client-plan-chip4403">${esc4403(name)} × ${count}</span>`).join('');
-
-    const area = num4403(room?.area || room?.metrics?.area);
-    const perimeter = num4403(room?.perimeter || room?.metrics?.perimeter);
-
-    return `
-      <div class="client-plan-wrap4403">
-        <div class="client-plan-stats4403">
-          <div><span>Площа</span><b>${area.toFixed(2)} м²</b></div>
-          <div><span>Периметр</span><b>${perimeter.toFixed(2)} м</b></div>
-          <div><span>Контур</span><b>${points.length} точок</b></div>
-        </div>
-        <svg class="client-plan-svg4403" viewBox="0 0 ${vw} ${vh}">
-          <rect x="8" y="8" width="${vw-16}" height="${vh-16}" rx="20" fill="#fff"/>
-          <polygon points="${poly}" fill="#dbeafe" stroke="#075bff" stroke-width="5" stroke-linejoin="round"/>
-          ${dims}
-          ${objectSvg}
-          ${points.map(p=>`<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="6" fill="#fff" stroke="#075bff" stroke-width="3"/>`).join('')}
-        </svg>
-        ${chips ? `<div class="client-plan-elements4403"><b>Елементи плану</b><div>${chips}</div></div>` : '<div class="client-plan-note4403">Показано контур кімнати та розміри стін. Додаткові елементи в цій кімнаті не збережені.</div>'}
-      </div>`;
+    var chips=Object.keys(counts).map(function(k){return'<i>'+esc4403b(k)+' × '+counts[k]+'</i>'}).join('');
+    var area=num4403b(room.area||(room.metrics&&room.metrics.area)),per=num4403b(room.perimeter||(room.metrics&&room.metrics.perimeter));
+    return '<div class="client-plan4403b">'+
+      '<div class="client-plan-metrics4403b"><div><span>Кімната</span><b>'+esc4403b(room.name||'План')+'</b></div><div><span>Площа</span><b>'+area.toFixed(2)+' м²</b></div><div><span>Периметр</span><b>'+per.toFixed(2)+' м</b></div></div>'+
+      '<svg viewBox="0 0 '+W+' '+H+'"><polygon points="'+poly+'" fill="#dbeafe" stroke="#075bff" stroke-width="4"/>'+edges+objSvg+m.map(function(p){return'<circle cx="'+p.x.toFixed(1)+'" cy="'+p.y.toFixed(1)+'" r="6" fill="#fff" stroke="#075bff" stroke-width="3"/>'}).join('')+'</svg>'+
+      (chips?'<div class="client-plan-note4403b"><b>Елементи плану</b><div class="client-plan-chips4403b">'+chips+'</div></div>':'<div class="client-plan-note4403b">Показано контур кімнати та розміри стін.</div>')+
+      '</div>';
   }
 
-  window.clientPlan60 = function(index){
-    const room = planRoom4403(index);
-    if (!room) {
-      if (typeof openModal60 === 'function') openModal60('📐 План','<div class="p60-note">Не вдалося завантажити кімнату.</div>');
-      return;
-    }
-    if (typeof openModal60 !== 'function') return;
-    openModal60('📐 ' + esc4403(room.name || ('Кімната ' + (index+1))), planSvg4403(room));
+  window.clientPlan60=function(index){
+    var data=clientData4403b();
+    var room=data&&Array.isArray(data.rooms)?data.rooms[index]:null;
+    if(!room)return openModal60('📐 План','<div class="client-plan-note4403b">Не вдалося завантажити кімнату.</div>');
+    openModal60('📐 '+esc4403b(room.name||('Кімната '+(index+1))),clientPlanHtml4403b(room));
   };
 
-  const previousOpen4403 = window.openClientObject56;
-  if (typeof previousOpen4403 === 'function') {
-    window.openClientObject56 = async function(){
-      const result = await previousOpen4403.apply(this, arguments);
-      setTimeout(applyClientShell4403, 120);
-      return result;
-    };
-  }
-
-  const previousClose4403 = window.closeClientObject56;
-  if (typeof previousClose4403 === 'function') {
-    window.closeClientObject56 = function(){
-      const result = previousClose4403.apply(this, arguments);
-      setTimeout(applyClientShell4403, 20);
-      return result;
-    };
-  }
-
-  function installWatch4403(){
-    applyClientShell4403();
-    const card=document.getElementById('clientObjectCard56');
-    const tab=document.getElementById('tab_clientcard');
-    if (card && !card.dataset.watch4403){
-      card.dataset.watch4403='1';
-      new MutationObserver(()=>setTimeout(applyClientShell4403,30)).observe(card,{attributes:true,attributeFilter:['class']});
-    }
-    if (tab && !tab.dataset.watch4403){
-      tab.dataset.watch4403='1';
-      new MutationObserver(()=>setTimeout(applyClientShell4403,30)).observe(tab,{attributes:true,attributeFilter:['class']});
-    }
-  }
-
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded',installWatch4403,{once:true});
-  else installWatch4403();
-  window.addEventListener('pageshow',()=>setTimeout(installWatch4403,50),{passive:true});
+  var oldOpen=window.openClientObject56;
+  if(typeof oldOpen==='function')window.openClientObject56=async function(){var r=await oldOpen.apply(this,arguments);setTimeout(activateClientOnly4403b,180);return r};
+  var oldClose=window.closeClientObject56;
+  if(typeof oldClose==='function')window.closeClientObject56=function(){var r=oldClose.apply(this,arguments);setTimeout(activateClientOnly4403b,30);return r};
+  function install4403b(){activateClientOnly4403b();var card=document.getElementById('clientObjectCard56');if(card&&!card.__obs4403b){card.__obs4403b=1;new MutationObserver(function(){setTimeout(activateClientOnly4403b,20)}).observe(card,{attributes:true,attributeFilter:['class']})}}
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install4403b,{once:true});else install4403b();
+  window.addEventListener('pageshow',function(){setTimeout(install4403b,60)},{passive:true});
 })();
-
 </script>
+
 </body></html>
