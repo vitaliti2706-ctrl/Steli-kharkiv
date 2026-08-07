@@ -23992,4 +23992,254 @@ document.documentElement.dataset.pixelVersion=VERSION4400;try{document.title='Po
 })();
 </script>
 
+
+<!-- PIXEL 44.01: standalone estimate file + admin-history sharing -->
+<script id="pixel4401StandaloneAdminShare">
+(function(){
+'use strict';
+const VERSION4401='44.01';
+let payload4401=null;
+
+function num4401(value){
+  const normalized=String(value??'').replace(/\s/g,'').replace(',','.').replace(/[^\d.-]/g,'');
+  return Number(normalized)||0;
+}
+function money4401(value){return Math.round(num4401(value)).toLocaleString('uk-UA')+' грн'}
+function esc4401(value){return String(value??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]))}
+function clean4401(value){return String(value??'').replace(/\s+/g,' ').trim()}
+function safe4401(value){return (clean4401(value)||'object').replace(/[^a-zA-Z0-9а-яА-ЯіІїЇєЄґҐ_-]+/g,'-').replace(/-+/g,'-').replace(/^-|-$/g,'')||'object'}
+function qty4401(value){return num4401(value).toLocaleString('uk-UA',{maximumFractionDigits:2})}
+function copy4401(value){try{return JSON.parse(JSON.stringify(value))}catch(_){return value}}
+
+function roomRows4401(room){return Array.isArray(room?.rows)?room.rows:[]}
+function finishing4401(room){
+  const items=Array.isArray(room?.finishingWorks?.items)?room.finishingWorks.items:[];
+  return items.filter(item=>item && item.enabled!==false && (clean4401(item.name||item.title)||num4401(item.quantity)||num4401(item.price)));
+}
+function additional4401(room){
+  if(Array.isArray(room?.additionalWorks4349))return room.additionalWorks4349;
+  if(Array.isArray(room?.additionalWorks))return room.additionalWorks;
+  return [];
+}
+function materials4401(object){
+  if(Array.isArray(object?.objectMaterials4345)&&object.objectMaterials4345.length)return object.objectMaterials4345;
+  const rooms=Array.isArray(object?.rooms)?object.rooms:[];
+  for(const room of rooms){
+    const list=room?.finishingWorks?.objectMaterials4345;
+    if(Array.isArray(list)&&list.length)return list;
+  }
+  return [];
+}
+function lineSum4401(item,qtyKey='quantity'){
+  const explicit=num4401(item?.sum);
+  if(explicit)return explicit;
+  return num4401(item?.[qtyKey])*num4401(item?.price);
+}
+function ceiling4401(room){
+  const fixed=num4401(room?.calculated)||num4401(room?.total);
+  if(fixed)return fixed;
+  return roomRows4401(room).reduce((s,row)=>s+lineSum4401(row,'qty'),0);
+}
+function finishingTotal4401(room){return finishing4401(room).reduce((s,item)=>s+num4401(item?.quantity)*num4401(item?.price),0)}
+function additionalTotal4401(room){return additional4401(room).reduce((s,item)=>s+num4401(item?.quantity)*num4401(item?.price),0)}
+function materialsTotal4401(object){return materials4401(object).reduce((s,item)=>s+num4401(item?.quantity)*num4401(item?.price),0)}
+
+function table4401(title,items,mode){
+  if(!items.length)return '';
+  const rows=items.map(item=>{
+    const name=clean4401(item?.name||item?.title||item?.label||'Позиція');
+    const quantity=mode==='ceiling'?num4401(item?.qty):num4401(item?.quantity);
+    const unit=clean4401(item?.unit||'');
+    const price=num4401(item?.price);
+    const sum=mode==='ceiling'?lineSum4401(item,'qty'):quantity*price;
+    return `<tr><td>${esc4401(name)}</td><td>${qty4401(quantity)}${unit?' '+esc4401(unit):''}</td><td>${money4401(price)}</td><td><b>${money4401(sum)}</b></td></tr>`;
+  }).join('');
+  return `<h4>${esc4401(title)}</h4><div class="table-wrap"><table><thead><tr><th>Позиція</th><th>Кількість</th><th>Ціна</th><th>Сума</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+}
+
+function buildEstimateHtml4401(source){
+  const object=copy4401(source||{});
+  const rooms=Array.isArray(object.rooms)?object.rooms:[];
+  const mats=materials4401(object);
+  const roomHtml=rooms.map((room,index)=>{
+    const rows=roomRows4401(room);
+    const finish=finishing4401(room);
+    const extra=additional4401(room);
+    const ceiling=ceiling4401(room), finishingTotal=finishingTotal4401(room), extraTotal=additionalTotal4401(room);
+    const total=ceiling+finishingTotal+extraTotal;
+    return `<section class="card room"><div class="room-head"><div><h2>${esc4401(room?.name||room?.roomName||('Кімната '+(index+1)))}</h2><div class="room-meta"><span>Площа: <b>${num4401(room?.area||room?.metrics?.area).toFixed(2)} м²</b></span><span>Периметр: <b>${num4401(room?.perimeter||room?.metrics?.perimeter).toFixed(2)} м/пог.</b></span></div></div><div class="room-total">${money4401(total)}</div></div>${rows.length?table4401('Стеля та додаткові елементи',rows,'ceiling'):`<div class="empty">Деталізація стелі не збережена. Сума стелі: <b>${money4401(ceiling)}</b></div>`}${table4401('Оздоблення кімнати',finish,'work')}${table4401('Додаткові роботи кімнати',extra,'work')}<div class="room-subtotals"><span>Стеля: <b>${money4401(ceiling)}</b></span><span>Оздоблення: <b>${money4401(finishingTotal)}</b></span><span>Додаткові роботи: <b>${money4401(extraTotal)}</b></span></div></section>`;
+  }).join('');
+  const matsTotal=materialsTotal4401(object);
+  const materialsHtml=mats.length?`<section class="card room"><div class="room-head"><div><h2>Матеріали всього об’єкта</h2><div class="room-meta"><span>Окремий загальний список матеріалів</span></div></div><div class="room-total">${money4401(matsTotal)}</div></div>${table4401('Матеріали',mats,'work')}</section>`:'';
+  const ceilingTotal=rooms.reduce((s,r)=>s+ceiling4401(r),0);
+  const finishTotal=rooms.reduce((s,r)=>s+finishingTotal4401(r),0);
+  const extraTotal=rooms.reduce((s,r)=>s+additionalTotal4401(r),0);
+  const computedTotal=ceilingTotal+finishTotal+extraTotal+matsTotal;
+  const total=computedTotal||num4401(object.total);
+  const area=rooms.length?rooms.reduce((s,r)=>s+num4401(r?.area||r?.metrics?.area),0):num4401(object.area);
+  const perimeter=rooms.length?rooms.reduce((s,r)=>s+num4401(r?.perimeter||r?.metrics?.perimeter),0):num4401(object.perimeter);
+  const objectNumber=clean4401(object.objectNumber||object.object_number||object.cloudObjectNumber||'');
+  return `<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Кошторис Potolok.in.ua${objectNumber?' — '+esc4401(objectNumber):''}</title>
+<style>
+*{box-sizing:border-box}html,body{margin:0;padding:0;background:#f4f7fb;color:#0f172a;font-family:Arial,Helvetica,sans-serif}body{padding:16px}.wrap{width:min(940px,100%);margin:0 auto}.card{background:#fff;border:1px solid #dbe3ef;border-radius:18px;padding:18px;margin:0 0 14px;box-shadow:0 4px 16px rgba(15,23,42,.04)}.brand{font-size:29px;font-weight:900;letter-spacing:-.5px}.brand span{color:#075bff}.title{margin:8px 0 0;font-size:25px}.info-grid,.summary-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin-top:14px}.info{background:#f8fafc;border:1px solid #e5e7eb;border-radius:11px;padding:10px}.info small{display:block;color:#64748b;font-size:12px;margin-bottom:4px}.info b{font-size:15px;overflow-wrap:anywhere}.room-head{display:flex;justify-content:space-between;align-items:flex-start;gap:14px}.room h2{font-size:20px;margin:0}.room-meta{display:flex;flex-wrap:wrap;gap:10px;margin-top:6px;color:#64748b;font-size:13px}.room-total{font-size:22px;font-weight:900;color:#075bff;white-space:nowrap}.room h4{margin:17px 0 8px;font-size:15px}.table-wrap{width:100%;overflow-x:auto}table{width:100%;border-collapse:collapse;min-width:560px;font-size:13px}th,td{padding:9px 7px;border-bottom:1px solid #e5e7eb;text-align:left;vertical-align:top}th{color:#475569;background:#f8fafc}th:nth-child(n+2),td:nth-child(n+2){text-align:right}.room-subtotals{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}.room-subtotals span{background:#f8fafc;border-radius:9px;padding:8px 10px;font-size:12px}.empty{margin-top:12px;background:#f8fafc;border:1px dashed #cbd5e1;border-radius:10px;padding:10px;color:#64748b}.grand{margin-top:14px;background:linear-gradient(135deg,#071428,#075bff);border-radius:15px;padding:17px;color:#fff}.grand small{display:block;color:#bfdbfe}.grand b{display:block;font-size:35px;margin-top:5px}.note{font-size:12px;line-height:1.5;color:#64748b;padding:2px 4px 18px}@media(max-width:640px){body{padding:8px}.card{padding:13px;border-radius:14px}.info-grid,.summary-grid{grid-template-columns:1fr}.room-head{flex-direction:column}.room-total{font-size:20px}.title{font-size:22px}.brand{font-size:26px}}
+</style>
+</head>
+<body><main class="wrap">
+<section class="card"><div class="brand">Potolok<span>.in.ua</span></div><h1 class="title">Кошторис об’єкта</h1><div class="info-grid">${objectNumber?`<div class="info"><small>Номер об’єкта</small><b>${esc4401(objectNumber)}</b></div>`:''}<div class="info"><small>Клієнт</small><b>${esc4401(object.clientName||'—')}</b></div><div class="info"><small>Телефон</small><b>${esc4401(object.clientPhone||'—')}</b></div><div class="info"><small>Адреса</small><b>${esc4401(object.address||'—')}</b></div><div class="info"><small>Дата заміру</small><b>${esc4401(object.date||'—')}</b></div></div></section>
+${roomHtml||'<section class="card"><b>Кімнати ще не додані.</b></section>'}
+${materialsHtml}
+<section class="card"><h2 style="margin:0">Підсумок об’єкта</h2><div class="summary-grid"><div class="info"><small>Кімнат</small><b>${rooms.length}</b></div><div class="info"><small>Загальна площа</small><b>${area.toFixed(2)} м²</b></div><div class="info"><small>Загальний периметр</small><b>${perimeter.toFixed(2)} м/пог.</b></div><div class="info"><small>Стелі та елементи</small><b>${money4401(ceilingTotal)}</b></div><div class="info"><small>Оздоблення</small><b>${money4401(finishTotal)}</b></div><div class="info"><small>Додаткові роботи</small><b>${money4401(extraTotal)}</b></div><div class="info"><small>Матеріали</small><b>${money4401(matsTotal)}</b></div></div><div class="grand"><small>ЗАГАЛЬНА СУМА</small><b>${money4401(total)}</b></div></section>
+<div class="note">Ціна попередня. Остаточна вартість після заміру. Файл містить готовий кошторис і не потребує доступу до кабінету Potolok.in.ua для перегляду.<br>Potolok.in.ua · 097 454 67 13</div>
+</main></body></html>`;
+}
+
+function buildEstimateText4401(source){
+  const object=copy4401(source||{}),rooms=Array.isArray(object.rooms)?object.rooms:[];
+  const lines=['Кошторис Potolok.in.ua'];
+  const number=clean4401(object.objectNumber||object.object_number||'');
+  if(number)lines.push('Об’єкт: '+number);
+  lines.push('Клієнт: '+(clean4401(object.clientName)||'—'),'Телефон: '+(clean4401(object.clientPhone)||'—'),'Адреса: '+(clean4401(object.address)||'—'),'');
+  let total=0;
+  rooms.forEach((room,index)=>{
+    const ceiling=ceiling4401(room),finish=finishingTotal4401(room),extra=additionalTotal4401(room),roomTotal=ceiling+finish+extra;total+=roomTotal;
+    lines.push((clean4401(room?.name||room?.roomName)||('Кімната '+(index+1)))+': '+money4401(roomTotal));
+    roomRows4401(room).forEach(row=>lines.push('  • '+clean4401(row?.name||row?.title||'Позиція')+': '+qty4401(row?.qty)+(clean4401(row?.unit)?' '+clean4401(row.unit):'')+' × '+money4401(row?.price)+' = '+money4401(lineSum4401(row,'qty'))));
+    finishing4401(room).forEach(item=>lines.push('  • '+clean4401(item?.name||item?.title||'Оздоблення')+': '+qty4401(item?.quantity)+(clean4401(item?.unit)?' '+clean4401(item.unit):'')+' × '+money4401(item?.price)+' = '+money4401(num4401(item?.quantity)*num4401(item?.price))));
+    additional4401(room).forEach(item=>lines.push('  • '+clean4401(item?.name||item?.title||'Додаткова робота')+': '+qty4401(item?.quantity)+(clean4401(item?.unit)?' '+clean4401(item.unit):'')+' × '+money4401(item?.price)+' = '+money4401(num4401(item?.quantity)*num4401(item?.price))));
+    lines.push('');
+  });
+  const mats=materials4401(object),matsTotal=materialsTotal4401(object);total+=matsTotal;
+  if(mats.length){lines.push('Матеріали всього об’єкта:');mats.forEach(item=>lines.push('  • '+clean4401(item?.name||'Матеріал')+': '+qty4401(item?.quantity)+(clean4401(item?.unit)?' '+clean4401(item.unit):'')+' × '+money4401(item?.price)+' = '+money4401(num4401(item?.quantity)*num4401(item?.price))));lines.push('');}
+  lines.push('ЗАГАЛЬНА СУМА: '+money4401(total||object.total),'','Ціна попередня. Остаточна вартість після заміру.','Potolok.in.ua · 097 454 67 13');
+  return lines.join('\n');
+}
+
+function makePayload4401(object){
+  const html=buildEstimateHtml4401(object),text=buildEstimateText4401(object);
+  const key=object?.objectNumber||object?.object_number||object?.clientName||object?.address||object?.id||'object';
+  const filename='Koshtorys-Potolok-'+safe4401(key)+'.html';
+  return {object:copy4401(object),html,text,filename};
+}
+function setStatus4401(text,type='ok'){
+  const el=document.getElementById('shareStatus4401');if(!el)return;
+  el.className='share-status4400 show '+(type==='err'?'err':'ok');el.textContent=text;
+}
+function ensureModal4401(){
+  let modal=document.getElementById('shareEstimateModal4401');if(modal)return modal;
+  modal=document.createElement('div');modal.id='shareEstimateModal4401';modal.style.cssText='position:fixed;inset:0;z-index:2147483640;background:rgba(15,23,42,.58);display:none;align-items:flex-end;justify-content:center;padding:16px';
+  modal.innerHTML='<div class="share-sheet4400"><div class="share-head4400"><div><h3>📤 Надіслати кошторис</h3><p>Файл вже містить весь кошторис. Клієнту не потрібен ваш кабінет або історія.</p></div><button class="share-close4400" type="button" onclick="closeEstimate4401()">×</button></div><div class="share-actions4400"><button class="share-action4400 primary" type="button" onclick="shareEstimateFile4401(this)"><span>📎</span><div><b>Надіслати файлом</b><small>Telegram / Viber / WhatsApp — у файлі будуть усі рядки та суми</small></div></button><button class="share-action4400" type="button" onclick="downloadEstimate4401()"><span>⬇️</span><div><b>Завантажити файл</b><small>Зберегти готовий HTML-кошторис на телефон</small></div></button><button class="share-action4400" type="button" onclick="shareEstimateText4401(this)"><span>💬</span><div><b>Надіслати текстом</b><small>Резервний варіант</small></div></button></div><div id="shareStatus4401" class="share-status4400"></div></div>';
+  modal.addEventListener('click',event=>{if(event.target===modal)window.closeEstimate4401()});document.body.appendChild(modal);return modal;
+}
+window.closeEstimate4401=function(){const modal=document.getElementById('shareEstimateModal4401');if(modal)modal.style.display='none'};
+function openPayload4401(object){
+  payload4401=makePayload4401(object);
+  const modal=ensureModal4401();const status=modal.querySelector('#shareStatus4401');if(status){status.className='share-status4400';status.textContent=''}modal.style.display='flex';
+}
+window.downloadEstimate4401=function(){
+  if(!payload4401)return;
+  const blob=new Blob([payload4401.html],{type:'text/html;charset=utf-8'}),url=URL.createObjectURL(blob),a=document.createElement('a');
+  a.href=url;a.download=payload4401.filename;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),3000);setStatus4401('Готовий файл кошторису збережено.','ok');
+};
+window.shareEstimateFile4401=async function(button){
+  if(!payload4401)return;const old=button?.innerHTML;
+  try{
+    if(button){button.disabled=true;button.innerHTML='<span>⏳</span><div><b>Готуємо готовий файл…</b><small>Усі дані вже вбудовані у файл</small></div>'}
+    const file=new File([payload4401.html],payload4401.filename,{type:'text/html'});
+    const canShare=!!navigator.share&&(!navigator.canShare||navigator.canShare({files:[file]}));
+    if(!canShare){window.downloadEstimate4401();setStatus4401('Пряма передача файлу недоступна. Готовий файл уже збережено — прикріпіть його в Telegram.','err');return}
+    await navigator.share({title:'Кошторис Potolok.in.ua',files:[file]});
+    window.closeEstimate4401();
+  }catch(error){
+    if(error?.name==='AbortError')return;
+    console.warn('44.01 file share',error);window.downloadEstimate4401();setStatus4401('Telegram/браузер не прийняв пряму передачу. Готовий файл уже збережено на телефон.','err');
+  }finally{if(button){button.disabled=false;button.innerHTML=old}}
+};
+window.shareEstimateText4401=async function(button){
+  if(!payload4401)return;const old=button?.innerHTML;
+  try{
+    if(button){button.disabled=true;button.textContent='⏳ Відкриваємо меню…'}
+    if(navigator.share){await navigator.share({title:'Кошторис Potolok.in.ua',text:payload4401.text});window.closeEstimate4401();return}
+    await navigator.clipboard.writeText(payload4401.text);setStatus4401('Текст кошторису скопійовано.','ok');
+  }catch(error){if(error?.name!=='AbortError'){try{await navigator.clipboard.writeText(payload4401.text);setStatus4401('Текст кошторису скопійовано.','ok')}catch(_){setStatus4401('Не вдалося відкрити меню надсилання.','err')}}}
+  finally{if(button){button.disabled=false;button.innerHTML=old}}
+};
+
+window.shareEstimateFile4338=function(){
+  try{
+    if(typeof window.syncActiveRoomFromUI==='function')window.syncActiveRoomFromUI(false);
+    const object=typeof window.collectObject==='function'?window.collectObject():{rooms:Array.isArray(window.projectRooms)?copy4401(window.projectRooms):[]};
+    openPayload4401(object);
+  }catch(error){alert('Не вдалося підготувати кошторис: '+(error?.message||error))}
+};
+window.shareEstimateFile4400=window.shareEstimateFile4401;
+window.shareEstimateText4400=window.shareEstimateText4401;
+window.downloadEstimate4400=window.downloadEstimate4401;
+
+async function adminRow4401(id){
+  let rows=Array.isArray(window.serviceRows60)?window.serviceRows60:[];
+  let row=rows.find(item=>String(item?.id)===String(id));
+  if(row)return row;
+  const token=sessionStorage.getItem('potolok_service_token')||'';
+  if(!token)throw new Error('Спочатку увійдіть як адміністратор');
+  const response=await fetch('/api/objects',{method:'POST',headers:{'Content-Type':'application/json','X-Service-Token':token},body:JSON.stringify({action:'serviceList'})});
+  const data=await response.json().catch(()=>({}));if(!response.ok)throw new Error(data.error||('API '+response.status));
+  rows=Array.isArray(data.objects)?data.objects:[];window.serviceRows60=rows;row=rows.find(item=>String(item?.id)===String(id));
+  if(!row)throw new Error('Об’єкт не знайдено в історії');
+  return row;
+}
+window.shareAdminEstimate4401=async function(id,button){
+  const old=button?.innerHTML;
+  try{
+    if(button){button.disabled=true;button.textContent='⏳ Кошторис…'}
+    const row=await adminRow4401(id),base=row?.object_data&&typeof row.object_data==='object'?copy4401(row.object_data):{};
+    base.objectNumber=row?.object_number||base.objectNumber||'';base.cloudId=row?.id||base.cloudId||'';
+    openPayload4401(base);
+  }catch(error){alert('Не вдалося відкрити кошторис з історії: '+(error?.message||error))}
+  finally{if(button){button.disabled=false;button.innerHTML=old}}
+};
+
+function patchAdminButtons4401(){
+  document.querySelectorAll('#serviceRoot60 .p60-object').forEach(card=>{
+    if(card.querySelector('[data-share-estimate4401]'))return;
+    const match=String(card.id||'').match(/^serviceObject60_(.+)$/);if(!match)return;
+    const actions=card.querySelector('.p60-actions');if(!actions)return;
+    const button=document.createElement('button');button.type='button';button.dataset.shareEstimate4401='1';button.textContent='📤 Надіслати кошторис';button.onclick=function(){window.shareAdminEstimate4401(match[1],this)};
+    const estimateButton=[...actions.querySelectorAll('button')].find(btn=>/Кошторис/.test(btn.textContent||''));
+    if(estimateButton)estimateButton.insertAdjacentElement('afterend',button);else actions.appendChild(button);
+  });
+  document.querySelectorAll('#objectList .crm58-card').forEach(card=>{
+    if(card.querySelector('[data-share-estimate4401]'))return;
+    const actions=card.querySelector('.crm58-actions');if(!actions)return;
+    const source=[...actions.querySelectorAll('button')].map(btn=>btn.getAttribute('onclick')||'').find(text=>/openCloudObject56|changeStatus58|clientData58/.test(text));
+    const match=source&&source.match(/\('([^']+)'/);if(!match)return;
+    const button=document.createElement('button');button.type='button';button.dataset.shareEstimate4401='1';button.textContent='📤 Кошторис';button.onclick=function(){window.shareAdminEstimate4401(match[1],this)};actions.appendChild(button);
+  });
+}
+
+const oldServiceEstimate4401=window.serviceEstimate60;
+if(typeof oldServiceEstimate4401==='function'){
+  window.serviceEstimate60=function(id){
+    const result=oldServiceEstimate4401.apply(this,arguments);
+    setTimeout(()=>{
+      const body=document.getElementById('modalBody60');if(!body||body.querySelector('[data-modal-share4401]'))return;
+      const button=document.createElement('button');button.type='button';button.dataset.modalShare4401='1';button.className='p60-btn blue';button.style.cssText='width:100%;margin-top:10px';button.textContent='📤 Надіслати готовий кошторис файлом';button.onclick=function(){window.shareAdminEstimate4401(id,this)};body.appendChild(button);
+    },0);
+    return result;
+  };
+}
+
+const observer4401=new MutationObserver(()=>patchAdminButtons4401());
+if(document.body)observer4401.observe(document.body,{childList:true,subtree:true});
+patchAdminButtons4401();setTimeout(patchAdminButtons4401,300);setTimeout(patchAdminButtons4401,1200);
+
+document.documentElement.dataset.pixelVersion=VERSION4401;
+try{document.title='Potolok AI PRO — Pixel '+VERSION4401}catch(_){ }
+})();
+
+</script>
 </body></html>
