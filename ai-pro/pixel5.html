@@ -23072,4 +23072,779 @@ window.addEventListener('pageshow',mark4395,{passive:true});
 </script>
 
 
+<!-- PIXEL 43.97: rebuilt finishing geometry UI + stable mobile inputs -->
+<style id="pixel4397FinishingGeometryStyles">
+#tab_finishing .fin78-details{
+  border:0!important;
+  background:transparent!important;
+  padding:0!important;
+  margin:14px 0!important;
+  overflow:visible!important;
+}
+#tab_finishing .fin78-details>summary{
+  list-style:none;
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  min-height:58px;
+  padding:15px 16px!important;
+  border:1px solid #bfdbfe;
+  border-radius:15px;
+  background:linear-gradient(135deg,#eff6ff,#fff);
+  color:#0f172a;
+  font-size:17px!important;
+  font-weight:950!important;
+  line-height:1.2;
+  box-shadow:0 8px 22px rgba(15,23,42,.06);
+}
+#tab_finishing .fin78-details>summary::-webkit-details-marker{display:none}
+#tab_finishing .fin78-details>summary:before{content:'▾';margin-right:9px;color:#075bff;font-size:17px}
+#tab_finishing .fin78-details:not([open])>summary:before{content:'▸'}
+.fin97-config-card,.fin97-subsection{
+  margin-top:12px;
+  padding:14px;
+  border:1px solid #dbe3ef;
+  border-radius:16px;
+  background:#fff;
+  box-shadow:0 8px 20px rgba(15,23,42,.05);
+}
+.fin97-section-title{margin-bottom:11px}
+.fin97-section-title b{display:block;font-size:14px;color:#0f172a}
+.fin97-section-title span{display:block;margin-top:4px;font-size:9px;line-height:1.45;color:#64748b}
+#tab_finishing .fin78-config-grid{
+  display:grid!important;
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  gap:10px!important;
+}
+#tab_finishing .fin78-config-grid label,
+.fin97-card label{
+  display:flex!important;
+  flex-direction:column!important;
+  gap:6px!important;
+  min-width:0!important;
+  color:#334155!important;
+  font-size:10px!important;
+  font-weight:900!important;
+  line-height:1.25!important;
+}
+#tab_finishing .fin78-config-grid input,
+#tab_finishing .fin78-config-grid select,
+.fin97-card input,.fin97-card select{
+  width:100%!important;
+  min-width:0!important;
+  min-height:48px!important;
+  margin:0!important;
+  padding:11px 12px!important;
+  border:1px solid #cbd5e1!important;
+  border-radius:11px!important;
+  background:#f8fafc!important;
+  color:#0f172a!important;
+  font-size:16px!important;
+  line-height:1.2!important;
+  outline:none!important;
+  box-shadow:none!important;
+}
+#tab_finishing .fin78-config-grid input:focus,
+#tab_finishing .fin78-config-grid select:focus,
+.fin97-card input:focus,.fin97-card select:focus{
+  border-color:#075bff!important;
+  background:#fff!important;
+  box-shadow:0 0 0 3px rgba(7,91,255,.12)!important;
+}
+.fin97-subsection>.fin78-subhead{
+  display:flex!important;
+  align-items:flex-start!important;
+  justify-content:space-between!important;
+  gap:12px!important;
+  margin:0 0 11px!important;
+}
+.fin97-subsection>.fin78-subhead b{font-size:15px!important;line-height:1.25!important}
+.fin97-subsection>.fin78-subhead .btn,
+.fin97-subsection>.fin78-subhead>.btn{
+  min-height:42px!important;
+  padding:9px 12px!important;
+  border-radius:10px!important;
+  white-space:nowrap!important;
+}
+.fin97-description{margin:-4px 0 12px;font-size:9px;line-height:1.45;color:#64748b}
+#fin78OpeningsList,#fin78WindowWallsList,#fin78NarrowList{display:grid!important;gap:10px!important}
+.fin97-card{
+  position:relative!important;
+  display:grid!important;
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  gap:10px!important;
+  padding:14px!important;
+  border:1px solid #dbe3ef!important;
+  border-radius:14px!important;
+  background:linear-gradient(180deg,#fff,#fbfdff)!important;
+  overflow:visible!important;
+}
+.fin97-card-head{
+  grid-column:1/-1;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  min-height:42px;
+  padding:9px 10px;
+  border:1px solid #dbeafe;
+  border-radius:11px;
+  background:#eff6ff;
+}
+.fin97-card-head div{min-width:0}
+.fin97-card-head b{display:block;font-size:12px;color:#075bff}
+.fin97-card-head span{display:block;margin-top:3px;font-size:8px;line-height:1.35;color:#64748b}
+.fin97-remove{
+  width:38px!important;
+  height:38px!important;
+  min-width:38px!important;
+  min-height:38px!important;
+  padding:0!important;
+  border:1px solid #fecaca!important;
+  border-radius:10px!important;
+  background:#fff7f7!important;
+  color:#dc2626!important;
+  font-size:20px!important;
+  font-weight:950!important;
+}
+.fin97-full{grid-column:1/-1!important}
+.fin97-derived input{
+  border-color:#bfdbfe!important;
+  background:#eff6ff!important;
+  color:#075bff!important;
+  font-weight:950!important;
+}
+.fin97-help{
+  grid-column:1/-1;
+  padding:9px 10px;
+  border-radius:9px;
+  background:#f8fafc;
+  color:#64748b;
+  font-size:8px;
+  line-height:1.4;
+}
+.fin97-empty{
+  padding:18px 14px;
+  border:1px dashed #cbd5e1;
+  border-radius:12px;
+  background:#f8fafc;
+  text-align:center;
+  color:#64748b;
+  font-size:10px;
+  line-height:1.45;
+}
+@media(max-width:620px){
+  #tab_finishing .fin78-shell{padding:10px!important}
+  #tab_finishing .fin78-config-grid{grid-template-columns:1fr!important}
+  .fin97-config-card,.fin97-subsection{padding:12px!important;border-radius:14px!important}
+  .fin97-subsection>.fin78-subhead{flex-direction:column!important}
+  .fin97-subsection>.fin78-subhead .btn,
+  .fin97-subsection>.fin78-subhead>.btn{width:100%!important}
+  .fin81-opening-actions{display:grid!important;grid-template-columns:1fr 1fr!important;width:100%!important}
+  .fin81-opening-actions .btn{width:100%!important;min-height:44px!important}
+  .fin97-card{grid-template-columns:1fr 1fr!important;padding:12px!important}
+  .fin97-card .fin97-full{grid-column:1/-1!important}
+}
+@media(max-width:390px){
+  .fin97-card{grid-template-columns:1fr!important}
+  .fin97-card>*{grid-column:1!important}
+  .fin81-opening-actions{grid-template-columns:1fr!important}
+}
+</style>
+<script id="pixel4397FinishingGeometryFix">
+(function(){
+'use strict';
+if(window.__pixel4397FinishingGeometryFix)return;
+window.__pixel4397FinishingGeometryFix=true;
+let saveTimer4397=0;
+
+function fw4397(){try{return typeof ensure78==='function'?ensure78():null}catch(_){return null}}
+function esc4397(value){return String(value??'').replace(/[&<>"']/g,function(char){return({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[char]})}
+function num4397(value){
+  const raw=String(value??'').trim().replace(/\s+/g,'').replace(',','.');
+  if(raw===''||raw==='.'||raw==='-'||raw==='-.')return null;
+  const number=Number(raw);
+  return Number.isFinite(number)?Math.max(0,number):null;
+}
+function displayNum4397(value){return String(Number(value)||0).replace('.',',')}
+function setText4397(id,value){const el=document.getElementById(id);if(el)el.textContent=value}
+function queueSave4397(immediate){
+  clearTimeout(saveTimer4397);
+  const run=function(){try{if(typeof save78==='function')save78();else if(typeof autosave==='function')autosave()}catch(_){}};
+  if(immediate)run();else saveTimer4397=setTimeout(run,700);
+}
+function normalize4397(){
+  const fw=fw4397();if(!fw)return;
+  if(!Array.isArray(fw.openings))fw.openings=[];
+  if(!Array.isArray(fw.windowWalls))fw.windowWalls=[];
+  if(!Array.isArray(fw.narrowAreas))fw.narrowAreas=[];
+  fw.windowWalls.forEach(function(item){if(item&&item.name==='Оконна стіна')item.name='Віконна стіна'});
+}
+function updateAutoWorks4397(g){
+  const fw=fw4397();if(!fw||!g)return;
+  if(Array.isArray(fw.items)){
+    fw.items.forEach(function(item,index){
+      if(item?.quantityMode!=='auto')return;
+      const quantity=typeof qty78==='function'?qty78(item.source,g):0;
+      item.quantity=quantity;
+      const card=document.querySelector('[data-fin78="'+index+'"]');
+      if(!card)return;
+      const quantityInput=card.querySelector('.fin79-unit-wrap input');
+      if(quantityInput&&document.activeElement!==quantityInput)quantityInput.value=Number(quantity||0).toFixed(2);
+      const sum=card.querySelector('.fin78-sum');
+      if(sum&&typeof money78==='function')sum.textContent=money78(item.enabled?quantity*(Number(item.price)||0):0);
+    });
+    fw.total=fw.items.reduce(function(total,item){return total+(item.enabled?(Number(item.quantity)||0)*(Number(item.price)||0):0)},0);
+    if(typeof money78==='function')setText4397('fin78Total',money78(fw.total));
+  }
+  try{if(typeof updateFinance79==='function')updateFinance79()}catch(_){ }
+}
+function refreshMetrics4397(){
+  let g=null;try{g=typeof geometry78==='function'?geometry78():null}catch(_){g=null}
+  if(!g)return;
+  setText4397('fin78Area',g.area.toFixed(2)+' м²');
+  setText4397('fin78Perimeter',g.perimeter.toFixed(2)+' м');
+  setText4397('fin78Height',g.height.toFixed(2)+' м');
+  setText4397('fin78GrossWalls',g.grossWalls.toFixed(2)+' м²');
+  setText4397('fin78Openings',g.openingsArea.toFixed(2)+' м²');
+  setText4397('fin78NetWalls',g.netWalls.toFixed(2)+' м²');
+  setText4397('fin78Narrow',g.narrowLm.toFixed(2)+' м.п.');
+  setText4397('fin78Corners',g.innerCorners+' / '+g.outerCorners);
+  updateAutoWorks4397(g);
+  document.querySelectorAll('[data-fin97-group="openings"]').forEach(function(card){
+    const index=Number(card.dataset.fin97Index),fw=fw4397(),item=fw?.openings?.[index];if(!item)return;
+    const out=card.querySelector('[data-fin97-derived="area"]');if(out)out.value=((Number(item.width)||0)*(Number(item.height)||0)).toFixed(2)+' м²';
+  });
+  document.querySelectorAll('[data-fin97-group="windowWalls"]').forEach(function(card){
+    const index=Number(card.dataset.fin97Index),fw=fw4397(),item=fw?.windowWalls?.[index];if(!item)return;
+    const out=card.querySelector('[data-fin97-derived="extra"]');if(out)out.value=(typeof windowWallExtra78==='function'?windowWallExtra78(item):0).toFixed(0)+' грн';
+  });
+  document.querySelectorAll('[data-fin97-group="narrowAreas"]').forEach(function(card){
+    const index=Number(card.dataset.fin97Index),fw=fw4397(),item=fw?.narrowAreas?.[index];if(!item)return;
+    const limit=Math.max(.1,Number(fw?.config?.narrowLimit)||.5);
+    const counted=(Number(item.width)||0)<=limit?(Number(item.length)||0):0;
+    const out=card.querySelector('[data-fin97-derived="counted"]');if(out)out.value=counted.toFixed(2)+' м.п.';
+  });
+}
+function cardHead4397(title,subtitle){return '<div class="fin97-card-head"><div><b>'+title+'</b><span>'+subtitle+'</span></div><button class="fin97-remove" type="button" data-fin97-action="remove" aria-label="Видалити">×</button></div>'}
+
+window.renderOpenings78=function(){
+  normalize4397();const fw=fw4397(),box=document.getElementById('fin78OpeningsList');if(!fw||!box)return;
+  box.innerHTML=fw.openings.length?fw.openings.map(function(item,index){
+    const door=item.type==='door',title=door?'🚪 Двері '+(index+1):'🪟 Вікно '+(index+1);
+    return '<div class="fin97-card" data-fin97-group="openings" data-fin97-index="'+index+'">'+
+      cardHead4397(title,'Розміри прорізу та автоматична площа')+
+      '<label class="fin97-full">Тип прорізу<select data-fin97-key="type"><option value="window" '+(!door?'selected':'')+'>Вікно</option><option value="door" '+(door?'selected':'')+'>Двері</option></select></label>'+
+      '<label>Ширина, м<input type="text" inputmode="decimal" autocomplete="off" data-fin97-key="width" data-fin97-number="1" value="'+displayNum4397(item.width)+'" placeholder="Напр. 1,35"></label>'+
+      '<label>Висота, м<input type="text" inputmode="decimal" autocomplete="off" data-fin97-key="height" data-fin97-number="1" value="'+displayNum4397(item.height)+'" placeholder="Напр. 1,40"></label>'+
+      '<label class="fin97-full fin97-derived">Площа прорізу<input readonly data-fin97-derived="area" value="'+((Number(item.width)||0)*(Number(item.height)||0)).toFixed(2)+' м²"></label>'+
+      '<div class="fin97-help">Вводьте через кому або крапку. Форма не перезавантажується під час набору.</div>'+
+    '</div>';
+  }).join(''):'<div class="fin97-empty">Прорізів ще немає. Додайте вікно або двері кнопками вище.</div>';
+};
+window.renderWindowWalls78=function(){
+  normalize4397();const fw=fw4397(),box=document.getElementById('fin78WindowWallsList');if(!fw||!box)return;
+  const reasons=['Радіатор','Труби опалення','Складний доступ','Багато відкосів','Інше'];
+  box.innerHTML=fw.windowWalls.length?fw.windowWalls.map(function(item,index){
+    return '<div class="fin97-card" data-fin97-group="windowWalls" data-fin97-index="'+index+'">'+
+      cardHead4397('🧱 Віконна стіна '+(index+1),'Окрема доплата за складність виконання')+
+      '<label class="fin97-full">Назва<input type="text" autocomplete="off" data-fin97-key="name" value="'+esc4397(item.name||'Віконна стіна')+'" placeholder="Напр. Стіна з радіатором"></label>'+
+      '<label class="fin97-full">Причина<select data-fin97-key="reason">'+reasons.map(function(value){return '<option '+(item.reason===value?'selected':'')+'>'+value+'</option>'}).join('')+'</select></label>'+
+      '<label>Площа, м²<input type="text" inputmode="decimal" autocomplete="off" data-fin97-key="area" data-fin97-number="1" value="'+displayNum4397(item.area)+'" placeholder="Напр. 5,0"></label>'+
+      '<label class="fin97-derived">Розрахована доплата<input readonly data-fin97-derived="extra" value="'+(typeof windowWallExtra78==='function'?windowWallExtra78(item):0).toFixed(0)+' грн"></label>'+
+    '</div>';
+  }).join(''):'<div class="fin97-empty">Складних віконних стін ще немає. Додавайте їх тільки там, де справді потрібна окрема доплата.</div>';
+};
+window.renderNarrow78=function(){
+  normalize4397();const fw=fw4397(),box=document.getElementById('fin78NarrowList');if(!fw||!box)return;
+  const limit=Math.max(.1,Number(fw.config?.narrowLimit)||.5);
+  box.innerHTML=fw.narrowAreas.length?fw.narrowAreas.map(function(item,index){
+    const counted=(Number(item.width)||0)<=limit?(Number(item.length)||0):0;
+    return '<div class="fin97-card" data-fin97-group="narrowAreas" data-fin97-index="'+index+'">'+
+      cardHead4397('↔ Вузька ділянка '+(index+1),'Ширина, довжина та автоматичний погонний метр')+
+      '<label class="fin97-full">Назва<input type="text" autocomplete="off" data-fin97-key="name" value="'+esc4397(item.name||'Виступ')+'" placeholder="Напр. Виступ біля вікна"></label>'+
+      '<label>Ширина, м<input type="text" inputmode="decimal" autocomplete="off" data-fin97-key="width" data-fin97-number="1" value="'+displayNum4397(item.width)+'" placeholder="Напр. 0,20"></label>'+
+      '<label>Довжина, м<input type="text" inputmode="decimal" autocomplete="off" data-fin97-key="length" data-fin97-number="1" value="'+displayNum4397(item.length)+'" placeholder="Напр. 6,50"></label>'+
+      '<label class="fin97-full fin97-derived">У розрахунок потрапляє<input readonly data-fin97-derived="counted" value="'+counted.toFixed(2)+' м.п."></label>'+
+    '</div>';
+  }).join(''):'<div class="fin97-empty">Вузьких ділянок ще немає. Додайте виступ або вузьку смугу кнопкою вище.</div>';
+};
+
+function renderGroup4397(group){
+  if(group==='openings')window.renderOpenings78();
+  if(group==='windowWalls')window.renderWindowWalls78();
+  if(group==='narrowAreas')window.renderNarrow78();
+  refreshMetrics4397();
+}
+window.addOpening78=function(type){
+  const fw=fw4397();if(!fw)return;const door=type==='door';
+  fw.openings.push({id:'opening_'+Date.now(),type:door?'door':'window',width:door ? 0.9 : 1.5,height:door?2.05:1.4});
+  queueSave4397(true);renderGroup4397('openings');
+  setTimeout(function(){document.querySelector('#fin78OpeningsList .fin97-card:last-child [data-fin97-key="width"]')?.focus()},0);
+};
+window.addWindowWall78=function(){
+  const fw=fw4397();if(!fw)return;fw.windowWalls.push({id:'windowwall_'+Date.now(),name:'Віконна стіна',area:0,reason:'Радіатор'});
+  queueSave4397(true);renderGroup4397('windowWalls');
+  setTimeout(function(){document.querySelector('#fin78WindowWallsList .fin97-card:last-child [data-fin97-key="name"]')?.focus()},0);
+};
+window.addNarrow78=function(){
+  const fw=fw4397();if(!fw)return;fw.narrowAreas.push({id:'narrow_'+Date.now(),name:'Виступ',width:.3,length:2.7});
+  queueSave4397(true);renderGroup4397('narrowAreas');
+  setTimeout(function(){document.querySelector('#fin78NarrowList .fin97-card:last-child [data-fin97-key="name"]')?.focus()},0);
+};
+window.fin78MiniRemove=function(group,index){
+  const fw=fw4397();if(!fw||!Array.isArray(fw[group])||!fw[group][index])return;
+  fw[group].splice(index,1);queueSave4397(true);renderGroup4397(group);
+};
+window.fin78MiniChange=function(group,index,key,value){
+  const fw=fw4397(),item=fw?.[group]?.[index];if(!item)return;
+  const numeric=['width','height','length','area'].includes(key);
+  if(numeric){const parsed=num4397(value);if(parsed!==null)item[key]=parsed;else if(String(value).trim()==='')item[key]=0}
+  else item[key]=value;
+  refreshMetrics4397();
+};
+window.fin78ConfigChange=function(){
+  const fw=fw4397();if(!fw)return;
+  const height=num4397(document.getElementById('fin78HeightInput')?.value);
+  const limit=num4397(document.getElementById('fin78NarrowLimit')?.value);
+  const surcharge=num4397(document.getElementById('fin78WindowSurcharge')?.value);
+  fw.config=Object.assign({},fw.config||{}, {
+    height:height===null?(Number(fw.config?.height)||0):height,
+    narrowLimit:Math.max(.1,limit===null?(Number(fw.config?.narrowLimit)||.5):limit),
+    windowMode:document.getElementById('fin78WindowMode')?.value||'percent',
+    windowSurcharge:surcharge===null?(Number(fw.config?.windowSurcharge)||0):surcharge
+  });
+  refreshMetrics4397();
+};
+function patchConfig4397(){
+  const fields=[['fin78HeightInput','decimal'],['fin78NarrowLimit','decimal'],['fin78WindowSurcharge','decimal']];
+  fields.forEach(function(pair){const el=document.getElementById(pair[0]);if(!el)return;el.type='text';el.inputMode=pair[1];el.autocomplete='off'});
+  const labels=document.querySelectorAll('#tab_finishing .fin78-config-grid label');
+  if(labels[2])labels[2].firstChild.textContent='Спосіб доплати віконної стіни';
+  if(labels[3])labels[3].firstChild.textContent='Значення доплати';
+}
+function organize4397(){
+  const details=document.querySelector('#tab_finishing .fin78-details');if(!details)return;
+  const summary=details.querySelector(':scope>summary');if(summary)summary.textContent='🚪 Прорізи, віконні стіни та вузькі ділянки';
+  const config=details.querySelector(':scope>.fin78-config-grid');
+  if(config&&!config.closest('.fin97-config-card')){
+    const card=document.createElement('section');card.className='fin97-config-card';
+    card.innerHTML='<div class="fin97-section-title"><b>⚙️ Основні налаштування</b><span>Висота кімнати, межа вузької ділянки та спосіб розрахунку доплати.</span></div>';
+    details.insertBefore(card,config);card.appendChild(config);
+  }
+  Array.from(details.querySelectorAll(':scope>.fin78-subhead')).forEach(function(head,index){
+    const list=head.nextElementSibling;if(!list||!list.id)return;
+    const section=document.createElement('section');section.className='fin97-subsection';details.insertBefore(section,head);section.appendChild(head);section.appendChild(list);
+    const descriptions=[
+      'Додайте вікна та двері. Ширина, висота і площа вводяться без стрибків сторінки.',
+      'Позначайте стіни зі складним доступом, радіаторами або трубами опалення.',
+      'Ділянки, ширші за встановлену межу, автоматично не рахуються як вузькі.'
+    ];
+    const p=document.createElement('p');p.className='fin97-description';p.textContent=descriptions[index]||'';head.insertAdjacentElement('afterend',p);
+  });
+  const heads=details.querySelectorAll('.fin97-subsection>.fin78-subhead>b');
+  if(heads[0])heads[0].textContent='Прорізи: вікна та двері';
+  if(heads[1])heads[1].textContent='Складні віконні стіни';
+  if(heads[2])heads[2].textContent='Вузькі ділянки та виступи';
+  const wallButton=heads[1]?.closest('.fin78-subhead')?.querySelector('.btn');
+  if(wallButton)wallButton.textContent='＋ Додати віконну стіну';
+  patchConfig4397();
+}
+function installEvents4397(){
+  const details=document.querySelector('#tab_finishing .fin78-details');if(!details||details.dataset.fin97Events)return;
+  details.dataset.fin97Events='1';
+  details.addEventListener('input',function(event){
+    const input=event.target.closest('[data-fin97-key]');if(!input)return;
+    const card=input.closest('[data-fin97-group]');if(!card)return;
+    const fw=fw4397(),group=card.dataset.fin97Group,index=Number(card.dataset.fin97Index),item=fw?.[group]?.[index];if(!item)return;
+    const key=input.dataset.fin97Key;
+    if(input.dataset.fin97Number){const parsed=num4397(input.value);if(parsed!==null)item[key]=parsed;else if(input.value.trim()==='')item[key]=0}
+    else item[key]=input.value;
+    if(group==='openings'&&key==='type'){
+      const title=card.querySelector('.fin97-card-head b');if(title)title.textContent=(input.value==='door'?'🚪 Двері ':'🪟 Вікно ')+(index+1);
+    }
+    refreshMetrics4397();
+  });
+  details.addEventListener('change',function(event){
+    if(event.target.closest('.fin78-config-grid')){window.fin78ConfigChange();queueSave4397(true);return}
+    const input=event.target.closest('[data-fin97-key]');if(!input)return;
+    const card=input.closest('[data-fin97-group]');if(!card)return;
+    const fw=fw4397(),group=card.dataset.fin97Group,index=Number(card.dataset.fin97Index),item=fw?.[group]?.[index];if(!item)return;
+    const key=input.dataset.fin97Key;
+    if(input.dataset.fin97Number){const parsed=num4397(input.value);item[key]=parsed===null?0:parsed;input.value=displayNum4397(item[key])}
+    else item[key]=input.value;
+    refreshMetrics4397();queueSave4397(true);
+  });
+  details.addEventListener('blur',function(event){
+    if(event.target.closest('.fin78-config-grid')){window.fin78ConfigChange();queueSave4397(true);return}
+    const input=event.target.closest('[data-fin97-key][data-fin97-number]');if(!input)return;
+    const card=input.closest('[data-fin97-group]');if(!card)return;
+    const fw=fw4397(),group=card.dataset.fin97Group,index=Number(card.dataset.fin97Index),item=fw?.[group]?.[index];if(!item)return;
+    const key=input.dataset.fin97Key,parsed=num4397(input.value);item[key]=parsed===null?0:parsed;input.value=displayNum4397(item[key]);
+    refreshMetrics4397();queueSave4397(true);
+  },true);
+  details.addEventListener('click',function(event){
+    const button=event.target.closest('[data-fin97-action="remove"]');if(!button)return;
+    const card=button.closest('[data-fin97-group]');if(!card)return;
+    window.fin78MiniRemove(card.dataset.fin97Group,Number(card.dataset.fin97Index));
+  });
+}
+const baseRender4397=window.renderFinishing78;
+if(typeof baseRender4397==='function')window.renderFinishing78=function(){
+  const result=baseRender4397.apply(this,arguments);
+  organize4397();installEvents4397();refreshMetrics4397();
+  return result;
+};
+function start4397(){
+  normalize4397();organize4397();installEvents4397();patchConfig4397();
+  if(document.getElementById('tab_finishing')?.classList.contains('active')){
+    window.renderOpenings78();window.renderWindowWalls78();window.renderNarrow78();refreshMetrics4397();
+  }
+  document.documentElement.dataset.pixelVersion='43.98';
+  document.title='Potolok AI PRO — Pixel 43.98';
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start4397,{once:true});else start4397();
+window.addEventListener('pageshow',start4397,{passive:true});
+})();
+</script>
+
+
+<!-- PIXEL 43.98: walls/openings/slopes workflow rebuild -->
+<style id="pixel4398WallsOpeningsStyles">
+#tab_finishing .fin98-workflow{display:grid;gap:16px;margin-top:14px}
+#tab_finishing .fin98-panel{border:1px solid #dbe6f3;border-radius:18px;background:#fff;padding:16px;box-shadow:0 10px 28px rgba(15,23,42,.05)}
+#tab_finishing .fin98-panel-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:14px}
+#tab_finishing .fin98-panel-head h3{margin:0;font-size:18px;line-height:1.2;color:#0f172a}
+#tab_finishing .fin98-panel-head p{margin:6px 0 0;font-size:12px;line-height:1.45;color:#64748b}
+#tab_finishing .fin98-step{display:inline-flex;align-items:center;justify-content:center;min-width:34px;height:34px;border-radius:11px;background:#eaf2ff;color:#075bff;font-weight:950}
+#tab_finishing .fin98-math{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+#tab_finishing .fin98-metric{padding:13px;border:1px solid #dbe6f3;border-radius:14px;background:#f8fafc}
+#tab_finishing .fin98-metric span{display:block;font-size:10px;color:#64748b;margin-bottom:5px}
+#tab_finishing .fin98-metric b{display:block;font-size:19px;line-height:1.1;color:#075bff}
+#tab_finishing .fin98-metric.net{background:#ecfdf3;border-color:#a7f3d0}
+#tab_finishing .fin98-metric.net b{color:#15803d}
+#tab_finishing .fin98-form-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:end;margin-top:14px}
+#tab_finishing .fin98-field{display:grid;gap:6px;min-width:0}
+#tab_finishing .fin98-field>span{font-size:11px;font-weight:850;color:#334155}
+#tab_finishing .fin98-field input,#tab_finishing .fin98-field select{width:100%;min-height:48px;border:1px solid #cbd5e1;border-radius:12px;background:#fff;padding:10px 12px;font-size:16px;color:#0f172a;box-sizing:border-box}
+#tab_finishing .fin98-field input:focus,#tab_finishing .fin98-field select:focus{outline:3px solid rgba(37,99,235,.15);border-color:#2563eb}
+#tab_finishing .fin98-actions-row{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}
+#tab_finishing .fin98-actions-row button{min-height:48px;border:1px solid #bfdbfe;border-radius:13px;background:#fff;color:#075bff;font-weight:900;font-size:12px;padding:10px}
+#tab_finishing .fin98-actions-row button:active{background:#eff6ff}
+#tab_finishing .fin98-list{display:grid;gap:12px;margin-top:14px}
+#tab_finishing .fin98-card{border:1px solid #dbe6f3;border-radius:16px;background:#fbfdff;padding:14px}
+#tab_finishing .fin98-card.dirty{border-color:#fbbf24;background:#fffdf5}
+#tab_finishing .fin98-card.applied{border-color:#86efac;background:#fbfffc}
+#tab_finishing .fin98-card-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px}
+#tab_finishing .fin98-card-title b{display:block;font-size:15px;color:#0f172a}
+#tab_finishing .fin98-card-title span{display:block;margin-top:4px;font-size:10px;color:#64748b}
+#tab_finishing .fin98-status{display:inline-flex;align-items:center;justify-content:center;min-height:28px;padding:5px 9px;border-radius:999px;background:#f1f5f9;color:#64748b;font-size:9px;font-weight:900;white-space:nowrap}
+#tab_finishing .fin98-status.ok{background:#dcfce7;color:#15803d}
+#tab_finishing .fin98-status.warn{background:#fef3c7;color:#92400e}
+#tab_finishing .fin98-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+#tab_finishing .fin98-grid .full{grid-column:1/-1}
+#tab_finishing .fin98-preview{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:12px}
+#tab_finishing .fin98-preview>div{padding:11px;border-radius:12px;background:#eef5ff;border:1px solid #bfdbfe}
+#tab_finishing .fin98-preview span{display:block;font-size:9px;color:#64748b}
+#tab_finishing .fin98-preview b{display:block;margin-top:4px;font-size:16px;color:#075bff}
+#tab_finishing .fin98-card-buttons{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,.65fr);gap:9px;margin-top:12px}
+#tab_finishing .fin98-apply,#tab_finishing .fin98-delete{min-height:46px;border-radius:12px;font-weight:950;font-size:12px}
+#tab_finishing .fin98-apply{border:0;background:#075bff;color:#fff}
+#tab_finishing .fin98-delete{border:1px solid #fecaca;background:#fff7f7;color:#b91c1c}
+#tab_finishing .fin98-note{margin-top:10px;padding:10px 12px;border-radius:11px;background:#f8fafc;color:#64748b;font-size:10px;line-height:1.45}
+#tab_finishing .fin98-note strong{color:#334155}
+#tab_finishing .fin98-empty{padding:20px 14px;border:1px dashed #cbd5e1;border-radius:14px;background:#f8fafc;text-align:center;color:#64748b;font-size:11px;line-height:1.5}
+#tab_finishing .fin98-complex-add{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+#tab_finishing .fin98-complex-add button{min-height:44px;border:1px solid #dbe6f3;border-radius:12px;background:#fff;color:#334155;font-weight:850;font-size:11px;padding:8px}
+#tab_finishing .fin98-formula{margin-top:12px;padding:12px;border-radius:12px;background:#eff6ff;color:#1e3a8a;font-size:11px;line-height:1.45}
+#tab_finishing .fin98-section-total{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:12px;padding:12px 14px;border-radius:13px;background:#071a33;color:#fff}
+#tab_finishing .fin98-section-total span{font-size:11px;color:#cbd5e1}
+#tab_finishing .fin98-section-total b{font-size:20px}
+@media(max-width:700px){
+ #tab_finishing .fin98-math{grid-template-columns:1fr 1fr}
+ #tab_finishing .fin98-form-row{grid-template-columns:1fr}
+ #tab_finishing .fin98-form-row button{width:100%}
+ #tab_finishing .fin98-actions-row{grid-template-columns:1fr}
+ #tab_finishing .fin98-complex-add{grid-template-columns:1fr 1fr}
+}
+@media(max-width:430px){
+ #tab_finishing .fin98-panel{padding:13px;border-radius:15px}
+ #tab_finishing .fin98-grid{grid-template-columns:1fr}
+ #tab_finishing .fin98-grid .full{grid-column:1}
+ #tab_finishing .fin98-preview{grid-template-columns:1fr 1fr}
+ #tab_finishing .fin98-card-buttons{grid-template-columns:1fr}
+ #tab_finishing .fin98-complex-add{grid-template-columns:1fr}
+}
+</style>
+<script id="pixel4398WallsOpeningsScript">
+(function(){
+'use strict';
+if(window.__pixel4398WallsOpenings)return;
+window.__pixel4398WallsOpenings=true;
+
+const VERSION98='43.98';
+const baseRender98=window.renderFinishing78;
+let saving98=0;
+
+function room98(){
+  try{
+    if(typeof projectRooms==='undefined'||!Array.isArray(projectRooms))return null;
+    return projectRooms.find(function(r){return String(r.id)===String(activeRoomId)})||null;
+  }catch(_){return null}
+}
+function fw98(){
+  const room=room98();if(!room)return null;
+  if(!room.finishingWorks||typeof room.finishingWorks!=='object')room.finishingWorks={items:[],total:0};
+  const fw=room.finishingWorks;
+  if(!Array.isArray(fw.items))fw.items=[];
+  if(!Array.isArray(fw.openings))fw.openings=[];
+  if(!Array.isArray(fw.complexItems))fw.complexItems=[];
+  if(!fw.config||typeof fw.config!=='object')fw.config={};
+  if(!Number.isFinite(Number(fw.config.height)))fw.config.height=Number(room.height)||Number(document.getElementById('ceilingHeight')?.value)||2.7;
+  migrate98(fw);
+  return fw;
+}
+function n98(value){
+  const raw=String(value??'').trim().replace(/\s+/g,'').replace(',','.');
+  if(raw===''||raw==='.'||raw==='-')return null;
+  const valueNumber=Number(raw);
+  return Number.isFinite(valueNumber)?Math.max(0,valueNumber):null;
+}
+function d98(value){
+  const number=Number(value)||0;
+  return String(Math.round(number*100)/100).replace('.',',');
+}
+function e98(value){return String(value??'').replace(/[&<>"']/g,function(c){return({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]})}
+function money98(value){return Math.round(Number(value)||0).toLocaleString('uk-UA')+' грн'}
+function uid98(prefix){return prefix+'_'+Date.now()+'_'+Math.random().toString(36).slice(2,7)}
+function save98(){
+  clearTimeout(saving98);
+  saving98=setTimeout(function(){try{if(typeof autosave==='function')autosave()}catch(_){}},80);
+}
+function migrate98(fw){
+  fw.openings.forEach(function(o,index){
+    if(!o||typeof o!=='object')return;
+    if(!['window','door','balcony'].includes(o.type))o.type=o.type==='door'?'door':'window';
+    if(!o.id)o.id=uid98('opening');
+    if(!o.name)o.name=(o.type==='door'?'Двері ':o.type==='balcony'?'Балконний блок ':'Вікно ')+(index+1);
+    if(o.applied===undefined)o.applied=(Number(o.width)||0)>0&&(Number(o.height)||0)>0;
+    if(o.type==='balcony'){
+      if(o.draftWindowWidth===undefined)o.draftWindowWidth=Number(o.windowWidth)||0;
+      if(o.draftWindowHeight===undefined)o.draftWindowHeight=Number(o.windowHeight)||0;
+      if(o.draftDoorWidth===undefined)o.draftDoorWidth=Number(o.doorWidth)||0;
+      if(o.draftDoorHeight===undefined)o.draftDoorHeight=Number(o.doorHeight)||0;
+    }else{
+      if(o.draftWidth===undefined)o.draftWidth=Number(o.width)||0;
+      if(o.draftHeight===undefined)o.draftHeight=Number(o.height)||0;
+    }
+    if(!o.slopeMode)o.slopeMode='auto';
+    if(o.draftManualSlopes===undefined)o.draftManualSlopes=Number(o.appliedSlopes)||0;
+    if(o.appliedArea===undefined&&o.applied)o.appliedArea=(Number(o.width)||0)*(Number(o.height)||0);
+    if(o.appliedSlopes===undefined&&o.applied)o.appliedSlopes=autoSlopes98(o);
+    if(o.dirty===undefined)o.dirty=false;
+  });
+  if(!fw.__complexMigrated98&&Array.isArray(fw.windowWalls)&&fw.windowWalls.length){
+    fw.windowWalls.forEach(function(old){
+      const reason=String(old?.reason||'Інше');
+      const type=reason.includes('Радіатор')?'radiator':reason.includes('Труб')?'pipes':'other';
+      fw.complexItems.push({id:uid98('complex'),type:type,name:old?.name||reason,draftName:old?.name||reason,draftQuantity:Number(old?.area)||1,draftUnit:'шт',draftPrice:0,applied:false,dirty:false});
+    });
+    fw.windowWalls=[];
+    fw.__complexMigrated98=true;
+  }
+}
+function openingDraftArea98(o){
+  if(o.type==='balcony')return (Number(o.draftWindowWidth)||0)*(Number(o.draftWindowHeight)||0)+(Number(o.draftDoorWidth)||0)*(Number(o.draftDoorHeight)||0);
+  return (Number(o.draftWidth)||0)*(Number(o.draftHeight)||0);
+}
+function autoSlopes98(o){
+  if(o.type==='balcony'){
+    const ww=Number(o.draftWindowWidth)||Number(o.windowWidth)||0;
+    const wh=Number(o.draftWindowHeight)||Number(o.windowHeight)||0;
+    const dw=Number(o.draftDoorWidth)||Number(o.doorWidth)||0;
+    const dh=Number(o.draftDoorHeight)||Number(o.doorHeight)||0;
+    return ww+dw+wh+dh+Math.abs(wh-dh);
+  }
+  const w=Number(o.draftWidth)||Number(o.width)||0;
+  const h=Number(o.draftHeight)||Number(o.height)||0;
+  return w+2*h;
+}
+function draftSlopes98(o){return o.slopeMode==='manual'?(Number(o.draftManualSlopes)||0):autoSlopes98(o)}
+function openingAppliedArea98(o){return o.applied?Math.max(0,Number(o.appliedArea)||((Number(o.width)||0)*(Number(o.height)||0))):0}
+function slopesTotal98(fw){return fw.openings.reduce(function(sum,o){return sum+(o.applied?Math.max(0,Number(o.appliedSlopes)||0):0)},0)}
+function geometry98(){
+  const room=room98()||{},fw=fw98()||{openings:[],config:{}};
+  const perimeter=Math.max(0,Number(room.perimeter)||0);
+  const height=Math.max(0,Number(fw.config.height)||Number(room.height)||2.7);
+  const gross=perimeter*height;
+  const openings=fw.openings.reduce(function(sum,o){return sum+openingAppliedArea98(o)},0);
+  return {perimeter:perimeter,height:height,gross:gross,openings:openings,net:Math.max(0,gross-openings),slopes:slopesTotal98(fw)};
+}
+function syncSlopeWork98(fw){
+  const quantity=slopesTotal98(fw);
+  let item=fw.items.find(function(x){return x&&x.id==='openingSlopes98'});
+  if(!item){
+    item={id:'openingSlopes98',category:'walls',stage:'finish',name:'Відкоси до 50 см',unit:'м.п.',source:'manual',quantityMode:'manual',quantity:quantity,price:0,enabled:quantity>0,custom:true};
+    fw.items.push(item);
+  }
+  item.name='Відкоси до 50 см';item.unit='м.п.';item.source='manual';item.quantityMode='manual';item.quantity=quantity;
+  if(quantity<=0)item.enabled=false;else if(item.enabled===false&&item.__autoDisabled98)item.enabled=true;
+  item.__autoDisabled98=quantity<=0;
+}
+function complexLabel98(type){return ({radiator:'Радіатор',pipes:'Труби опалення',windowsill:'Підвіконня',difficult:'Складна стіна / доступ',other:'Інше'})[type]||'Інше'}
+function syncComplexWorks98(fw){
+  const ids=new Set();
+  fw.complexItems.forEach(function(c){
+    const id='complex98_'+c.id;ids.add(id);
+    let item=fw.items.find(function(x){return x&&x.id===id});
+    if(!item){item={id:id,category:'other',stage:'other',custom:true,source:'manual',quantityMode:'manual'};fw.items.push(item)}
+    item.name=c.name||complexLabel98(c.type);item.unit=c.unit||'шт';item.quantity=Math.max(0,Number(c.quantity)||0);item.price=Math.max(0,Number(c.price)||0);item.enabled=!!c.applied;
+  });
+  fw.items=fw.items.filter(function(item){return !String(item?.id||'').startsWith('complex98_')||ids.has(item.id)});
+}
+function syncAll98(){const fw=fw98();if(!fw)return;syncSlopeWork98(fw);syncComplexWorks98(fw)}
+function status98(o){
+  if(o.dirty)return '<span class="fin98-status warn">Зміни не застосовано</span>';
+  if(o.applied)return '<span class="fin98-status ok">✓ Враховано</span>';
+  return '<span class="fin98-status">Не враховано</span>';
+}
+function openingTitle98(type){return type==='door'?'🚪 Двері':type==='balcony'?'🚪🪟 Балконний блок':'🪟 Вікно'}
+function field98(label,key,value,placeholder,full){return '<label class="fin98-field '+(full?'full':'')+'"><span>'+label+'</span><input type="text" inputmode="decimal" autocomplete="off" data-fin98-key="'+key+'" value="'+e98(d98(value))+'" placeholder="'+e98(placeholder||'')+'"></label>'}
+function openingCard98(o,index){
+  let fields='';
+  if(o.type==='balcony'){
+    fields=field98('Ширина вікна, м','draftWindowWidth',o.draftWindowWidth,'1,50')+field98('Висота вікна, м','draftWindowHeight',o.draftWindowHeight,'1,40')+field98('Ширина дверей, м','draftDoorWidth',o.draftDoorWidth,'0,90')+field98('Висота дверей, м','draftDoorHeight',o.draftDoorHeight,'2,05');
+  }else{
+    fields=field98('Ширина, м','draftWidth',o.draftWidth,o.type==='door'?'0,90':'1,50')+field98('Висота, м','draftHeight',o.draftHeight,o.type==='door'?'2,05':'1,40');
+  }
+  const area=openingDraftArea98(o),slopes=draftSlopes98(o);
+  return '<article class="fin98-card '+(o.applied?'applied ':'')+(o.dirty?'dirty':'')+'" data-fin98-opening="'+index+'">'+
+    '<div class="fin98-card-top"><div class="fin98-card-title"><b>'+openingTitle98(o.type)+' '+(index+1)+'</b><span>Площа віднімається зі стін тільки після «Застосувати»</span></div>'+status98(o)+'</div>'+
+    '<div class="fin98-grid"><label class="fin98-field full"><span>Назва</span><input type="text" autocomplete="off" data-fin98-key="name" value="'+e98(o.name||'')+'"></label>'+fields+
+      '<label class="fin98-field"><span>Розрахунок відкосів</span><select data-fin98-key="slopeMode"><option value="auto" '+(o.slopeMode!=='manual'?'selected':'')+'>Автоматично</option><option value="manual" '+(o.slopeMode==='manual'?'selected':'')+'>Вручну</option></select></label>'+field98('Відкоси вручну, м.п.','draftManualSlopes',o.draftManualSlopes,'0',false)+
+    '</div>'+
+    '<div class="fin98-preview"><div><span>Площа до застосування</span><b data-fin98-preview="area">'+area.toFixed(2)+' м²</b></div><div><span>Відкоси до 50 см</span><b data-fin98-preview="slopes">'+slopes.toFixed(2)+' м.п.</b></div></div>'+
+    '<div class="fin98-card-buttons"><button class="fin98-apply" type="button" data-fin98-action="apply-opening">✓ Застосувати та відняти</button><button class="fin98-delete" type="button" data-fin98-action="delete-opening">🗑 Видалити</button></div>'+
+    '<div class="fin98-note"><strong>Після застосування:</strong> площа прорізу відніметься від стін, а погонні метри відкосів потраплять у роботу «Відкоси до 50 см».</div>'+
+  '</article>';
+}
+function complexCard98(c,index){
+  const qty=c.draftQuantity??c.quantity??1,price=c.draftPrice??c.price??0,unit=c.draftUnit||c.unit||'шт';
+  return '<article class="fin98-card '+(c.applied?'applied ':'')+(c.dirty?'dirty':'')+'" data-fin98-complex="'+index+'">'+
+    '<div class="fin98-card-top"><div class="fin98-card-title"><b>🧩 '+complexLabel98(c.type)+'</b><span>Додаткова складність. Площу стін не зменшує.</span></div>'+status98(c)+'</div>'+
+    '<div class="fin98-grid"><label class="fin98-field full"><span>Назва роботи</span><input type="text" autocomplete="off" data-fin98-ckey="draftName" value="'+e98(c.draftName||c.name||complexLabel98(c.type))+'"></label>'+fieldComplex98('Кількість','draftQuantity',qty,'1')+
+      '<label class="fin98-field"><span>Одиниця</span><select data-fin98-ckey="draftUnit">'+['шт','м.п.','м²','послуга'].map(function(u){return '<option '+(unit===u?'selected':'')+'>'+u+'</option>'}).join('')+'</select></label>'+fieldComplex98('Ціна, грн','draftPrice',price,'0')+
+    '</div><div class="fin98-preview"><div><span>Сума після застосування</span><b data-fin98-preview="complex">'+money98((Number(qty)||0)*(Number(price)||0))+'</b></div><div><span>Вплив на площу</span><b>Не віднімається</b></div></div>'+
+    '<div class="fin98-card-buttons"><button class="fin98-apply" type="button" data-fin98-action="apply-complex">✓ Застосувати</button><button class="fin98-delete" type="button" data-fin98-action="delete-complex">🗑 Видалити</button></div></article>';
+}
+function fieldComplex98(label,key,value,placeholder){return '<label class="fin98-field"><span>'+label+'</span><input type="text" inputmode="decimal" autocomplete="off" data-fin98-ckey="'+key+'" value="'+e98(d98(value))+'" placeholder="'+placeholder+'"></label>'}
+function build98(){
+  const details=document.querySelector('#tab_finishing .fin78-details');if(!details)return;
+  const fw=fw98();if(!fw)return;syncAll98();
+  details.open=true;
+  details.innerHTML='<summary>📐 Площа стін, прорізи та відкоси</summary><div class="fin98-workflow">'+
+    '<section class="fin98-panel"><div class="fin98-panel-head"><div><h3>Розрахунок площі стін</h3><p>Периметр × висота, мінус лише застосовані вікна, двері та балконні блоки.</p></div><span class="fin98-step">1</span></div><div class="fin98-math"><div class="fin98-metric"><span>Стіни брутто</span><b id="fin98Gross">0 м²</b></div><div class="fin98-metric"><span>Віднято прорізів</span><b id="fin98Openings">0 м²</b></div><div class="fin98-metric net"><span>Чиста площа стін</span><b id="fin98Net">0 м²</b></div><div class="fin98-metric"><span>Відкоси до 50 см</span><b id="fin98Slopes">0 м.п.</b></div></div><div class="fin98-form-row"><label class="fin98-field"><span>Висота кімнати, м</span><input id="fin98Height" type="text" inputmode="decimal" autocomplete="off" value="'+e98(d98(fw.config.height))+'"></label><button class="btn blue" type="button" id="fin98ApplyHeight">✓ Застосувати висоту</button></div><div class="fin98-formula">Формула: <b>чиста площа стін = периметр × висота − площа застосованих прорізів</b>.</div></section>'+
+    '<section class="fin98-panel"><div class="fin98-panel-head"><div><h3>Вікна, двері та балконні блоки</h3><p>Створіть картку, введіть розміри й натисніть «Застосувати та відняти».</p></div><span class="fin98-step">2</span></div><div class="fin98-actions-row"><button type="button" data-fin98-add="window">🪟 Додати вікно</button><button type="button" data-fin98-add="balcony">🚪🪟 Додати балконний блок</button><button type="button" data-fin98-add="door">🚪 Додати двері</button></div><div id="fin98OpeningsList" class="fin98-list"></div></section>'+
+    '<section class="fin98-panel"><div class="fin98-panel-head"><div><h3>Складні стіни та додаткові умови</h3><p>Радіатори, труби опалення, підвіконня та складний доступ додаються до кошторису, але не зменшують площу стін.</p></div><span class="fin98-step">3</span></div><div class="fin98-complex-add"><button type="button" data-fin98-add-complex="radiator">Радіатор</button><button type="button" data-fin98-add-complex="pipes">Труби опалення</button><button type="button" data-fin98-add-complex="windowsill">Підвіконня</button><button type="button" data-fin98-add-complex="difficult">Складна стіна</button></div><div id="fin98ComplexList" class="fin98-list"></div><div class="fin98-section-total"><span>Застосовані складні роботи</span><b id="fin98ComplexTotal">0 грн</b></div></section>'+
+  '</div>';
+  renderOpenings98();renderComplex98();refresh98();install98(details);
+}
+function renderOpenings98(){
+  const fw=fw98(),box=document.getElementById('fin98OpeningsList');if(!fw||!box)return;
+  box.innerHTML=fw.openings.length?fw.openings.map(openingCard98).join(''):'<div class="fin98-empty">Прорізів ще немає. Додайте вікно, балконний блок або двері.</div>';
+}
+function renderComplex98(){
+  const fw=fw98(),box=document.getElementById('fin98ComplexList');if(!fw||!box)return;
+  box.innerHTML=fw.complexItems.length?fw.complexItems.map(complexCard98).join(''):'<div class="fin98-empty">Складних умов ще немає. Додавайте тільки те, що реально впливає на трудомісткість.</div>';
+}
+function refreshCard98(card,o){
+  const area=openingDraftArea98(o),slopes=draftSlopes98(o);
+  const a=card.querySelector('[data-fin98-preview="area"]'),s=card.querySelector('[data-fin98-preview="slopes"]');if(a)a.textContent=area.toFixed(2)+' м²';if(s)s.textContent=slopes.toFixed(2)+' м.п.';
+  card.classList.toggle('dirty',!!o.dirty);card.classList.toggle('applied',!!o.applied);
+  const old=card.querySelector('.fin98-status');if(old)old.outerHTML=status98(o);
+}
+function refresh98(){
+  const fw=fw98();if(!fw)return;const g=geometry98();
+  const set=function(id,text){const el=document.getElementById(id);if(el)el.textContent=text};
+  set('fin98Gross',g.gross.toFixed(2)+' м²');set('fin98Openings',g.openings.toFixed(2)+' м²');set('fin98Net',g.net.toFixed(2)+' м²');set('fin98Slopes',g.slopes.toFixed(2)+' м.п.');
+  set('fin78Height',g.height.toFixed(2)+' м');set('fin78GrossWalls',g.gross.toFixed(2)+' м²');set('fin78Openings',g.openings.toFixed(2)+' м²');set('fin78NetWalls',g.net.toFixed(2)+' м²');
+  const complexTotal=fw.complexItems.reduce(function(sum,c){return sum+(c.applied?(Number(c.quantity)||0)*(Number(c.price)||0):0)},0);set('fin98ComplexTotal',money98(complexTotal));
+}
+function applyOpening98(index){
+  const fw=fw98(),o=fw?.openings?.[index];if(!o)return;
+  const area=openingDraftArea98(o);if(area<=0){alert('Вкажіть правильні розміри прорізу.');return}
+  if(o.type==='balcony'){
+    if(!(Number(o.draftWindowWidth)>0&&Number(o.draftWindowHeight)>0&&Number(o.draftDoorWidth)>0&&Number(o.draftDoorHeight)>0)){alert('Для балконного блока заповніть розміри вікна і дверей.');return}
+    o.windowWidth=Number(o.draftWindowWidth)||0;o.windowHeight=Number(o.draftWindowHeight)||0;o.doorWidth=Number(o.draftDoorWidth)||0;o.doorHeight=Number(o.draftDoorHeight)||0;
+    o.width=area;o.height=1;
+  }else{
+    if(!(Number(o.draftWidth)>0&&Number(o.draftHeight)>0)){alert('Вкажіть ширину та висоту.');return}
+    o.width=Number(o.draftWidth)||0;o.height=Number(o.draftHeight)||0;
+  }
+  o.appliedArea=area;o.appliedSlopes=draftSlopes98(o);o.applied=true;o.dirty=false;
+  syncAll98();save98();rerender98();
+}
+function applyComplex98(index){
+  const fw=fw98(),c=fw?.complexItems?.[index];if(!c)return;
+  c.name=String(c.draftName||complexLabel98(c.type)).trim()||complexLabel98(c.type);c.quantity=Math.max(0,Number(c.draftQuantity)||0);c.unit=c.draftUnit||'шт';c.price=Math.max(0,Number(c.draftPrice)||0);c.applied=true;c.dirty=false;
+  syncAll98();save98();rerender98();
+}
+function rerender98(){
+  if(typeof baseRender98==='function')baseRender98();
+  build98();
+  try{if(typeof updateFinance79==='function')updateFinance79()}catch(_){}
+}
+function addOpening98(type){
+  const fw=fw98();if(!fw)return;const index=fw.openings.length;
+  const o={id:uid98('opening'),type:type,name:openingTitle98(type).replace(/^[^\s]+\s?/,'')+' '+(index+1),slopeMode:'auto',draftManualSlopes:0,applied:false,dirty:true,width:0,height:0};
+  if(type==='balcony'){o.draftWindowWidth=1.5;o.draftWindowHeight=1.4;o.draftDoorWidth=.9;o.draftDoorHeight=2.05}else{o.draftWidth=type==='door' ? 0.9 : 1.5;o.draftHeight=type==='door'?2.05:1.4}
+  fw.openings.push(o);renderOpenings98();refresh98();setTimeout(function(){document.querySelector('[data-fin98-opening="'+index+'"] input')?.focus()},0);
+}
+function addComplex98(type){
+  const fw=fw98();if(!fw)return;const index=fw.complexItems.length;
+  const defaults={radiator:['Радіатор',1,'шт'],pipes:['Труби опалення',1,'м.п.'],windowsill:['Підвіконня',1,'м.п.'],difficult:['Складна стіна / доступ',1,'послуга']};const d=defaults[type]||['Інше',1,'шт'];
+  fw.complexItems.push({id:uid98('complex'),type:type,draftName:d[0],draftQuantity:d[1],draftUnit:d[2],draftPrice:0,applied:false,dirty:true});renderComplex98();setTimeout(function(){document.querySelector('[data-fin98-complex="'+index+'"] input')?.focus()},0);
+}
+function install98(details){
+  if(details.dataset.fin98Installed)return;details.dataset.fin98Installed='1';
+  details.addEventListener('input',function(event){
+    const openInput=event.target.closest('[data-fin98-key]');if(openInput){const card=openInput.closest('[data-fin98-opening]'),fw=fw98(),o=fw?.openings?.[Number(card?.dataset.fin98Opening)];if(!o)return;const key=openInput.dataset.fin98Key;if(['name','slopeMode'].includes(key))o[key]=openInput.value;else{const value=n98(openInput.value);if(value!==null)o[key]=value;else if(openInput.value.trim()==='')o[key]=0}o.dirty=true;refreshCard98(card,o);return}
+    const cInput=event.target.closest('[data-fin98-ckey]');if(cInput){const card=cInput.closest('[data-fin98-complex]'),fw=fw98(),c=fw?.complexItems?.[Number(card?.dataset.fin98Complex)];if(!c)return;const key=cInput.dataset.fin98Ckey;if(['draftName','draftUnit'].includes(key))c[key]=cInput.value;else{const value=n98(cInput.value);if(value!==null)c[key]=value;else if(cInput.value.trim()==='')c[key]=0}c.dirty=true;const preview=card.querySelector('[data-fin98-preview="complex"]');if(preview)preview.textContent=money98((Number(c.draftQuantity)||0)*(Number(c.draftPrice)||0));card.classList.add('dirty');const old=card.querySelector('.fin98-status');if(old)old.outerHTML=status98(c)}
+  });
+  details.addEventListener('change',function(event){
+    const input=event.target.closest('[data-fin98-key]');if(input){const card=input.closest('[data-fin98-opening]'),o=fw98()?.openings?.[Number(card?.dataset.fin98Opening)];if(!o)return;o[input.dataset.fin98Key]=input.value;o.dirty=true;refreshCard98(card,o);return}
+    const cInput=event.target.closest('[data-fin98-ckey]');if(cInput){const card=cInput.closest('[data-fin98-complex]'),c=fw98()?.complexItems?.[Number(card?.dataset.fin98Complex)];if(!c)return;c[cInput.dataset.fin98Ckey]=cInput.value;c.dirty=true;card.classList.add('dirty');const old=card.querySelector('.fin98-status');if(old)old.outerHTML=status98(c)}
+  });
+  details.addEventListener('click',function(event){
+    const add=event.target.closest('[data-fin98-add]');if(add){addOpening98(add.dataset.fin98Add);return}
+    const addComplex=event.target.closest('[data-fin98-add-complex]');if(addComplex){addComplex98(addComplex.dataset.fin98AddComplex);return}
+    if(event.target.id==='fin98ApplyHeight'){const value=n98(document.getElementById('fin98Height')?.value);if(!(value>0)){alert('Вкажіть висоту кімнати.');return}const fw=fw98();fw.config.height=value;save98();rerender98();return}
+    const button=event.target.closest('[data-fin98-action]');if(!button)return;
+    const openingCard=button.closest('[data-fin98-opening]'),complexCard=button.closest('[data-fin98-complex]');
+    if(button.dataset.fin98Action==='apply-opening')applyOpening98(Number(openingCard.dataset.fin98Opening));
+    if(button.dataset.fin98Action==='delete-opening'){const index=Number(openingCard.dataset.fin98Opening);if(confirm('Видалити цей проріз?')){fw98().openings.splice(index,1);syncAll98();save98();rerender98()}}
+    if(button.dataset.fin98Action==='apply-complex')applyComplex98(Number(complexCard.dataset.fin98Complex));
+    if(button.dataset.fin98Action==='delete-complex'){const index=Number(complexCard.dataset.fin98Complex);if(confirm('Видалити цю додаткову умову?')){fw98().complexItems.splice(index,1);syncAll98();save98();rerender98()}}
+  });
+}
+window.renderFinishing78=function(){
+  const result=typeof baseRender98==='function'?baseRender98.apply(this,arguments):undefined;
+  build98();
+  return result;
+};
+function start98(){
+  let fw=fw98();if(!fw)return;
+  if(!fw.items.length&&typeof baseRender98==='function'){
+    try{baseRender98()}catch(_){}
+    fw=fw98();if(!fw)return;
+  }
+  syncAll98();
+  if(document.getElementById('tab_finishing'))build98();
+  document.documentElement.dataset.pixelVersion=VERSION98;document.title='Potolok AI PRO — Pixel '+VERSION98;
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start98,{once:true});else start98();
+window.addEventListener('pageshow',start98,{passive:true});
+})();
+</script>
+
 </body></html>
