@@ -676,6 +676,20 @@ th:nth-child(2),th:nth-child(3),th:nth-child(4),td:nth-child(2),td:nth-child(3),
  .fin81-opening-title{grid-column:1/-1}
 }
 </style>
+
+<style id="clientDirect4403cStyles">
+body.client-direct-4403c .hero,
+body.client-direct-4403c #pixelBack4325,
+body.client-direct-4403c #quickCalcHandle40,
+body.client-direct-4403c #quickCalcBackdrop40,
+body.client-direct-4403c #quickCalcDrawer40,
+body.client-direct-4403c #objectEndActions4394,
+body.client-direct-4403c #objectActions4393,
+body.client-direct-4403c .ai-request-section{display:none!important}
+body.client-direct-4403c .tabs-main{grid-template-columns:1fr!important}
+body.client-direct-4403c .tabs-main .main-tab{display:none!important}
+body.client-direct-4403c .tabs-main .main-tab[onclick*="clientcard"]{display:block!important}
+</style>
 </head>
 <body>
 <header class="header"><div class="wrap nav"><a class="logo" href="../index.html">Potolok<span>.in.ua</span></a><div class="menu"><a href="../index.html">Головна</a><a href="../gallery.html">Наші роботи</a><a href="#app">Pixel 5</a></div><a class="phone" href="tel:+380974546713">097 454 67 13</a><a class="tg-top" href="https://t.me/Potolok_in_ua">Фото в TG</a></div></header>
@@ -7332,7 +7346,52 @@ const originalOpen60=window.openClientObject56;window.openClientObject56=async f
 window.clientEstimate60=()=>currentClientView60&&openModal60('💰 Кошторис',estimateHtml60(currentClientView60)+'<button class="p60-btn dark" style="width:100%;margin-top:10px" onclick="window.print()">🖨 Друк / PDF</button>');
 window.clientRoomEstimate60=i=>{const r=currentClientView60?.rooms?.[i];if(!r)return;openModal60('💰 '+(r.name||'Кімната'),estimateHtml60({rooms:[r],total:r.calculated||0}))};
 window.clientPhoto60=i=>{const r=currentClientView60?.rooms?.[i],p=r?.photo||'';openModal60('📸 Фото кімнати',p?`<img src="${p}" style="width:100%;border-radius:12px">`:'<div class="p60-note">Фото не додано.</div>')};
-window.clientPlan60=i=>{const r=currentClientView60?.rooms?.[i],pts=r?.planner?.points||[];if(!pts.length)return openModal60('📐 План','<div class="p60-note">План цієї кімнати не збережено.</div>');const xs=pts.map(p=>Number(p.x||0)),ys=pts.map(p=>Number(p.y||0)),minx=Math.min(...xs),maxx=Math.max(...xs),miny=Math.min(...ys),maxy=Math.max(...ys),w=Math.max(1,maxx-minx),h=Math.max(1,maxy-miny),poly=pts.map(p=>`${40+(Number(p.x)-minx)*520/w},${35+(Number(p.y)-miny)*245/h}`).join(' ');openModal60('📐 '+e60(r.name||'План'),`<svg class="p60-plan-svg" viewBox="0 0 600 320"><polygon points="${poly}" fill="#dbeafe" stroke="#075bff" stroke-width="4"/>${pts.map((p,j)=>`<text x="${40+(Number(p.x)-minx)*520/w}" y="${30+(Number(p.y)-miny)*245/h}" font-size="15" font-weight="bold">${String.fromCharCode(65+j)}</text>`).join('')}</svg>`)};
+window.clientPlan60=i=>{
+  const r=currentClientView60?.rooms?.[i];
+  if(!r)return openModal60('📐 План','<div class="p60-note">Не вдалося завантажити кімнату.</div>');
+  const planner=r.planner||{};
+  const rawPts=Array.isArray(planner.points)?planner.points:[];
+  const pts=rawPts.map(p=>Array.isArray(p)?{x:Number(p[0])||0,y:Number(p[1])||0}:{x:Number(p?.x)||0,y:Number(p?.y)||0});
+  if(pts.length<2)return openModal60('📐 '+e60(r.name||'План'),'<div class="p60-note">План цієї кімнати не збережено.</div>');
+
+  const segs=Array.isArray(planner.segments)?planner.segments.map(v=>Number(v)||0):[];
+  const objs=Array.isArray(planner.objects)?planner.objects:[];
+  const xs=pts.map(p=>p.x),ys=pts.map(p=>p.y);
+  const minx=Math.min(...xs),maxx=Math.max(...xs),miny=Math.min(...ys),maxy=Math.max(...ys);
+  const rawW=Math.max(1,maxx-minx),rawH=Math.max(1,maxy-miny);
+  const VW=640,VH=420,PAD=70;
+  const scale=Math.min((VW-PAD*2)/rawW,(VH-PAD*2)/rawH);
+  const map=p=>({x:PAD+(p.x-minx)*scale,y:PAD+(p.y-miny)*scale});
+  const mp=pts.map(map);
+  const cx=mp.reduce((a,p)=>a+p.x,0)/mp.length,cy=mp.reduce((a,p)=>a+p.y,0)/mp.length;
+  const poly=mp.map(p=>`${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
+
+  const dimSvg=mp.map((p,j)=>{
+    const q=mp[(j+1)%mp.length];
+    const dx=q.x-p.x,dy=q.y-p.y,len=Math.hypot(dx,dy)||1;
+    let nx=-dy/len,ny=dx/len;
+    const mx=(p.x+q.x)/2,my=(p.y+q.y)/2;
+    if(nx*(cx-mx)+ny*(cy-my)>0){nx=-nx;ny=-ny}
+    const tx=mx+nx*30,ty=my+ny*30;
+    const val=segs[j]>0?segs[j]:0;
+    return `<text x="${tx.toFixed(1)}" y="${ty.toFixed(1)}" text-anchor="middle" dominant-baseline="middle" font-size="15" font-weight="800" fill="#1d4ed8">${val?val.toFixed(2)+' м':''}</text>`;
+  }).join('');
+
+  const pointSvg=mp.map((p,j)=>`<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="6" fill="#fff" stroke="#075bff" stroke-width="3"/><text x="${(p.x+12).toFixed(1)}" y="${(p.y-11).toFixed(1)}" font-size="14" font-weight="800" fill="#0f172a">${String.fromCharCode(65+(j%26))}</text>`).join('');
+
+  const names={door:'Двері',window:'Вікно',light:'Світильник',chandelier:'Люстра',vent:'Вентиляція',track:'Магнітний трек',surfaceTrack:'Накладний трек',lightline:'Світлова лінія',corniceWhite:'Карниз білий',corniceBlack:'Карниз чорний',corniceLed:'Карниз LED',insertWhite:'Вставка біла',insertBlack:'Вставка чорна',shadowProfile:'Тіньовий профіль',floatingWhite:'Парящий профіль',floatingBlack:'Парящий профіль',beam:'Балка',box:'Короб',pipe1:'Труба',pipe2:'Подвійна труба',column:'Колона'};
+  const objSvg=objs.map((o,j)=>{
+    const a=map({x:Number(o?.x)||0,y:Number(o?.y)||0});
+    if(o?.x2!=null&&o?.y2!=null){
+      const b=map({x:Number(o.x2)||0,y:Number(o.y2)||0});
+      return `<line x1="${a.x.toFixed(1)}" y1="${a.y.toFixed(1)}" x2="${b.x.toFixed(1)}" y2="${b.y.toFixed(1)}" stroke="#0f172a" stroke-width="5" stroke-linecap="round"/><circle cx="${a.x.toFixed(1)}" cy="${a.y.toFixed(1)}" r="11" fill="#fff" stroke="#0f172a" stroke-width="2"/><text x="${a.x.toFixed(1)}" y="${(a.y+4).toFixed(1)}" text-anchor="middle" font-size="10" font-weight="900">${j+1}</text>`;
+    }
+    return `<circle cx="${a.x.toFixed(1)}" cy="${a.y.toFixed(1)}" r="12" fill="#fff" stroke="#0f172a" stroke-width="3"/><text x="${a.x.toFixed(1)}" y="${(a.y+4).toFixed(1)}" text-anchor="middle" font-size="10" font-weight="900">${j+1}</text>`;
+  }).join('');
+  const legend=objs.length?`<div class="p60-note" style="margin-top:10px"><b>Елементи плану:</b><br>${objs.map((o,j)=>`${j+1}. ${e60(names[o?.type]||o?.type||'Елемент')}`).join('<br>')}</div>`:'';
+  const area=Number(r.area||r.metrics?.area||0),per=Number(r.perimeter||r.metrics?.perimeter||0);
+  openModal60('📐 '+e60(r.name||'План'),`<div class="p60-note" style="margin-bottom:10px"><b>Площа:</b> ${area.toFixed(2)} м² &nbsp; <b>Периметр:</b> ${per.toFixed(2)} м</div><svg class="p60-plan-svg" viewBox="0 0 ${VW} ${VH}" style="width:100%;height:auto;background:#fff;border:1px solid #dbe3ef;border-radius:14px"><polygon points="${poly}" fill="#dbeafe" stroke="#075bff" stroke-width="4"/>${dimSvg}${objSvg}${pointSvg}</svg>${legend}`);
+};
 window.clientSchedule60=()=>{const ev=Array.isArray(currentClientView60?.schedule)?currentClientView60.schedule:[];openModal60('📅 Графік виконання',ev.length?ev.map(x=>`<div class="p60-review"><b>${e60(x.date)} ${e60(x.time||'')}</b><p>${e60(x.type||'Подія')} ${e60(x.note||'')}</p></div>`).join(''):'<div class="p60-note">Подій ще не заплановано.</div>')};
 window.openReviewForm60=()=>{reviewStars60=5;openModal60('⭐ Залишити відгук',`<div class="p60-field"><label>Оцінка</label><div class="p60-stars">${[1,2,3,4,5].map(n=>`<button class="on" id="star60_${n}" onclick="setStars60(${n})">★</button>`).join('')}</div></div><div class="p60-field"><label>Ваше ім’я</label><input id="reviewName60" value="${e60(currentClientView60?.clientName||'')}"></div><div class="p60-field" style="margin-top:9px"><label>Відгук</label><textarea id="reviewText60" placeholder="Розкажіть про якість роботи"></textarea></div><button class="p60-btn blue" style="width:100%;margin-top:10px" onclick="submitReview60()">Надіслати відгук</button>`)};
 window.setStars60=n=>{reviewStars60=n;for(let i=1;i<=5;i++)document.getElementById('star60_'+i)?.classList.toggle('on',i<=n)};
@@ -8676,6 +8735,8 @@ body.client-card-mode61 .ai-request-section{display:none!important}
     ).trim();
 
     if (!objectNumber || !accessKey) return;
+
+    document.body.classList.add('client-direct-4403c');
 
     const numberInput =
       document.getElementById('clientObjectNumber56');
@@ -24354,119 +24415,6 @@ async function adminRow4402(id){let rows=Array.isArray(window.serviceRows60)?win
 window.shareAdminEstimate4401=async function(id,button){const old=button?.innerHTML;try{if(button){button.disabled=true;button.textContent='⏳ Кошторис…'}const row=await adminRow4402(id),base=row?.object_data&&typeof row.object_data==='object'?copy4402(row.object_data):{};base.objectNumber=row?.object_number||base.objectNumber||'';base.cloudId=row?.id||base.cloudId||'';openChoice4402(base)}catch(error){alert('Не вдалося відкрити кошторис з історії: '+(error?.message||error))}finally{if(button){button.disabled=false;button.innerHTML=old}}};
 
 document.documentElement.dataset.pixelVersion=VERSION4402;try{document.title='Potolok AI PRO — Pixel '+VERSION4402}catch(_){ }
-})();
-</script>
-
-
-<!-- PIXEL 44.03b: CLIENT VIEW FIX, based ONLY on 44.02 -->
-<style id="pixel4403bClientStyles">
-body.client-only-4403b .hero,
-body.client-only-4403b .tabs-main,
-body.client-only-4403b #pixelBack4325,
-body.client-only-4403b #quickCalcHandle40,
-body.client-only-4403b #quickCalcBackdrop40,
-body.client-only-4403b #quickCalcDrawer40,
-body.client-only-4403b #objectEndActions4394,
-body.client-only-4403b #objectActions4393,
-body.client-only-4403b #objectHiddenClientActions4394,
-body.client-only-4403b .ai-request-section,
-body.client-only-4403b #publishClientCardBtn56,
-body.client-only-4403b #publishClientCardStatus56{display:none!important}
-.client-plan4403b{display:grid;gap:12px}
-.client-plan4403b svg{display:block;width:100%;height:auto;background:#fff;border:1px solid #dbe3ef;border-radius:16px}
-.client-plan-metrics4403b{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
-.client-plan-metrics4403b>div{border:1px solid #dbe3ef;border-radius:12px;background:#f8fafc;padding:10px}
-.client-plan-metrics4403b span{display:block;color:#64748b;font-size:11px;margin-bottom:3px}
-.client-plan-metrics4403b b{font-size:15px;color:#0f172a}
-.client-plan-note4403b{border:1px solid #dbe3ef;border-radius:12px;background:#f8fafc;padding:10px 12px;color:#475569;font-size:12px;line-height:1.45}
-.client-plan-chips4403b{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
-.client-plan-chips4403b i{font-style:normal;border:1px solid #dbe3ef;border-radius:999px;background:#fff;padding:5px 9px;font-size:11px;font-weight:800;color:#334155}
-@media(max-width:640px){.client-plan-metrics4403b{grid-template-columns:1fr}}
-</style>
-<script id="pixel4403bClientScript">
-(function(){
-  'use strict';
-  if(window.__pixel4403bInstalled)return;
-  window.__pixel4403bInstalled=true;
-
-  function esc4403b(v){return String(v??'').replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
-  function num4403b(v){var n=Number(v);return Number.isFinite(n)?n:0}
-  function point4403b(p){
-    if(Array.isArray(p))return{x:num4403b(p[0]),y:num4403b(p[1])};
-    if(p&&typeof p==='object')return{x:num4403b(p.x),y:num4403b(p.y)};
-    return{x:0,y:0};
-  }
-  function clientData4403b(){
-    try{return typeof currentClientView60!=='undefined'?currentClientView60:null}catch(_){return null}
-  }
-  function activateClientOnly4403b(){
-    var tab=document.getElementById('tab_clientcard');
-    var card=document.getElementById('clientObjectCard56');
-    var visitor=true;try{visitor=!sessionStorage.getItem('potolok_service_token')}catch(_){}
-    var active=!!(visitor&&tab&&card&&tab.classList.contains('active')&&card.classList.contains('show'));
-    document.body.classList.toggle('client-only-4403b',active);
-  }
-  function map4403b(p,minX,minY,scale,pad){return{x:pad+(p.x-minX)*scale,y:pad+(p.y-minY)*scale}}
-  function clientPlanHtml4403b(room){
-    var planner=room&&room.planner?room.planner:{};
-    var pts=Array.isArray(planner.points)?planner.points.map(point4403b):[];
-    if(pts.length<2)return'<div class="client-plan-note4403b">План цієї кімнати не збережено.</div>';
-    var segs=Array.isArray(planner.segments)?planner.segments.map(num4403b):[];
-    var objects=Array.isArray(planner.objects)?planner.objects:[];
-    var xs=pts.map(function(p){return p.x}),ys=pts.map(function(p){return p.y});
-    var minX=Math.min.apply(null,xs),maxX=Math.max.apply(null,xs),minY=Math.min.apply(null,ys),maxY=Math.max.apply(null,ys);
-    var rawW=Math.max(1,maxX-minX),rawH=Math.max(1,maxY-minY),W=680,H=430,pad=70;
-    var scale=Math.min((W-pad*2)/rawW,(H-pad*2)/rawH);
-    var m=pts.map(function(p){return map4403b(p,minX,minY,scale,pad)});
-    var cx=m.reduce(function(s,p){return s+p.x},0)/m.length,cy=m.reduce(function(s,p){return s+p.y},0)/m.length;
-    var poly=m.map(function(p){return p.x.toFixed(1)+','+p.y.toFixed(1)}).join(' ');
-    var edges='';
-    m.forEach(function(p,i){
-      var q=m[(i+1)%m.length],rp=pts[i],rq=pts[(i+1)%pts.length];
-      var dx=q.x-p.x,dy=q.y-p.y,len=Math.hypot(dx,dy)||1,mx=(p.x+q.x)/2,my=(p.y+q.y)/2;
-      var nx=-dy/len,ny=dx/len;if(nx*(cx-mx)+ny*(cy-my)>0){nx=-nx;ny=-ny}
-      var tx=mx+nx*30,ty=my+ny*30;
-      var real=segs[i]>0?segs[i]:Math.hypot(rq.x-rp.x,rq.y-rp.y);
-      var letter=String.fromCharCode(65+(i%26));
-      edges+='<text x="'+(p.x+12).toFixed(1)+'" y="'+(p.y-10).toFixed(1)+'" font-size="15" font-weight="900" fill="#0f172a">'+letter+'</text>';
-      edges+='<text x="'+tx.toFixed(1)+'" y="'+ty.toFixed(1)+'" text-anchor="middle" dominant-baseline="middle" font-size="14" font-weight="900" fill="#075bff">'+real.toFixed(2)+' м</text>';
-    });
-    var names={door:'Двері',window:'Вікно',light:'Світильник',spot:'Світильник',chandelier:'Люстра',vent:'Вентиляція',track:'Магнітний трек',surfaceTrack:'Накладний трек',lightline:'Світлова лінія',corniceWhite:'Карниз',corniceBlack:'Карниз',corniceLed:'Карниз LED',shadowProfile:'Тіньовий профіль',floatingWhite:'Парящий профіль',floatingBlack:'Парящий профіль',beam:'Балка',box:'Короб',pipe1:'Труба',pipe2:'Труба',column:'Колона'};
-    var icons={door:'🚪',window:'🪟',light:'●',spot:'●',chandelier:'◉',vent:'▦',track:'▬',surfaceTrack:'▬',lightline:'━',corniceWhite:'▭',corniceBlack:'▭',corniceLed:'▭',shadowProfile:'▰',floatingWhite:'▱',floatingBlack:'▱',beam:'▮',box:'▣',pipe1:'◌',pipe2:'◎',column:'▢'};
-    var counts={},objSvg='';
-    objects.forEach(function(o){
-      var name=names[o.type]||o.type||'Елемент';counts[name]=(counts[name]||0)+1;
-      var a=map4403b(point4403b(o),minX,minY,scale,pad);
-      if(o&&o.x2!=null&&o.y2!=null){
-        var b=map4403b({x:num4403b(o.x2),y:num4403b(o.y2)},minX,minY,scale,pad);
-        objSvg+='<line x1="'+a.x.toFixed(1)+'" y1="'+a.y.toFixed(1)+'" x2="'+b.x.toFixed(1)+'" y2="'+b.y.toFixed(1)+'" stroke="#334155" stroke-width="5" stroke-linecap="round"/>';
-      }else{
-        objSvg+='<text x="'+a.x.toFixed(1)+'" y="'+a.y.toFixed(1)+'" text-anchor="middle" dominant-baseline="middle" font-size="22">'+(icons[o.type]||'•')+'</text>';
-      }
-    });
-    var chips=Object.keys(counts).map(function(k){return'<i>'+esc4403b(k)+' × '+counts[k]+'</i>'}).join('');
-    var area=num4403b(room.area||(room.metrics&&room.metrics.area)),per=num4403b(room.perimeter||(room.metrics&&room.metrics.perimeter));
-    return '<div class="client-plan4403b">'+
-      '<div class="client-plan-metrics4403b"><div><span>Кімната</span><b>'+esc4403b(room.name||'План')+'</b></div><div><span>Площа</span><b>'+area.toFixed(2)+' м²</b></div><div><span>Периметр</span><b>'+per.toFixed(2)+' м</b></div></div>'+
-      '<svg viewBox="0 0 '+W+' '+H+'"><polygon points="'+poly+'" fill="#dbeafe" stroke="#075bff" stroke-width="4"/>'+edges+objSvg+m.map(function(p){return'<circle cx="'+p.x.toFixed(1)+'" cy="'+p.y.toFixed(1)+'" r="6" fill="#fff" stroke="#075bff" stroke-width="3"/>'}).join('')+'</svg>'+
-      (chips?'<div class="client-plan-note4403b"><b>Елементи плану</b><div class="client-plan-chips4403b">'+chips+'</div></div>':'<div class="client-plan-note4403b">Показано контур кімнати та розміри стін.</div>')+
-      '</div>';
-  }
-
-  window.clientPlan60=function(index){
-    var data=clientData4403b();
-    var room=data&&Array.isArray(data.rooms)?data.rooms[index]:null;
-    if(!room)return openModal60('📐 План','<div class="client-plan-note4403b">Не вдалося завантажити кімнату.</div>');
-    openModal60('📐 '+esc4403b(room.name||('Кімната '+(index+1))),clientPlanHtml4403b(room));
-  };
-
-  var oldOpen=window.openClientObject56;
-  if(typeof oldOpen==='function')window.openClientObject56=async function(){var r=await oldOpen.apply(this,arguments);setTimeout(activateClientOnly4403b,180);return r};
-  var oldClose=window.closeClientObject56;
-  if(typeof oldClose==='function')window.closeClientObject56=function(){var r=oldClose.apply(this,arguments);setTimeout(activateClientOnly4403b,30);return r};
-  function install4403b(){activateClientOnly4403b();var card=document.getElementById('clientObjectCard56');if(card&&!card.__obs4403b){card.__obs4403b=1;new MutationObserver(function(){setTimeout(activateClientOnly4403b,20)}).observe(card,{attributes:true,attributeFilter:['class']})}}
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install4403b,{once:true});else install4403b();
-  window.addEventListener('pageshow',function(){setTimeout(install4403b,60)},{passive:true});
 })();
 </script>
 
