@@ -14976,13 +14976,14 @@ else setTimeout(install4336,350);
 
 
 
+<!-- 44.03F: client approval phone passthrough/fallback -->
 <!-- 43(39): client card guide, approval and comments -->
 <style id="clientApproval4339Styles">
 .client-guide4339{margin:0 0 14px;border:1px solid #bfdbfe;background:linear-gradient(180deg,#eff6ff,#fff);border-radius:15px;padding:13px;box-shadow:0 8px 20px rgba(15,23,42,.05)}
 .client-guide4339-head{display:flex;align-items:flex-start;gap:10px}.client-guide4339-icon{width:40px;height:40px;flex:0 0 40px;border-radius:12px;background:#dbeafe;display:flex;align-items:center;justify-content:center;font-size:21px}.client-guide4339 h3{font-size:15px;margin:1px 0 4px}.client-guide4339 p{font-size:9px;color:#475569;line-height:1.5;margin:0}
 .client-guide4339-steps{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:11px}.client-guide4339-step{border:1px solid #dbe3ef;background:#fff;border-radius:11px;padding:9px 7px;text-align:center}.client-guide4339-step strong{display:block;font-size:18px}.client-guide4339-step b{display:block;font-size:9px;margin-top:4px}.client-guide4339-step span{display:block;font-size:7.5px;color:#64748b;line-height:1.35;margin-top:3px}
 .client-guide4339-rules{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}.client-guide4339-rule{border-radius:10px;padding:9px;font-size:8px;line-height:1.45}.client-guide4339-rule b{display:block;font-size:9px;margin-bottom:4px}.client-guide4339-rule.ok{background:#ecfdf5;border:1px solid #a7f3d0;color:#065f46}.client-guide4339-rule.no{background:#fff7ed;border:1px solid #fed7aa;color:#9a3412}
-.client-approval4339{margin:14px 0 2px;border:1px solid #c4b5fd;background:linear-gradient(180deg,#faf5ff,#fff);border-radius:15px;padding:13px}.client-approval4339 h3{font-size:15px;margin:0}.client-approval4339>p{font-size:8.5px;color:#64748b;line-height:1.45;margin:5px 0 10px}.client-approval4339-grid{display:grid;grid-template-columns:1fr;gap:8px}.client-approval4339 label{display:block;font-size:8px;font-weight:900;color:#475569;margin-bottom:4px}.client-approval4339 select,.client-approval4339 textarea{width:100%;border:1px solid #dbe3ef;border-radius:10px;background:#fff;color:#0f172a;padding:10px;font-size:10px}.client-approval4339 textarea{min-height:92px;resize:vertical}.client-approval4339-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:9px}.client-approval4339-actions button{min-height:44px;border-radius:10px;font-size:10px;font-weight:950;border:1px solid #dbe3ef}.client-approval4339-actions .agree{background:#16a34a;color:#fff;border-color:#16a34a}.client-approval4339-actions .changes{background:#f59e0b;color:#fff;border-color:#f59e0b}.client-approval4339-note{margin-top:9px;padding:9px;border-radius:9px;background:#f8fafc;border:1px solid #e5e7eb;font-size:8px;color:#64748b;line-height:1.45}.client-approval4339-status{display:none;margin-top:9px;border-radius:9px;padding:9px;font-size:9px;font-weight:900;line-height:1.4}.client-approval4339-status.show{display:block}.client-approval4339-status.ok{background:#ecfdf5;color:#047857;border:1px solid #a7f3d0}.client-approval4339-status.error{background:#fff1f2;color:#b91c1c;border:1px solid #fecdd3}
+.client-approval4339{margin:14px 0 2px;border:1px solid #c4b5fd;background:linear-gradient(180deg,#faf5ff,#fff);border-radius:15px;padding:13px}.client-approval4339 h3{font-size:15px;margin:0}.client-approval4339>p{font-size:8.5px;color:#64748b;line-height:1.45;margin:5px 0 10px}.client-approval4339-grid{display:grid;grid-template-columns:1fr;gap:8px}.client-approval4339 label{display:block;font-size:8px;font-weight:900;color:#475569;margin-bottom:4px}.client-approval4339 select,.client-approval4339 textarea,.client-approval4339 input{width:100%;border:1px solid #dbe3ef;border-radius:10px;background:#fff;color:#0f172a;padding:10px;font-size:10px}.client-approval4339 textarea{min-height:92px;resize:vertical}.client-approval4339-phonehint{margin-top:4px;font-size:7.5px;color:#64748b;line-height:1.4}.client-approval4339-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:9px}.client-approval4339-actions button{min-height:44px;border-radius:10px;font-size:10px;font-weight:950;border:1px solid #dbe3ef}.client-approval4339-actions .agree{background:#16a34a;color:#fff;border-color:#16a34a}.client-approval4339-actions .changes{background:#f59e0b;color:#fff;border-color:#f59e0b}.client-approval4339-note{margin-top:9px;padding:9px;border-radius:9px;background:#f8fafc;border:1px solid #e5e7eb;font-size:8px;color:#64748b;line-height:1.45}.client-approval4339-status{display:none;margin-top:9px;border-radius:9px;padding:9px;font-size:9px;font-weight:900;line-height:1.4}.client-approval4339-status.show{display:block}.client-approval4339-status.ok{background:#ecfdf5;color:#047857;border:1px solid #a7f3d0}.client-approval4339-status.error{background:#fff1f2;color:#b91c1c;border:1px solid #fecdd3}
 @media(max-width:520px){.client-guide4339-steps{grid-template-columns:1fr}.client-guide4339-rules,.client-approval4339-actions{grid-template-columns:1fr}}
 </style>
 
@@ -15021,17 +15022,30 @@ else setTimeout(install4336,350);
       </section>`;
   }
 
-  function approvalHtml4339(rooms){
+  function phone4339(data){
+    return String(data?.clientPhone || data?.client_phone || data?.phone || '').trim();
+  }
+
+  function validPhone4339(value){
+    return String(value || '').replace(/\D/g, '').length >= 9;
+  }
+
+  function approvalHtml4339(rooms, data){
     const options = ['<option value="object">Весь об’єкт</option>']
       .concat((rooms || []).map((room, index) =>
         `<option value="room:${index}">${esc4339(room.name || room.roomName || ('Кімната ' + (index + 1)))}</option>`
       )).join('');
+    const savedPhone = phone4339(data);
+    const phoneField = validPhone4339(savedPhone)
+      ? `<input id="clientApprovalPhone4339" type="hidden" value="${esc4339(savedPhone)}">`
+      : `<div><label for="clientApprovalPhone4339">Телефон для підтвердження</label><input id="clientApprovalPhone4339" type="tel" inputmode="tel" autocomplete="tel" placeholder="+380..."><div class="client-approval4339-phonehint">Номер потрібен лише для надсилання погодження виконавцю.</div></div>`;
     return `
       <section id="clientApproval4339" class="client-approval4339">
         <h3>Погодження та коментар</h3>
         <p>Оберіть весь об’єкт або конкретну кімнату. Коментар не змінює креслення автоматично — його отримає та перевірить виконавець.</p>
         <div class="client-approval4339-grid">
           <div><label for="clientApprovalScope4339">Що погоджуємо</label><select id="clientApprovalScope4339">${options}</select></div>
+          ${phoneField}
           <div><label for="clientApprovalComment4339">Коментар або побажання</label><textarea id="clientApprovalComment4339" placeholder="Наприклад: перенести люстру ближче до вікна або додати два світильники..."></textarea></div>
         </div>
         <div class="client-approval4339-actions">
@@ -15057,7 +15071,7 @@ else setTimeout(install4336,350);
     const old = document.getElementById('clientApproval4339');
     if(old) old.remove();
     const actions = card.querySelector('.client-actions56');
-    if(actions) actions.insertAdjacentHTML('beforebegin', approvalHtml4339(rooms));
+    if(actions) actions.insertAdjacentHTML('beforebegin', approvalHtml4339(rooms, data));
   }
 
   function status4339(message, type){
@@ -15082,6 +15096,13 @@ else setTimeout(install4336,350);
     const data = clientData4339() || {};
     const scope = document.getElementById('clientApprovalScope4339')?.value || 'object';
     const comment = document.getElementById('clientApprovalComment4339')?.value.trim() || '';
+    const phoneInput = document.getElementById('clientApprovalPhone4339');
+    const phone = validPhone4339(phone4339(data)) ? phone4339(data) : String(phoneInput?.value || '').trim();
+    if(!validPhone4339(phone)){
+      status4339('Вкажіть номер телефону для надсилання погодження.', 'error');
+      if(phoneInput?.type !== 'hidden') phoneInput?.focus();
+      return;
+    }
     if(kind === 'changes' && comment.length < 3){
       status4339('Опишіть, що саме потрібно змінити.', 'error');
       document.getElementById('clientApprovalComment4339')?.focus();
@@ -15124,6 +15145,8 @@ else setTimeout(install4336,350);
         source:'Особиста картка клієнта',
         clientName,
         name:clientName,
+        clientPhone:phone,
+        phone,
         objectNumber,
         address,
         room:scopeName,
