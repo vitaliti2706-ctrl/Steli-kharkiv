@@ -1058,7 +1058,7 @@ th:nth-child(2),th:nth-child(3),th:nth-child(4),td:nth-child(2),td:nth-child(3),
   <button class="btn blue" type="button" onclick="generateCustomContour()">Створити</button>
 </div>
 <div class="btn-row mt"><button class="btn outline" type="button" onclick="addContourPoint()">＋ Точка</button><button class="btn outline" type="button" onclick="removeContourPoint()">− Точка</button></div>
-<div class="planner-hint">Для прямокутної та Г-подібної кімнати розрахунок точний. Для довільної форми задайте кількість кутів, пересуньте точки за реальною формою і внесіть довжини стін. Для максимально точної площі складної кімнати пізніше додамо діагоналі.</div></div>
+<div class="planner-hint">Для прямокутної та Г-подібної кімнати розрахунок точний. Для довільної форми задайте кількість кутів, пересуньте точки за реальною формою і внесіть довжини стін. Діагоналі нижче уточнюють геометрію та площу складної кімнати.</div></div>
 <div class="block planner-points-block"><div class="block-head"><h3>Довжини між точками</h3><span class="tag">метри</span></div>
 <div class="points-plan-grid">
   <div>
@@ -24482,6 +24482,729 @@ async function adminRow4402(id){let rows=Array.isArray(window.serviceRows60)?win
 window.shareAdminEstimate4401=async function(id,button){const old=button?.innerHTML;try{if(button){button.disabled=true;button.textContent='⏳ Кошторис…'}const row=await adminRow4402(id),base=row?.object_data&&typeof row.object_data==='object'?copy4402(row.object_data):{};base.objectNumber=row?.object_number||base.objectNumber||'';base.cloudId=row?.id||base.cloudId||'';openChoice4402(base)}catch(error){alert('Не вдалося відкрити кошторис з історії: '+(error?.message||error))}finally{if(button){button.disabled=false;button.innerHTML=old}}};
 
 document.documentElement.dataset.pixelVersion=VERSION4402;try{document.title='Potolok AI PRO — Pixel '+VERSION4402}catch(_){ }
+})();
+</script>
+
+
+<!-- 44.04: drawing diagonals + geometry constraints -->
+<style id="plannerDiagonals4404Styles">
+.diagonal-block4404{border:1px solid #fed7aa;background:linear-gradient(180deg,#fff7ed,#fff);border-radius:14px;padding:11px}
+.diagonal-head4404{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:8px}
+.diagonal-head4404 h3{font-size:13px;margin:0}.diagonal-head4404 p{font-size:8px;line-height:1.4;color:#64748b;margin:3px 0 0}
+.diagonal-counter4404{white-space:nowrap;border:1px solid #fdba74;background:#fff;color:#c2410c;border-radius:999px;padding:5px 7px;font-size:8px;font-weight:950}
+.diagonal-actions4404{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:8px}
+.diagonal-actions4404 button{min-height:38px;border:1px solid #fdba74;background:#fff;color:#9a3412;border-radius:9px;padding:7px 6px;font-size:8.5px;font-weight:950}
+.diagonal-actions4404 .primary4404{background:#f97316;color:#fff;border-color:#f97316}.diagonal-actions4404 .wide4404{grid-column:1/-1}
+.diagonal-list4404{display:grid;gap:7px}.diagonal-row4404{display:grid;grid-template-columns:72px 72px 1fr 34px;gap:6px;align-items:end;border:1px solid #ffedd5;background:#fff;border-radius:10px;padding:8px}
+.diagonal-field4404 label{display:block;font-size:7px;font-weight:900;color:#64748b;margin-bottom:3px}.diagonal-field4404 select,.diagonal-field4404 input{width:100%;min-height:34px;border:1px solid #dbe3ef;border-radius:8px;background:#f8fafc;padding:6px;font-size:9px;color:#0f172a}
+.diagonal-delete4404{width:34px;height:34px;border:1px solid #fecaca;background:#fff;color:#dc2626;border-radius:8px;font-weight:950}
+.diagonal-status4404{margin-top:8px;padding:8px 9px;border:1px solid #e5e7eb;background:#f8fafc;border-radius:9px;font-size:8px;line-height:1.45;color:#475569}.diagonal-status4404.ok{border-color:#86efac;background:#f0fdf4;color:#166534}.diagonal-status4404.warn{border-color:#fdba74;background:#fff7ed;color:#9a3412}.diagonal-status4404.bad{border-color:#fecaca;background:#fff1f2;color:#b91c1c}
+.planner-diagonal4404{stroke:#f97316;stroke-width:3;stroke-dasharray:10 7;pointer-events:none}.planner-diagonal-label4404{font-size:12px;font-weight:950;fill:#c2410c;paint-order:stroke;stroke:#fff;stroke-width:5px;pointer-events:none}
+@media(max-width:430px){.diagonal-row4404{grid-template-columns:1fr 1fr 80px 34px}.diagonal-actions4404{grid-template-columns:1fr 1fr}}
+</style>
+<script id="plannerDiagonals4404Script">
+(function(){
+'use strict';
+if(window.__plannerDiagonals4404)return;window.__plannerDiagonals4404=true;
+
+let plannerDiagonals4404=[];
+let plannerGeometry4404=null;
+let solveTimer4404=null;
+const clone4404=v=>{try{return JSON.parse(JSON.stringify(v))}catch(_){return[]}};
+const num4404=v=>Math.max(0,Number(String(v??'').replace(',','.'))||0);
+const point4404=i=>{try{return typeof pointName==='function'?pointName(i):String.fromCharCode(65+i)}catch(_){return String.fromCharCode(65+i)}};
+function pointCount4404(){try{return Array.isArray(roomPoints)?roomPoints.length:0}catch(_){return 0}}
+function pairKey4404(a,b){return [Math.min(a,b),Math.max(a,b)].join(':')}
+function isSide4404(a,b,n){const d=Math.abs(a-b);return a===b||d===1||d===n-1}
+function signature4404(points){return (points||[]).map(p=>Number(p?.[0]||0).toFixed(1)+','+Number(p?.[1]||0).toFixed(1)).join('|')}
+function validRows4404(){
+  const n=pointCount4404(),seen=new Set(),out=[];
+  plannerDiagonals4404.forEach((d,index)=>{
+    const a=Number(d?.a),b=Number(d?.b),length=num4404(d?.length),key=pairKey4404(a,b);
+    if(!Number.isInteger(a)||!Number.isInteger(b)||a<0||b<0||a>=n||b>=n||isSide4404(a,b,n)||length<=0||seen.has(key))return;
+    seen.add(key);out.push({a,b,length,index,key});
+  });
+  return out;
+}
+function needed4404(){const n=pointCount4404();return n<=3?0:n-3}
+function sanitize4404(){
+  const n=pointCount4404();
+  plannerDiagonals4404=plannerDiagonals4404.filter(d=>Number.isInteger(Number(d?.a))&&Number.isInteger(Number(d?.b))&&Number(d.a)>=0&&Number(d.b)>=0&&Number(d.a)<n&&Number(d.b)<n&&Number(d.a)!==Number(d.b));
+}
+function areaMeters4404(pts){let s=0;for(let i=0;i<pts.length;i++){const a=pts[i],b=pts[(i+1)%pts.length];s+=a[0]*b[1]-b[0]*a[1]}return Math.abs(s/2)}
+function orient4404(a,b,c){return (b[0]-a[0])*(c[1]-a[1])-(b[1]-a[1])*(c[0]-a[0])}
+function segmentsCross4404(a,b,c,d){
+  const o1=orient4404(a,b,c),o2=orient4404(a,b,d),o3=orient4404(c,d,a),o4=orient4404(c,d,b);
+  return ((o1>1e-7&&o2<-1e-7)||(o1<-1e-7&&o2>1e-7))&&((o3>1e-7&&o4<-1e-7)||(o3<-1e-7&&o4>1e-7));
+}
+function selfCross4404(pts){const n=pts.length;for(let i=0;i<n;i++){const a=pts[i],b=pts[(i+1)%n];for(let j=i+1;j<n;j++){if(j===i||j===(i+1)%n||(j+1)%n===i)continue;if(i===0&&j===n-1)continue;const c=pts[j],d=pts[(j+1)%n];if(segmentsCross4404(a,b,c,d))return true}}return false}
+function fitToPlanner4404(metricPts){
+  const xs=metricPts.map(p=>p[0]),ys=metricPts.map(p=>p[1]);const minX=Math.min(...xs),maxX=Math.max(...xs),minY=Math.min(...ys),maxY=Math.max(...ys);const bw=Math.max(maxX-minX,.05),bh=Math.max(maxY-minY,.05);const fit=Math.min(560/bw,400/bh);const ox=120+(560-bw*fit)/2,oy=90+(400-bh*fit)/2;return metricPts.map(([x,y])=>[ox+(x-minX)*fit,oy+(y-minY)*fit]);
+}
+function solve4404(forceRender=true){
+  let n=0;try{n=roomPoints.length}catch(_){return false}
+  if(typeof roomTemplate==='undefined'||roomTemplate!=='custom'||n<3||!Array.isArray(segmentLengths)||segmentLengths.length!==n){plannerGeometry4404=null;return false}
+  const sides=segmentLengths.map(v=>Math.max(.01,num4404(v)||.01));const realPer=sides.reduce((a,b)=>a+b,0);let screenPer=0;
+  for(let i=0;i<n;i++){const a=roomPoints[i],b=roomPoints[(i+1)%n];screenPer+=Math.hypot(b[0]-a[0],b[1]-a[1])}
+  const meterPerPx=screenPer>1?realPer/screenPer:1/80;
+  let pts=roomPoints.map(p=>[(Number(p[0])||0)*meterPerPx,(Number(p[1])||0)*meterPerPx]);
+  const center=[pts.reduce((s,p)=>s+p[0],0)/n,pts.reduce((s,p)=>s+p[1],0)/n];
+  const constraints=[];for(let i=0;i<n;i++)constraints.push({a:i,b:(i+1)%n,length:sides[i],alpha:.56,kind:'side'});validRows4404().forEach(d=>constraints.push({a:d.a,b:d.b,length:d.length,alpha:.68,kind:'diag'}));
+  for(let iter=0;iter<720;iter++){
+    for(const c of constraints){let dx=pts[c.b][0]-pts[c.a][0],dy=pts[c.b][1]-pts[c.a][1],dist=Math.hypot(dx,dy);if(dist<1e-8){dx=.001;dy=0;dist=.001}const delta=(dist-c.length)/dist*.5*c.alpha;pts[c.a][0]+=dx*delta;pts[c.a][1]+=dy*delta;pts[c.b][0]-=dx*delta;pts[c.b][1]-=dy*delta}
+    const cx=pts.reduce((s,p)=>s+p[0],0)/n,cy=pts.reduce((s,p)=>s+p[1],0)/n;const ox=center[0]-cx,oy=center[1]-cy;for(const p of pts){p[0]+=ox;p[1]+=oy}
+  }
+  let maxResidual=0;for(const c of constraints){const a=pts[c.a],b=pts[c.b],d=Math.hypot(b[0]-a[0],b[1]-a[1]);maxResidual=Math.max(maxResidual,Math.abs(d-c.length))}
+  const crossed=selfCross4404(pts),valid=validRows4404(),need=needed4404(),exact=valid.length>=need&&maxResidual<=.03&&!crossed;
+  const fitted=fitToPlanner4404(pts);roomPoints=fitted;roomPoints._real4404=clone4404(pts);plannerGeometry4404={metric:clone4404(pts),area:areaMeters4404(pts),perimeter:realPer,maxResidual,crossed,exact,diagCount:valid.length,needed:need,screenSignature:signature4404(fitted)};
+  if(forceRender&&typeof window.renderPlanner==='function')window.renderPlanner();renderRows4404();return true;
+}
+function scheduleSolve4404(){clearTimeout(solveTimer4404);solveTimer4404=setTimeout(()=>{if(typeof roomTemplate!=='undefined'&&roomTemplate==='custom')solve4404(true);else{plannerGeometry4404=null;renderPlannerSafe4404()}},140)}
+function renderPlannerSafe4404(){try{if(typeof window.renderPlanner==='function')window.renderPlanner()}catch(_){}}
+function options4404(selected){const n=pointCount4404();let html='';for(let i=0;i<n;i++)html+='<option value="'+i+'" '+(i===Number(selected)?'selected':'')+'>'+point4404(i)+'</option>';return html}
+function statusInfo4404(){
+  const el=document.getElementById('diagonalStatus4404');const counter=document.getElementById('diagonalCounter4404');if(!el)return;const n=pointCount4404(),valid=validRows4404(),need=needed4404();if(counter)counter.textContent='Введено '+valid.length+' / орієнтир '+need;
+  if(n<3){el.className='diagonal-status4404 warn';el.textContent='Спочатку створіть контур кімнати.';return}
+  if(typeof roomTemplate!=='undefined'&&roomTemplate!=='custom'){el.className='diagonal-status4404';el.textContent='Для прямокутної та Г-подібної форми діагональ можна зберегти як контрольний замір. Геометрія цих шаблонів і так рахується точно.';return}
+  if(plannerGeometry4404&&signature4404(roomPoints)===plannerGeometry4404.screenSignature){if(plannerGeometry4404.crossed){el.className='diagonal-status4404 bad';el.textContent='⚠️ Контур перетинає сам себе. Перевірте порядок точок і заміри.';return}if(plannerGeometry4404.maxResidual>.03){el.className='diagonal-status4404 bad';el.textContent='⚠️ Заміри не сходяться. Найбільша розбіжність '+plannerGeometry4404.maxResidual.toFixed(2)+' м.';return}if(plannerGeometry4404.exact){el.className='diagonal-status4404 ok';el.textContent='✅ Геометрію уточнено за сторонами та діагоналями. Площа: '+plannerGeometry4404.area.toFixed(2)+' м².';return}}
+  el.className='diagonal-status4404 warn';el.textContent=need===0?'Для трикутника достатньо трьох сторін. Натисніть «Перерахувати».':'Для повного уточнення складного контуру зазвичай потрібно близько '+need+' незалежних діагоналей. Вводьте лише реально виміряні відстані.';
+}
+function renderRows4404(){sanitize4404();const list=document.getElementById('diagonalList4404');if(!list){statusInfo4404();return}if(!plannerDiagonals4404.length){list.innerHTML='<div class="diagonal-status4404">Діагоналей ще немає. Натисніть «＋ Діагональ» або «Рекомендовані».</div>';statusInfo4404();return}list.innerHTML=plannerDiagonals4404.map((d,i)=>'<div class="diagonal-row4404"><div class="diagonal-field4404"><label>З точки</label><select onchange="updateDiagonal4404('+i+',\'a\',this.value)">'+options4404(d.a)+'</select></div><div class="diagonal-field4404"><label>До точки</label><select onchange="updateDiagonal4404('+i+',\'b\',this.value)">'+options4404(d.b)+'</select></div><div class="diagonal-field4404"><label>Довжина, м</label><input type="number" inputmode="decimal" min="0.01" step="0.01" placeholder="0.00" value="'+(num4404(d.length)>0?num4404(d.length).toFixed(2):'')+'" oninput="updateDiagonal4404('+i+',\'length\',this.value)"></div><button class="diagonal-delete4404" type="button" onclick="deleteDiagonal4404('+i+')">×</button></div>').join('');statusInfo4404()}
+function firstFreePair4404(){const n=pointCount4404(),used=new Set(plannerDiagonals4404.map(d=>pairKey4404(Number(d.a),Number(d.b))));for(let gap=2;gap<n;gap++)for(let a=0;a<n;a++){const b=(a+gap)%n;if(isSide4404(a,b,n))continue;const key=pairKey4404(a,b);if(!used.has(key))return[a,b]}return n>=3?[0,2]:[0,0]}
+window.addDiagonal4404=function(){const n=pointCount4404();if(n<3)return alert('Спочатку створіть контур кімнати.');const [a,b]=firstFreePair4404();plannerDiagonals4404.push({a,b,length:0});plannerGeometry4404=null;renderRows4404();renderPlannerSafe4404();setTimeout(()=>document.querySelector('#diagonalList4404 .diagonal-row4404:last-child input')?.focus(),0)};
+window.deleteDiagonal4404=function(i){plannerDiagonals4404.splice(i,1);plannerGeometry4404=null;renderRows4404();scheduleSolve4404();try{if(typeof autosave==='function')autosave()}catch(_){}};
+window.updateDiagonal4404=function(i,key,value){const d=plannerDiagonals4404[i];if(!d)return;if(key==='length')d.length=num4404(value);else d[key]=Number(value);plannerGeometry4404=null;renderRows4404();scheduleSolve4404();try{if(typeof autosave==='function')autosave()}catch(_){}};
+window.clearDiagonals4404=function(){if(plannerDiagonals4404.length&&!confirm('Очистити всі діагоналі цієї кімнати?'))return;plannerDiagonals4404=[];plannerGeometry4404=null;renderRows4404();renderPlannerSafe4404();try{if(typeof autosave==='function')autosave()}catch(_){}};
+window.recommendedDiagonals4404=function(){const n=pointCount4404();if(n<4)return alert('Для цього контуру додаткові діагоналі не потрібні.');const next=[];for(let b=2;b<=n-2;b++)next.push({a:0,b,length:0});plannerDiagonals4404=next;plannerGeometry4404=null;renderRows4404();renderPlannerSafe4404();document.getElementById('diagonalStatus4404').className='diagonal-status4404 warn';document.getElementById('diagonalStatus4404').textContent='Створено рекомендований набір від точки A. Якщо якусь діагональ фізично не можна виміряти — змініть її точки у списку.'};
+window.recalculateDiagonals4404=function(){if(typeof roomTemplate!=='undefined'&&roomTemplate==='custom'){if(!solve4404(true))statusInfo4404()}else{renderPlannerSafe4404();statusInfo4404()}try{if(typeof autosave==='function')autosave()}catch(_){}};
+function draw4404(){
+  const layer=document.getElementById('roomLayer');if(!layer)return;layer.querySelector('#plannerDiagonalLayer4404')?.remove();const rows=validRows4404();if(!rows.length)return;const ns='http://www.w3.org/2000/svg',g=document.createElementNS(ns,'g');g.id='plannerDiagonalLayer4404';for(const d of rows){const a=roomPoints[d.a],b=roomPoints[d.b];if(!a||!b)continue;const line=document.createElementNS(ns,'line');line.setAttribute('x1',a[0]);line.setAttribute('y1',a[1]);line.setAttribute('x2',b[0]);line.setAttribute('y2',b[1]);line.setAttribute('class','planner-diagonal4404');g.appendChild(line);const label=document.createElementNS(ns,'text');label.setAttribute('x',(a[0]+b[0])/2);label.setAttribute('y',(a[1]+b[1])/2-7);label.setAttribute('text-anchor','middle');label.setAttribute('class','planner-diagonal-label4404');label.textContent=point4404(d.a)+'–'+point4404(d.b)+' '+d.length.toFixed(2)+' м';g.appendChild(label)}const poly=layer.querySelector('polygon');if(poly&&poly.nextSibling)layer.insertBefore(g,poly.nextSibling);else layer.appendChild(g)}
+function installUi4404(){if(document.getElementById('plannerDiagonals4404'))return;const anchor=document.querySelector('#tab_planner .planner-points-block');if(!anchor)return;const block=document.createElement('div');block.id='plannerDiagonals4404';block.className='block diagonal-block4404';block.innerHTML='<div class="diagonal-head4404"><div><h3>📐 Діагоналі</h3><p>Виміряйте відстань між двома не сусідніми точками. Діагоналі допомагають точно відновити складну форму.</p></div><span id="diagonalCounter4404" class="diagonal-counter4404">0</span></div><div class="diagonal-actions4404"><button type="button" class="primary4404" onclick="addDiagonal4404()">＋ Діагональ</button><button type="button" onclick="recommendedDiagonals4404()">✨ Рекомендовані</button><button type="button" onclick="recalculateDiagonals4404()">↻ Перерахувати</button><button type="button" onclick="clearDiagonals4404()">🧹 Очистити</button></div><div id="diagonalList4404" class="diagonal-list4404"></div><div id="diagonalStatus4404" class="diagonal-status4404"></div>';anchor.insertAdjacentElement('afterend',block);renderRows4404()}
+
+const basePolygon4404=window.polygonMetrics;
+window.polygonMetrics=function(){
+  try{if(typeof roomTemplate!=='undefined'&&roomTemplate==='custom'&&plannerGeometry4404&&signature4404(roomPoints)===plannerGeometry4404.screenSignature)return{area:plannerGeometry4404.area,perimeter:plannerGeometry4404.perimeter,approx:!plannerGeometry4404.exact,diagonalExact:plannerGeometry4404.exact,diagonalResidual:plannerGeometry4404.maxResidual}}
+  catch(_){ }
+  return typeof basePolygon4404==='function'?basePolygon4404.apply(this,arguments):{area:0,perimeter:0,approx:true};
+};
+const baseRebuild4404=window.rebuildCustomByLengths;
+window.rebuildCustomByLengths=function(){if(typeof roomTemplate!=='undefined'&&roomTemplate==='custom'&&pointCount4404()>=3){solve4404(true);return}return typeof baseRebuild4404==='function'?baseRebuild4404.apply(this,arguments):undefined};
+const baseRender4404=window.renderPlanner;
+window.renderPlanner=function(){const out=typeof baseRender4404==='function'?baseRender4404.apply(this,arguments):undefined;try{draw4404();statusInfo4404();if(typeof syncMiniPlanner62==='function')syncMiniPlanner62()}catch(e){console.warn('44.04 diagonal render',e)}return out};
+
+const baseCapture4404=window.captureCurrentRoom;
+if(typeof baseCapture4404==='function')window.captureCurrentRoom=function(){const room=baseCapture4404.apply(this,arguments);room.planner=room.planner||{};room.planner.diagonals=clone4404(plannerDiagonals4404);return room};
+const baseCollect4404=window.collectObject;
+if(typeof baseCollect4404==='function')window.collectObject=function(){const obj=baseCollect4404.apply(this,arguments);if(obj&&obj.planner)obj.planner.diagonals=clone4404(plannerDiagonals4404);return obj};
+const baseRestore4404=window.restoreRoom;
+if(typeof baseRestore4404==='function')window.restoreRoom=function(room){plannerDiagonals4404=clone4404(room?.planner?.diagonals||[]);plannerGeometry4404=null;const out=baseRestore4404.apply(this,arguments);sanitize4404();setTimeout(()=>{installUi4404();renderRows4404();if(typeof roomTemplate!=='undefined'&&roomTemplate==='custom'&&validRows4404().length)solve4404(true);else renderPlannerSafe4404()},0);return out};
+const baseResetRoom4404=window.resetRoomWorkspace;
+if(typeof baseResetRoom4404==='function')window.resetRoomWorkspace=function(){plannerDiagonals4404=[];plannerGeometry4404=null;const out=baseResetRoom4404.apply(this,arguments);setTimeout(()=>{installUi4404();renderRows4404()},0);return out};
+const baseSetTemplate4404=window.setTemplate;
+if(typeof baseSetTemplate4404==='function')window.setTemplate=function(t,btn){const changed=String(t)!==String(typeof roomTemplate!=='undefined'?roomTemplate:'');if(changed){plannerDiagonals4404=[];plannerGeometry4404=null}const out=baseSetTemplate4404.apply(this,arguments);renderRows4404();renderPlannerSafe4404();return out};
+const baseGenerate4404=window.generateCustomContour;
+if(typeof baseGenerate4404==='function')window.generateCustomContour=function(){const before=signature4404(typeof roomPoints!=='undefined'?roomPoints:[]),count=pointCount4404();const out=baseGenerate4404.apply(this,arguments);if(pointCount4404()!==count||signature4404(roomPoints)!==before){plannerDiagonals4404=[];plannerGeometry4404=null;renderRows4404();renderPlannerSafe4404()}return out};
+['addContourPoint','removeContourPoint'].forEach(name=>{const base=window[name];if(typeof base!=='function')return;window[name]=function(){const before=pointCount4404();const out=base.apply(this,arguments);if(pointCount4404()!==before){plannerDiagonals4404=[];plannerGeometry4404=null;renderRows4404();renderPlannerSafe4404()}return out}});
+const basePush4404=window.pushPlanner;
+if(typeof basePush4404==='function')window.pushPlanner=function(){const out=basePush4404.apply(this,arguments);try{if(Array.isArray(plannerHistory)&&plannerHistory.length){const i=plannerHistory.length-1,d=JSON.parse(plannerHistory[i]);d.diagonals=clone4404(plannerDiagonals4404);plannerHistory[i]=JSON.stringify(d)}}catch(_){ }return out};
+const baseUndo4404=window.undoPlanner;
+if(typeof baseUndo4404==='function')window.undoPlanner=function(){let target=null,current=clone4404(plannerDiagonals4404);try{if(Array.isArray(plannerHistory)&&plannerHistory.length)target=JSON.parse(plannerHistory[plannerHistory.length-1])}catch(_){ }const out=baseUndo4404.apply(this,arguments);try{if(Array.isArray(plannerRedo)&&plannerRedo.length){const i=plannerRedo.length-1,d=JSON.parse(plannerRedo[i]);d.diagonals=current;plannerRedo[i]=JSON.stringify(d)}}catch(_){ }plannerDiagonals4404=clone4404(target?.diagonals||[]);plannerGeometry4404=null;renderRows4404();if(typeof roomTemplate!=='undefined'&&roomTemplate==='custom'&&validRows4404().length)solve4404(true);else renderPlannerSafe4404();return out};
+const baseRedo4404=window.redoPlanner;
+if(typeof baseRedo4404==='function')window.redoPlanner=function(){let target=null,current=clone4404(plannerDiagonals4404);try{if(Array.isArray(plannerRedo)&&plannerRedo.length)target=JSON.parse(plannerRedo[plannerRedo.length-1])}catch(_){ }const out=baseRedo4404.apply(this,arguments);try{if(Array.isArray(plannerHistory)&&plannerHistory.length){const i=plannerHistory.length-1,d=JSON.parse(plannerHistory[i]);d.diagonals=current;plannerHistory[i]=JSON.stringify(d)}}catch(_){ }plannerDiagonals4404=clone4404(target?.diagonals||[]);plannerGeometry4404=null;renderRows4404();if(typeof roomTemplate!=='undefined'&&roomTemplate==='custom'&&validRows4404().length)solve4404(true);else renderPlannerSafe4404();return out};
+
+function start4404(){installUi4404();renderRows4404();try{document.documentElement.dataset.pixelVersion='44.04';document.title='Potolok AI PRO — Pixel 44.04'}catch(_){ }renderPlannerSafe4404()}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start4404,{once:true});else start4404();
+})();
+</script>
+<!-- 44.05: finger wall-by-wall contour drawing, isolated from element gestures -->
+<style id="fingerWallDrawing4405Styles">
+.free-draw-launch4405{display:grid;grid-template-columns:1fr auto;gap:7px;margin:9px 0 7px}
+.free-draw-launch4405 button{min-height:44px;border-radius:10px;border:1px solid #93c5fd;background:#eff6ff;color:#075bff;font-size:9px;font-weight:950;padding:8px 10px}
+.free-draw-launch4405 .primary4405{background:linear-gradient(135deg,#075bff,#2563eb);color:#fff;border-color:#075bff;font-size:10px}
+.free-draw-state4405{display:none;margin:6px 0 0;padding:8px 9px;border-radius:9px;border:1px solid #86efac;background:#f0fdf4;color:#166534;font-size:8px;font-weight:900;line-height:1.4}.free-draw-state4405.show{display:block}
+.free-draw-modal4405{position:fixed;inset:0;z-index:1200;display:none;background:rgba(7,20,40,.78);padding:10px;align-items:center;justify-content:center}
+.free-draw-modal4405.open{display:flex}
+.free-draw-sheet4405{width:min(760px,100%);height:min(94vh,860px);display:flex;flex-direction:column;background:#fff;border-radius:20px;overflow:hidden;box-shadow:0 28px 90px rgba(0,0,0,.42)}
+.free-draw-head4405{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;padding:13px 14px 10px;border-bottom:1px solid #e5e7eb}
+.free-draw-head4405 h3{font-size:17px;margin:0}.free-draw-head4405 p{font-size:9px;line-height:1.45;color:#64748b;margin:4px 0 0}
+.free-draw-close4405{width:38px;height:38px;flex:0 0 38px;border:1px solid #e5e7eb;background:#fff;border-radius:10px;font-size:21px}
+.free-draw-stage4405{position:relative;flex:1;min-height:330px;background:#f8fafc;padding:8px}
+#freeDrawSvg4405{display:block;width:100%;height:100%;min-height:330px;touch-action:none;border:1px solid #dbe3ef;border-radius:14px;background:repeating-linear-gradient(0deg,#fff,#fff 23px,#eef2f7 24px),repeating-linear-gradient(90deg,transparent,transparent 23px,#eef2f7 24px)}
+.free-draw-help4405{position:absolute;left:19px;top:19px;max-width:260px;padding:8px 9px;border-radius:10px;background:rgba(7,20,40,.86);color:#fff;font-size:8px;font-weight:850;line-height:1.4;pointer-events:none}
+.free-draw-footer4405{padding:10px 12px 12px;border-top:1px solid #e5e7eb;background:#fff}
+.free-draw-status4405{min-height:34px;padding:8px 9px;margin-bottom:8px;border-radius:9px;background:#eff6ff;color:#1d4ed8;font-size:8.5px;font-weight:900;line-height:1.4}
+.free-draw-actions4405{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+.free-draw-actions4405 button{min-height:42px;border:1px solid #dbe3ef;background:#fff;color:#334155;border-radius:10px;padding:7px 4px;font-size:8px;font-weight:950;line-height:1.2}
+.free-draw-actions4405 .apply4405{background:#16a34a;color:#fff;border-color:#16a34a}.free-draw-actions4405 .closecontour4405{background:#075bff;color:#fff;border-color:#075bff}.free-draw-actions4405 .danger4405{color:#dc2626;border-color:#fecaca}
+.free-wall4405{stroke:#075bff;stroke-width:6;stroke-linecap:round;stroke-linejoin:round;fill:none}.free-wall-preview4405{stroke:#f97316;stroke-width:5;stroke-dasharray:11 8;stroke-linecap:round}.free-node4405{fill:#fff;stroke:#075bff;stroke-width:4}.free-node-start4405{fill:#dcfce7;stroke:#16a34a}.free-label4405{font-size:17px;font-weight:950;fill:#071428;paint-order:stroke;stroke:#fff;stroke-width:5px}.free-wall-index4405{font-size:12px;font-weight:950;fill:#075bff;paint-order:stroke;stroke:#fff;stroke-width:5px;pointer-events:none}.free-wall-preview-length4407{font-size:14px;font-weight:1000;fill:#c2410c;paint-order:stroke;stroke:#fff;stroke-width:6px;pointer-events:none}
+.free-draw-live4407{position:absolute;right:18px;top:18px;z-index:8;min-width:142px;max-width:48%;padding:10px 12px;border-radius:12px;background:rgba(255,255,255,.95);border:2px solid #fdba74;box-shadow:0 8px 24px rgba(15,23,42,.14);pointer-events:none;text-align:right}.free-draw-live4407 .live-wall4407{font-size:9px;font-weight:950;color:#9a3412;line-height:1.2}.free-draw-live4407 .live-value4407{font-size:24px;font-weight:1000;color:#071428;line-height:1.05;margin-top:2px;font-variant-numeric:tabular-nums}.free-draw-live4407 .live-hint4407{font-size:7.5px;font-weight:850;color:#64748b;line-height:1.25;margin-top:3px}.free-draw-live4407.active4407{border-color:#f97316;background:#fff7ed}.free-draw-live4407.done4407{border-color:#86efac;background:#f0fdf4}.free-draw-scale4407{position:absolute;right:19px;top:98px;z-index:7;padding:4px 7px;border-radius:999px;background:rgba(7,20,40,.78);color:#fff;font-size:7px;font-weight:900;pointer-events:none}
+.free-draw-zoom4408{position:absolute;right:18px;top:122px;z-index:9;width:170px;padding:7px 9px;border:1px solid #bfdbfe;border-radius:11px;background:rgba(255,255,255,.96);box-shadow:0 6px 18px rgba(15,23,42,.10);pointer-events:auto}.free-draw-zoom4408 span{display:flex;justify-content:space-between;gap:7px;font-size:8px;font-weight:950;color:#334155}.free-draw-zoom4408 input{width:100%;margin-top:5px;accent-color:#075bff}.free-draw-sheet4405{overflow:auto}.free-draw-stage4405{flex:0 0 auto;height:min(55vh,510px)}.free-draw-footer4405{position:sticky;bottom:0;z-index:30}
+@media(max-width:520px){.free-draw-sheet4405{height:96vh;border-radius:16px}.free-draw-actions4405{grid-template-columns:repeat(3,1fr)}.free-draw-actions4405 .apply4405{grid-column:span 2}.free-draw-launch4405{grid-template-columns:1fr}.free-draw-launch4405 button{width:100%}.free-draw-help4405{max-width:50%;font-size:7.5px}.free-draw-live4407{right:14px;top:14px;min-width:128px;padding:8px 9px}.free-draw-live4407 .live-value4407{font-size:22px}.free-draw-scale4407{right:15px;top:86px}.free-draw-zoom4408{right:14px;top:112px;width:148px}.free-draw-stage4405{height:54vh;min-height:390px}}
+</style>
+<script id="fingerWallDrawing4405Script">
+(function(){
+'use strict';
+if(window.__fingerWallDrawing4405)return;window.__fingerWallDrawing4405=true;
+
+let drawPoints4405=[];
+let drawClosed4405=false;
+let drawPointer4405=null;
+let drawPreview4405=null;
+let snapOrthogonal4405=true;
+let freeDrawRoom4405=false;
+let contourUnlocked4405=false;
+/* 44.08 — production-order drawing state */
+let manualSegments4408=[];
+let drawZoom4408=1;
+let zoomCenter4408=[400,300];
+let drawingSource4408='new';
+
+const clone4405=v=>{try{return JSON.parse(JSON.stringify(v))}catch(_){return[]}};
+const n4405=v=>Number(String(v??'').replace(',','.'))||0;
+const pointName4405=i=>{try{return typeof pointName==='function'?pointName(i):String.fromCharCode(65+i)}catch(_){return String.fromCharCode(65+i)}};
+function status4405(msg){const el=document.getElementById('freeDrawStatus4405');if(el)el.textContent=msg}
+function svg4405(){return document.getElementById('freeDrawSvg4405')}
+function coord4405(e){const svg=svg4405(),pt=svg.createSVGPoint();pt.x=e.clientX;pt.y=e.clientY;const p=pt.matrixTransform(svg.getScreenCTM().inverse());const vb=svg.viewBox?.baseVal||{x:0,y:0,width:800,height:600};return[Math.max(vb.x+8,Math.min(vb.x+vb.width-8,p.x)),Math.max(vb.y+8,Math.min(vb.y+vb.height-8,p.y))]}
+function dist4405(a,b){return Math.hypot((b?.[0]||0)-(a?.[0]||0),(b?.[1]||0)-(a?.[1]||0))}
+const PX_PER_METER4407=80;
+function meters4407(a,b){return dist4405(a,b)/PX_PER_METER4407}
+function meterText4407(a,b){return meters4407(a,b).toFixed(2)+' м'}
+function segmentMeters4408(i,a,b){const manual=Number(manualSegments4408[i]);return manual>0?manual:meters4407(a,b)}
+function segmentText4408(i,a,b){return segmentMeters4408(i,a,b).toFixed(2)+' м'}
+function setViewBox4408(){
+  const svg=svg4405();if(!svg)return;
+  const z=Math.max(.7,Math.min(1.8,Number(drawZoom4408)||1)),w=800/z,h=600/z;
+  const focus=Array.isArray(zoomCenter4408)?zoomCenter4408:[400,300];
+  const x=Math.max(0,Math.min(800-w,(focus?.[0]||400)-w/2)),y=Math.max(0,Math.min(600-h,(focus?.[1]||300)-h/2));
+  svg.setAttribute('viewBox',[x,y,w,h].join(' '));
+  const label=document.getElementById('freeDrawZoomValue4408');if(label)label.textContent=Math.round(z*100)+'%';
+}
+function orthogonalize4408(points,closed=true){
+  const pts=(points||[]).map(p=>[Number(p?.[0])||0,Number(p?.[1])||0]),n=pts.length;if(n<2)return pts;
+  const px=Array.from({length:n},(_,i)=>i),py=Array.from({length:n},(_,i)=>i);
+  const find=(a,i)=>a[i]===i?i:(a[i]=find(a,a[i]));
+  const unite=(a,i,j)=>{i=find(a,i);j=find(a,j);if(i!==j)a[j]=i};
+  const edgeCount=closed?n:n-1;
+  for(let i=0;i<edgeCount;i++){const j=(i+1)%n,dx=pts[j][0]-pts[i][0],dy=pts[j][1]-pts[i][1];if(Math.abs(dx)>=Math.abs(dy))unite(py,i,j);else unite(px,i,j)}
+  const avg=(parents,axis)=>{const groups=new Map();for(let i=0;i<n;i++){const r=find(parents,i),g=groups.get(r)||{s:0,c:0};g.s+=pts[i][axis];g.c++;groups.set(r,g)}const values=new Map();for(const [r,g] of groups)values.set(r,g.s/g.c);return values};
+  const ax=avg(px,0),ay=avg(py,1);
+  return pts.map((p,i)=>[Math.max(12,Math.min(788,ax.get(find(px,i))??p[0])),Math.max(12,Math.min(588,ay.get(find(py,i))??p[1]))]);
+}
+function wallLabelPos4407(a,b,offset=15){const dx=b[0]-a[0],dy=b[1]-a[1],d=Math.hypot(dx,dy)||1,nx=-dy/d,ny=dx/d;return{x:(a[0]+b[0])/2+nx*offset,y:(a[1]+b[1])/2+ny*offset}}
+function liveBox4407(){return document.getElementById('freeDrawLive4407')}
+function updateLive4407(a=null,b=null,done=false){const box=liveBox4407();if(!box)return;const wall=box.querySelector('.live-wall4407'),value=box.querySelector('.live-value4407'),hint=box.querySelector('.live-hint4407');box.classList.toggle('active4407',!!(a&&b&&!done));box.classList.toggle('done4407',!!done);if(a&&b){const i=Math.max(0,drawPoints4405.length-(done?2:1)),next=drawClosed4405?0:i+1;if(wall)wall.textContent='Стіна '+pointName4405(i)+' → '+pointName4405(next);if(value)value.textContent=meterText4407(a,b);if(hint)hint.textContent=done?'Розмір зафіксовано':'Тягніть до потрібного розміру'}else if(drawClosed4405&&drawPoints4405.length>=3){if(wall)wall.textContent='Контур замкнено';if(value)value.textContent=drawPoints4405.length+' стін';if(hint)hint.textContent='Можна застосовувати'}else{const i=Math.max(0,drawPoints4405.length-1);if(wall)wall.textContent=drawPoints4405.length?'Наступна '+pointName4405(i)+' → '+pointName4405(i+1):'Перша стіна A → B';if(value)value.textContent='0.00 м';if(hint)hint.textContent='Проведіть стіну пальцем'}}
+function snap4405(start,p){
+  let out=p.slice();
+  if(drawPoints4405.length>=3&&dist4405(p,drawPoints4405[0])<34)return drawPoints4405[0].slice();
+  if(!snapOrthogonal4405)return out;
+  const dx=p[0]-start[0],dy=p[1]-start[1],d=Math.hypot(dx,dy);if(d<1)return out;
+  const a=Math.atan2(dy,dx),step=Math.PI/2,nearest=Math.round(a/step)*step,diff=Math.abs(Math.atan2(Math.sin(a-nearest),Math.cos(a-nearest)));
+  if(diff<Math.PI/12)out=[start[0]+Math.cos(nearest)*d,start[1]+Math.sin(nearest)*d];
+  return out;
+}
+function createSvg4405(tag,attrs={}){const el=document.createElementNS('http://www.w3.org/2000/svg',tag);Object.entries(attrs).forEach(([k,v])=>el.setAttribute(k,v));return el}
+function renderDraw4405(){
+  const svg=svg4405();if(!svg)return;svg.innerHTML='';
+  if(drawPoints4405.length){
+    const pathPts=drawPoints4405.concat(drawClosed4405?[drawPoints4405[0]]:[]);
+    const line=createSvg4405('polyline',{points:pathPts.map(p=>p.join(',')).join(' '),class:'free-wall4405'});svg.appendChild(line);
+    drawPoints4405.forEach((p,i)=>{
+      const c=createSvg4405('circle',{cx:p[0],cy:p[1],r:10,class:'free-node4405'+(i===0?' free-node-start4405':'')});svg.appendChild(c);
+      const t=createSvg4405('text',{x:p[0]+13,y:p[1]-12,class:'free-label4405'});t.textContent=pointName4405(i);svg.appendChild(t);
+    });
+    const wallCount=drawClosed4405?drawPoints4405.length:Math.max(0,drawPoints4405.length-1);
+    for(let i=0;i<wallCount;i++){
+      const a=drawPoints4405[i],b=drawPoints4405[(i+1)%drawPoints4405.length],pos=wallLabelPos4407(a,b,15),t=createSvg4405('text',{x:pos.x,y:pos.y,'text-anchor':'middle',class:'free-wall-index4405'});
+      t.textContent=pointName4405(i)+'–'+pointName4405((i+1)%drawPoints4405.length)+'  '+segmentText4408(i,a,b);svg.appendChild(t)
+    }
+  }
+  if(drawPointer4405!==null&&drawPreview4405&&drawPoints4405.length&&!drawClosed4405){
+    const a=drawPoints4405[drawPoints4405.length-1],b=drawPreview4405;
+    svg.appendChild(createSvg4405('line',{x1:a[0],y1:a[1],x2:b[0],y2:b[1],class:'free-wall-preview4405'}));
+    const pos=wallLabelPos4407(a,b,18),t=createSvg4405('text',{x:pos.x,y:pos.y,'text-anchor':'middle',class:'free-wall-preview-length4407'});t.textContent=pointName4405(drawPoints4405.length-1)+'–'+pointName4405(drawPoints4405.length)+'  '+meterText4407(a,b);svg.appendChild(t);
+    updateLive4407(a,b,false);
+  }else if(drawClosed4405){updateLive4407(null,null,true)}else{updateLive4407()}
+  const walls=drawClosed4405?drawPoints4405.length:Math.max(0,drawPoints4405.length-1);
+  status4405(drawClosed4405?'✅ Контур замкнений: '+walls+' стін. Перевірте розміри та сформуйте замовлення.':drawPoints4405.length?'Стіни: '+walls+'. Проведіть наступну стіну від точки '+pointName4405(drawPoints4405.length-1)+'.':'Торкніться поля і проведіть першу стіну пальцем.');
+  setViewBox4408();
+  try{window.syncProductionOrder4408?.()}catch(_){ }
+}
+function fit4405(points){const xs=points.map(p=>p[0]),ys=points.map(p=>p[1]),minX=Math.min(...xs),maxX=Math.max(...xs),minY=Math.min(...ys),maxY=Math.max(...ys),bw=Math.max(1,maxX-minX),bh=Math.max(1,maxY-minY),s=Math.min(560/bw,400/bh),ox=120+(560-bw*s)/2,oy=90+(400-bh*s)/2;return points.map(([x,y])=>[ox+(x-minX)*s,oy+(y-minY)*s])}
+function approxSegments4405(points){return points.map((p,i)=>Math.max(.01,Math.round(segmentMeters4408(i,p,points[(i+1)%points.length])*100)/100))}
+function updateState4405(){const el=document.getElementById('freeDrawState4405'),btn=document.getElementById('freeDrawUnlock4405');if(el){el.classList.toggle('show',freeDrawRoom4405);el.textContent=freeDrawRoom4405?(contourUnlocked4405?'✋ Контур намальований пальцем. Точки зараз можна рухати.':'🔒 Контур намальований пальцем і зафіксований. Розміри можна вводити без зміни намальованої форми.') :''}if(btn){btn.textContent=contourUnlocked4405?'🔒 Зафіксувати точки':'✋ Рухати точки';btn.style.display=freeDrawRoom4405?'block':'none'}}
+function closeModal4405(){document.getElementById('freeDrawModal4405')?.classList.remove('open');drawPointer4405=null;drawPreview4405=null}
+window.openFingerDrawing4405=function(){drawPoints4405=[];manualSegments4408=[];drawZoom4408=1;zoomCenter4408=[400,300];drawingSource4408='new';drawClosed4405=false;drawPointer4405=null;drawPreview4405=null;document.getElementById('freeDrawModal4405')?.classList.add('open');setTimeout(()=>{setViewBox4408();renderDraw4405()},0)};
+window.closeFingerDrawing4405=closeModal4405;
+window.undoFingerWall4405=function(){if(drawClosed4405){drawClosed4405=false}else if(drawPoints4405.length>1){drawPoints4405.pop();manualSegments4408=manualSegments4408.slice(0,Math.max(0,drawPoints4405.length-1))}else{drawPoints4405=[];manualSegments4408=[]}renderDraw4405()};
+window.clearFingerDrawing4405=function(){drawPoints4405=[];manualSegments4408=[];drawClosed4405=false;drawPointer4405=null;drawPreview4405=null;renderDraw4405()};
+window.closeFingerContour4405=function(){if(drawPoints4405.length<3)return alert('Потрібно мінімум 3 точки.');drawClosed4405=true;drawPointer4405=null;drawPreview4405=null;renderDraw4405()};
+window.toggleFingerSnap4405=function(){snapOrthogonal4405=!snapOrthogonal4405;const b=document.getElementById('freeDrawSnap4405');if(b)b.textContent=snapOrthogonal4405?'🧲 Прямі кути: так':'🧲 Прямі кути: ні';status4405(snapOrthogonal4405?'Прив’язка допомагає малювати майже горизонтальні та вертикальні стіни рівно.':'Прив’язку вимкнено — стіни малюються під будь-яким кутом.')};
+window.setFingerZoom4408=function(value){drawZoom4408=Math.max(.7,Math.min(1.8,Number(value)/100||1));zoomCenter4408=drawPoints4405.length?clone4405(drawPoints4405[drawPoints4405.length-1]):[400,300];setViewBox4408();renderDraw4405()};
+window.straightenFingerWalls4408=function(){
+  if(drawPoints4405.length<2)return alert('Спочатку намалюйте стіни.');
+  drawPoints4405=orthogonalize4408(drawPoints4405,drawClosed4405);renderDraw4405();status4405('📐 Стіни та перегородки контуру вирівняно по горизонталі/вертикалі (90°). Перевірте розміри.');
+};
+/* 44.09 — standard drawing transforms. Rotation changes only orientation, never measured lengths. */
+window.rotateFingerDrawing4409=function(){
+  if(drawPoints4405.length<2)return alert('Спочатку намалюйте або відкрийте контур.');
+  const xs=drawPoints4405.map(p=>p[0]),ys=drawPoints4405.map(p=>p[1]);
+  const cx=(Math.min(...xs)+Math.max(...xs))/2,cy=(Math.min(...ys)+Math.max(...ys))/2;
+  drawPoints4405=drawPoints4405.map(([x,y])=>[cx-(y-cy),cy+(x-cx)]);
+  zoomCenter4408=[cx,cy];renderDraw4405();status4405('↻ План повернуто на 90°. Розміри стін не змінено.');
+};
+window.resetFingerView4409=function(){
+  drawZoom4408=1;zoomCenter4408=[400,300];
+  const range=document.getElementById('freeDrawZoomRange4408');if(range)range.value='100';
+  setViewBox4408();renderDraw4405();status4405('↺ Масштаб перегляду скинуто до 100%.');
+};
+window.setFingerWallLength4408=function(index,value){const v=Math.max(.01,Math.round((Number(String(value).replace(',','.'))||.01)*100)/100);manualSegments4408[index]=v;renderDraw4405()};
+window.stepFingerWallLength4408=function(index,delta){const walls=window.getFingerDrawingState4408?.().walls||[],base=Number(manualSegments4408[index])>0?Number(manualSegments4408[index]):Number(walls[index]?.length)||.01;window.setFingerWallLength4408(index,Math.max(.01,Math.round((base+delta)*100)/100))};
+window.getFingerDrawingState4408=function(){
+  const n=drawPoints4405.length,wallCount=drawClosed4405?n:Math.max(0,n-1),walls=[];let pixelPer=0,per=0,areaPx=0;
+  for(let i=0;i<wallCount;i++){const a=drawPoints4405[i],b=drawPoints4405[(i+1)%n],pix=dist4405(a,b),len=segmentMeters4408(i,a,b);pixelPer+=pix;per+=len;walls.push({index:i,a:pointName4405(i),b:pointName4405((i+1)%n),length:len,manual:Number(manualSegments4408[i])>0})}
+  if(drawClosed4405&&n>=3)for(let i=0;i<n;i++){const a=drawPoints4405[i],b=drawPoints4405[(i+1)%n];areaPx+=a[0]*b[1]-b[0]*a[1]}
+  const scale=pixelPer>0?per/pixelPer:1/PX_PER_METER4407,area=drawClosed4405?Math.abs(areaPx/2)*scale*scale:0;
+  return{points:clone4405(drawPoints4405),closed:drawClosed4405,walls,perimeter:per,area,corners:n,zoom:drawZoom4408,freeDrawRoom:freeDrawRoom4405};
+};
+window.openProductionFromPlanner4408=function(){
+  try{
+    if(!Array.isArray(roomPoints)||roomPoints.length<3)return window.openFingerDrawing4405();
+    drawPoints4405=clone4405(roomPoints);drawingSource4408='planner';drawClosed4405=true;drawPointer4405=null;drawPreview4405=null;manualSegments4408=clone4405(segmentLengths||[]).map(v=>Math.max(.01,Math.round((Number(v)||.01)*100)/100));drawZoom4408=1;zoomCenter4408=drawPoints4405.length?clone4405(drawPoints4405[0]):[400,300];
+    document.getElementById('freeDrawModal4405')?.classList.add('open');setTimeout(()=>{setViewBox4408();renderDraw4405();window.syncProductionOrder4408?.()},0);
+  }catch(e){console.warn('44.08 open order',e);window.openFingerDrawing4405()}
+};
+window.toggleFreeDrawPoints4405=function(){if(!freeDrawRoom4405)return;contourUnlocked4405=!contourUnlocked4405;updateState4405()};
+window.applyFingerDrawing4405=function(){
+  if(drawPoints4405.length<3)return alert('Намалюйте мінімум 3 стіни.');
+  if(!drawClosed4405)return alert('Спочатку натисніть «Замкнути контур».');
+  const diagRows=document.querySelectorAll('#diagonalList4404 .diagonal-row4404');
+  if(diagRows.length&&typeof window.clearDiagonals4404==='function'){window.clearDiagonals4404();if(document.querySelectorAll('#diagonalList4404 .diagonal-row4404').length)return alert('Новий контур не застосовано, бо старі діагоналі залишилися.');}
+  try{if(Array.isArray(plannerObjects)&&plannerObjects.length&&!confirm('У кімнаті вже є елементи плану. Новий контур залишить їх на старих координатах. Продовжити?'))return}catch(_){ }
+  try{if(typeof pushPlanner==='function')pushPlanner()}catch(_){ }
+  roomTemplate='custom';roomPoints=fit4405(drawPoints4405);roomPoints._real=null;segmentLengths=approxSegments4405(drawPoints4405);customPointTotal=roomPoints.length;
+  const cnt=document.getElementById('customPointCount');if(cnt)cnt.value=roomPoints.length;document.getElementById('customPointBox')?.classList.remove('hidden');
+  try{if(typeof perimeterBindings!=='undefined'){if(drawingSource4408==='planner'&&Array.isArray(perimeterBindings)&&perimeterBindings.length===roomPoints.length)perimeterBindings=clone4405(perimeterBindings);else perimeterBindings=Array.from({length:roomPoints.length},()=>[])}}catch(_){ }
+  freeDrawRoom4405=true;contourUnlocked4405=false;drawingSource4408='planner';
+  try{renderSegmentInputs();renderPlanner();const m=polygonMetrics();const a=document.getElementById('area'),p=document.getElementById('perimeter');if(a)a.value=Number(m.area||0).toFixed(2);if(p)p.value=Number(m.perimeter||0).toFixed(2);if(typeof recalc==='function')recalc();if(typeof syncActiveRoomFromUI==='function')syncActiveRoomFromUI(false);if(typeof autosave==='function')autosave()}catch(e){console.warn('44.05 apply finger contour',e)}
+  updateState4405();try{window.syncProductionOrder4408?.()}catch(_){ }
+};
+function installUi4405(){
+  if(document.getElementById('freeDrawLaunch4405'))return;
+  const pointBlock=document.querySelector('#tab_planner .planner-points-block')?.previousElementSibling || document.querySelector('#tab_planner aside .block');if(pointBlock){const box=document.createElement('div');box.id='freeDrawLaunch4405';box.className='free-draw-launch4405';box.innerHTML='<button type="button" class="primary4405" onclick="openFingerDrawing4405()">✍ Новий контур пальцем</button><button type="button" onclick="openProductionFromPlanner4408()">📦 Замовлення з поточного плану</button><button id="freeDrawUnlock4405" type="button" onclick="toggleFreeDrawPoints4405()" style="display:none">✋ Рухати точки</button><div id="freeDrawState4405" class="free-draw-state4405" style="grid-column:1/-1"></div>';pointBlock.appendChild(box)}
+  if(!document.getElementById('freeDrawModal4405')){const modal=document.createElement('div');modal.id='freeDrawModal4405';modal.className='free-draw-modal4405';modal.innerHTML='<div class="free-draw-sheet4405"><div class="free-draw-head4405"><div><h3>✍ Рисовалка стін</h3><p>Проведіть стіну пальцем і відпустіть. Наступна стіна автоматично починається з попередньої точки. Так обведіть кімнату по колу.</p></div><button type="button" class="free-draw-close4405" onclick="closeFingerDrawing4405()">×</button></div><div class="free-draw-stage4405"><svg id="freeDrawSvg4405" viewBox="0 0 800 600"></svg><div class="free-draw-help4405">1. Проведіть стіну → відпустіть.<br>2. Намалюйте наступні стіни.<br>3. Замкніть контур.<br>4. Після цього введіть реальні розміри та діагоналі.</div><div id="freeDrawLive4407" class="free-draw-live4407"><div class="live-wall4407">Перша стіна A → B</div><div class="live-value4407">0.00 м</div><div class="live-hint4407">Проведіть стіну пальцем</div></div><div class="free-draw-scale4407">точність розміру · 0.01 м</div><label class="free-draw-zoom4408"><span>🔎 Масштаб <b id="freeDrawZoomValue4408">100%</b></span><input id="freeDrawZoomRange4408" type="range" min="70" max="180" step="5" value="100" oninput="setFingerZoom4408(this.value)"></label></div><div class="free-draw-footer4405"><div id="freeDrawStatus4405" class="free-draw-status4405"></div><div class="free-draw-actions4405"><button id="freeDrawSnap4405" type="button" onclick="toggleFingerSnap4405()">🧲 Прямі кути: так</button><button type="button" onclick="straightenFingerWalls4408()">📐 Вирівняти 90°</button><button type="button" onclick="undoFingerWall4405()">↩ Остання</button><button type="button" class="danger4405" onclick="clearFingerDrawing4405()">🧹 Очистити</button><button type="button" class="closecontour4405" onclick="closeFingerContour4405()">🔗 Замкнути контур</button><button type="button" class="apply4405" onclick="applyFingerDrawing4405()">✅ Прийняти контур</button></div></div></div>';document.body.appendChild(modal)}
+  const svg=svg4405();if(svg&&!svg.dataset.bound4405){svg.dataset.bound4405='1';svg.addEventListener('pointerdown',e=>{if(drawClosed4405)return;e.preventDefault();const p=coord4405(e);if(!drawPoints4405.length)drawPoints4405=[p];drawPointer4405=e.pointerId;try{svg.setPointerCapture(e.pointerId)}catch(_){ }drawPreview4405=snap4405(drawPoints4405[drawPoints4405.length-1],p);renderDraw4405()});svg.addEventListener('pointermove',e=>{if(drawPointer4405!==e.pointerId||drawClosed4405)return;e.preventDefault();drawPreview4405=snap4405(drawPoints4405[drawPoints4405.length-1],coord4405(e));renderDraw4405()});const end=e=>{if(drawPointer4405!==e.pointerId)return;e.preventDefault();const a=drawPoints4405[drawPoints4405.length-1],b=drawPreview4405||snap4405(a,coord4405(e));drawPointer4405=null;drawPreview4405=null;if(dist4405(a,b)<18){renderDraw4405();return}const closedNow=drawPoints4405.length>=3&&dist4405(b,drawPoints4405[0])<1;if(closedNow){drawClosed4405=true}else{drawPoints4405.push(b)}renderDraw4405();if(!closedNow)updateLive4407(a,b,true)};svg.addEventListener('pointerup',end);svg.addEventListener('pointercancel',()=>{drawPointer4405=null;drawPreview4405=null;renderDraw4405()})}
+  updateState4405();
+}
+
+/* A finger-drawn contour keeps its visual shape while the installer types measured wall lengths. */
+const baseUpdateSegment4405=window.updateSegment;
+if(typeof baseUpdateSegment4405==='function')window.updateSegment=function(i,value){if(!freeDrawRoom4405||contourUnlocked4405)return baseUpdateSegment4405.apply(this,arguments);segmentLengths[i]=Math.max(.01,Number(String(value).replace(',','.'))||.01);try{renderPlanner();const m=polygonMetrics();const a=document.getElementById('area'),p=document.getElementById('perimeter');if(a)a.value=Number(m.area||0).toFixed(2);if(p)p.value=Number(m.perimeter||0).toFixed(2);if(typeof recalc==='function')recalc();if(typeof syncActiveRoomFromUI==='function')syncActiveRoomFromUI(false);if(typeof autosave==='function')autosave()}catch(e){console.warn('44.05 wall length',e)}return;};
+
+/* Lock point dragging by default after applying a finger contour. Use explicit button to unlock. */
+window.addEventListener('pointerdown',function(e){if(!freeDrawRoom4405||contourUnlocked4405)return;const svg=e.target?.closest?.('#plannerSvg,#plannerMiniSvg');if(!svg||!e.target?.classList?.contains('point-hit'))return;e.preventDefault();e.stopImmediatePropagation();try{window.pixelToast431?.('Контур зафіксовано. Натисніть «Рухати точки», якщо треба змінити форму.')}catch(_){ }},true);
+
+const baseCapture4405=window.captureCurrentRoom;
+if(typeof baseCapture4405==='function')window.captureCurrentRoom=function(){const room=baseCapture4405.apply(this,arguments);room.planner=room.planner||{};room.planner.freeDraw4405=!!freeDrawRoom4405;room.planner.freeDrawLocked4405=!!(!contourUnlocked4405);return room};
+const baseCollect4405=window.collectObject;
+if(typeof baseCollect4405==='function')window.collectObject=function(){const obj=baseCollect4405.apply(this,arguments);if(obj?.planner){obj.planner.freeDraw4405=!!freeDrawRoom4405;obj.planner.freeDrawLocked4405=!!(!contourUnlocked4405)}return obj};
+const baseRestore4405=window.restoreRoom;
+if(typeof baseRestore4405==='function')window.restoreRoom=function(room){const isFree=!!room?.planner?.freeDraw4405,savedPts=clone4405(room?.planner?.points||[]),savedSeg=clone4405(room?.planner?.segments||[]);freeDrawRoom4405=isFree;contourUnlocked4405=isFree?!room?.planner?.freeDrawLocked4405:false;const out=baseRestore4405.apply(this,arguments);if(isFree&&savedPts.length>=3)setTimeout(()=>{try{roomTemplate='custom';roomPoints=clone4405(savedPts);roomPoints._real=null;if(savedSeg.length===savedPts.length)segmentLengths=savedSeg.map(v=>Math.max(.01,n4405(v)||.01));manualSegments4408=clone4405(savedSeg).map(v=>Math.max(.01,n4405(v)||.01));customPointTotal=roomPoints.length;const cnt=document.getElementById('customPointCount');if(cnt)cnt.value=roomPoints.length;document.getElementById('customPointBox')?.classList.remove('hidden');renderSegmentInputs();renderPlanner();updateState4405()}catch(e){console.warn('44.05 restore finger contour',e)}},0);else setTimeout(updateState4405,0);return out};
+const baseResetRoom4405=window.resetRoomWorkspace;
+if(typeof baseResetRoom4405==='function')window.resetRoomWorkspace=function(){freeDrawRoom4405=false;contourUnlocked4405=false;const out=baseResetRoom4405.apply(this,arguments);setTimeout(updateState4405,0);return out};
+const baseSetTemplate4405=window.setTemplate;
+if(typeof baseSetTemplate4405==='function')window.setTemplate=function(){freeDrawRoom4405=false;contourUnlocked4405=false;const out=baseSetTemplate4405.apply(this,arguments);setTimeout(updateState4405,0);return out};
+
+function start4405(){installUi4405();try{document.documentElement.dataset.pixelVersion='44.05';document.title='Potolok AI PRO — Pixel 44.05'}catch(_){ }}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start4405,{once:true});else start4405();
+})();
+</script>
+<!-- 44.06: choose diagonal endpoints directly by tapping plan points -->
+<style id="fingerDiagonalPick4406Styles">
+#diagonalFingerBtn4406{grid-column:1/-1!important;background:linear-gradient(135deg,#ea580c,#f97316)!important;color:#fff!important;border-color:#f97316!important;min-height:46px!important;font-size:10px!important}
+#diagonalFingerBtn4406.active4406{background:linear-gradient(135deg,#9a3412,#c2410c)!important;box-shadow:0 0 0 3px rgba(249,115,22,.18)}
+.diagonal-finger-status4406{display:none;margin:-1px 0 9px;padding:9px 10px;border:1px solid #fdba74;background:#fff7ed;color:#9a3412;border-radius:10px;font-size:8.5px;font-weight:900;line-height:1.45}
+.diagonal-finger-status4406.show{display:block}.diagonal-finger-status4406.ok{border-color:#86efac;background:#f0fdf4;color:#166534}.diagonal-finger-status4406.bad{border-color:#fecaca;background:#fff1f2;color:#b91c1c}
+.diag-pick-hit4406{fill:rgba(249,115,22,.10);stroke:#f97316;stroke-width:4;pointer-events:all;cursor:pointer}
+.diag-pick-hit4406.first4406{fill:rgba(249,115,22,.28);stroke:#c2410c;stroke-width:7}
+.diag-pick-pulse4406{fill:#f97316;pointer-events:none}
+.diag-pending-line4406{stroke:#f97316;stroke-width:4;stroke-dasharray:10 7;pointer-events:none}
+.diag-pending-label4406{font-size:13px;font-weight:950;fill:#c2410c;paint-order:stroke;stroke:#fff;stroke-width:5px;pointer-events:none}
+</style>
+<script id="fingerDiagonalPick4406Script">
+(function(){
+'use strict';
+if(window.__fingerDiagonalPick4406Installed)return;window.__fingerDiagonalPick4406Installed=true;
+let active4406=false,first4406=null,pending4406=null;
+const ns4406='http://www.w3.org/2000/svg';
+function pname4406(i){try{return typeof pointName==='function'?pointName(i):String.fromCharCode(65+i)}catch(_){return String.fromCharCode(65+i)}}
+function npoints4406(){try{return Array.isArray(roomPoints)?roomPoints.length:0}catch(_){return 0}}
+function isSide4406(a,b){const n=npoints4406(),d=Math.abs(a-b);return a===b||d===1||d===n-1}
+function key4406(a,b){return Math.min(a,b)+':'+Math.max(a,b)}
+function status4406(msg,type=''){
+ const el=document.getElementById('diagonalFingerStatus4406');if(!el)return;
+ el.textContent=msg;el.className='diagonal-finger-status4406 show'+(type?' '+type:'');
+}
+function button4406(){return document.getElementById('diagonalFingerBtn4406')}
+function updateButton4406(){const b=button4406();if(!b)return;b.classList.toggle('active4406',active4406);b.textContent=active4406?(first4406==null?'✋ Торкніться першої точки':'✋ Тепер друга точка'):'☝ Вибрати діагональ на плані'}
+function existingPairs4406(){const set=new Set();document.querySelectorAll('#diagonalList4404 .diagonal-row4404').forEach(row=>{const s=row.querySelectorAll('select');if(s.length>=2)set.add(key4406(Number(s[0].value),Number(s[1].value)))});return set}
+function rowInput4406(index){return document.querySelectorAll('#diagonalList4404 .diagonal-row4404')[index]?.querySelector('input')||null}
+function make4406(tag,attrs={}){const e=document.createElementNS(ns4406,tag);for(const [k,v] of Object.entries(attrs))e.setAttribute(k,String(v));return e}
+function clearOverlay4406(svg){svg?.querySelector('#diagPickOverlay4406')?.remove();svg?.querySelector('#diagPendingOverlay4406')?.remove()}
+function bindPoint4406(circle,index){circle.addEventListener('pointerdown',function(e){e.preventDefault();e.stopPropagation();if(typeof e.stopImmediatePropagation==='function')e.stopImmediatePropagation();choose4406(index)})}
+function drawOn4406(svg){
+ if(!svg)return;clearOverlay4406(svg);
+ let pts=[];try{pts=Array.isArray(roomPoints)?roomPoints:[]}catch(_){return}
+ if(active4406&&pts.length){
+   const g=make4406('g',{id:'diagPickOverlay4406'});g.style.pointerEvents='all';
+   pts.forEach((p,i)=>{if(!Array.isArray(p))return;const c=make4406('circle',{cx:p[0],cy:p[1],r:24,class:'diag-pick-hit4406'+(i===first4406?' first4406':'')});c.dataset.point4406=String(i);bindPoint4406(c,i);g.appendChild(c);const dot=make4406('circle',{cx:p[0],cy:p[1],r:5,class:'diag-pick-pulse4406'});g.appendChild(dot)});
+   svg.appendChild(g);
+ }
+ if(pending4406&&pts[pending4406.a]&&pts[pending4406.b]){
+   const input=rowInput4406(pending4406.row);
+   if(input&&Number(String(input.value||'').replace(',','.'))>0){pending4406=null;return}
+   if(!input){pending4406=null;return}
+   const a=pts[pending4406.a],b=pts[pending4406.b],g=make4406('g',{id:'diagPendingOverlay4406'});
+   g.appendChild(make4406('line',{x1:a[0],y1:a[1],x2:b[0],y2:b[1],class:'diag-pending-line4406'}));
+   const t=make4406('text',{x:(a[0]+b[0])/2,y:(a[1]+b[1])/2-8,'text-anchor':'middle',class:'diag-pending-label4406'});t.textContent=pname4406(pending4406.a)+'–'+pname4406(pending4406.b)+'  введіть довжину';g.appendChild(t);svg.appendChild(g);
+ }
+}
+function draw4406(){drawOn4406(document.getElementById('plannerSvg'));requestAnimationFrame(()=>drawOn4406(document.getElementById('plannerMiniSvg')))}
+function finish4406(){active4406=false;first4406=null;window.__diagonalFingerPick4406=false;updateButton4406();draw4406()}
+function choose4406(i){
+ if(!active4406)return;
+ if(first4406==null){first4406=i;status4406('✅ Точка '+pname4406(i)+' вибрана. Тепер торкніться другої, не сусідньої точки.');updateButton4406();draw4406();return}
+ const a=first4406,b=i;
+ if(a===b){status4406('Це та сама точка. Виберіть іншу.','bad');return}
+ if(isSide4406(a,b)){status4406(pname4406(a)+'–'+pname4406(b)+' — це стіна, а не діагональ. Виберіть не сусідню точку.','bad');return}
+ if(existingPairs4406().has(key4406(a,b))){status4406('Діагональ '+pname4406(a)+'–'+pname4406(b)+' вже є.','bad');finish4406();return}
+ const before=document.querySelectorAll('#diagonalList4404 .diagonal-row4404').length;
+ if(typeof window.addDiagonal4404!=='function'||typeof window.updateDiagonal4404!=='function'){status4406('Модуль діагоналей не знайдено.','bad');finish4406();return}
+ window.addDiagonal4404();
+ const after=document.querySelectorAll('#diagonalList4404 .diagonal-row4404').length,row=Math.max(0,after-1);
+ if(after<=before){status4406('Не вдалося додати діагональ.','bad');finish4406();return}
+ window.updateDiagonal4404(row,'a',a);window.updateDiagonal4404(row,'b',b);
+ pending4406={a,b,row};
+ finish4406();
+ status4406('✅ '+pname4406(a)+'–'+pname4406(b)+' вибрано пальцем. Введіть фактичну довжину в метрах.','ok');
+ setTimeout(()=>{const input=rowInput4406(row);input?.scrollIntoView({behavior:'smooth',block:'center'});input?.focus();draw4406()},80);
+}
+window.startFingerDiagonal4406=function(){
+ if(npoints4406()<3)return alert('Спочатку створіть або намалюйте контур кімнати.');
+ active4406=!active4406;first4406=null;window.__diagonalFingerPick4406=active4406;
+ try{plannerTool='select'}catch(_){ }
+ updateButton4406();
+ if(active4406)status4406('1️⃣ Торкніться першої точки на верхньому або нижньому плані. Потім торкніться другої точки.');else status4406('Вибір діагоналі скасовано.');
+ try{if(typeof renderPlanner==='function')renderPlanner();else draw4406()}catch(_){draw4406()}
+};
+function install4406(){
+ const actions=document.querySelector('#plannerDiagonals4404 .diagonal-actions4404');if(actions&&!document.getElementById('diagonalFingerBtn4406')){
+   const b=document.createElement('button');b.id='diagonalFingerBtn4406';b.type='button';b.className='primary4404';b.textContent='☝ Вибрати діагональ на плані';b.onclick=window.startFingerDiagonal4406;actions.prepend(b);
+   const s=document.createElement('div');s.id='diagonalFingerStatus4406';s.className='diagonal-finger-status4406';actions.insertAdjacentElement('afterend',s);
+ }
+ updateButton4406();draw4406();
+}
+const renderBase4406=window.renderPlanner;
+if(typeof renderBase4406==='function')window.renderPlanner=function(){const out=renderBase4406.apply(this,arguments);draw4406();return out};
+document.addEventListener('input',e=>{if(!pending4406||!e.target?.closest?.('#diagonalList4404'))return;if(e.target.tagName==='INPUT'&&Number(String(e.target.value||'').replace(',','.'))>0){pending4406=null;setTimeout(()=>{try{renderPlanner()}catch(_){draw4406()}},0)}},true);
+document.addEventListener('change',e=>{if(pending4406&&e.target?.closest?.('#diagonalList4404')&&e.target.tagName==='SELECT'){pending4406=null;draw4406()}},true);
+const mo4406=new MutationObserver(()=>{if(!document.getElementById('diagonalFingerBtn4406'))install4406()});
+function start4406(){install4406();const host=document.getElementById('plannerDiagonals4404')?.parentElement;if(host)mo4406.observe(host,{childList:true,subtree:true});try{document.documentElement.dataset.pixelVersion='44.06';document.title='Potolok AI PRO — Pixel 44.06'}catch(_){ }}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start4406,{once:true});else start4406();
+})();
+</script>
+
+
+<!-- 44.07: live wall dimensions while finger drawing -->
+<script id="pixel4407VersionMarker">
+(function(){
+  function mark4407(){try{document.documentElement.dataset.pixelVersion='44.07';document.title='Potolok AI PRO — Pixel 44.07'}catch(_){}}
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',mark4407,{once:true});else mark4407();
+})();
+</script>
+
+
+<!-- 44.08: production order workspace — stage 1 -->
+<style id="productionOrder4408Styles">
+.production-order4408{margin:10px 12px 12px;padding:12px;border:1px solid #a7f3d0;border-radius:16px;background:linear-gradient(180deg,#f0fdf4,#fff);box-shadow:0 8px 22px rgba(15,23,42,.06)}
+.production-head4408{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:10px}.production-head4408 h3{font-size:15px;margin:0;color:#064e3b}.production-head4408 p{font-size:8px;color:#64748b;line-height:1.4;margin:4px 0 0}.production-badge4408{font-size:8px;font-weight:950;color:#047857;background:#dcfce7;border:1px solid #86efac;border-radius:999px;padding:6px 8px;white-space:nowrap}
+.production-metrics4408{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:10px}.production-metric4408{padding:8px;border:1px solid #dbe3ef;border-radius:10px;background:#fff}.production-metric4408 span{display:block;font-size:7px;color:#64748b}.production-metric4408 b{display:block;margin-top:3px;font-size:13px;color:#075bff}
+.production-section4408{margin-top:10px;border:1px solid #e5e7eb;border-radius:12px;background:#fff;overflow:hidden}.production-section4408>summary{list-style:none;cursor:pointer;padding:10px 11px;font-size:10px;font-weight:950;color:#0f172a;background:#f8fafc}.production-section4408>summary::-webkit-details-marker{display:none}.production-body4408{padding:10px}
+.production-dims4408{display:grid;gap:6px}.production-dim4408{display:grid;grid-template-columns:55px 34px 1fr 34px 34px;gap:5px;align-items:center}.production-dim4408 b{text-align:center;font-size:9px;color:#075bff}.production-dim4408 input{width:100%;min-width:0;border:1px solid #cbd5e1;border-radius:8px;padding:8px 6px;font-size:10px;font-weight:900;text-align:center;background:#fff}.production-dim4408 button{height:34px;border:1px solid #bfdbfe;border-radius:8px;background:#eff6ff;color:#075bff;font-weight:950}.production-dim4408 small{font-size:7px;color:#64748b;text-align:center}
+.production-grid4408{display:grid;grid-template-columns:1fr 1fr;gap:7px}.production-field4408 label{display:block;font-size:7.5px;font-weight:900;color:#475569;margin-bottom:4px}.production-field4408 select,.production-field4408 input,.production-field4408 textarea{width:100%;border:1px solid #dbe3ef;border-radius:9px;padding:8px;background:#fff;color:#0f172a;font-size:9px}.production-field4408 textarea{min-height:70px;resize:vertical}.production-wide4408{grid-column:1/-1}.production-current-color4408{font-size:8px;color:#475569;padding:8px;border:1px dashed #bfdbfe;border-radius:9px;background:#eff6ff}
+.production-actions4408{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:11px}.production-actions4408 button{min-height:44px;border-radius:10px;border:1px solid #dbe3ef;background:#fff;font-size:9px;font-weight:950}.production-actions4408 .save4408{background:#16a34a;color:#fff;border-color:#16a34a}.production-actions4408 .share4408{background:#075bff;color:#fff;border-color:#075bff}.production-actions4408 .wide4408{grid-column:1/-1}.production-status4408{display:none;margin-top:8px;padding:9px;border-radius:9px;font-size:8px;font-weight:900;line-height:1.4}.production-status4408.show{display:block}.production-status4408.ok{background:#ecfdf5;color:#047857;border:1px solid #86efac}.production-status4408.warn{background:#fff7ed;color:#9a3412;border:1px solid #fdba74}
+.production-history4408{display:grid;gap:5px}.production-history-item4408{display:flex;justify-content:space-between;gap:8px;padding:8px;border:1px solid #e5e7eb;border-radius:9px;background:#f8fafc}.production-history-item4408 b{font-size:8.5px}.production-history-item4408 span{font-size:7px;color:#64748b;text-align:right}.production-empty4408{font-size:8px;color:#94a3b8;text-align:center;padding:8px}
+@media(max-width:520px){.production-order4408{margin:8px 8px 10px;padding:10px}.production-metrics4408{grid-template-columns:1fr 1fr}.production-grid4408{grid-template-columns:1fr}.production-wide4408{grid-column:auto}.production-dim4408{grid-template-columns:48px 32px 1fr 32px 32px}}
+</style>
+<script id="productionOrder4408Script">
+(function(){
+'use strict';
+if(window.__productionOrder4408Installed)return;window.__productionOrder4408Installed=true;
+const copy4408=v=>{try{return JSON.parse(JSON.stringify(v))}catch(_){return null}};
+const num4408=v=>Number(String(v??'').replace(',','.'))||0;
+function esc4408(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function currentRoom4408(){try{return (projectRooms||[]).find(r=>String(r.id)===String(activeRoomId))||null}catch(_){return null}}
+function packageProfile4408(){return document.getElementById('roomPackageProfile')?.value||window.currentPackageProfile68||document.getElementById('calcBaseProfile')?.value||'h'}
+function insert4408(){return document.getElementById('roomPackageInsert')?.value||document.getElementById('calcInsert')?.value||'none'}
+function profileLabel4408(v){try{return typeof packageProfileLabel68==='function'?packageProfileLabel68(v):v}catch(_){return v}}
+function textureLabel4408(v){return v==='glossy'?'Глянець':v==='satin'?'Сатин':'Матова'}
+function colorName4408(){try{return selectedColor?.name||'Білий'}catch(_){return 'Білий'}}
+function status4408(msg,type='ok'){const el=document.getElementById('productionStatus4408');if(!el)return;el.textContent=msg;el.className='production-status4408 show '+type}
+function getState4408(){
+  const finger=window.getFingerDrawingState4408?.();
+  if(finger?.points?.length)return finger;
+  let m={area:0,perimeter:0};try{m=polygonMetrics()}catch(_){ }
+  return{points:copy4408(typeof roomPoints!=='undefined'?roomPoints:[])||[],walls:(typeof segmentLengths!=='undefined'?segmentLengths:[]).map((v,i)=>({index:i,a:typeof pointName==='function'?pointName(i):String.fromCharCode(65+i),b:typeof pointName==='function'?pointName(i+1):String.fromCharCode(66+i),length:num4408(v),manual:true})),closed:true,area:num4408(m.area),perimeter:num4408(m.perimeter),corners:Array.isArray(roomPoints)?roomPoints.length:0};
+}
+function metrics4408(){const s=getState4408();return{area:num4408(s.area),perimeter:num4408(s.perimeter),corners:Number(s.corners)||0,walls:(s.walls||[]).length}}
+function setText4408(id,text){const el=document.getElementById(id);if(el)el.textContent=text}
+function syncMetrics4408(){const m=metrics4408();setText4408('prodArea4408',(m.area||0).toFixed(2)+' м²');setText4408('prodPerimeter4408',(m.perimeter||0).toFixed(2)+' м');setText4408('prodCorners4408',String(m.corners));setText4408('prodWalls4408',String(m.walls))}
+function syncDimensions4408(){
+ const box=document.getElementById('productionDims4408');if(!box)return;const s=getState4408(),walls=s.walls||[];
+ if(!walls.length){box.innerHTML='<div class="production-empty4408">Намалюйте або відкрийте контур кімнати.</div>';return}
+ box.innerHTML=walls.map(w=>`<div class="production-dim4408"><b>${esc4408(w.a)}–${esc4408(w.b)}</b><button type="button" onclick="stepProductionWall4408(${w.index},-0.01)">−</button><input type="number" inputmode="decimal" min="0.01" step="0.01" value="${num4408(w.length).toFixed(2)}" onchange="setProductionWall4408(${w.index},this.value)"><button type="button" onclick="stepProductionWall4408(${w.index},0.01)">＋</button><small>м</small></div>`).join('');
+}
+function syncPackage4408(){
+ const profile=document.getElementById('prodProfile4408'),insert=document.getElementById('prodInsert4408'),manufacturer=document.getElementById('prodManufacturer4408'),texture=document.getElementById('prodTexture4408'),cornice=document.getElementById('prodCornice4410'),led=document.getElementById('prodLed4410');
+ const room=currentRoom4408(),draft=room?.productionDraft4408||{};
+ let pv=packageProfile4408();if(!['h','p','shadow','floating'].includes(pv))pv='h';
+ if(profile)profile.value=pv;if(insert)insert.value=insert4408();if(manufacturer)manufacturer.value=document.getElementById('calcManufacturer')?.value||'MSD Premium';if(texture)texture.value=document.getElementById('calcTexture')?.value||'matte';
+ const binds=Array.isArray(room?.perimeterBindings)?room.perimeterBindings:[];
+ const has=t=>binds.some(list=>Array.isArray(list)&&list.includes(t));
+ if(cornice)cornice.value=draft.cornice4410|| (has('corniceLed')?'corniceLed':has('cornice')?'cornice':'none');
+ if(led)led.value=draft.led4410|| (has('ledStrip')?'ledStrip':'none');
+ setText4408('prodColor4408','Поточний колір / номер: '+colorName4408());
+ const note=document.getElementById('prodNote4408');if(note&&document.activeElement!==note)note.value=draft.note||'';
+}
+function renderHistory4408(){const box=document.getElementById('productionHistory4408');if(!box)return;const room=currentRoom4408(),list=Array.isArray(room?.productionOrders4408)?room.productionOrders4408:[];if(!list.length){box.innerHTML='<div class="production-empty4408">Для цієї кімнати замовлень ще не збережено.</div>';return}box.innerHTML=list.slice().reverse().slice(0,6).map((o,i)=>`<div class="production-history-item4408"><div><b>${esc4408(o.number||'Замовлення')}</b><div style="font-size:7px;color:#64748b;margin-top:2px">${esc4408(o.profileLabel||'')} · ${esc4408(o.manufacturer||'')}</div></div><span>${new Date(o.createdAt).toLocaleString('uk-UA',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}</span></div>`).join('')}
+window.syncProductionOrder4408=function(){syncMetrics4408();syncDimensions4408();syncPackage4408();renderHistory4408()};
+window.setProductionWall4408=function(i,value){const v=Math.max(.01,Math.round(num4408(value)*100)/100);if(window.getFingerDrawingState4408?.().points?.length)window.setFingerWallLength4408?.(i,v);try{if(typeof segmentLengths!=='undefined'&&segmentLengths[i]!=null&&window.getFingerDrawingState4408?.().freeDrawRoom)updateSegment(i,v)}catch(_){ }syncMetrics4408();syncDimensions4408()};
+window.stepProductionWall4408=function(i,d){const s=getState4408(),w=s.walls?.find(x=>Number(x.index)===Number(i));window.setProductionWall4408(i,Math.max(.01,(num4408(w?.length)+Number(d)).toFixed(2)))};
+function saveDraft4408(){const r=currentRoom4408();if(!r)return;const note=document.getElementById('prodNote4408')?.value||'',cornice=document.getElementById('prodCornice4410')?.value||'none',led=document.getElementById('prodLed4410')?.value||'none';r.productionDraft4408={...(r.productionDraft4408||{}),note,cornice4410:cornice,led4410:led,updatedAt:new Date().toISOString()};try{autosave()}catch(_){ }}
+function applyPackageSilent4408(){
+ try{
+   const metrics=typeof polygonMetrics==='function'?polygonMetrics():{perimeter:0};if(!Array.isArray(roomPoints)||!roomPoints.length)return;
+   if(typeof ensureBindings==='function')ensureBindings();
+   let profile=document.getElementById('prodProfile4408')?.value||'h';if(!['h','p','shadow','floating'].includes(profile))profile='h';
+   const ins=document.getElementById('prodInsert4408')?.value||'none',cornice=document.getElementById('prodCornice4410')?.value||'none',led=document.getElementById('prodLed4410')?.value||'none';
+   const ptype=typeof packageBindingType68==='function'?packageBindingType68(profile):(profile==='p'?'baseP':profile==='h'?'baseH':profile),itype=ins==='white'?'insertWhite':ins==='black'?'insertBlack':null;
+   const solutions=['baseH','baseP','shadow','floating','cornice','corniceLed','ledStrip'];
+   perimeterBindings=(Array.isArray(perimeterBindings)?perimeterBindings:[]).map(list=>{
+     const keep=(Array.isArray(list)?list:[]).filter(x=>!solutions.includes(x)&&!['insertWhite','insertBlack'].includes(x));
+     keep.unshift(ptype);
+     if(cornice!=='none')keep.push(cornice);
+     if(led==='ledStrip')keep.push('ledStrip');
+     if(itype)keep.push(itype);
+     return keep
+   });
+   window.currentPackageProfile68=profile;const bp=document.getElementById('calcBaseProfile');if(bp&&['h','p'].includes(profile))bp.value=profile;const ci=document.getElementById('calcInsert');if(ci)ci.value=ins;const per=document.getElementById('perimeter');if(per&&metrics.perimeter)per.value=Number(metrics.perimeter).toFixed(2);
+   const profileMap={shadow:'shadowBlack',floating:'floatingWhite'};if(profileMap[profile]&&typeof activateProfile63==='function')activateProfile63(profileMap[profile],Number(metrics.perimeter)||0);
+   if(cornice!=='none'&&typeof activateProfile63==='function')activateProfile63(cornice==='corniceLed'?'corniceLed':'corniceWhite',Number(metrics.perimeter)||0);
+   if(led==='ledStrip'&&typeof activateExtra63==='function')activateExtra63('ledStrip',Number(metrics.perimeter)||0);
+   const r=currentRoom4408();if(r)r.productionDraft4408={...(r.productionDraft4408||{}),cornice4410:cornice,led4410:led,updatedAt:new Date().toISOString()};
+   try{syncCeilingPackage?.();recalc?.();renderPlanner?.();renderWallMaterials65?.();syncActiveRoomFromUI?.(false);autosave?.()}catch(_){ }
+ }catch(e){console.warn('44.10 package sync',e)}
+}
+function installEvents4408(){
+ document.getElementById('prodProfile4408')?.addEventListener('change',e=>{const v=e.target.value;const p=document.getElementById('roomPackageProfile');if(p)p.value=v;try{setUnifiedPackageProfile(v)}catch(_){ }applyPackageSilent4408();syncPackage4408()});
+ document.getElementById('prodInsert4408')?.addEventListener('change',e=>{const v=e.target.value;const p=document.getElementById('roomPackageInsert');if(p)p.value=v;try{setUnifiedPackageInsert(v)}catch(_){ }applyPackageSilent4408();syncPackage4408()});
+ document.getElementById('prodManufacturer4408')?.addEventListener('change',e=>{const el=document.getElementById('calcManufacturer');if(el)el.value=e.target.value;try{recalc();syncActiveRoomFromUI(false);autosave()}catch(_){ }});
+ document.getElementById('prodTexture4408')?.addEventListener('change',e=>{try{window.setRoomFilmTexture4317?.(e.target.value)}catch(_){const el=document.getElementById('calcTexture');if(el)el.value=e.target.value}syncPackage4408()});
+ document.getElementById('prodCornice4410')?.addEventListener('change',()=>{saveDraft4408();applyPackageSilent4408();syncPackage4408()});
+ document.getElementById('prodLed4410')?.addEventListener('change',()=>{saveDraft4408();applyPackageSilent4408();syncPackage4408()});
+ document.getElementById('prodNote4408')?.addEventListener('input',saveDraft4408);
+}
+function installPanel4408(){
+ const stage=document.querySelector('#freeDrawModal4405 .free-draw-stage4405');if(!stage||document.getElementById('productionOrder4408'))return;
+ const box=document.createElement('section');box.id='productionOrder4408';box.className='production-order4408';box.innerHTML=`
+ <div class="production-head4408"><div><h3>📦 Замовлення на виробництво</h3><p>Фінальна збірка кімнати перед розкроєм. Дані залишаються прив’язаними до поточної кімнати.</p></div><span class="production-badge4408">вихідна інстанція</span></div>
+ <div class="production-metrics4408"><div class="production-metric4408"><span>Площа</span><b id="prodArea4408">0.00 м²</b></div><div class="production-metric4408"><span>Периметр</span><b id="prodPerimeter4408">0.00 м</b></div><div class="production-metric4408"><span>Кути</span><b id="prodCorners4408">0</b></div><div class="production-metric4408"><span>Стіни</span><b id="prodWalls4408">0</b></div></div>
+ <details class="production-section4408" open><summary>📏 Розміри стін · ручна корекція 0.01 м</summary><div class="production-body4408"><div id="productionDims4408" class="production-dims4408"></div></div></details>
+ <details class="production-section4408" open><summary>🧰 Комплектація кімнати</summary><div class="production-body4408"><div class="production-grid4408">
+ <div class="production-field4408"><label>Профіль</label><select id="prodProfile4408"><option value="h">Алюмінієвий H-подібний</option><option value="p">Алюмінієвий П-подібний</option><option value="shadow">Тіньовий профіль</option><option value="floating">Парящий профіль</option></select></div>
+ <div class="production-field4408"><label>Вставка</label><select id="prodInsert4408"><option value="none">Без вставки</option><option value="white">Біла</option><option value="black">Чорна</option></select></div>
+ <div class="production-field4408"><label>Карниз</label><select id="prodCornice4410"><option value="none">Без карниза</option><option value="cornice">Вбудований карниз</option><option value="corniceLed">Карниз з підсвіткою</option></select></div>
+ <div class="production-field4408"><label>LED по периметру</label><select id="prodLed4410"><option value="none">Без LED</option><option value="ledStrip">LED-стрічка по периметру</option></select></div>
+ <div class="production-field4408"><label>Полотно / виробник</label><select id="prodManufacturer4408"><option>MSD Premium</option><option>MSD Classic</option><option>MSD Premium Exclusive</option><option>BAUF</option><option>Pongs</option><option>Teqtum</option><option>Descor</option><option>Інший</option></select></div>
+ <div class="production-field4408"><label>Фактура</label><select id="prodTexture4408"><option value="matte">Матова</option><option value="satin">Сатин</option><option value="glossy">Глянець</option></select></div>
+ <div id="prodColor4408" class="production-current-color4408 production-wide4408">Поточний колір / номер: —</div>
+ <div class="production-field4408 production-wide4408"><label>Примітка до виробництва / розкрою</label><textarea id="prodNote4408" placeholder="Наприклад: шов, напрям полотна, особливість кута, виріз, маркування..."></textarea></div>
+ </div></div></details>
+ <details class="production-section4408"><summary>🗂 Збережені замовлення цієї кімнати</summary><div class="production-body4408"><div id="productionHistory4408" class="production-history4408"></div></div></details>
+ <div class="production-actions4408"><button type="button" onclick="straightenFingerWalls4408()">📐 Вирівняти 90°</button><button type="button" onclick="applyFingerDrawing4405()">✅ Прийняти контур</button><button type="button" class="save4408" onclick="saveProductionOrder4408()">💾 Зберегти замовлення</button><button type="button" class="share4408" onclick="shareProductionOrder4408()">📤 Поточна кімната на розкрій</button></div><div id="productionStatus4408" class="production-status4408"></div>`;
+ stage.insertAdjacentElement('afterend',box);installEvents4408();syncProductionOrder4408();
+}
+function sameContour4408(){const s=getState4408();try{if(!Array.isArray(roomPoints)||roomPoints.length!==s.points.length)return false;for(let i=0;i<roomPoints.length;i++)if(Math.hypot(roomPoints[i][0]-s.points[i][0],roomPoints[i][1]-s.points[i][1])>.5)return false;for(const w of s.walls||[])if(Math.abs(num4408(segmentLengths[w.index])-num4408(w.length))>.005)return false;return true}catch(_){return false}}
+function commitIfNeeded4408(){const s=getState4408();if(!s.closed||s.points.length<3)throw new Error('Спочатку замкніть контур кімнати.');if(!sameContour4408())window.applyFingerDrawing4405?.();try{syncActiveRoomFromUI(false)}catch(_){ }}
+function diagonalRows4408(){return [...document.querySelectorAll('#diagonalList4404 .diagonal-row4404')].map(row=>{const sels=row.querySelectorAll('select'),inp=row.querySelector('input');return{s1:sels[0]?.selectedOptions?.[0]?.textContent||'',s2:sels[1]?.selectedOptions?.[0]?.textContent||'',length:num4408(inp?.value)}}).filter(x=>x.length>0)}
+function orderSnapshot4408(){
+ const r=currentRoom4408();if(!r)throw new Error('Поточну кімнату не знайдено.');let m={area:0,perimeter:0};try{m=polygonMetrics()}catch(_){m=metrics4408()}
+ const now=new Date(),stamp=String(now.getFullYear()).slice(-2)+String(now.getMonth()+1).padStart(2,'0')+String(now.getDate()).padStart(2,'0')+'-'+String(now.getHours()).padStart(2,'0')+String(now.getMinutes()).padStart(2,'0');
+ const manufacturer=document.getElementById('prodManufacturer4408')?.value||document.getElementById('calcManufacturer')?.value||'MSD Premium',texture=document.getElementById('prodTexture4408')?.value||document.getElementById('calcTexture')?.value||'matte',profile=packageProfile4408(),ins=insert4408();
+ const cornice=document.getElementById('prodCornice4410')?.value||r.productionDraft4408?.cornice4410||'none',led=document.getElementById('prodLed4410')?.value||r.productionDraft4408?.led4410||'none';
+ return{id:'order_'+Date.now().toString(36),number:'V-'+stamp,roomId:r.id,roomName:r.name||'Кімната',createdAt:now.toISOString(),area:num4408(m.area),perimeter:num4408(m.perimeter),corners:Array.isArray(roomPoints)?roomPoints.length:0,planner:copy4408(r.planner||{points:roomPoints,segments:segmentLengths,objects:plannerObjects}),perimeterBindings:copy4408(r.perimeterBindings||[]),diagonals:diagonalRows4408(),profile,profileLabel:profileLabel4408(profile),insert:ins,cornice,corniceLabel:cornice==='corniceLed'?'Карниз з підсвіткою':cornice==='cornice'?'Вбудований карниз':'Без карниза',led,ledLabel:led==='ledStrip'?'LED-стрічка по периметру':'Без LED',manufacturer,texture,textureLabel:textureLabel4408(texture),color:colorName4408(),note:document.getElementById('prodNote4408')?.value||''};
+}
+window.saveProductionOrder4408=function(silent=false){
+ try{commitIfNeeded4408();const r=currentRoom4408();if(!r)throw new Error('Кімнату не знайдено.');const snap=orderSnapshot4408();r.productionOrders4408=Array.isArray(r.productionOrders4408)?r.productionOrders4408:[];r.productionOrders4408.push(snap);r.productionDraft4408={...(r.productionDraft4408||{}),note:snap.note,cornice4410:snap.cornice||'none',led4410:snap.led||'none',updatedAt:snap.createdAt};try{autosave();renderRooms?.()}catch(_){ }renderHistory4408();if(!silent)status4408('✅ '+snap.number+' збережено в кімнаті «'+snap.roomName+'».','ok');return snap}catch(e){status4408(e.message||'Не вдалося зберегти замовлення.','warn');return null}
+};
+function cleanPlannerSvg4408(){const svg=document.getElementById('plannerSvg');if(!svg)return null;const clone=svg.cloneNode(true);clone.querySelectorAll('.point-hit,.rotate-handle,.resize-handle,.rotate-guide,.resize-guide,.svg-selected,.axis-overlay50,[data-editor-handle]').forEach(el=>el.remove());clone.setAttribute('width','1400');clone.setAttribute('height','980');return clone}
+async function orderBlob4408(order){
+ const svg=cleanPlannerSvg4408();if(!svg)throw new Error('План для експорту не знайдено.');const xml=new XMLSerializer().serializeToString(svg),url=URL.createObjectURL(new Blob([xml],{type:'image/svg+xml;charset=utf-8'})),img=new Image();await new Promise((res,rej)=>{img.onload=res;img.onerror=()=>rej(new Error('Не вдалося підготувати креслення'));img.src=url});
+ try{const c=document.createElement('canvas');c.width=1600;c.height=1850;const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);x.fillStyle='#071428';x.font='900 44px Arial';x.fillText('Potolok.in.ua',60,70);x.font='900 35px Arial';x.fillText('ЗАМОВЛЕННЯ НА ВИРОБНИЦТВО / РОЗКРІЙ',60,125);x.fillStyle='#475569';x.font='700 25px Arial';x.fillText(`${order.roomName} · ${order.number}`,60,168);x.drawImage(img,55,205,1490,1050);x.fillStyle='#0f172a';x.font='900 26px Arial';x.fillText(`Площа: ${order.area.toFixed(2)} м²`,60,1310);x.fillText(`Периметр: ${order.perimeter.toFixed(2)} м`,450,1310);x.fillText(`Кутів: ${order.corners}`,930,1310);x.font='800 24px Arial';x.fillText(`Полотно: ${order.manufacturer} · ${order.textureLabel} · ${order.color}`,60,1370);x.fillText(`Профіль: ${order.profileLabel}${order.insert==='none'?'':' · вставка '+(order.insert==='white'?'біла':'чорна')}`,60,1420);let y=1475;if(order.diagonals?.length){x.fillStyle='#9a3412';x.fillText('Діагоналі: '+order.diagonals.map(d=>`${d.s1}–${d.s2} ${d.length.toFixed(2)} м`).join(' · '),60,y);y+=48}if(order.note){x.fillStyle='#334155';x.font='700 22px Arial';const words=('Примітка: '+order.note).split(' ');let line='',yy=y;for(const w of words){const test=line+w+' ';if(x.measureText(test).width>1450){x.fillText(line,60,yy);line=w+' ';yy+=34}else line=test}if(line)x.fillText(line,60,yy)}x.fillStyle='#64748b';x.font='700 18px Arial';x.fillText('Сформовано Pixel · '+new Date(order.createdAt).toLocaleString('uk-UA'),60,1800);return await new Promise((res,rej)=>c.toBlob(b=>b?res(b):rej(new Error('Не вдалося створити PNG')),'image/png',.96))}finally{URL.revokeObjectURL(url)}
+}
+window.shareProductionOrder4408=async function(){
+ const order=window.saveProductionOrder4408(true);if(!order)return;status4408('Готую виробничий план…','ok');try{const blob=await orderBlob4408(order),name=(order.roomName||'room').replace(/[^\p{L}\p{N}_-]+/gu,'_')+'_'+order.number+'.png',file=new File([blob],name,{type:'image/png'}),text=`${order.number}\n${order.roomName}\n${order.area.toFixed(2)} м² · ${order.perimeter.toFixed(2)} м · ${order.corners} кутів\n${order.manufacturer}, ${order.textureLabel}, ${order.color}\n${order.profileLabel}${order.note?'\n'+order.note:''}`;if(navigator.share&&navigator.canShare?.({files:[file]})){await navigator.share({title:'Замовлення на розкрій — '+order.roomName,text,files:[file]});status4408('✅ План передано в меню поширення.','ok')}else{const u=URL.createObjectURL(blob),a=document.createElement('a');a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),1800);try{await navigator.clipboard.writeText(text)}catch(_){ }status4408('PNG збережено, текст замовлення підготовлено.','ok')}}catch(e){if(e?.name!=='AbortError')status4408(e.message||'Не вдалося поділитися.','warn')}
+};
+/* preserve production order history during ordinary room captures */
+const captureBase4408=window.captureCurrentRoom;
+if(typeof captureBase4408==='function')window.captureCurrentRoom=function(){const existing=currentRoom4408(),room=captureBase4408.apply(this,arguments);room.productionOrders4408=copy4408(existing?.productionOrders4408||[]);room.productionDraft4408=copy4408(existing?.productionDraft4408||{});return room};
+function start4408(){installPanel4408();try{document.documentElement.dataset.pixelVersion='44.08';document.title='Potolok AI PRO — Pixel 44.08'}catch(_){ }setTimeout(syncProductionOrder4408,120)}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start4408,{once:true});else start4408();
+})();
+</script>
+
+<!-- 44.09: production folders, room labels, custom materials and receipts -->
+<style id="productionOrder4409Styles">
+.free-draw-zoom4408{position:static!important;right:auto!important;top:auto!important;width:auto!important;padding:0!important;border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important}
+.production-transform4409{display:grid;grid-template-columns:minmax(0,1.35fr) 1fr 1fr;gap:8px;margin:10px 12px 0;padding:10px;border:1px solid #bfdbfe;border-radius:14px;background:linear-gradient(180deg,#f8fbff,#fff)}
+.production-transform4409 .scale4409{display:block;border:1px solid #dbe3ef;border-radius:11px;background:#fff;padding:9px 10px}.production-transform4409 .scale4409 span{display:flex;justify-content:space-between;gap:8px;font-size:9px;font-weight:950;color:#334155}.production-transform4409 .scale4409 input{width:100%;margin-top:7px;accent-color:#075bff}
+.production-transform4409 button{min-height:52px;border:1px solid #dbe3ef;border-radius:11px;background:#fff;color:#334155;font-size:9px;font-weight:950;padding:7px}.production-transform4409 button.primary4409{color:#075bff;border-color:#93c5fd;background:#eff6ff}
+.production-roommeta4409{display:grid;grid-template-columns:1.2fr .45fr 1fr;gap:7px;margin-bottom:10px}.production-roommeta4409>div,.production-roommeta4409 label{display:block;border:1px solid #dbe3ef;border-radius:10px;background:#fff;padding:8px}.production-roommeta4409 span{display:block;font-size:7px;color:#64748b;font-weight:850}.production-roommeta4409 b{display:block;margin-top:3px;font-size:10px;color:#0f172a;overflow-wrap:anywhere}.production-roommeta4409 input{width:100%;margin-top:4px;border:0;background:#f8fafc;border-radius:7px;padding:7px;font-size:9px;font-weight:850;outline:none}
+.production-subhead4409{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px}.production-subhead4409 b{font-size:10px}.production-add4409{min-height:36px;border:1px solid #93c5fd;background:#eff6ff;color:#075bff;border-radius:9px;padding:7px 9px;font-size:8px;font-weight:950}
+.production-materials4409{display:grid;gap:7px}.production-material4409{display:grid;grid-template-columns:minmax(0,1.65fr) 72px 82px 86px 34px;gap:6px;align-items:center}.production-material4409 input,.production-material4409 select{width:100%;min-width:0;border:1px solid #dbe3ef;border-radius:8px;background:#fff;padding:8px 7px;font-size:9px}.production-material4409 button{width:34px;height:34px;border:1px solid #fecaca;background:#fff1f2;color:#dc2626;border-radius:8px;font-weight:950}.production-material-price4411{position:relative}.production-material-price4411:after{content:'грн';position:absolute;right:7px;top:50%;transform:translateY(-50%);font-size:6.5px;color:#94a3b8;pointer-events:none}.production-material-price4411 input{padding-right:27px}.production-material-empty4409{padding:9px;text-align:center;color:#94a3b8;border:1px dashed #cbd5e1;border-radius:9px;font-size:8px}
+.production-receipt-actions4409{display:flex;gap:7px;align-items:center;flex-wrap:wrap}.production-receipt-note4409{font-size:7.5px;color:#64748b;line-height:1.4}.production-receipts4409{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:9px}.production-receipt4409{position:relative;border:1px solid #dbe3ef;border-radius:10px;background:#f8fafc;overflow:hidden;min-height:92px}.production-receipt4409 img{width:100%;height:92px;object-fit:cover}.production-receipt4409 .cap4409{padding:6px;font-size:7px;color:#475569;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.production-receipt4409 button{position:absolute;right:4px;top:4px;width:25px;height:25px;border:0;border-radius:50%;background:rgba(220,38,38,.9);color:#fff;font-weight:950}.production-receipt4409 a{display:block;color:inherit}
+.production-folder-card4409{border:1px solid #dbe3ef;border-radius:11px;background:#fff;padding:9px;margin-bottom:7px}.production-folder-head4409{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}.production-folder-head4409 b{display:block;font-size:10px}.production-folder-head4409 span{font-size:7px;color:#64748b}.production-folder-room4409{display:grid;grid-template-columns:1fr auto;gap:7px;align-items:center;border-top:1px solid #eef2f7;margin-top:7px;padding-top:7px}.production-folder-room4409 b{font-size:8.5px}.production-folder-room4409 small{display:block;font-size:7px;color:#64748b;margin-top:2px}.production-folder-room4409 .acts4409{display:flex;gap:5px}.production-folder-room4409 button,.production-folder-card4409>.folder-actions4409 button{min-height:32px;border:1px solid #dbe3ef;background:#fff;border-radius:8px;padding:6px 8px;font-size:7.5px;font-weight:900;color:#334155}.production-folder-room4409 button.blue4409,.production-folder-card4409>.folder-actions4409 button.blue4409{background:#075bff;color:#fff;border-color:#075bff}.production-folder-card4409>.folder-actions4409{display:flex;gap:6px;margin-top:8px}.production-folder-card4409>.folder-actions4409 button{flex:1}
+.production-archive4409 details{border:1px solid #dbe3ef;border-radius:10px;background:#fff;margin-bottom:7px;overflow:hidden}.production-archive4409 summary{padding:9px;font-size:9px;font-weight:950;cursor:pointer;background:#f8fafc}.production-archive-body4409{padding:8px}.production-archive-room4409{display:flex;justify-content:space-between;gap:8px;align-items:center;padding:7px 0;border-bottom:1px solid #eef2f7}.production-archive-room4409:last-child{border-bottom:0}.production-archive-room4409 b{font-size:8px}.production-archive-room4409 span{font-size:7px;color:#64748b}.production-archive-room4409 button{border:1px solid #93c5fd;background:#eff6ff;color:#075bff;border-radius:8px;padding:6px 7px;font-size:7px;font-weight:950}
+@media(max-width:520px){.production-transform4409{grid-template-columns:1fr 1fr;margin:8px 8px 0}.production-transform4409 .scale4409{grid-column:1/-1}.production-roommeta4409{grid-template-columns:1fr 72px}.production-roommeta4409 label{grid-column:1/-1}.production-material4409{grid-template-columns:minmax(0,1fr) 58px 66px 76px 30px}.production-receipts4409{grid-template-columns:repeat(2,1fr)}}
+</style>
+<script id="productionOrder4409Script">
+(function(){
+'use strict';
+if(window.__productionOrder4409Installed)return;window.__productionOrder4409Installed=true;
+const copy4409=v=>{try{return JSON.parse(JSON.stringify(v))}catch(_){return null}};
+const esc4409=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const num4409=v=>Number(String(v??'').replace(',','.'))||0;
+function room4409(){try{return (projectRooms||[]).find(r=>String(r.id)===String(activeRoomId))||null}catch(_){return null}}
+function roomIndex4409(r=room4409()){try{return Math.max(0,(projectRooms||[]).findIndex(x=>String(x.id)===String(r?.id)))}catch(_){return 0}}
+function address4409(){return String(document.getElementById('objectAddress')?.value||'').trim()||'Об’єкт без адреси'}
+function client4409(){return String(document.getElementById('clientName')?.value||'').trim()}
+function roomLabelFromName4409(r,index){const name=String(r?.name||'').trim();const re=new RegExp('^Кімната\\s*'+(index+1)+'(?:\\s*[·—-]?\\s*)?','i');return name.replace(re,'').trim()}
+function setStatus4409(msg,type='ok'){if(typeof window.syncProductionOrder4408==='function'){}const el=document.getElementById('productionStatus4408');if(!el)return;el.textContent=msg;el.className='production-status4408 show '+(type==='warn'?'warn':'ok')}
+function materialList4409(){const r=room4409();return Array.isArray(r?.productionDraft4408?.customMaterials4409)?r.productionDraft4408.customMaterials4409:[]}
+function ensureDraft4409(){const r=room4409();if(!r)return null;r.productionDraft4408=r.productionDraft4408||{};if(!Array.isArray(r.productionDraft4408.customMaterials4409))r.productionDraft4408.customMaterials4409=[];return r.productionDraft4408}
+function persist4409(){try{syncActiveRoomFromUI?.(false);autosave?.()}catch(_){}}
+function syncRoomMeta4409(){
+ const r=room4409();if(!r)return;const idx=roomIndex4409(r),num=idx+1,label=roomLabelFromName4409(r,idx);
+ const no=document.getElementById('prodRoomNumber4409'),inp=document.getElementById('prodRoomLabel4409'),folder=document.getElementById('prodFolderAddress4409');
+ if(no)no.textContent='Кімната '+num;if(inp&&document.activeElement!==inp)inp.value=label;if(folder&&document.activeElement!==folder)folder.value=address4409()==='Об’єкт без адреси'?'':address4409();
+}
+window.setProductionRoomLabel4409=function(value){const r=room4409();if(!r)return;const idx=roomIndex4409(r),label=String(value||'').trim();r.name='Кімната '+(idx+1)+(label?' '+label:'');const main=document.getElementById('roomName');if(main)main.value=r.name;try{renderRooms?.();autosave?.()}catch(_){ }syncRoomMeta4409();renderCurrentFolder4409()};
+window.setProductionAddress4409=function(value){const addr=String(value||'').trim(),main=document.getElementById('objectAddress');if(main)main.value=addr;const r=room4409();if(r){r.productionDraft4408={...(r.productionDraft4408||{}),address4410:addr,updatedAt:new Date().toISOString()}}try{autosave?.()}catch(_){ }renderCurrentFolder4409();renderArchive4409();const title=document.getElementById('productionFolderTitle4409');if(title)title.textContent=address4409()};
+function renderMaterials4409(){const box=document.getElementById('productionCustomMaterials4409');if(!box)return;const list=materialList4409();box.innerHTML=list.length?list.map((m,i)=>{const units=['шт','м.п.','м','м²','компл.','упак.','кг','л','рулон'];const unit=String(m.unit||'шт');if(unit&&!units.includes(unit))units.unshift(unit);return `<div class="production-material4409"><input placeholder="Матеріал / комплектуюча" value="${esc4409(m.name||'')}" title="${esc4409(m.category||'')}" oninput="updateProductionMaterial4409(${i},'name',this.value);window.updateMaterialSummary4411?.()"><input type="number" inputmode="decimal" min="0" step="0.01" value="${num4409(m.qty)||1}" aria-label="Кількість" oninput="updateProductionMaterial4409(${i},'qty',this.value);window.updateMaterialSummary4411?.()"><select aria-label="Одиниця" onchange="updateProductionMaterial4409(${i},'unit',this.value)">${units.map(u=>`<option ${u===unit?'selected':''}>${esc4409(u)}</option>`).join('')}</select><label class="production-material-price4411"><input type="number" inputmode="decimal" min="0" step="0.01" value="${num4409(m.price)>0?num4409(m.price):''}" placeholder="Ціна" aria-label="Ціна" oninput="updateProductionMaterial4409(${i},'price',this.value);window.updateMaterialSummary4411?.()"></label><button type="button" onclick="deleteProductionMaterial4409(${i})">×</button></div>`}).join(''):'<div class="production-material-empty4409">Додаткових матеріалів ще немає.</div>';window.updateMaterialSummary4411?.()}
+window.addProductionMaterial4409=function(){const d=ensureDraft4409();if(!d)return;d.customMaterials4409.push({name:'',qty:1,unit:'шт',price:0,source:'manual'});renderMaterials4409();setTimeout(()=>document.querySelector('#productionCustomMaterials4409 .production-material4409:last-child input')?.focus(),0);persist4409()};
+window.updateProductionMaterial4409=function(i,key,value){const d=ensureDraft4409(),m=d?.customMaterials4409?.[i];if(!m)return;m[key]=(key==='qty'||key==='price')?Math.max(0,Math.round(num4409(value)*100)/100):String(value||'');persist4409()};
+window.deleteProductionMaterial4409=function(i){const d=ensureDraft4409();if(!d)return;d.customMaterials4409.splice(i,1);renderMaterials4409();persist4409()};
+function receipts4409(){const r=room4409();if(!r)return[];r.productionReceipts4409=Array.isArray(r.productionReceipts4409)?r.productionReceipts4409:[];return r.productionReceipts4409}
+function renderReceipts4409(){const box=document.getElementById('productionReceipts4409'),count=document.getElementById('productionReceiptCount4409');if(!box)return;const list=receipts4409();if(count)count.textContent=list.length?` · ${list.length}`:'';box.innerHTML=list.length?list.map((it,i)=>`<div class="production-receipt4409"><a href="${it.data}" target="_blank" rel="noopener"><img src="${it.data}" alt="Чек ${i+1}"><div class="cap4409">${esc4409(it.name||('Чек '+(i+1)))}</div></a><button type="button" onclick="deleteProductionReceipt4409(${i})">×</button></div>`).join(''):'<div class="production-material-empty4409" style="grid-column:1/-1">Чеків до цієї кімнати ще немає.</div>'}
+window.addProductionReceipts4409=async function(input){const files=[...(input?.files||[])];if(!files.length)return;const r=room4409();if(!r)return;const list=receipts4409();setStatus4409('Стискаю та додаю чеки…');for(const f of files){if(!String(f.type||'').startsWith('image/'))continue;try{const data=typeof compressImage==='function'?await compressImage(f,1400,.74,420000):await new Promise((res,rej)=>{const rd=new FileReader();rd.onload=()=>res(rd.result);rd.onerror=rej;rd.readAsDataURL(f)});list.push({id:'receipt_'+Date.now().toString(36)+Math.random().toString(36).slice(2,5),name:f.name||'Чек',type:'image',data,createdAt:new Date().toISOString()})}catch(e){console.warn('44.09 receipt',e)}}input.value='';try{autosave?.()}catch(_){ }renderReceipts4409();setStatus4409('✅ Чек додано до '+(r.name||'кімнати')+'.')};
+window.deleteProductionReceipt4409=function(i){const list=receipts4409();if(!list[i])return;if(!confirm('Видалити цей чек з кімнати?'))return;list.splice(i,1);try{autosave?.()}catch(_){ }renderReceipts4409()};
+function archiveLoad4409(){try{return JSON.parse(localStorage.getItem('pixel_production_archive_4409')||'{"folders":[]}')}catch(_){return{folders:[]}}}
+function archiveSave4409(a){try{localStorage.setItem('pixel_production_archive_4409',JSON.stringify(a))}catch(e){console.warn('44.09 archive',e)}}
+function folderId4409(addr){let h=2166136261;for(const ch of String(addr||'').trim().toLowerCase()){h^=ch.charCodeAt(0);h=Math.imul(h,16777619)}return'pf_'+(h>>>0).toString(36)}
+function archiveOrder4409(order){const a=archiveLoad4409(),addr=order.address||address4409(),fid=folderId4409(addr);let f=a.folders.find(x=>x.id===fid);if(!f){f={id:fid,address:addr,clientName:client4409(),updatedAt:order.createdAt,rooms:[]};a.folders.unshift(f)}f.address=addr;f.clientName=client4409()||f.clientName||'';f.updatedAt=order.createdAt;let rr=f.rooms.find(x=>String(x.id)===String(order.roomId));if(!rr){rr={id:order.roomId,name:order.roomName,orders:[]};f.rooms.push(rr)}rr.name=order.roomName;rr.orders=Array.isArray(rr.orders)?rr.orders:[];rr.orders.push(copy4409(order));if(rr.orders.length>20)rr.orders=rr.orders.slice(-20);a.folders.sort((x,y)=>String(y.updatedAt||'').localeCompare(String(x.updatedAt||'')));archiveSave4409(a)}
+function latestOrder4409(r){const list=Array.isArray(r?.productionOrders4408)?r.productionOrders4408:[];return list[list.length-1]||null}
+function renderCurrentFolder4409(){const box=document.getElementById('productionFolderRooms4409'),title=document.getElementById('productionFolderTitle4409');if(!box)return;if(title)title.textContent=address4409();const rooms=Array.isArray(projectRooms)?projectRooms:[];box.innerHTML=rooms.map((r,i)=>{const o=latestOrder4409(r);return`<div class="production-folder-room4409"><div><b>${esc4409(r.name||('Кімната '+(i+1)))}</b><small>${o?'✅ '+esc4409(o.number||'замовлення')+' · '+Number(o.area||0).toFixed(2)+' м²':'⚪ Замовлення ще не збережено'}</small></div><div class="acts4409"><button type="button" onclick="openProductionRoom4409('${esc4409(r.id)}')">Відкрити</button>${o?`<button type="button" class="blue4409 room-share4411" onclick="shareProductionRoom4409('${esc4409(r.id)}')">📤 ${esc4409(r.name||('Кімната '+(i+1)))} на розкрій</button>`:''}</div></div>`}).join('')||'<div class="production-material-empty4409">Кімнат ще немає.</div>'}
+window.openProductionRoom4409=function(id){try{if(String(activeRoomId)!==String(id))selectRoom(id);setTimeout(()=>{window.openProductionFromPlanner4408?.();setTimeout(window.syncProductionWorkspace4409,80)},30)}catch(e){console.warn(e)}};
+function archiveRoomsToOrders4409(folder){return (folder?.rooms||[]).map(r=>Array.isArray(r.orders)&&r.orders.length?r.orders[r.orders.length-1]:null).filter(Boolean)}
+function renderArchive4409(){const box=document.getElementById('productionArchive4409');if(!box)return;const a=archiveLoad4409();box.innerHTML=a.folders.length?a.folders.map(f=>`<details ${f.id===folderId4409(address4409())?'open':''}><summary>📁 ${esc4409(f.address||'Без адреси')} · ${(f.rooms||[]).length} кімн.</summary><div class="production-archive-body4409">${(f.rooms||[]).map(r=>{const o=Array.isArray(r.orders)&&r.orders.length?r.orders[r.orders.length-1]:null;return`<div class="production-archive-room4409"><div><b>${esc4409(r.name||'Кімната')}</b><span>${o?esc4409(o.number||'')+' · '+Number(o.area||0).toFixed(2)+' м²':'без замовлення'}</span></div>${o?`<button type="button" onclick="shareArchiveRoom4409('${esc4409(f.id)}','${esc4409(r.id)}')">📤 кімнату</button>`:''}</div>`}).join('')}<div class="folder-actions4409"><button class="blue4409" type="button" onclick="shareArchiveFolder4409('${esc4409(f.id)}')">📤 Весь об’єкт</button></div></div></details>`).join(''):'<div class="production-material-empty4409">Папки з’являться після першого збереженого виробничого замовлення.</div>'}
+function planData4409(order){const p=order?.planner||{},pts=Array.isArray(p.points)?p.points:[],seg=Array.isArray(p.segments)?p.segments:[];return{pts,seg}}
+function pointName4409(i){let n=i,s='';do{s=String.fromCharCode(65+n%26)+s;n=Math.floor(n/26)-1}while(n>=0);return s}
+async function orderBlob4409(order){
+ const c=document.createElement('canvas');c.width=1600;c.height=2250;const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);x.fillStyle='#071428';x.font='900 46px Arial';x.fillText('Potolok.in.ua',60,72);x.font='900 34px Arial';x.fillText('ЗАМОВЛЕННЯ НА ВИРОБНИЦТВО / РОЗКРІЙ',60,125);x.fillStyle='#475569';x.font='700 24px Arial';x.fillText(`${order.address||'Без адреси'} · ${order.roomName||'Кімната'} · ${order.number||''}`,60,166);
+ const {pts,seg}=planData4409(order);const left=80,top=220,w=1440,h=980;if(pts.length>=3){const xs=pts.map(p=>Number(p[0])||0),ys=pts.map(p=>Number(p[1])||0),minX=Math.min(...xs),maxX=Math.max(...xs),minY=Math.min(...ys),maxY=Math.max(...ys),bw=Math.max(1,maxX-minX),bh=Math.max(1,maxY-minY),sc=Math.min((w-170)/bw,(h-170)/bh),ox=left+(w-bw*sc)/2-minX*sc,oy=top+(h-bh*sc)/2-minY*sc,pp=pts.map(p=>[ox+(Number(p[0])||0)*sc,oy+(Number(p[1])||0)*sc]);x.fillStyle='rgba(7,91,255,.08)';x.strokeStyle='#075bff';x.lineWidth=6;x.beginPath();pp.forEach((p,i)=>i?x.lineTo(p[0],p[1]):x.moveTo(p[0],p[1]));x.closePath();x.fill();x.stroke();x.font='900 22px Arial';for(let i=0;i<pp.length;i++){const a=pp[i],b=pp[(i+1)%pp.length],mx=(a[0]+b[0])/2,my=(a[1]+b[1])/2;x.fillStyle='#071428';x.fillText(pointName4409(i),a[0]+10,a[1]-10);x.fillStyle='#075bff';x.font='900 19px Arial';x.fillText(`${pointName4409(i)}–${pointName4409((i+1)%pp.length)} ${Number(seg[i]||0).toFixed(2)} м`,mx-60,my-10);x.font='900 22px Arial'}}else{x.fillStyle='#94a3b8';x.font='800 28px Arial';x.fillText('Креслення відсутнє',620,650)}
+ let y=1260;x.fillStyle='#0f172a';x.font='900 27px Arial';x.fillText(`Площа: ${Number(order.area||0).toFixed(2)} м²`,60,y);x.fillText(`Периметр: ${Number(order.perimeter||0).toFixed(2)} м`,450,y);x.fillText(`Кутів: ${Number(order.corners||0)}`,980,y);y+=62;x.font='800 23px Arial';x.fillText(`Полотно: ${order.manufacturer||'—'} · ${order.textureLabel||'—'} · ${order.color||'—'}`,60,y);y+=48;x.fillText(`Профіль: ${order.profileLabel||'—'}${order.insert&&order.insert!=='none'?' · вставка '+(order.insert==='white'?'біла':'чорна'):''}`,60,y);y+=42;
+ if(order.cornice&&order.cornice!=='none'){x.fillText(`Карниз: ${order.corniceLabel||order.cornice}`,60,y);y+=38}
+ if(order.led&&order.led!=='none'){x.fillText(`LED: ${order.ledLabel||order.led}`,60,y);y+=38}
+ y+=12;
+ if(order.diagonals?.length){x.fillStyle='#9a3412';x.fillText('Діагоналі: '+order.diagonals.map(d=>`${d.s1}–${d.s2} ${Number(d.length||0).toFixed(2)} м`).join(' · '),60,y);y+=50}
+ const mats=Array.isArray(order.customMaterials)?order.customMaterials.filter(m=>String(m.name||'').trim()):[];if(mats.length){x.fillStyle='#0f172a';x.font='900 24px Arial';x.fillText('Додаткові матеріали:',60,y);y+=38;x.font='700 21px Arial';for(const m of mats){const pr=Number(m.price||0),sum=pr*Number(m.qty||0);x.fillText(`• ${m.name} — ${Number(m.qty||0)} ${m.unit||'шт'}${pr>0?' · '+pr.toFixed(2)+' грн = '+sum.toFixed(2)+' грн':''}`,80,y);y+=32;if(y>2050)break}}
+ if(order.note&&y<2070){x.fillStyle='#334155';x.font='700 20px Arial';const words=('Примітка: '+order.note).split(' ');let line='';for(const word of words){const test=line+word+' ';if(x.measureText(test).width>1450){x.fillText(line,60,y);line=word+' ';y+=30}else line=test}if(line)x.fillText(line,60,y)}x.fillStyle='#64748b';x.font='700 18px Arial';x.fillText('Сформовано Pixel · '+new Date(order.createdAt||Date.now()).toLocaleString('uk-UA'),60,2190);return await new Promise((res,rej)=>c.toBlob(b=>b?res(b):rej(new Error('Не вдалося створити PNG')),'image/png',.96))
+}
+async function shareOrders4409(orders,title){if(!orders.length)return setStatus4409('Немає збережених замовлень для відправки.','warn');setStatus4409('Готую '+orders.length+' файл(и)…');try{const files=[];for(const o of orders){const b=await orderBlob4409(o),safe=(o.roomName||'room').replace(/[^\p{L}\p{N}_-]+/gu,'_');files.push(new File([b],safe+'_'+(o.number||'order')+'.png',{type:'image/png'}))}if(navigator.share&&navigator.canShare?.({files})){await navigator.share({title,text:title,files});setStatus4409('✅ Передано в меню поширення.')}else{for(const f of files){const u=URL.createObjectURL(f),a=document.createElement('a');a.href=u;a.download=f.name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),1800)}setStatus4409('PNG-файли збережено на телефон.')} }catch(e){if(e?.name!=='AbortError')setStatus4409(e.message||'Не вдалося підготувати замовлення.','warn')}}
+window.shareProductionRoom4409=function(id){const r=(projectRooms||[]).find(x=>String(x.id)===String(id)),o=latestOrder4409(r);return o?shareOrders4409([o],'Замовлення на розкрій — '+(r?.name||'кімната')):setStatus4409('Спочатку збережіть замовлення цієї кімнати.','warn')};
+window.shareProductionObject4409=function(){const orders=(projectRooms||[]).map(latestOrder4409).filter(Boolean);if(orders.length!==(projectRooms||[]).length&&!confirm(`Збережено ${orders.length} із ${(projectRooms||[]).length} кімнат. Відправити тільки готові?`))return;return shareOrders4409(orders,'Замовлення на розкрій — '+address4409())};
+window.shareArchiveRoom4409=function(fid,rid){const f=archiveLoad4409().folders.find(x=>x.id===fid),r=f?.rooms?.find(x=>String(x.id)===String(rid)),o=Array.isArray(r?.orders)&&r.orders.length?r.orders[r.orders.length-1]:null;if(o)shareOrders4409([o],'Замовлення на розкрій — '+(r.name||'кімната'))};
+window.shareArchiveFolder4409=function(fid){const f=archiveLoad4409().folders.find(x=>x.id===fid);if(f)shareOrders4409(archiveRoomsToOrders4409(f),'Замовлення на розкрій — '+(f.address||'об’єкт'))};
+function installTransform4409(){const order=document.getElementById('productionOrder4408');if(!order||document.getElementById('productionTransform4409'))return;document.querySelector('#freeDrawModal4405 .free-draw-actions4405 button[onclick="straightenFingerWalls4408()"]')?.remove();const old=document.querySelector('.free-draw-stage4405 .free-draw-zoom4408');if(old)old.remove();const bar=document.createElement('div');bar.id='productionTransform4409';bar.className='production-transform4409';bar.innerHTML=`<label class="scale4409"><span>🔎 Масштаб <b id="freeDrawZoomValue4408">100%</b></span><input id="freeDrawZoomRange4408" type="range" min="70" max="180" step="5" value="100" oninput="setFingerZoom4408(this.value)"></label><button type="button" class="primary4409" onclick="rotateFingerDrawing4409()">↻ Повернути 90°</button><button type="button" onclick="resetFingerView4409()">↺ Скинути</button>`;order.before(bar);const st=order.querySelector('.production-actions4408 button[onclick="straightenFingerWalls4408()"]');if(st)st.textContent='📐 Вирівняти стіни 90°'}
+function installPanelExtras4409(){const order=document.getElementById('productionOrder4408');if(!order||document.getElementById('productionRoomMeta4409'))return;const head=order.querySelector('.production-head4408');const meta=document.createElement('div');meta.id='productionRoomMeta4409';meta.className='production-roommeta4409';meta.innerHTML=`<label><span>📁 Папка / адреса</span><input id="prodFolderAddress4409" placeholder="Напр.: Каденюка 13а" oninput="setProductionAddress4409(this.value)"></label><div><span>№ кімнати</span><b id="prodRoomNumber4409">Кімната 1</b></div><label><span>Назва кімнати</span><input id="prodRoomLabel4409" placeholder="Напр.: Зал" oninput="setProductionRoomLabel4409(this.value)"></label>`;head.insertAdjacentElement('afterend',meta);
+ const comp=[...order.querySelectorAll('.production-section4408')].find(d=>d.querySelector('summary')?.textContent.includes('Комплектація'));if(comp){const body=comp.querySelector('.production-body4408');const custom=document.createElement('div');custom.style.marginTop='12px';custom.innerHTML=`<div class="production-subhead4409"><b>🔩 Додаткові матеріали / комплектуючі</b><button class="production-add4409" type="button" onclick="addProductionMaterial4409()">＋ Додати матеріал</button></div><div id="productionCustomMaterials4409" class="production-materials4409"></div>`;body.appendChild(custom)}
+ const history=[...order.querySelectorAll('.production-section4408')].find(d=>d.querySelector('summary')?.textContent.includes('Збережені замовлення'));if(history){const receipts=document.createElement('details');receipts.className='production-section4408';receipts.innerHTML=`<summary>🧾 Чеки кімнати<span id="productionReceiptCount4409"></span></summary><div class="production-body4408"><div class="production-receipt-actions4409"><button type="button" class="production-add4409" onclick="document.getElementById('productionReceiptInput4409').click()">📎 Додати чек</button><input id="productionReceiptInput4409" type="file" accept="image/*" multiple hidden onchange="addProductionReceipts4409(this)"><span class="production-receipt-note4409">Фото стискається і зберігається разом із кімнатою.</span></div><div id="productionReceipts4409" class="production-receipts4409"></div></div>`;history.before(receipts);
+ const folder=document.createElement('details');folder.className='production-section4408';folder.open=true;folder.innerHTML=`<summary>📁 Замовлення за поточним об’єктом · <span id="productionFolderTitle4409"></span></summary><div class="production-body4408"><div id="productionFolderRooms4409"></div><div class="production-actions4408" style="margin-top:9px"><button type="button" class="share4408 wide4408" onclick="shareProductionObject4409()">📤 Весь об’єкт на розкрій</button></div></div>`;history.after(folder);
+ const archive=document.createElement('details');archive.className='production-section4408';archive.innerHTML=`<summary>🗄 Папки виробничих замовлень за адресами</summary><div class="production-body4408"><div id="productionArchive4409" class="production-archive4409"></div></div>`;folder.after(archive)}
+}
+const baseSave4409=window.saveProductionOrder4408;
+if(typeof baseSave4409==='function')window.saveProductionOrder4408=function(silent=false){const d=ensureDraft4409(),r=room4409();if(d){d.customMaterials4409=copy4409(materialList4409())||[]}const snap=baseSave4409(true);if(!snap)return null;const idx=roomIndex4409(r);snap.address=address4409();snap.clientName=client4409();snap.roomNumber=idx+1;snap.roomLabel=roomLabelFromName4409(r,idx);snap.customMaterials=(copy4409(materialList4409())||[]).filter(m=>String(m.name||'').trim());snap.receiptCount=receipts4409().length;archiveOrder4409(snap);try{autosave?.()}catch(_){ }renderCurrentFolder4409();renderArchive4409();if(!silent)setStatus4409('✅ '+snap.number+' збережено: '+snap.roomName+' · '+snap.address);return snap};
+window.shareProductionOrder4408=async function(){const order=window.saveProductionOrder4408(true);if(order)return shareOrders4409([order],'Замовлення на розкрій — '+order.roomName)};
+const captureBase4409=window.captureCurrentRoom;if(typeof captureBase4409==='function')window.captureCurrentRoom=function(){const existing=room4409(),out=captureBase4409.apply(this,arguments);out.productionReceipts4409=copy4409(existing?.productionReceipts4409||[]);out.productionDraft4408=copy4409(existing?.productionDraft4408||out.productionDraft4408||{});out.productionOrders4408=copy4409(existing?.productionOrders4408||out.productionOrders4408||[]);return out};
+window.syncProductionWorkspace4409=function(){syncRoomMeta4409();renderMaterials4409();renderReceipts4409();renderCurrentFolder4409();renderArchive4409()};
+const syncBase4409=window.syncProductionOrder4408;if(typeof syncBase4409==='function')window.syncProductionOrder4408=function(){const out=syncBase4409.apply(this,arguments);setTimeout(window.syncProductionWorkspace4409,0);return out};
+function start4409(){installTransform4409();installPanelExtras4409();window.syncProductionWorkspace4409();try{document.documentElement.dataset.pixelVersion='44.09';document.title='Potolok AI PRO — Pixel 44.09'}catch(_){}}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(start4409,0),{once:true});else setTimeout(start4409,0);
+})();
+</script>
+
+
+<style id="productionOrder4410Styles">
+.production-roommeta4409 label:first-child{min-width:0}
+.production-roommeta4409 #prodFolderAddress4409{font-weight:900;color:#0f172a}
+</style>
+<script id="productionOrder4410Marker">
+(function(){function mark(){try{document.documentElement.dataset.pixelVersion='44.10';document.title='Potolok AI PRO — Pixel 44.10'}catch(_){}}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',mark,{once:true});else mark()})();
+</script>
+
+<style id="productionPrice4411Styles">
+.production-subhead-actions4411{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.room-share4411{white-space:normal!important;max-width:210px;line-height:1.2}
+.production-material-total4411{margin-top:8px;padding:9px 10px;border:1px solid #bfdbfe;background:#eff6ff;border-radius:9px;display:flex;justify-content:space-between;gap:8px;align-items:center;font-size:8px;color:#475569}
+.production-material-total4411 b{font-size:11px;color:#075bff}
+.price-modal4411{position:fixed;inset:0;z-index:520;display:none;align-items:flex-end;justify-content:center;padding:10px;background:rgba(7,20,40,.66)}
+.price-modal4411.open{display:flex}.price-sheet4411{width:min(720px,100%);max-height:92vh;overflow:auto;background:#fff;border-radius:20px;padding:14px;box-shadow:0 28px 80px rgba(0,0,0,.36)}
+.price-head4411{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}.price-head4411 h3{font-size:17px}.price-head4411 p{font-size:8px;color:#64748b;line-height:1.4;margin-top:4px}.price-close4411{width:38px;height:38px;border:1px solid #dbe3ef;background:#fff;border-radius:10px;font-size:20px}
+.price-tools4411{display:grid;grid-template-columns:1fr auto;gap:7px;margin-top:11px}.price-tools4411 input{width:100%;border:1px solid #dbe3ef;border-radius:10px;padding:10px;font-size:10px}.price-tools4411 button{border:1px solid #93c5fd;background:#eff6ff;color:#075bff;border-radius:10px;padding:8px 10px;font-size:9px;font-weight:950}
+.price-status4411{margin-top:9px;padding:9px;border:1px solid #dbe3ef;background:#f8fafc;border-radius:9px;font-size:8px;color:#475569;line-height:1.4}.price-status4411.ok{border-color:#86efac;background:#f0fdf4;color:#047857}.price-status4411.bad{border-color:#fecaca;background:#fff1f2;color:#b91c1c}
+.price-list4411{display:grid;gap:6px;margin-top:9px}.price-row4411{display:grid;grid-template-columns:minmax(0,1fr) 72px 88px auto;gap:7px;align-items:center;border:1px solid #e5e7eb;border-radius:11px;padding:9px;background:#fff}.price-row4411 b{font-size:9px;line-height:1.3}.price-row4411 small{display:block;font-size:7px;color:#64748b;margin-top:3px}.price-row4411 .unit4411{font-size:8px;color:#475569;text-align:center}.price-row4411 .price4411{font-size:9px;font-weight:950;color:#16a34a;text-align:right}.price-row4411 button{min-height:34px;border:0;border-radius:8px;background:#075bff;color:#fff;font-size:8px;font-weight:950;padding:6px 8px}.price-empty4411{padding:18px;text-align:center;color:#94a3b8;font-size:9px}
+@media(max-width:520px){.production-material4409{grid-template-columns:minmax(0,1fr) 58px 66px 76px 30px}.production-material4409 input,.production-material4409 select{padding:7px 5px;font-size:8px}.price-row4411{grid-template-columns:minmax(0,1fr) 55px 70px}.price-row4411 button{grid-column:1/-1}.room-share4411{max-width:150px}.price-tools4411{grid-template-columns:1fr}.price-modal4411{align-items:flex-end}}
+@media(min-width:760px){.price-modal4411{align-items:center}}
+</style>
+<script id="productionPrice4411Script">
+(function(){
+'use strict';
+if(window.__productionPrice4411Installed)return;window.__productionPrice4411Installed=true;
+const SHEET_ID_4411='18iyz77_Hgj2zdK0sIP5ciSsk-ZrTsP4Sxa2xcFnwCfg',SHEET_GID_4411='875431659';
+let items4411=[],loaded4411=false;
+const esc4411=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const num4411=v=>{let s=String(v??'').replace(/\u00a0/g,' ').replace(/[^0-9,.-]/g,'').trim();if(s.includes(',')&&!s.includes('.'))s=s.replace(',','.');else if(s.includes(',')&&s.includes('.'))s=s.replace(/,/g,'');return Number(s)||0};
+function currentRoom4411(){try{return (projectRooms||[]).find(r=>String(r.id)===String(activeRoomId))||null}catch(_){return null}}
+function ensureMats4411(){const r=currentRoom4411();if(!r)return null;r.productionDraft4408=r.productionDraft4408||{};r.productionDraft4408.customMaterials4409=Array.isArray(r.productionDraft4408.customMaterials4409)?r.productionDraft4408.customMaterials4409:[];return r.productionDraft4408.customMaterials4409}
+function setPriceStatus4411(msg,type=''){const e=document.getElementById('priceStatus4411');if(!e)return;e.textContent=msg;e.className='price-status4411'+(type?' '+type:'')}
+function parseCsv4411(text){const rows=[];let row=[],field='',q=false;for(let i=0;i<text.length;i++){const ch=text[i];if(q){if(ch==='"'&&text[i+1]==='"'){field+='"';i++}else if(ch==='"')q=false;else field+=ch}else{if(ch==='"')q=true;else if(ch===','){row.push(field);field=''}else if(ch==='\n'){row.push(field);rows.push(row);row=[];field=''}else if(ch!=='\r')field+=ch}}row.push(field);if(row.some(v=>String(v).trim()))rows.push(row);return rows}
+function norm4411(v){return String(v||'').toLowerCase().replace(/ё/g,'е').replace(/[._/\\()-]+/g,' ').replace(/\s+/g,' ').trim()}
+const aliases4411={name:['найменування','наименование','назва','наименування','матеріал','материал','товар','позиція','позиция','номенклатура'],unit:['одиниця','ед изм','единица','од','ед','unit'],price:['ціна','цена','вартість','стоимость','price','опт','роздріб'],sku:['артикул','код','sku'],category:['категорія','категория','група','группа','розділ','раздел']};
+function findHeader4411(rows){let best={score:-1,index:0,map:{}};for(let ri=0;ri<Math.min(rows.length,25);ri++){const map={},rr=rows[ri].map(norm4411);for(const [k,als] of Object.entries(aliases4411)){for(let i=0;i<rr.length;i++){if(als.some(a=>rr[i]===a||rr[i].includes(a))){map[k]=i;break}}}const score=(map.name!=null?4:0)+(map.price!=null?4:0)+(map.unit!=null?1:0)+(map.sku!=null?1:0)+(map.category!=null?1:0);if(score>best.score)best={score,index:ri,map}}return best}
+function normalizeRows4411(rows){const h=findHeader4411(rows);if(h.score<8||h.map.name==null||h.map.price==null)throw new Error('Не вдалося визначити колонки «найменування» та «ціна» у прайсі.');const out=[];for(const r of rows.slice(h.index+1)){const name=String(r[h.map.name]||'').trim(),price=num4411(r[h.map.price]);if(!name||!price)continue;out.push({name,price,unit:String(r[h.map.unit]||'шт').trim()||'шт',sku:String(r[h.map.sku]||'').trim(),category:String(r[h.map.category]||'').trim()})}if(!out.length)throw new Error('У прайсі не знайдено позицій з назвою та ціною.');return out}
+async function directLoad4411(){const url='https://docs.google.com/spreadsheets/d/'+SHEET_ID_4411+'/gviz/tq?tqx=out:csv&gid='+SHEET_GID_4411;const r=await fetch(url,{cache:'no-store'});if(!r.ok)throw new Error('Google Sheets: '+r.status);return normalizeRows4411(parseCsv4411(await r.text()))}
+async function load4411(force=false){if(loaded4411&&!force)return items4411;setPriceStatus4411('Завантажую актуальний прайс…');let err=null;try{if(/^https?:$/.test(location.protocol)){const r=await fetch('/api/material-price-list'+(force?'?refresh=1':''),{cache:force?'no-store':'default'});if(r.ok){const j=await r.json();if(Array.isArray(j.items)&&j.items.length){items4411=j.items;loaded4411=true;setPriceStatus4411('✅ Завантажено '+items4411.length+' позицій з Google-прайсу.','ok');renderPrice4411();return items4411}}else{try{const j=await r.json();err=new Error(j.error||('API '+r.status))}catch(_){err=new Error('API '+r.status)}}}}catch(e){err=e}
+ try{items4411=await directLoad4411();loaded4411=true;setPriceStatus4411('✅ Завантажено '+items4411.length+' позицій напряму з Google-прайсу.','ok');renderPrice4411();return items4411}catch(e){err=e}
+ setPriceStatus4411('⚠️ Не вдалося прочитати прайс. Перевірте доступ «усім за посиланням». На сайті також має бути файл api/material-price-list.js. '+(err?.message||''),'bad');renderPrice4411();return[]}
+window.openPriceList4411=function(){document.getElementById('priceModal4411')?.classList.add('open');document.getElementById('priceSearch4411')?.focus();load4411(false)};
+window.closePriceList4411=function(){document.getElementById('priceModal4411')?.classList.remove('open')};
+window.refreshPriceList4411=function(){loaded4411=false;load4411(true)};
+window.renderPrice4411=renderPrice4411;
+function renderPrice4411(){const box=document.getElementById('priceList4411');if(!box)return;const q=norm4411(document.getElementById('priceSearch4411')?.value||'');const list=(items4411||[]).filter(x=>!q||norm4411([x.name,x.sku,x.category,x.unit].join(' ')).includes(q)).slice(0,120);if(!loaded4411&&!items4411.length){box.innerHTML='<div class="price-empty4411">Прайс ще не завантажено.</div>';return}if(!list.length){box.innerHTML='<div class="price-empty4411">Нічого не знайдено.</div>';return}box.innerHTML=list.map(x=>{const real=items4411.indexOf(x);return '<div class="price-row4411"><div><b>'+esc4411(x.name)+'</b><small>'+esc4411([x.category,x.sku].filter(Boolean).join(' · '))+'</small></div><div class="unit4411">'+esc4411(x.unit||'шт')+'</div><div class="price4411">'+Number(x.price||0).toFixed(2)+' грн</div><button type="button" onclick="addPriceMaterial4411('+real+')">＋ Додати</button></div>'}).join('')}
+window.addPriceMaterial4411=function(index){const x=items4411[index],list=ensureMats4411();if(!x||!list)return;const key=String(x.sku||x.name).trim().toLowerCase(),same=list.find(m=>String(m.sku||m.name).trim().toLowerCase()===key);if(same){same.qty=Math.round((Number(same.qty||0)+1)*100)/100;same.price=Number(x.price)||Number(same.price)||0;same.unit=x.unit||same.unit||'шт'}else list.push({name:x.name,qty:1,unit:x.unit||'шт',price:Number(x.price)||0,sku:x.sku||'',category:x.category||'',source:'google-sheet'});try{syncActiveRoomFromUI?.(false);autosave?.();window.syncProductionWorkspace4409?.()}catch(_){ }window.updateMaterialSummary4411?.();setPriceStatus4411('✅ Додано: '+x.name,'ok')};
+window.updateMaterialSummary4411=function(){const el=document.getElementById('productionMaterialTotal4411');if(!el)return;const list=ensureMats4411()||[],sum=list.reduce((s,m)=>s+Number(m.qty||0)*Number(m.price||0),0);const priced=list.filter(m=>Number(m.price||0)>0).length;el.innerHTML='<span>Позицій: <b>'+list.length+'</b> · з ціною: '+priced+'</span><b>'+sum.toFixed(2)+' грн</b>'};
+function install4411(){const sub=[...document.querySelectorAll('.production-subhead4409')].find(x=>x.textContent.includes('Додаткові матеріали'));if(sub&&!document.getElementById('openPriceList4411')){const actions=document.createElement('div');actions.className='production-subhead-actions4411';const manual=sub.querySelector('button');if(manual){manual.remove();actions.appendChild(manual)}const b=document.createElement('button');b.id='openPriceList4411';b.type='button';b.className='production-add4409';b.textContent='📋 Прайс-лист';b.onclick=window.openPriceList4411;actions.appendChild(b);sub.appendChild(actions);const total=document.createElement('div');total.id='productionMaterialTotal4411';total.className='production-material-total4411';sub.parentElement?.appendChild(total)}if(!document.getElementById('priceModal4411')){const m=document.createElement('div');m.id='priceModal4411';m.className='price-modal4411';m.innerHTML='<div class="price-sheet4411"><div class="price-head4411"><div><h3>📋 Прайс матеріалів</h3><p>Google Sheets · актуальні позиції підтягуються у виробниче замовлення.</p></div><button class="price-close4411" type="button" onclick="closePriceList4411()">×</button></div><div class="price-tools4411"><input id="priceSearch4411" placeholder="Пошук: профіль, саморіз, вставка…" oninput="renderPrice4411()"><button type="button" onclick="refreshPriceList4411()">↻ Оновити прайс</button></div><div id="priceStatus4411" class="price-status4411">Прайс ще не завантажено.</div><div id="priceList4411" class="price-list4411"></div></div>';m.addEventListener('click',e=>{if(e.target===m)window.closePriceList4411()});document.body.appendChild(m)}window.updateMaterialSummary4411();try{document.documentElement.dataset.pixelVersion='44.11';document.title='Potolok AI PRO — Pixel 44.11'}catch(_){}}
+const baseSync4411=window.syncProductionWorkspace4409;if(typeof baseSync4411==='function')window.syncProductionWorkspace4409=function(){const out=baseSync4411.apply(this,arguments);setTimeout(()=>{install4411();window.updateMaterialSummary4411()},0);return out};
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(install4411,0),{once:true});else setTimeout(install4411,0);
 })();
 </script>
 
