@@ -1,4 +1,4 @@
-<!-- PIXEL 44.49 OBJECT HISTORY RELEASE | base: 44.43 CORNICE_WALL_SIZE_FIX -->
+<!-- PIXEL 44.50 FINISHING CUSTOM WORK FIX | base: 44.49 OBJECT HISTORY RELEASE -->
 <!-- FILE: PIXEL 5.6 FULL HISTORY FIX | EXPECTED ~3150 LINES | 43.91 room delete -->
 <!DOCTYPE html>
 <!-- 43.61: current-room header now shows active room area/perimeter, not object totals -->
@@ -340,6 +340,10 @@ th:nth-child(2),th:nth-child(3),th:nth-child(4),td:nth-child(2),td:nth-child(3),
 .client-access-help72{margin-top:12px;padding:12px;border:1px solid #dbeafe;background:#f8fbff;border-radius:12px}
 .client-access-help72 b{display:block;font-size:11px;color:#0f172a}
 .client-access-help72 span{display:block;margin:5px 0 10px;font-size:9px;line-height:1.45;color:#64748b}
+
+/* 44.51 — finishing works: custom work editable; all work cards removable */
+.fin78-custom-name4450{width:100%;border:1px solid #bfdbfe;background:#fff;border-radius:8px;padding:7px 8px;font-size:11px;font-weight:950;color:#0f172a;outline:none}
+.fin78-custom-name4450:focus{border-color:#075bff;box-shadow:0 0 0 2px rgba(7,91,255,.12)}
 </style>
 
 <style id="pixel58Styles">
@@ -1245,7 +1249,7 @@ th:nth-child(2),th:nth-child(3),th:nth-child(4),td:nth-child(2),td:nth-child(3),
 <div class="auto-workspace">
   <div class="edit-mode-banner auto"><div class="edit-icon">⚡</div><div><b>АВТОМАТИЧНЕ РЕДАГУВАННЯ</b><span>Робота зі стінами, режимами плану та матеріалами</span></div></div>
   <div class="plan-view-modes" id="planViewModes">
-    <button class="plan-view-btn active" type="button" data-plan-mode="measure" onclick="setPlanViewMode('measure',this)">📏 Замір<small>тільки розміри</small></button>
+    <button class="plan-view-btn active" type="button" data-plan-mode="measure" onclick="setPlanViewMode('measure',this)"><small>тільки розміри</small></button>
     <button class="plan-view-btn" type="button" data-plan-mode="materials" onclick="setPlanViewMode('materials',this)">🧱 Матеріали<small>профіль і вставка</small></button>
     <button class="plan-view-btn" type="button" data-plan-mode="mount" onclick="setPlanViewMode('mount',this)">🔧 Монтаж<small>усі позначення</small></button>
   </div>
@@ -7097,11 +7101,11 @@ window.openCloudObject56=async function(id){
  }catch(error){alert('Не вдалося відкрити об’єкт: '+String(error.message||error))}
 };
 
-window.scheduleObject58=function(id,date=''){const r=crmRows58.find(x=>x.id===id);if(!r)return;const o=rowObj58(r);const today=date||localDateISO();openModal58('📅 Запланувати подію',`<div class="crm58-grid"><div><label class="crm58-label">Дата</label><input id="evDate58" type="date" value="${esc58(today)}"></div><div><label class="crm58-label">Час</label><input id="evTime58" type="time" value="09:00"></div><div class="crm58-full"><label class="crm58-label">Тип події</label><select id="evType58"><option value="measure">📏 Замір</option><option value="calculation">🧮 Прорахунок</option><option value="call">📞 Дзвінок</option><option value="install">🛠 Монтаж</option><option value="payment">💰 Оплата</option><option value="review">⭐ Відгук</option><option value="busy">🔴 День зайнятий</option><option value="other">📌 Інше</option></select></div><div class="crm58-full"><label class="crm58-label">Нагадування</label><select id="evReminder58"><option value="0">У день події</option><option value="60">За 1 годину</option><option value="1440">За 1 день</option><option value="2880">За 2 дні</option></select></div><div class="crm58-full"><label class="crm58-label">Коментар</label><textarea id="evNote58" placeholder="Адреса, що взяти, кому подзвонити…"></textarea></div></div><div class="crm58-modal-actions"><button onclick="closeCrm58Modal()">Скасувати</button><button class="blue" onclick="saveEvent58('${id}')">Додати подію</button></div>`)};
+window.scheduleObject58=function(id,date=''){const r=crmRows58.find(x=>x.id===id);if(!r)return;const o=rowObj58(r);const today=date||localDateISO();openModal58('📅 Запланувати подію',`<div class="crm58-grid"><div><label class="crm58-label">Дата</label><input id="evDate58" type="date" value="${esc58(today)}"></div><div><label class="crm58-label">Час</label><input id="evTime58" type="time" value="09:00"></div><div class="crm58-full"><label class="crm58-label">Тип події</label><select id="evType58"><option value="measure"></option><option value="calculation">🧮 Прорахунок</option><option value="call">📞 Дзвінок</option><option value="install">🛠 Монтаж</option><option value="payment">💰 Оплата</option><option value="review">⭐ Відгук</option><option value="busy">🔴 День зайнятий</option><option value="other">📌 Інше</option></select></div><div class="crm58-full"><label class="crm58-label">Нагадування</label><select id="evReminder58"><option value="0">У день події</option><option value="60">За 1 годину</option><option value="1440">За 1 день</option><option value="2880">За 2 дні</option></select></div><div class="crm58-full"><label class="crm58-label">Коментар</label><textarea id="evNote58" placeholder="Адреса, що взяти, кому подзвонити…"></textarea></div></div><div class="crm58-modal-actions"><button onclick="closeCrm58Modal()">Скасувати</button><button class="blue" onclick="saveEvent58('${id}')">Додати подію</button></div>`)};
 window.saveEvent58=async function(id){try{const event={id:'ev_'+Date.now(),date:document.getElementById('evDate58').value,time:document.getElementById('evTime58').value,type:document.getElementById('evType58').value,reminder:Number(document.getElementById('evReminder58').value||0),note:document.getElementById('evNote58').value,done:false};await req58(API58,{method:'POST',body:JSON.stringify({action:'addScheduleEvent',cloudId:id,event})});closeCrm58Modal();await renderHistory()}catch(e){alert('Не вдалося додати подію: '+e.message)}};
 window.deleteEvent58=async function(id,eventId){if(!confirm('Видалити подію?'))return;try{await req58(API58,{method:'POST',body:JSON.stringify({action:'deleteScheduleEvent',cloudId:id,eventId})});await renderHistory()}catch(e){alert(e.message)}};
 
-function eventLabel58(t){return({measure:'📏 Замір',calculation:'🧮 Прорахунок',call:'📞 Дзвінок',install:'🛠 Монтаж',payment:'💰 Оплата',review:'⭐ Відгук',busy:'🔴 Зайнято',other:'📌 Інше'})[t]||'📌 Подія'}
+function eventLabel58(t){return({measure:'',calculation:'🧮 Прорахунок',call:'📞 Дзвінок',install:'🛠 Монтаж',payment:'💰 Оплата',review:'⭐ Відгук',busy:'🔴 Зайнято',other:'📌 Інше'})[t]||'📌 Подія'}
 function dotClass58(t){return t==='measure'?'dot-measure':t==='calculation'?'dot-calculation':t==='install'?'dot-install':t==='busy'?'dot-busy':'dot-other'}
 function allEvents58(){const out=[];crmRows58.forEach(r=>{const o=rowObj58(r);(Array.isArray(o.schedule)?o.schedule:[]).forEach(e=>out.push({...e,cloudId:r.id,objectNumber:r.object_number,clientName:o.clientName,address:o.address}))});return out.sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time))}
 window.renderCalendar58=function(){const root=document.getElementById('calendar58Root');if(!root)return;const y=calDate58.getFullYear(),m=calDate58.getMonth();const first=new Date(y,m,1);const start=new Date(y,m,1-((first.getDay()+6)%7));const events=allEvents58();const today=localDateISO();const cells=[];for(let i=0;i<42;i++){const d=new Date(start);d.setDate(start.getDate()+i);const iso=localDateISO(d),ev=events.filter(x=>x.date===iso);cells.push(`<button class="calendar58-day ${d.getMonth()!==m?'other':''} ${iso===today?'today':''}" onclick="selectCalendarDay58('${iso}')"><span class="calendar58-num">${d.getDate()}</span><span class="calendar58-dots">${ev.slice(0,5).map(x=>`<i class="calendar58-dot ${dotClass58(x.type)}"></i>`).join('')}</span>${ev.length?`<span class="calendar58-count">${ev.length}</span>`:''}</button>`)}const chosen=selectedDate58||today;root.innerHTML=`<div class="calendar58-shell"><div class="calendar58-head"><button onclick="moveCalendar58(-1)">‹</button><div class="calendar58-title">${calDate58.toLocaleDateString('uk-UA',{month:'long',year:'numeric'})}</div><button onclick="moveCalendar58(1)">›</button></div><div class="calendar58-week">${['Пн','Вт','Ср','Чт','Пт','Сб','Нд'].map(x=>`<div>${x}</div>`).join('')}</div><div class="calendar58-grid">${cells.join('')}</div><div id="calendar58Agenda" class="calendar58-agenda"></div></div>`;renderAgenda58(chosen)};
@@ -12090,8 +12094,8 @@ function card78(item,g,index){
  return `<div class="fin78-card fin78-stage-${esc78(item.stage||"finish")}" data-fin78="${index}">
   <div class="fin78-card-top">
    <input type="checkbox" ${item.enabled?'checked':''} onchange="fin78Change(${index},'enabled',this.checked)">
-   <div class="fin78-card-title"><b>${esc78(item.name)}</b><span>${labels78[item.category]||'Інше'} • ${esc78(item.unit)}</span></div>
-   ${item.custom?`<button class="fin78-remove" type="button" onclick="removeFinishing78(${index})">×</button>`:''}
+   <div class="fin78-card-title">${item.custom?`<input class="fin78-custom-name4450" value="${esc78(item.name)}" aria-label="Назва роботи" onchange="fin78Change(${index},'name',this.value)">`:`<b>${esc78(item.name)}</b>`}<span>${labels78[item.category]||'Інше'} • ${esc78(item.unit)}</span></div>
+   <button class="fin78-remove" type="button" onclick="removeFinishing78(${index})" title="Видалити роботу" aria-label="Видалити роботу">🗑</button>
   </div>
   <div class="fin78-fields">
    <div class="fin78-field"><label>Розрахунок</label><select onchange="fin78Change(${index},'source',this.value)">${opts}</select></div>
@@ -12138,6 +12142,7 @@ window.fin78Change=function(i,key,value){
  const fw=ensure78();if(!fw||!fw.items[i])return;const x=fw.items[i];
  let needsRender=false;
  if(key==='enabled')x.enabled=!!value;
+ if(key==='name'&&x.custom){const name=String(value||'').trim();if(name)x.name=name;}
  if(key==='price')x.price=Math.max(0,Number(value)||0);
  if(key==='unit')x.unit=value||'шт';
  if(key==='quantity'&&x.quantityMode==='manual')x.quantity=Math.max(0,Number(value)||0);
@@ -12152,10 +12157,13 @@ window.fin78Change=function(i,key,value){
  else updateFinishingCardOnly78(i);
 };
 window.addCustomFinishing78=function(){
- const name=prompt('Назва роботи:');if(!name)return;
+ const name=prompt('Назва роботи:');if(!name||!String(name).trim())return;
  const fw=ensure78();if(!fw)return;
- fw.items.push({id:'custom_'+Date.now(),category:'other',name:name.trim(),unit:'шт',source:'manual',quantityMode:'manual',quantity:1,price:0,enabled:true,custom:true});
+ const selected=document.getElementById('fin78Category')?.value||'all';
+ const category=(selected==='all'||!labels78[selected])?'other':selected;
+ fw.items.push({id:'custom_'+Date.now(),category,name:String(name).trim(),unit:'шт',source:'manual',quantityMode:'manual',quantity:1,price:0,enabled:true,custom:true});
  save78();renderFinishing78();
+ setTimeout(()=>{const cards=[...document.querySelectorAll('.fin78-card')];const card=cards.find(el=>el.querySelector('.fin78-custom-name4450')?.value===String(name).trim());card?.scrollIntoView({behavior:'smooth',block:'center'});card?.querySelector('.fin78-custom-name4450')?.focus();},30);
 };
 window.removeFinishing78=function(i){
  const fw=ensure78();if(!fw||!fw.items[i]||!confirm('Видалити цю роботу?'))return;
@@ -28141,6 +28149,201 @@ try{document.documentElement.dataset.pixelVersion='44.39';document.title='Potolo
      PIXEL 44.44 — OBJECT HISTORY SAFE
      Separate journal storage. Does NOT modify saved object schema.
 ========================================================== -->
+
+<!-- PIXEL 44.63 NW ORDER WITHOUT PLAN | base: 44.62 HISTORY_ROOM_GROUP_FIX -->
+<style id="nwNoPlan4463Styles">
+.nw-noplan4463{grid-column:1/-1;margin:0;padding:11px;border:1px solid #93c5fd;border-radius:12px;background:linear-gradient(180deg,#f8fbff,#fff)}
+.nw-noplan4463>button{width:100%;min-height:44px;border:1px solid #075bff;border-radius:10px;background:#fff;color:#075bff;font-size:10px;font-weight:950}
+.nw-noplan4463>p{margin:7px 1px 0;font-size:7.6px;line-height:1.45;color:#64748b;font-weight:800}
+.nw-noplan-panel4463{display:none;margin-top:10px;padding-top:10px;border-top:1px dashed #bfdbfe}
+.nw-noplan-panel4463.show{display:block}
+.nw-noplan-head4463{display:flex;justify-content:space-between;gap:8px;align-items:center;margin-bottom:8px}
+.nw-noplan-head4463 b{font-size:10px}.nw-noplan-head4463 span{font-size:7px;color:#64748b}
+.nw-noplan-items4463{display:grid;gap:7px}
+.nw-noplan-row4463{display:grid;grid-template-columns:minmax(0,1fr) 62px 70px 34px;gap:6px;align-items:center}
+.nw-noplan-row4463 input,.nw-noplan-row4463 select{width:100%;min-width:0;border:1px solid #dbe3ef;border-radius:8px;background:#fff;padding:8px 7px;font-size:8.5px}
+.nw-noplan-row4463 button{width:34px;height:34px;border:1px solid #fecaca;background:#fff1f2;color:#dc2626;border-radius:8px;font-weight:950}
+.nw-noplan-actions4463{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:9px}
+.nw-noplan-actions4463 button{min-height:40px;border-radius:9px;border:1px solid #dbe3ef;background:#fff;font-size:8.5px;font-weight:950}
+.nw-noplan-actions4463 .add{color:#075bff;border-color:#93c5fd;background:#eff6ff}
+.nw-noplan-actions4463 .send{color:#fff;border-color:#075bff;background:#075bff}
+.nw-noplan-status4463{margin-top:7px;font-size:7.5px;font-weight:850;color:#047857}
+@media(max-width:520px){.nw-noplan-row4463{grid-template-columns:minmax(0,1fr) 58px 66px 34px}}
+</style>
+<script id="nwNoPlan4463Script">
+(function(){
+'use strict';
+if(window.__nwNoPlan4463Installed)return;window.__nwNoPlan4463Installed=true;
+const C=v=>{try{return JSON.parse(JSON.stringify(v))}catch(_){return v}};
+const N=v=>Number(String(v??'').replace(',','.'))||0;
+function E(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function room(){try{return (projectRooms||[]).find(r=>String(r.id)===String(activeRoomId))||null}catch(_){return null}}
+function state(){const r=room();if(!r)return null;r.productionNoPlan4463=r.productionNoPlan4463||{items:[]};r.productionNoPlan4463.items=Array.isArray(r.productionNoPlan4463.items)?r.productionNoPlan4463.items:[];return r.productionNoPlan4463}
+function save(){try{autosave?.()}catch(_){}}
+function render(){
+ const box=document.getElementById('nwNoPlanItems4463'),s=state();if(!box||!s)return;
+ if(!s.items.length){box.innerHTML='<div style="padding:9px;border:1px dashed #cbd5e1;border-radius:9px;color:#94a3b8;font-size:8px;text-align:center">Позицій ще немає. Додайте потрібні комплектуючі вручну.</div>';return}
+ box.innerHTML=s.items.map((x,i)=>`<div class="nw-noplan-row4463">
+   <input value="${E(x.name||'')}" placeholder="Назва комплектуючої" oninput="setNoPlan4463(${i},'name',this.value)">
+   <input type="number" min="0" step="0.01" value="${N(x.qty)||1}" oninput="setNoPlan4463(${i},'qty',this.value)">
+   <select onchange="setNoPlan4463(${i},'unit',this.value)">
+     ${['шт','м.п.','м²','компл.','уп.'].map(u=>`<option ${String(x.unit||'шт')===u?'selected':''}>${u}</option>`).join('')}
+   </select>
+   <button type="button" onclick="removeNoPlan4463(${i})">×</button>
+ </div>`).join('');
+}
+window.setNoPlan4463=function(i,k,v){const s=state();if(!s?.items?.[i])return;s.items[i][k]=k==='qty'?N(v):v;save()};
+window.removeNoPlan4463=function(i){const s=state();if(!s)return;s.items.splice(i,1);save();render()};
+window.addNoPlanItem4463=function(){const s=state();if(!s)return;s.items.push({name:'',qty:1,unit:'шт'});save();render();setTimeout(()=>document.querySelector('#nwNoPlanItems4463 .nw-noplan-row4463:last-child input')?.focus(),0)};
+window.toggleNoPlan4463=function(){
+ const p=document.getElementById('nwNoPlanPanel4463');if(!p)return;
+ p.classList.toggle('show');render();
+};
+function blob(items){
+ const rows=items.filter(x=>String(x?.name||'').trim()&&N(x.qty)>0);
+ const H=Math.max(900,360+rows.length*92);
+ const c=document.createElement('canvas');c.width=1500;c.height=H;const x=c.getContext('2d');
+ x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);
+ x.fillStyle='#071428';x.font='900 48px Arial';x.fillText('Potolok.in.ua',60,70);
+ x.font='900 34px Arial';x.fillText('ЗАМОВЛЕННЯ NW · БЕЗ ПЛАНУ',60,125);
+ const r=room();x.fillStyle='#475569';x.font='700 24px Arial';x.fillText(`${r?.name||'Кімната'} · ${new Date().toLocaleString('uk-UA')}`,60,168);
+ x.fillStyle='#64748b';x.font='700 20px Arial';x.fillText('Додаткові елементи / комплектуючі, які не увійшли до основного замовлення.',60,210);
+ let y=285;
+ x.fillStyle='#075bff';x.font='900 28px Arial';x.fillText(`ПОЗИЦІЇ · ${rows.length}`,60,y);y+=48;
+ rows.forEach((m,i)=>{
+   x.fillStyle='#0f172a';x.font='800 25px Arial';x.fillText(`${i+1}. ${String(m.name).trim()}`,75,y);
+   x.textAlign='right';x.fillStyle='#075bff';
+   const qtyText=`${N(m.qty).toLocaleString('uk-UA',{maximumFractionDigits:2})} ${m.unit||'шт'}`;
+   x.fillText(qtyText,1420,y);
+   x.textAlign='left';
+   y+=45;x.strokeStyle='#e2e8f0';x.beginPath();x.moveTo(60,y);x.lineTo(1440,y);x.stroke();y+=34;
+ });
+ x.fillStyle='#64748b';x.font='700 18px Arial';x.fillText('План, площа, периметр і розкрій полотна в це замовлення не включаються.',60,H-60);
+ return new Promise((res,rej)=>c.toBlob(b=>b?res(b):rej(new Error('Не вдалося створити PNG')),'image/png',.98));
+}
+window.shareNoPlan4463=async function(){
+ const s=state(),items=(s?.items||[]).filter(x=>String(x?.name||'').trim()&&N(x.qty)>0),st=document.getElementById('nwNoPlanStatus4463');
+ if(!items.length){if(st)st.textContent='Додайте хоча б одну позицію.';return}
+ try{
+   if(st)st.textContent='Готую замовлення без плану…';
+   const b=await blob(items),r=room(),safe=String(r?.name||'room').replace(/[^\p{L}\p{N}_-]+/gu,'_'),f=new File([b],`NW_BEZ_PLANU_${safe}_${Date.now()}.png`,{type:'image/png'});
+   if(navigator.share&&navigator.canShare?.({files:[f]})){await navigator.share({title:'Замовлення NW без плану',text:'Додаткові комплектуючі без плану.',files:[f]});if(st)st.textContent='✅ Замовлення передано в меню поширення.'}
+   else{const u=URL.createObjectURL(f),a=document.createElement('a');a.href=u;a.download=f.name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),1800);if(st)st.textContent='✅ PNG замовлення без плану збережено.'}
+ }catch(e){if(e?.name!=='AbortError'&&st)st.textContent=e?.message||'Не вдалося підготувати замовлення.'}
+};
+
+/* 44.65: режим каталогу NW без прив'язки до плану.
+   Натискання товару в існуючому NW-каталозі додає його тільки
+   у список "Замовлення без плану". */
+window.openNWNoPlan4465=function(){
+ const st=document.getElementById('nwNoPlanStatus4463');
+ if(typeof window.openNWCatalog4413!=='function'){
+   if(st)st.textContent='Каталог NW ще не ініціалізований.';
+   return;
+ }
+ window.__nwNoPlanMode4465=true;
+ if(st)st.textContent='Оберіть потрібну позицію в каталозі NW.';
+ window.openNWCatalog4413();
+};
+
+function addNWProductNoPlan4465(id){
+ const p=window.NW4415?.getItem?.(id);
+ const s=state();
+ if(!p||!s)return false;
+
+ const title=String(p.title||'').trim();
+ if(!title)return false;
+
+ // Unit from NW data when present; otherwise use safe defaults.
+ let unit=String(p.unit||'').trim();
+ if(!unit){
+   const t=title.toLowerCase();
+   unit=(/профіл|профиль|вставк|стрічк|лента|кабель|карниз|багет/.test(t))?'м.п.':'шт';
+ }
+ const existing=s.items.find(x=>String(x?.nwId||'')===String(id));
+ if(existing){
+   existing.qty=N(existing.qty)+1;
+ }else{
+   s.items.push({
+     nwId:String(id),
+     name:title,
+     qty:1,
+     unit,
+     category:String(p.category||''),
+     price:Number(p.price)||0
+   });
+ }
+ save();
+ render();
+ const st=document.getElementById('nwNoPlanStatus4463');
+ if(st)st.textContent='✅ Додано з NW: '+title;
+ return true;
+}
+
+function installNWNoPlanBridge4465(){
+ if(window.__nwNoPlanBridge4465Installed)return;
+ const base=window.openNWAdd4413;
+ if(typeof base!=='function')return;
+ window.__nwNoPlanBridge4465Installed=true;
+ window.__nwNoPlanBaseAdd4465=base;
+ window.openNWAdd4413=function(id){
+   if(window.__nwNoPlanMode4465){
+     const ok=addNWProductNoPlan4465(id);
+     window.__nwNoPlanMode4465=false;
+     try{window.closeNWCatalog4413?.()}catch(_){}
+     return ok;
+   }
+   return base.apply(this,arguments);
+ };
+}
+function installNWNoPlanCloseReset4465(){
+ if(window.__nwNoPlanClose4465Installed)return;
+ const base=window.closeNWCatalog4413;
+ if(typeof base!=='function')return;
+ window.__nwNoPlanClose4465Installed=true;
+ window.closeNWCatalog4413=function(){
+   const out=base.apply(this,arguments);
+   if(window.__nwNoPlanMode4465)window.__nwNoPlanMode4465=false;
+   return out;
+ };
+}
+function bridgeLater4465(){
+ installNWNoPlanBridge4465();
+ installNWNoPlanCloseReset4465();
+}
+setTimeout(bridgeLater4465,300);
+setTimeout(bridgeLater4465,900);
+
+function inject(){
+ const launch=document.getElementById('freeDrawLaunch4405');
+ if(!launch||document.getElementById('nwNoPlan4463'))return false;
+ const current=launch.querySelector('button[onclick="openProductionFromPlanner4408()"]');
+ if(!current)return false;
+
+ const wrap=document.createElement('div');
+ wrap.id='nwNoPlan4463';
+ wrap.className='nw-noplan4463';
+ wrap.innerHTML=`<button type="button" onclick="toggleNoPlan4463()">📦 Замовлення без плану</button>
+ <p>Для замовлення додаткових елементів / комплектуючих, які не увійшли з тих чи інших причин до основного замовлення. План, площа, периметр, кути, розкрій полотна та елементи з плану сюди не підтягуються.</p>
+ <div id="nwNoPlanPanel4463" class="nw-noplan-panel4463">
+   <div class="nw-noplan-head4463"><b>Додаткове замовлення NW</b><span>без прив’язки до плану</span></div>
+   <div id="nwNoPlanItems4463" class="nw-noplan-items4463"></div>
+   <div class="nw-noplan-actions4463"><button type="button" class="add" onclick="addNoPlanItem4463()">＋ Додати позицію</button><button type="button" class="send" onclick="openNWNoPlan4465()">🛒 Відкрити NW</button></div>
+   <div style="display:grid;grid-template-columns:1fr;gap:7px;margin-top:7px"><button type="button" class="send" style="min-height:40px;border:1px solid #075bff;border-radius:9px;background:#075bff;color:#fff;font-size:8.5px;font-weight:950" onclick="shareNoPlan4463()">📤 Відправити замовлення</button></div>
+   <div id="nwNoPlanStatus4463" class="nw-noplan-status4463"></div>
+ </div>`;
+
+ current.insertAdjacentElement('afterend',wrap);
+ render();
+ return true;
+}
+function later(){setTimeout(inject,80);setTimeout(inject,350);setTimeout(bridgeLater4465,420);setTimeout(bridgeLater4465,1000)}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',later,{once:true});else later();
+for(const k of ['syncProductionOrder4408','syncProductionWorkspace4409']){const fn=window[k];if(typeof fn==='function')window[k]=function(){const z=fn.apply(this,arguments);later();return z}}
+try{document.documentElement.dataset.pixelVersion='44.63';document.title='Potolok AI PRO — Pixel 44.63'}catch(_){}
+})();
+</script>
+
 <style id="objectHistory444Styles">
 #objectHistory444{margin-bottom:14px}
 .oh444-shell{border:1px solid #dbe3ef;background:linear-gradient(180deg,#f8fbff,#fff);border-radius:18px;padding:14px;box-shadow:0 10px 28px rgba(15,23,42,.06)}
@@ -28161,6 +28364,7 @@ try{document.documentElement.dataset.pixelVersion='44.39';document.title='Potolo
 .oh444-chip.active{background:#075bff;color:#fff;border-color:#075bff}
 .oh444-add{border:1px dashed #93c5fd;background:#fff;border-radius:14px;padding:11px;margin-bottom:12px}
 .oh444-add h3{font-size:14px;margin:0 0 9px}
+.oh444-room-row{display:grid;grid-template-columns:1fr;gap:5px;margin-bottom:8px}.oh444-room-row label{font-size:8px;font-weight:900;color:#475569}.oh444-room-selectline{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:7px;align-items:center}.oh444-room-row select{width:100%;min-height:38px;border:1px solid #dbe3ef;border-radius:9px;background:#f8fafc;padding:8px 10px;font-size:9px;font-weight:850;color:#0f172a}.oh444-add-room{min-height:38px;border:1px solid #93c5fd;border-radius:9px;background:#eef5ff;color:#075bff;padding:8px 11px;font-size:9px;font-weight:950;white-space:nowrap}.oh444-room-chip{display:inline-flex;align-items:center;margin:7px 0 0;border-radius:999px;padding:5px 8px;background:#f0fdf4;color:#15803d;border:1px solid #bbf7d0;font-size:8px;font-weight:950}
 .oh444-types{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
 .oh444-type{border:1px solid #dbe3ef;background:#fff;border-radius:9px;padding:8px 4px;font-size:8px;font-weight:950}
 .oh444-type.active{background:#eff6ff;color:#075bff;border-color:#93c5fd}
@@ -28172,6 +28376,13 @@ try{document.documentElement.dataset.pixelVersion='44.39';document.title='Potolo
 .oh444-save{width:100%;min-height:42px;margin-top:8px;border:0;border-radius:10px;background:#075bff;color:#fff;font-size:10px;font-weight:950}
 .oh444-list{display:grid;gap:9px}
 .oh444-entry{border:1px solid #e5e7eb;border-radius:14px;background:#fff;padding:11px}
+
+.oh444-room-plan{margin-top:9px;border:1px solid #dbe3ef;border-radius:12px;background:#f8fbff;padding:7px;overflow:hidden}
+.oh444-room-plan-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:5px;font-size:8px;color:#64748b;font-weight:850}
+.oh444-room-plan-head b{font-size:9px;color:#0f172a}
+.oh444-room-plan svg{display:block;width:100%;height:130px;border-radius:9px;background:#fff}
+.oh444-room-plan-empty{display:flex;align-items:center;justify-content:center;min-height:70px;border:1px dashed #cbd5e1;border-radius:9px;background:#fff;color:#94a3b8;font-size:8px;font-weight:850;text-align:center;padding:8px}
+
 .oh444-entry-head{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}
 .oh444-badge{display:inline-flex;border-radius:999px;padding:6px 8px;background:#eff6ff;color:#075bff;border:1px solid #bfdbfe;font-size:8px;font-weight:950}
 .oh444-entry time{font-size:8px;color:#64748b;font-weight:850}
@@ -28229,6 +28440,79 @@ function currentObject444(){
   const key=number ? 'number:'+number : id ? 'id:'+id : 'draft:'+encodeURIComponent([client,address,date].join('|'));
   return {key,number,id,client,address,date};
 }
+function rooms444(){
+  try{
+    if(typeof projectRooms!=='undefined' && Array.isArray(projectRooms) && projectRooms.length) return projectRooms;
+  }catch(_){}
+  try{
+    const o=typeof window.collectObject==='function'?window.collectObject():null;
+    if(Array.isArray(o?.rooms)) return o.rooms;
+  }catch(_){}
+  return [];
+}
+function activeRoom444(){
+  const list=rooms444();
+  let id='';
+  try{if(typeof activeRoomId!=='undefined' && activeRoomId!=null)id=String(activeRoomId)}catch(_){}
+  return list.find(r=>String(r?.id||'')===id)||list[0]||null;
+}
+
+function nextHistoryRoomName444(){
+ const list=rooms444();
+ let n=1;
+ const used=new Set(list.map(r=>String(r?.name||'').trim().toLowerCase()));
+ while(used.has(('Кімната '+n).toLowerCase()))n++;
+ return 'Кімната '+n;
+}
+
+/* 44.61: кнопка в історії викликає ШТАТНЕ додавання кімнати.
+   Функція винесена в window, бо кнопка має inline onclick. */
+window.addHistoryRoom444=function(){
+ try{
+   if(typeof addRoom!=='function'){
+     alert('Не знайдено штатну функцію додавання кімнати.');
+     return;
+   }
+
+   // Штатний addRoom() сам:
+   // зберігає поточну кімнату, створює нову, активує її,
+   // ініціалізує робочі дані, рендерить кімнати та робить autosave.
+   addRoom();
+
+   // Після штатного створення оновлюємо лише список історії.
+   setTimeout(()=>{
+     syncRoomSelect444();
+     const sel=document.getElementById('ohRoom444');
+     let id='';
+     try{
+       if(typeof activeRoomId!=='undefined'&&activeRoomId!=null)id=String(activeRoomId);
+     }catch(_){}
+     if(sel&&id){
+       sel.value=id;
+       sel.dispatchEvent(new Event('change',{bubbles:true}));
+     }
+     render444();
+   },0);
+ }catch(err){
+   console.error('addHistoryRoom444',err);
+   alert('Не вдалося додати кімнату.');
+ }
+};
+function syncRoomSelect444(){
+  const sel=document.getElementById('ohRoom444');if(!sel)return;
+  const list=rooms444(), previous=String(sel.value||'');
+  let active='';try{if(typeof activeRoomId!=='undefined'&&activeRoomId!=null)active=String(activeRoomId)}catch(_){}
+  sel.innerHTML='<option value="">Весь об’єкт / без кімнати</option>'+list.map((r,i)=>`<option value="${e444(r?.id||'')}">${e444(r?.name||('Кімната '+(i+1)))}</option>`).join('');
+  if(previous && list.some(r=>String(r?.id||'')===previous))sel.value=previous;
+  else if(active && list.some(r=>String(r?.id||'')===active))sel.value=active;
+  else if(list.length)sel.value=String(list[0]?.id||'');
+}
+function selectedRoom444(){
+  const sel=document.getElementById('ohRoom444');const id=String(sel?.value||'');
+  if(!id)return {roomId:'',roomName:''};
+  const list=rooms444(),idx=list.findIndex(r=>String(r?.id||'')===id),room=idx>=0?list[idx]:null;
+  return {roomId:id,roomName:String(room?.name||sel?.selectedOptions?.[0]?.textContent||('Кімната '+(idx+1))).trim()};
+}
 function openDB444(){return new Promise((res,rej)=>{const q=indexedDB.open(DB_NAME,DB_VERSION);q.onupgradeneeded=()=>{const db=q.result;if(!db.objectStoreNames.contains(ENTRY)){const s=db.createObjectStore(ENTRY,{keyPath:'id'});s.createIndex('objectKey','objectKey',{unique:false})}if(!db.objectStoreNames.contains(MEDIA)){const s=db.createObjectStore(MEDIA,{keyPath:'id'});s.createIndex('entryId','entryId',{unique:false})}if(!db.objectStoreNames.contains(STATE))db.createObjectStore(STATE,{keyPath:'objectKey'})};q.onsuccess=()=>res(q.result);q.onerror=()=>rej(q.error)})}
 async function allByIndex444(store,index,key){const db=await openDB444();return new Promise((res,rej)=>{const q=db.transaction(store).objectStore(store).index(index).getAll(key);q.onsuccess=()=>res(q.result||[]);q.onerror=()=>rej(q.error)})}
 async function put444(store,val){const db=await openDB444();return new Promise((res,rej)=>{const t=db.transaction(store,'readwrite');t.objectStore(store).put(val);t.oncomplete=()=>res();t.onerror=()=>rej(t.error)})}
@@ -28236,7 +28520,7 @@ async function get444(store,key){const db=await openDB444();return new Promise((
 async function del444(store,key){const db=await openDB444();return new Promise((res,rej)=>{const t=db.transaction(store,'readwrite');t.objectStore(store).delete(key);t.oncomplete=()=>res();t.onerror=()=>rej(t.error)})}
 async function mediaFor444(entryId){return allByIndex444(MEDIA,'entryId',entryId)}
 async function deleteEntry444(id){if(!confirm('Видалити цей запис з історії об’єкта?'))return;for(const m of await mediaFor444(id))await del444(MEDIA,m.id);await del444(ENTRY,id);render444()}
-function badge444(t){return ({measure:'📏 Замір',install:'🛠 Монтаж',done:'✅ Готово',note:'📝 Коментар'})[t]||'📝 Запис'}
+function badge444(t){return ({measure:'📝 Запис',install:'🛠 Монтаж',done:'✅ Готово',note:'📝 Коментар'})[t]||'📝 Запис'}
 function inject444(){
  const history=document.getElementById('tab_history'); if(!history||document.getElementById('objectHistory444'))return;
  const panel=history.querySelector('.panel.main');
@@ -28251,11 +28535,12 @@ function inject444(){
    <div class="oh444-install-actions"><button class="start" type="button" onclick="startInstall444()">▶ Розпочати монтаж</button><button class="finish" type="button" onclick="finishInstall444()">✅ Завершити монтаж</button></div>
   </div>
   <div class="oh444-filters">
-   <button class="oh444-chip active" data-f444="all">Усі</button><button class="oh444-chip" data-f444="measure">Замір</button><button class="oh444-chip" data-f444="install">Монтаж</button><button class="oh444-chip" data-f444="done">Готово</button><button class="oh444-chip" data-f444="note">Коментарі</button>
+   <button class="oh444-chip active" data-f444="all">Усі</button><button class="oh444-chip" data-f444="install">Монтаж</button><button class="oh444-chip" data-f444="done">Готово</button><button class="oh444-chip" data-f444="note">Коментарі</button>
   </div>
   <div class="oh444-add">
    <h3>＋ Додати запис</h3>
-   <div class="oh444-types"><button class="oh444-type active" data-t444="measure">📏 Замір</button><button class="oh444-type" data-t444="install">🛠 Монтаж</button><button class="oh444-type" data-t444="done">✅ Готово</button><button class="oh444-type" data-t444="note">📝 Коментар</button></div>
+   <div class="oh444-room-row"><label for="ohRoom444">Кімната / зона запису</label><div class="oh444-room-selectline"><select id="ohRoom444"><option value="">Весь об’єкт / без кімнати</option></select><button class="oh444-add-room" type="button" onclick="addHistoryRoom444()">＋ Кімната</button></div></div>
+   <div class="oh444-types"><button class="oh444-type active" data-t444="install">🛠 Монтаж</button><button class="oh444-type" data-t444="done">✅ Готово</button><button class="oh444-type" data-t444="note">📝 Коментар</button></div>
    <div class="oh444-media-actions">
     <label>📷 Додати фото<input id="ohPhoto444" type="file" accept="image/*" multiple hidden></label>
     <label>🎥 Додати відео<input id="ohVideo444" type="file" accept="video/*" multiple hidden></label>
@@ -28287,6 +28572,8 @@ function inject444(){
  document.querySelectorAll('[data-star444]').forEach(b=>b.onclick=()=>{rating444=Number(b.dataset.star444);paintStars444()});
  document.getElementById('ohPhoto444').onchange=async e=>{await addPending444(e.target.files,'image');e.target.value=''};
  document.getElementById('ohVideo444').onchange=async e=>{await addPending444(e.target.files,'video');e.target.value=''};
+ syncRoomSelect444();
+ const roomSel444=document.getElementById('ohRoom444');if(roomSel444)roomSel444.onchange=()=>render444();
  render444();
 }
 function isHeic444(file){
@@ -28458,7 +28745,8 @@ window.removePending444=i=>{pending444.splice(i,1);renderPending444()};
 window.saveEntry444=async()=>{
  const c=currentObject444(), comment=document.getElementById('ohComment444')?.value.trim()||'';
  if(!comment && !pending444.length)return alert('Додайте коментар, фото або відео.');
- const id=uid444(), entry={id,objectKey:c.key,type:type444,comment,createdAt:now444()};
+ const room=selectedRoom444();
+ const id=uid444(), entry={id,objectKey:c.key,type:type444,comment,createdAt:now444(),roomId:room.roomId,roomName:room.roomName};
  await put444(ENTRY,entry);
  for(const p of pending444)await put444(MEDIA,{id:p.id,entryId:id,kind:p.kind,name:p.name,blob:p.file});
  pending444=[];document.getElementById('ohComment444').value='';renderPending444();await render444();
@@ -28474,8 +28762,61 @@ window.finishInstall444=async()=>{
 function paintStars444(){document.querySelectorAll('[data-star444]').forEach(b=>b.classList.toggle('on',Number(b.dataset.star444)<=rating444));const t=document.getElementById('ohRatingText444');if(t)t.textContent=rating444?rating444+' / 5':'Не оцінено'}
 window.saveRating444=async()=>{const c=currentObject444(),s=await get444(STATE,c.key)||{objectKey:c.key};s.rating=rating444;s.review=document.getElementById('ohReview444')?.value.trim()||'';s.ratingSavedAt=now444();await put444(STATE,s);await render444()};
 window.deleteEntry444=deleteEntry444;
-async function mediaHtml444(entry){
- const list=await mediaFor444(entry.id); if(!list.length)return '';
+
+function historyRoomById444(roomId){
+ const id=String(roomId||'');
+ if(!id)return null;
+ return rooms444().find(r=>String(r?.id||'')===id)||null;
+}
+function effectiveHistoryRoom444(entry){
+ const stored=historyRoomById444(entry?.roomId);
+ if(stored)return stored;
+ // Старі записи, створені ДО появи кімнат у історії,
+ // належать першій кімнаті об'єкта. Вибір Кімнати 2 зверху
+ // більше не перепризначає старі фото/записи.
+ return rooms444()[0]||null;
+}
+function effectiveHistoryRoomName444(entry){
+ const room=effectiveHistoryRoom444(entry);
+ if(room){
+   const list=rooms444(),idx=list.findIndex(r=>String(r?.id||'')===String(room?.id||''));
+   return String(room?.name||entry?.roomName||('Кімната '+(idx+1))).trim();
+ }
+ return String(entry?.roomName||'Весь об’єкт').trim();
+}
+function historyPlanObject444(o){
+ const x=Number(o?.x),y=Number(o?.y),rot=Number(o?.rotation)||0;
+ if(!Number.isFinite(x)||!Number.isFinite(y))return '';
+ const type=String(o?.type||''),label=e444(String(o?.label||''));
+ const pointTypes={door:'🚪',window:'🪟',light:'●',chandelier:'◉',vent:'▦',pipe1:'◍',pipe2:'◎'};
+ if(pointTypes[type]){
+   const fill=type==='light'?'#f59e0b':'#0f172a';
+   return `<g transform="translate(${x} ${y}) rotate(${rot})"><text x="0" y="7" text-anchor="middle" font-size="${type==='door'||type==='window'?28:22}" font-weight="900" fill="${fill}">${pointTypes[type]}</text>${label?`<text x="0" y="-18" text-anchor="middle" font-size="11" font-weight="900" fill="#0f172a">${label}</text>`:''}</g>`;
+ }
+ const length=Math.max(.3,Number(o?.length)||1),width=Math.max(.06,Number(o?.width)||.16);
+ const L=Math.max(20,length*55),W=Math.max(8,width*55);
+ let fill='#fff',stroke='#075bff';
+ if(/Black|shadow/i.test(type)){fill='#111827';stroke='#111827'}
+ if(/Led|lightline|floating/i.test(type))stroke='#f59e0b';
+ return `<g transform="translate(${x} ${y}) rotate(${rot})"><rect x="${(-L/2).toFixed(1)}" y="${(-W/2).toFixed(1)}" width="${L.toFixed(1)}" height="${W.toFixed(1)}" rx="4" fill="${fill}" stroke="${stroke}" stroke-width="2"/>${/Led|lightline|floating/i.test(type)?`<line x1="${(-L/2+3).toFixed(1)}" y1="${(W/2+4).toFixed(1)}" x2="${(L/2-3).toFixed(1)}" y2="${(W/2+4).toFixed(1)}" stroke="#facc15" stroke-width="4"/>`:''}${label?`<text x="0" y="${(-W/2-8).toFixed(1)}" text-anchor="middle" font-size="11" font-weight="900" fill="#0f172a">${label}</text>`:''}</g>`;
+}
+function historyPlanHtml444(entry){
+ const room=effectiveHistoryRoom444(entry);
+ if(!room)return '';
+ const name=e444(effectiveHistoryRoomName444(entry));
+ const pts=Array.isArray(room?.planner?.points)?room.planner.points:[];
+ if(pts.length<3)return `<div class="oh444-room-plan"><div class="oh444-room-plan-head"><b>📐 ${name}</b><span>План кімнати</span></div><div class="oh444-room-plan-empty">План цієї кімнати ще не побудований.</div></div>`;
+ const clean=pts.map(p=>Array.isArray(p)?[Number(p[0]),Number(p[1])]:[Number(p?.x),Number(p?.y)]).filter(p=>Number.isFinite(p[0])&&Number.isFinite(p[1]));
+ if(clean.length<3)return `<div class="oh444-room-plan"><div class="oh444-room-plan-head"><b>📐 ${name}</b><span>План кімнати</span></div><div class="oh444-room-plan-empty">Контур кімнати поки недоступний для міні-плану.</div></div>`;
+ const xs=clean.map(p=>p[0]),ys=clean.map(p=>p[1]),minX=Math.min(...xs),maxX=Math.max(...xs),minY=Math.min(...ys),maxY=Math.max(...ys);
+ const pad=36,w=Math.max(1,maxX-minX),h=Math.max(1,maxY-minY),vbX=minX-pad,vbY=minY-pad,vw=w+pad*2,vh=h+pad*2;
+ const poly=clean.map(([x,y])=>`${x.toFixed(1)},${y.toFixed(1)}`).join(' ');
+ const area=Number(room?.area||room?.ceilingArea||0),perimeter=Number(room?.perimeter||0),objects=Array.isArray(room?.planner?.objects)?room.planner.objects:[];
+ const meta=[area>0?area.toFixed(2)+' м²':'',perimeter>0?perimeter.toFixed(2)+' м':''].filter(Boolean).join(' · ')||'План кімнати';
+ return `<div class="oh444-room-plan"><div class="oh444-room-plan-head"><b>📐 ${name}</b><span>${meta}${objects.length?` · елементів ${objects.length}`:''}</span></div><svg viewBox="${vbX.toFixed(1)} ${vbY.toFixed(1)} ${vw.toFixed(1)} ${vh.toFixed(1)}" preserveAspectRatio="xMidYMid meet" aria-label="План ${name}"><polygon points="${poly}" fill="rgba(7,91,255,.10)" stroke="#075bff" stroke-width="3" vector-effect="non-scaling-stroke"/>${objects.map(historyPlanObject444).join('')}</svg></div>`;
+}
+async function mediaHtml444(entry,loadedList){
+ const list=Array.isArray(loadedList)?loadedList:await mediaFor444(entry.id); if(!list.length)return '';
  const nodes=[];
  for(const m of list){
   const url=URL.createObjectURL(m.blob); listPreviewUrls444.push(url);
@@ -28488,19 +28829,100 @@ async function render444(){
  const listBox=document.getElementById('ohList444');if(!listBox)return;
  revokeUrls444(listPreviewUrls444);
  const c=currentObject444(), key=document.getElementById('ohKey444');if(key)key.textContent=c.number||c.client||'Поточний об’єкт';
+ syncRoomSelect444();
  const s=await get444(STATE,c.key)||{objectKey:c.key};rating444=Number(s.rating||0);paintStars444();const review=document.getElementById('ohReview444');if(review)review.value=s.review||'';
  document.getElementById('ohStart444').textContent=fmt444(s.installStartedAt);document.getElementById('ohFinish444').textContent=fmt444(s.installFinishedAt);
  const work=document.getElementById('ohWork444');
  if(s.installFinishedAt){work.textContent='✅ Завершено';work.className='oh444-work done'}
  else if(s.installStartedAt){work.textContent='🛠 Роботи тривають';work.className='oh444-work'}
  else {work.textContent='Не розпочато';work.className='oh444-work'}
- let entries=await allByIndex444(ENTRY,'objectKey',c.key);entries.sort((a,b)=>String(b.createdAt).localeCompare(String(a.createdAt)));if(filter444!=='all')entries=entries.filter(x=>x.type===filter444);
- if(!entries.length){listBox.innerHTML='<div class="oh444-empty">Записів для цього об’єкта ще немає.</div>';return}
+
+ let entries=await allByIndex444(ENTRY,'objectKey',c.key);
+ entries.sort((a,b)=>String(b.createdAt).localeCompare(String(a.createdAt)));
+ if(filter444!=='all')entries=entries.filter(x=>x.type===filter444);
+
+ const rooms=rooms444();
+ if(!rooms.length){
+   if(!entries.length){listBox.innerHTML='<div class="oh444-empty">Записів для цього об’єкта ще немає.</div>';return}
+   const html=[];
+   for(const x of entries){
+     const entryMedia=await mediaFor444(x.id);
+     html.push(`<article class="oh444-entry"><div class="oh444-entry-head"><span class="oh444-badge">🏠 Весь об’єкт</span><time>${fmt444(x.createdAt)}</time></div>${x.comment?`<p>${e444(x.comment)}</p>`:''}${await mediaHtml444(x,entryMedia)}<div class="oh444-entry-actions"><button type="button" onclick="editEntry444('${x.id}')">✏️ Редагувати</button><button type="button" class="del" onclick="deleteEntry444('${x.id}')">🗑 Видалити</button></div></article>`)
+   }
+   listBox.innerHTML=html.join('');
+   return;
+ }
+
+ // Групуємо історію по реальних кімнатах об'єкта.
+ // Старі записи без roomId = Кімната 1.
+ const groups=new Map(rooms.map(r=>[String(r?.id||''),[]]));
+ for(const x of entries){
+   const room=effectiveHistoryRoom444(x);
+   const rid=String(room?.id||rooms[0]?.id||'');
+   if(!groups.has(rid))groups.set(rid,[]);
+   groups.get(rid).push(x);
+ }
+
  const html=[];
- for(const x of entries){html.push(`<article class="oh444-entry"><div class="oh444-entry-head"><span class="oh444-badge">${badge444(x.type)}</span><time>${fmt444(x.createdAt)}</time></div>${x.comment?`<p>${e444(x.comment)}</p>`:''}${await mediaHtml444(x)}<div class="oh444-entry-actions"><button type="button" onclick="editEntry444('${x.id}')">✏️ Редагувати</button><button type="button" class="del" onclick="deleteEntry444('${x.id}')">🗑 Видалити</button></div></article>`)}
+ for(const room of rooms){
+   const rid=String(room?.id||'');
+   const roomEntries=groups.get(rid)||[];
+   const roomName=String(room?.name||('Кімната '+(rooms.indexOf(room)+1))).trim();
+   let planShown=false;
+
+   if(!roomEntries.length){
+     // Нова кімната має бути видима нижче, але без чужих фото.
+     const virtualEntry={roomId:rid,roomName};
+     html.push(`<article class="oh444-entry"><div class="oh444-entry-head"><span class="oh444-badge">🚪 ${e444(roomName)}</span><time>—</time></div>${historyPlanHtml444(virtualEntry)}<div class="oh444-empty" style="margin-top:8px">Записів і фото для цієї кімнати ще немає.</div></article>`);
+     continue;
+   }
+
+   for(const x of roomEntries){
+     const entryMedia=await mediaFor444(x.id);
+     const hasMedia=entryMedia.length>0;
+     const showPlan=!planShown && hasMedia;
+     if(showPlan)planShown=true;
+
+     html.push(`<article class="oh444-entry"><div class="oh444-entry-head"><span class="oh444-badge">🚪 ${e444(roomName)}</span><time>${fmt444(x.createdAt)}</time></div>${x.comment?`<p>${e444(x.comment)}</p>`:''}${showPlan?historyPlanHtml444({...x,roomId:rid,roomName}):''}${await mediaHtml444(x,entryMedia)}<div class="oh444-entry-actions"><button type="button" onclick="editEntry444('${x.id}')">✏️ Редагувати</button><button type="button" class="del" onclick="deleteEntry444('${x.id}')">🗑 Видалити</button></div></article>`)
+   }
+
+   // Якщо в кімнаті є лише текстові/системні записи без фото,
+   // все одно показуємо її план один раз.
+   if(!planShown){
+     const virtualEntry={roomId:rid,roomName};
+     html.push(`<article class="oh444-entry"><div class="oh444-entry-head"><span class="oh444-badge">🚪 ${e444(roomName)}</span><time>План</time></div>${historyPlanHtml444(virtualEntry)}</article>`);
+   }
+ }
  listBox.innerHTML=html.join('');
 }
-window.editEntry444=async id=>{const x=await get444(ENTRY,id);if(!x)return;const value=prompt('Редагувати коментар:',x.comment||'');if(value===null)return;x.comment=value.trim();await put444(ENTRY,x);render444()};
+window.editEntry444=async id=>{
+ const x=await get444(ENTRY,id);
+ if(!x)return;
+ const value=prompt('Редагувати коментар:',x.comment||'');
+ if(value===null)return;
+
+ const rooms=Array.isArray(projectRooms)?projectRooms:[];
+ const currentIndex=x.roomId?rooms.findIndex(r=>String(r?.id||'')===String(x.roomId)):-1;
+ const variants=['0 — Весь об’єкт / без кімнати',...rooms.map((r,i)=>`${i+1} — ${String(r?.name||('Кімната '+(i+1))).trim()}`)];
+ const roomAnswer=prompt('Оберіть кімнату для цього запису:\\n'+variants.join('\\n'),currentIndex>=0?String(currentIndex+1):'0');
+ if(roomAnswer===null)return;
+ const n=parseInt(String(roomAnswer).trim(),10);
+ if(!Number.isFinite(n)||n<0||n>rooms.length){
+   alert('Невірний номер кімнати.');
+   return;
+ }
+ x.comment=value.trim();
+ if(n===0){
+   x.roomId='';
+   x.roomName='';
+ }else{
+   const r=rooms[n-1];
+   x.roomId=String(r?.id||'');
+   x.roomName=String(r?.name||('Кімната '+n)).trim();
+ }
+ await put444(ENTRY,x);
+ await render444();
+};
 const oldShow444=window.showMainTab;
 if(typeof oldShow444==='function')window.showMainTab=function(name,btn){oldShow444(name,btn);if(name==='history')setTimeout(render444,0)};
 document.addEventListener('click',e=>{if(e.target?.closest?.('[onclick*="loadObject"],[onclick*="open"],#roomList,.main-tab'))setTimeout(()=>{if(document.getElementById('tab_history')?.classList.contains('active'))render444()},250)},true);
@@ -28513,4 +28935,594 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 </body></html>
 
 <!-- 44.41: surgical NW export fix based strictly on 44.40; selected insert is included in final NW order; no planner/canvas quantity logic changed. -->
-<script id="pixelVersion4449">(function(){try{document.documentElement.dataset.pixelVersion='44.49';document.title='Potolok AI PRO — Pixel 44.49'}catch(_){}})();</script>
+<script id="pixelVersion4449">(function(){try{document.documentElement.dataset.pixelVersion='44.62';document.title='Potolok AI PRO — Pixel 44.62'}catch(_){}})();</script>
+
+
+<script id="pixel4465Marker">
+(function(){
+ function mark(){try{document.documentElement.dataset.pixelVersion='44.65';document.title='Potolok AI PRO — Pixel 44.65'}catch(_){}}
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(mark,500),{once:true});else setTimeout(mark,500);
+})();
+</script>
+
+
+<!-- PIXEL 44.66 NW NO-PLAN MANUAL QTY | base: 44.65 -->
+<style id="nwNoPlan4466Styles">
+.nw-noplan-pick4466 .hint{margin:0 0 10px;padding:9px;border:1px solid #bfdbfe;border-radius:9px;background:#eff6ff;color:#475569;font-size:8px;line-height:1.45;font-weight:800}
+.nw-noplan-pick4466 .grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.nw-noplan-pick4466 label{display:grid;gap:5px;font-size:8px;font-weight:900;color:#475569}
+.nw-noplan-pick4466 input,.nw-noplan-pick4466 select{width:100%;box-sizing:border-box;border:1px solid #cbd5e1;border-radius:9px;background:#fff;padding:10px;font-size:9px}
+.nw-noplan-pick4466 .wide{grid-column:1/-1}
+.nw-noplan-pick4466 .apply{width:100%;margin-top:10px;min-height:44px;border:0;border-radius:10px;background:#075bff;color:#fff;font-size:9px;font-weight:950}
+</style>
+<script id="nwNoPlan4466Script">
+(function(){
+'use strict';
+if(window.__nwNoPlan4466Installed)return;
+window.__nwNoPlan4466Installed=true;
+
+const n4466=v=>Number(String(v??'').replace(',','.'))||0;
+const e4466=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+function state4466(){
+ try{
+   const r=(projectRooms||[]).find(x=>String(x.id)===String(activeRoomId));
+   if(!r)return null;
+   r.productionNoPlan4463=r.productionNoPlan4463||{items:[]};
+   r.productionNoPlan4463.items=Array.isArray(r.productionNoPlan4463.items)?r.productionNoPlan4463.items:[];
+   return r.productionNoPlan4463;
+ }catch(_){return null}
+}
+function save4466(){
+ try{autosave?.()}catch(_){}
+ try{render?.()}catch(_){}
+}
+function defaultUnit4466(p){
+ const raw=String(p?.unit||'').trim();
+ if(raw)return raw;
+ const t=(String(p?.title||'')+' '+String(p?.category||'')).toLowerCase();
+ if(/полотно|плівк|пленк/.test(t))return 'м²';
+ if(/профіл|профиль|вставк|стрічк|лента|кабель|карниз|багет|трек/.test(t))return 'м.п.';
+ return 'шт';
+}
+function priceOptions4466(p){
+ try{return window.NW4415?.priceOpts?.(p)||[]}catch(_){return []}
+}
+function pickedPrice4466(opts){
+ const s=document.getElementById('npPriceSel4466');
+ const x=document.getElementById('npPriceCustom4466');
+ if(!opts.length)return n4466(x?.value);
+ if(s?.value==='custom')return n4466(x?.value);
+ return n4466(opts[Number(s?.value)]?.value);
+}
+
+function noPlanModal4466(id){
+ const p=window.NW4415?.getItem?.(id);
+ const host=document.getElementById('nwMiniHost4413');
+ if(!p||!host)return false;
+
+ // Це окрема гілка: ніяких qty() від плану, периметра, площі або елементів.
+ const opts=priceOptions4466(p);
+ const unit=defaultUnit4466(p);
+ host.innerHTML=`<div class="nw-mini-modal4413"><div class="nw-mini-sheet4413 nw-noplan-pick4466">
+   <div class="nw-mini-title4413">
+     <h3>${e4466(p.title||'Позиція NW')}</h3>
+     <button class="nw-close4413" id="npClose4466">×</button>
+   </div>
+   <div class="hint">📦 <b>Замовлення без плану.</b> Кількість вводиться тільки вручну. Площа, периметр, стіни та елементи плану не використовуються.</div>
+   <div class="grid">
+     <label><span>Кількість</span><input id="npQty4466" type="number" inputmode="decimal" min="0" step="0.01" value="1"></label>
+     <label><span>Одиниця</span>
+       <select id="npUnit4466">
+         ${['шт','м.п.','м²','компл.','уп.'].map(u=>`<option value="${u}" ${u===unit?'selected':''}>${u}</option>`).join('')}
+       </select>
+     </label>
+     <label class="wide"><span>Ціна / тариф (за потреби)</span>
+       ${opts.length
+         ? `<select id="npPriceSel4466">${opts.map((o,i)=>`<option value="${i}">${e4466(o.text)}</option>`).join('')}<option value="custom">Інша ціна / без ціни</option></select><input id="npPriceCustom4466" type="number" step="0.01" placeholder="Інша ціна" style="display:none;margin-top:6px">`
+         : `<input id="npPriceCustom4466" type="number" step="0.01" placeholder="Ціна, грн (можна не вказувати)">`}
+     </label>
+   </div>
+   <button class="apply" id="npApply4466">＋ Додати до замовлення без плану</button>
+ </div></div>`;
+
+ const ps=document.getElementById('npPriceSel4466');
+ if(ps)ps.onchange=()=>{const c=document.getElementById('npPriceCustom4466');if(c)c.style.display=ps.value==='custom'?'block':'none'};
+ document.getElementById('npClose4466').onclick=()=>host.replaceChildren();
+
+ document.getElementById('npApply4466').onclick=()=>{
+   const qty=n4466(document.getElementById('npQty4466')?.value);
+   const u=String(document.getElementById('npUnit4466')?.value||unit);
+   if(!(qty>0))return alert('Вкажіть кількість.');
+   const s=state4466();if(!s)return alert('Не знайдено поточну кімнату.');
+   const key=String(p.id||'')+'::'+u;
+   const existing=s.items.find(x=>String(x?.nwKey||'')===key);
+   const price=pickedPrice4466(opts);
+   if(existing){
+     existing.qty=n4466(existing.qty)+qty;
+     existing.price=price;
+   }else{
+     s.items.push({
+       nwKey:key,
+       nwId:String(p.id||''),
+       name:String(p.title||'Позиція NW').trim(),
+       qty,
+       unit:u,
+       price,
+       category:String(p.category||''),
+       source:'nw-no-plan-4466'
+     });
+   }
+   save4466();
+   try{window.renderNoPlan4466?.()}catch(_){}
+   try{
+     const st=document.getElementById('nwNoPlanStatus4463');
+     if(st)st.textContent='✅ Додано: '+String(p.title||'Позиція')+' — '+qty+' '+u;
+   }catch(_){}
+   host.replaceChildren();
+ };
+ return true;
+}
+
+// Экспортируем рендер текущего no-plan списка из 44.65, если он закрыт в scope.
+// Нажатие "Додати позицію" уже работает отдельно; здесь лишь даем ему обновление через существующий render().
+window.renderNoPlan4466=function(){
+ try{
+   const box=document.getElementById('nwNoPlanItems4463');
+   const s=state4466();
+   if(!box||!s)return;
+   if(!s.items.length){box.innerHTML='<div style="padding:9px;border:1px dashed #cbd5e1;border-radius:9px;color:#94a3b8;font-size:8px;text-align:center">Позицій ще немає. Додайте потрібні комплектуючі вручну.</div>';return}
+   box.innerHTML=s.items.map((x,i)=>`<div class="nw-noplan-row4463">
+     <input value="${e4466(x.name||'')}" placeholder="Назва комплектуючої" oninput="setNoPlan4463(${i},'name',this.value)">
+     <input type="number" min="0" step="0.01" value="${n4466(x.qty)||1}" oninput="setNoPlan4463(${i},'qty',this.value)">
+     <select onchange="setNoPlan4463(${i},'unit',this.value)">
+       ${['шт','м.п.','м²','компл.','уп.'].map(u=>`<option ${String(x.unit||'шт')===u?'selected':''}>${u}</option>`).join('')}
+     </select>
+     <button type="button" onclick="removeNoPlan4463(${i})">×</button>
+   </div>`).join('');
+ }catch(e){console.error('renderNoPlan4466',e)}
+};
+
+function install4466(){
+ const current=window.openNWAdd4413;
+ if(typeof current!=='function')return false;
+ if(current.__noPlan4466)return true;
+
+ function wrapped(id){
+   if(window.__nwNoPlanMode4465){
+     // Захватываем товар раньше штатной логики "до плану / кімнати".
+     window.__nwNoPlanMode4465=false;
+     try{window.closeNWCatalog4413?.()}catch(_){}
+     setTimeout(()=>noPlanModal4466(id),20);
+     return;
+   }
+   return current.apply(this,arguments);
+ }
+ wrapped.__noPlan4466=true;
+ wrapped.__base=current;
+ window.openNWAdd4413=wrapped;
+ return true;
+}
+
+// В файле много поздних оберток openNWAdd4413, поэтому ставим перехват
+// после полной инициализации и несколько раз проверяем, не был ли он перезаписан.
+function ensure4466(){
+ if(!window.openNWAdd4413)return;
+ if(!window.openNWAdd4413.__noPlan4466)install4466();
+}
+[400,900,1600,2600].forEach(ms=>setTimeout(ensure4466,ms));
+document.addEventListener('click',()=>setTimeout(ensure4466,0),true);
+
+function mark4466(){
+ try{document.documentElement.dataset.pixelVersion='44.66';document.title='Potolok AI PRO — Pixel 44.66'}catch(_){}
+}
+setTimeout(mark4466,2800);
+})();
+</script>
+
+
+<!-- PIXEL 44.67 NW NO-PLAN FIRST OPEN FIX | base: 44.66 -->
+<script id="nwNoPlan4467Script">
+(function(){
+'use strict';
+if(window.__nwNoPlan4467Installed)return;
+window.__nwNoPlan4467Installed=true;
+
+function markButtons4467(){
+ const modal=document.getElementById('nwModal4413');
+ if(!modal)return;
+ const noPlan=!!window.__nwNoPlanMode4465;
+ const wantedBtn=noPlan?'＋ Без плану':'＋ До кімнати';
+ modal.querySelectorAll('[data-add4413]').forEach(btn=>{
+   if(btn.textContent!==wantedBtn)btn.textContent=wantedBtn;
+   if(noPlan){
+     if(btn.dataset.noPlan4467!=='1')btn.dataset.noPlan4467='1';
+   }else if(btn.dataset.noPlan4467){
+     delete btn.dataset.noPlan4467;
+   }
+ });
+ const subtitle=modal.querySelector('.nw-headline4413 p');
+ if(subtitle){
+   const wanted=noPlan
+     ? 'Весь дилерський прайс · режим замовлення БЕЗ ПЛАНУ · кількість вводиться вручну.'
+     : 'Весь дилерський прайс · картинки · Мій каталог · полотно · додавання прямо в поточну кімнату.';
+   if(subtitle.textContent!==wanted)subtitle.textContent=wanted;
+ }
+}
+
+function openNoPlanProduct4467(id){
+ if(typeof window.NW4415?.getItem!=='function')return;
+ const p=window.NW4415.getItem(id);
+ if(!p)return;
+
+ // Используем уже созданное в 44.66 окно ручного количества,
+ // но открываем его напрямую с первого клика.
+ const host=document.getElementById('nwMiniHost4413');
+ if(!host)return;
+
+ const opts=(()=>{try{return window.NW4415?.priceOpts?.(p)||[]}catch(_){return []}})();
+ const title=String(p.title||'Позиція NW');
+ let unit=String(p.unit||'').trim();
+ if(!unit){
+   const t=(title+' '+String(p.category||'')).toLowerCase();
+   if(/полотно|плівк|пленк/.test(t))unit='м²';
+   else if(/профіл|профиль|вставк|стрічк|лента|кабель|карниз|багет|трек/.test(t))unit='м.п.';
+   else unit='шт';
+ }
+ const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+ const num=v=>Number(String(v??'').replace(',','.'))||0;
+
+ host.innerHTML=`<div class="nw-mini-modal4413"><div class="nw-mini-sheet4413 nw-noplan-pick4466">
+   <div class="nw-mini-title4413">
+     <h3>${esc(title)}</h3>
+     <button class="nw-close4413" id="npClose4467">×</button>
+   </div>
+   <div class="hint">📦 <b>Замовлення без плану.</b> Кількість вводиться тільки вручну. Площа, периметр, кути та елементи плану не використовуються.</div>
+   <div class="grid">
+     <label><span>Кількість</span><input id="npQty4467" type="number" inputmode="decimal" min="0" step="0.01" value="1"></label>
+     <label><span>Одиниця</span>
+       <select id="npUnit4467">
+         ${['шт','м.п.','м²','компл.','уп.'].map(u=>`<option value="${u}" ${u===unit?'selected':''}>${u}</option>`).join('')}
+       </select>
+     </label>
+     <label class="wide"><span>Ціна / тариф (за потреби)</span>
+       ${opts.length
+         ? `<select id="npPriceSel4467">${opts.map((o,i)=>`<option value="${i}">${esc(o.text)}</option>`).join('')}<option value="custom">Інша ціна / без ціни</option></select><input id="npPriceCustom4467" type="number" step="0.01" placeholder="Інша ціна" style="display:none;margin-top:6px">`
+         : `<input id="npPriceCustom4467" type="number" step="0.01" placeholder="Ціна, грн (можна не вказувати)">`}
+     </label>
+   </div>
+   <button class="apply" id="npApply4467">＋ Додати до замовлення без плану</button>
+ </div></div>`;
+
+ const priceSel=document.getElementById('npPriceSel4467');
+ if(priceSel)priceSel.onchange=()=>{
+   const custom=document.getElementById('npPriceCustom4467');
+   if(custom)custom.style.display=priceSel.value==='custom'?'block':'none';
+ };
+ document.getElementById('npClose4467').onclick=()=>host.replaceChildren();
+
+ document.getElementById('npApply4467').onclick=()=>{
+   const qty=num(document.getElementById('npQty4467')?.value);
+   const u=String(document.getElementById('npUnit4467')?.value||unit);
+   if(!(qty>0))return alert('Вкажіть кількість.');
+
+   let price=0;
+   if(opts.length){
+     const v=String(document.getElementById('npPriceSel4467')?.value||'0');
+     price=v==='custom'
+       ? num(document.getElementById('npPriceCustom4467')?.value)
+       : num(opts[Number(v)]?.value);
+   }else{
+     price=num(document.getElementById('npPriceCustom4467')?.value);
+   }
+
+   let r=null;
+   try{r=(projectRooms||[]).find(x=>String(x.id)===String(activeRoomId))||null}catch(_){}
+   if(!r)return alert('Не знайдено поточну кімнату.');
+   r.productionNoPlan4463=r.productionNoPlan4463||{items:[]};
+   r.productionNoPlan4463.items=Array.isArray(r.productionNoPlan4463.items)?r.productionNoPlan4463.items:[];
+   const key=String(p.id||'')+'::'+u;
+   const existing=r.productionNoPlan4463.items.find(x=>String(x?.nwKey||'')===key);
+   if(existing){
+     existing.qty=num(existing.qty)+qty;
+     existing.price=price;
+   }else{
+     r.productionNoPlan4463.items.push({
+       nwKey:key,
+       nwId:String(p.id||''),
+       name:title.trim(),
+       qty,
+       unit:u,
+       price,
+       category:String(p.category||''),
+       source:'nw-no-plan-4467'
+     });
+   }
+   try{window.commitNoPlanOrder4469?.(r)}catch(_){}
+   try{autosave?.()}catch(_){}
+   try{window.renderNoPlan4466?.()}catch(_){}
+   try{window.refreshNoPlanOrder4469?.()}catch(_){}
+   const st=document.getElementById('nwNoPlanStatus4463');
+   if(st)st.textContent='✅ Додано: '+title+' — '+qty+' '+u;
+
+   // Каталог НЕ закрываем: можно сразу выбрать следующую позицию.
+   host.replaceChildren();
+   markButtons4467();
+ };
+}
+
+// Перехватываем клик раньше штатного onclick каталога.
+// Поэтому первый же заход работает как "без плану".
+document.addEventListener('click',function(e){
+ if(!window.__nwNoPlanMode4465)return;
+ const btn=e.target?.closest?.('[data-add4413]');
+ if(!btn)return;
+ e.preventDefault();
+ e.stopPropagation();
+ e.stopImmediatePropagation();
+ openNoPlanProduct4467(btn.dataset.add4413);
+},true);
+
+// Перекрываем точку входа: режим ставится ДО открытия каталога.
+const prevOpenNoPlan=window.openNWNoPlan4465;
+window.openNWNoPlan4465=function(){
+ const st=document.getElementById('nwNoPlanStatus4463');
+ if(typeof window.openNWCatalog4413!=='function'){
+   if(st)st.textContent='Каталог NW ще не ініціалізований.';
+   return;
+ }
+ window.__nwNoPlanMode4465=true;
+ if(st)st.textContent='Оберіть позицію NW. Кнопка в каталозі буде «＋ Без плану».';
+ window.openNWCatalog4413();
+ setTimeout(markButtons4467,0);
+ setTimeout(markButtons4467,80);
+};
+
+// При обычном закрытии каталога выходим из режима без плана.
+const baseClose4467=window.closeNWCatalog4413;
+if(typeof baseClose4467==='function'){
+ window.closeNWCatalog4413=function(){
+   const out=baseClose4467.apply(this,arguments);
+   window.__nwNoPlanMode4465=false;
+   setTimeout(markButtons4467,0);
+   return out;
+ };
+}
+
+// Каталог перерисовывает карточки при поиске/фильтрах.
+// Наблюдатель сразу возвращает правильную надпись.
+let markTimer4467=0;
+const obs4467=new MutationObserver(()=>{
+ clearTimeout(markTimer4467);
+ markTimer4467=setTimeout(markButtons4467,40);
+});
+function watch4467(){
+ const modal=document.getElementById('nwModal4413');
+ if(modal){
+   obs4467.observe(modal,{childList:true,subtree:true});
+   markButtons4467();
+ }else setTimeout(watch4467,500);
+}
+setTimeout(watch4467,500);
+
+function markVersion4467(){
+ try{document.documentElement.dataset.pixelVersion='44.68';document.title='Potolok AI PRO — Pixel 44.68'}catch(_){}
+}
+setTimeout(markVersion4467,3000);
+})();
+</script>
+
+<!-- PIXEL 44.68 NW NO-PLAN FREEZE FIX | base: 44.67 -->
+
+
+<!-- PIXEL 44.69 NW NO-PLAN SELECTED LIST | base: 44.68 -->
+<style id="nwNoPlan4469Styles">
+#nwNoPlanItems4463{gap:8px}
+.np-order-head4469{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 9px;border-radius:9px;background:#eff6ff;border:1px solid #bfdbfe}
+.np-order-head4469 b{font-size:9px;color:#0f172a}.np-order-head4469 span{font-size:8px;font-weight:900;color:#075bff}
+.np-order-card4469{border:1px solid #dbe3ef;border-radius:10px;background:#fff;padding:9px}
+.np-order-top4469{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:start}
+.np-order-name4469{font-size:8.8px;font-weight:950;line-height:1.35;color:#0f172a}
+.np-order-price4469{font-size:7.6px;font-weight:900;color:#64748b;white-space:nowrap}
+.np-order-controls4469{display:grid;grid-template-columns:82px 80px 1fr 38px;gap:6px;align-items:center;margin-top:8px}
+.np-order-controls4469 input,.np-order-controls4469 select{width:100%;box-sizing:border-box;border:1px solid #cbd5e1;border-radius:8px;background:#fff;padding:8px 7px;font-size:8.3px;font-weight:800}
+.np-order-sum4469{font-size:7.8px;font-weight:950;color:#075bff;text-align:right}
+.np-order-del4469{width:38px;height:36px;border:1px solid #fecaca;border-radius:8px;background:#fff1f2;color:#dc2626;font-weight:950}
+.np-empty4469{padding:11px;border:1px dashed #cbd5e1;border-radius:9px;color:#94a3b8;font-size:8px;text-align:center;font-weight:800}
+
+#nwNoPlanCart4469{margin:8px 22px 10px;border:1px solid #93c5fd;border-radius:12px;background:#f8fbff;overflow:hidden}
+.np-cart-head4469{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:9px 10px;background:#eff6ff;border-bottom:1px solid #bfdbfe}
+.np-cart-head4469 b{font-size:9px;color:#0f172a}.np-cart-head4469 span{font-size:8px;font-weight:950;color:#075bff}
+.np-cart-list4469{display:grid;gap:6px;padding:8px;max-height:190px;overflow:auto}
+.np-cart-row4469{display:grid;grid-template-columns:minmax(0,1fr) auto 34px;gap:7px;align-items:center;padding:7px 8px;border:1px solid #e2e8f0;border-radius:9px;background:#fff}
+.np-cart-name4469{font-size:7.8px;font-weight:900;line-height:1.3;color:#0f172a}
+.np-cart-qty4469{font-size:7.8px;font-weight:950;color:#075bff;white-space:nowrap}
+.np-cart-del4469{width:34px;height:31px;border:1px solid #fecaca;border-radius:8px;background:#fff1f2;color:#dc2626;font-weight:950}
+.np-cart-actions4469{display:grid;grid-template-columns:1fr 1fr;gap:7px;padding:0 8px 8px}
+.np-cart-actions4469 button{min-height:34px;border-radius:8px;font-size:7.8px;font-weight:950}
+.np-cart-back4469{border:1px solid #075bff;background:#075bff;color:#fff}
+.np-cart-clear4469{border:1px solid #fecaca;background:#fff;color:#dc2626}
+@media(max-width:520px){
+ .np-order-controls4469{grid-template-columns:72px 72px minmax(0,1fr) 36px}
+ #nwNoPlanCart4469{margin-left:12px;margin-right:12px}
+}
+</style>
+<script id="nwNoPlan4469Script">
+(function(){
+'use strict';
+if(window.__nwNoPlan4469Installed)return;
+window.__nwNoPlan4469Installed=true;
+
+const N=v=>Number(String(v??'').replace(',','.'))||0;
+const E=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function room4469(){
+ try{return (projectRooms||[]).find(r=>String(r.id)===String(activeRoomId))||null}catch(_){return null}
+}
+function storeKey4469(r){return 'potolok:nw-no-plan:44.69:'+String(r?.id||'no-room')}
+function items4469(){
+ const r=room4469();if(!r)return [];
+ r.productionNoPlan4463=r.productionNoPlan4463||{items:[]};
+ let arr=Array.isArray(r.productionNoPlan4463.items)?r.productionNoPlan4463.items:[];
+ if(!arr.length){
+   try{
+     const saved=JSON.parse(localStorage.getItem(storeKey4469(r))||'[]');
+     if(Array.isArray(saved)&&saved.length){
+       arr=saved;
+       r.productionNoPlan4463.items=saved;
+     }
+   }catch(_){}
+ }
+ return arr;
+}
+window.commitNoPlanOrder4469=function(r){
+ try{
+   r=r||room4469();if(!r)return;
+   const arr=Array.isArray(r.productionNoPlan4463?.items)?r.productionNoPlan4463.items:[];
+   localStorage.setItem(storeKey4469(r),JSON.stringify(arr));
+ }catch(_){}
+};
+function persist4469(){
+ const r=room4469();if(!r)return;
+ window.commitNoPlanOrder4469(r);
+ try{autosave?.()}catch(_){}
+}
+function priceText4469(x){
+ const p=N(x?.price),q=N(x?.qty);
+ return p>0?`${p.toLocaleString('uk-UA',{maximumFractionDigits:2})} грн/од. · ${(p*q).toLocaleString('uk-UA',{maximumFractionDigits:2})} грн`:'';
+}
+
+window.setNoPlanSelected4469=function(i,k,v){
+ const a=items4469();if(!a[i])return;
+ a[i][k]=k==='qty'?N(v):v;
+ persist4469();window.refreshNoPlanOrder4469();
+};
+window.deleteNoPlanSelected4469=function(i){
+ const a=items4469();if(!a[i])return;
+ a.splice(i,1);persist4469();window.refreshNoPlanOrder4469();
+};
+window.clearNoPlanSelected4469=function(){
+ if(!confirm('Очистити всі позиції замовлення без плану?'))return;
+ const a=items4469();a.splice(0,a.length);persist4469();window.refreshNoPlanOrder4469();
+};
+window.closeNoPlanCatalog4469=function(){
+ try{window.closeNWCatalog4413?.()}catch(_){}
+};
+
+function renderMain4469(){
+ const box=document.getElementById('nwNoPlanItems4463');if(!box)return;
+ const a=items4469();
+ if(!a.length){
+   box.innerHTML='<div class="np-empty4469">Позицій ще немає. Відкрийте NW або додайте позицію вручну.</div>';
+   return;
+ }
+ const total=a.reduce((sum,x)=>sum+(N(x.price)*N(x.qty)),0);
+ box.innerHTML=`<div class="np-order-head4469"><b>🧾 Вибрано до відправки</b><span>${a.length} поз.</span></div>`+
+ a.map((x,i)=>`<div class="np-order-card4469">
+   <div class="np-order-top4469">
+     <div class="np-order-name4469">${i+1}. ${E(x.name||'Позиція')}</div>
+     <div class="np-order-price4469">${E(priceText4469(x))}</div>
+   </div>
+   <div class="np-order-controls4469">
+     <input type="number" min="0" step="0.01" value="${N(x.qty)||1}" onchange="setNoPlanSelected4469(${i},'qty',this.value)">
+     <select onchange="setNoPlanSelected4469(${i},'unit',this.value)">${['шт','м.п.','м²','компл.','уп.'].map(u=>`<option value="${u}" ${String(x.unit||'шт')===u?'selected':''}>${u}</option>`).join('')}</select>
+     <div class="np-order-sum4469">${N(x.qty).toLocaleString('uk-UA',{maximumFractionDigits:2})} ${E(x.unit||'шт')}</div>
+     <button type="button" class="np-order-del4469" onclick="deleteNoPlanSelected4469(${i})">🗑</button>
+   </div>
+ </div>`).join('')+
+ `<div style="margin-top:8px;padding:10px 12px;border-radius:10px;background:#0f172a;color:#fff;display:flex;justify-content:space-between;gap:10px;align-items:center">
+   <b style="font-size:9px">💰 Загальна сума</b>
+   <strong style="font-size:11px">${total.toLocaleString('uk-UA',{minimumFractionDigits:0,maximumFractionDigits:2})} грн</strong>
+ </div>`;
+}
+
+function ensureCart4469(){
+ const modal=document.getElementById('nwModal4413');if(!modal)return null;
+ let cart=document.getElementById('nwNoPlanCart4469');
+ if(!window.__nwNoPlanMode4465){
+   if(cart)cart.remove();
+   return null;
+ }
+ if(!cart){
+   cart=document.createElement('div');cart.id='nwNoPlanCart4469';
+   const headline=modal.querySelector('.nw-headline4413');
+   if(headline)headline.insertAdjacentElement('afterend',cart);
+   else modal.prepend(cart);
+ }
+ return cart;
+}
+function renderCart4469(){
+ const cart=ensureCart4469();if(!cart)return;
+ const a=items4469();
+ const total=a.reduce((sum,x)=>sum+(N(x.price)*N(x.qty)),0);
+ cart.innerHTML=`<div class="np-cart-head4469"><b>🧾 Вибрано без плану</b><span>${a.length} поз. · ${total.toLocaleString('uk-UA',{maximumFractionDigits:2})} грн</span></div>`+
+ (a.length
+   ? `<div class="np-cart-list4469">${a.map((x,i)=>`<div class="np-cart-row4469">
+        <div class="np-cart-name4469">${i+1}. ${E(x.name||'Позиція')}</div>
+        <div class="np-cart-qty4469">${N(x.qty).toLocaleString('uk-UA',{maximumFractionDigits:2})} ${E(x.unit||'шт')}</div>
+        <button class="np-cart-del4469" type="button" onclick="deleteNoPlanSelected4469(${i})">×</button>
+      </div>`).join('')}</div>
+      <div class="np-cart-actions4469"><button type="button" class="np-cart-clear4469" onclick="clearNoPlanSelected4469()">Очистити</button><button type="button" class="np-cart-back4469" onclick="closeNoPlanCatalog4469()">До замовлення</button></div>`
+   : `<div class="np-cart-list4469"><div class="np-empty4469">Ще нічого не вибрано. Натискайте «＋ Без плану» на потрібних товарах.</div></div>`);
+}
+window.refreshNoPlanOrder4469=function(){
+ renderMain4469();
+ renderCart4469();
+ const st=document.getElementById('nwNoPlanStatus4463');
+ if(st){
+   const a=items4469();
+   st.textContent=a.length?`✅ У замовленні: ${a.length} поз.`:'';
+ }
+};
+
+// Replace legacy edit/delete with the same single state, so manual rows and NW rows behave identically.
+window.removeNoPlan4463=function(i){window.deleteNoPlanSelected4469(i)};
+window.setNoPlan4463=function(i,k,v){window.setNoPlanSelected4469(i,k,v)};
+
+const baseOpen4469=window.openNWNoPlan4465;
+if(typeof baseOpen4469==='function'){
+ window.openNWNoPlan4465=function(){
+   const out=baseOpen4469.apply(this,arguments);
+   setTimeout(window.refreshNoPlanOrder4469,30);
+   setTimeout(window.refreshNoPlanOrder4469,150);
+   return out;
+ };
+}
+
+// Catalog rerenders on search/category changes; update the compact selected list too.
+let t4469=0;
+const obs4469=new MutationObserver(()=>{
+ clearTimeout(t4469);
+ t4469=setTimeout(renderCart4469,80);
+});
+function watch4469(){
+ const modal=document.getElementById('nwModal4413');
+ if(modal){
+   obs4469.observe(modal,{childList:true,subtree:true});
+   window.refreshNoPlanOrder4469();
+ }else setTimeout(watch4469,500);
+}
+setTimeout(watch4469,700);
+document.addEventListener('click',()=>setTimeout(window.refreshNoPlanOrder4469,30),true);
+
+function mark4469(){
+ try{document.documentElement.dataset.pixelVersion='44.69';document.title='Potolok AI PRO — Pixel 44.69'}catch(_){}
+}
+setTimeout(mark4469,3200);
+})();
+</script>
+
+<!-- PIXEL 44.70 NW NO-PLAN TOTAL SUM | base: 44.69 -->
+<script id="pixel4470Marker">
+(function(){
+ function mark4470(){try{document.documentElement.dataset.pixelVersion='44.70';document.title='Potolok AI PRO — Pixel 44.70'}catch(_){}}
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(mark4470,3500),{once:true});else setTimeout(mark4470,3500);
+})();
+</script>
+
+<!-- PIXEL 44.71 NW NO-PLAN EXPORT WITHOUT PRICES | base: 44.70 -->
+<script id="pixel4471Marker">
+(function(){
+ function mark4471(){try{document.documentElement.dataset.pixelVersion='44.71';document.title='Potolok AI PRO — Pixel 44.71'}catch(_){}}
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(mark4471,3600),{once:true});else setTimeout(mark4471,3600);
+})();
+</script>
