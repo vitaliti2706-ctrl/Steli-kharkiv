@@ -1,3 +1,4 @@
+<!-- PIXEL 44.89: root fix — saved perimeter insert survives render/restore | base 44.88 -->
 <!-- PIXEL 44.87: persist/restore perimeter insert per room | base 44.86 -->
 <!-- PIXEL 44.50 FINISHING CUSTOM WORK FIX | base: 44.49 OBJECT HISTORY RELEASE -->
 <!-- FILE: PIXEL 5.6 FULL HISTORY FIX | EXPECTED ~3150 LINES | 43.91 room delete -->
@@ -14854,77 +14855,6 @@ else setTimeout(install4336,350);
 @media(max-width:520px){.nw-usd-box4425{grid-template-columns:1fr}.nw-usd-result4425 b{font-size:13px}}
 </style>
 
-
-<script>
-/* PIXEL 44.89: reconcile perimeter insert after saved-object/history restore */
-(function(){
-  if(window.__pixel4489InsertRestoreFix)return;
-  window.__pixel4489InsertRestoreFix=true;
-
-  function validInsert4489(v){
-    if(!v || typeof v!=='object') return false;
-    const type=String(v.type||v.kind||v.name||v.label||'').toLowerCase();
-    const color=String(v.color||v.colour||v.insertColor||'').trim();
-    const len=Number(v.length ?? v.perimeter ?? v.meters ?? v.metres ?? 0);
-    return !!(color || type.includes('встав') || type.includes('insert')) && len>=0;
-  }
-  function clone4489(v){
-    try{return JSON.parse(JSON.stringify(v));}catch(e){return v;}
-  }
-  function candidates4489(room){
-    if(!room||typeof room!=='object')return [];
-    return [
-      room.perimeterInsert, room.insert, room.ceilingInsert, room.decorativeInsert,
-      room.plan?.perimeterInsert, room.plan?.insert,
-      room.ceiling?.perimeterInsert, room.ceiling?.insert,
-      room.calc?.perimeterInsert, room.calc?.insert
-    ].filter(validInsert4489);
-  }
-  function reconcileRoom4489(room){
-    if(!room||typeof room!=='object')return false;
-    const list=candidates4489(room);
-    if(!list.length)return false;
-    const best=list.find(x=>Number(x.length ?? x.perimeter ?? x.meters ?? x.metres)>0) || list[0];
-    let changed=false;
-    if(!validInsert4489(room.perimeterInsert)){
-      room.perimeterInsert=clone4489(best); changed=true;
-    }
-    if(room.plan && !validInsert4489(room.plan.perimeterInsert)){
-      room.plan.perimeterInsert=clone4489(best); changed=true;
-    }
-    return changed;
-  }
-  function reconcileAll4489(root){
-    let changed=false;
-    const rooms = Array.isArray(root?.rooms) ? root.rooms :
-                  Array.isArray(root?.object?.rooms) ? root.object.rooms : [];
-    rooms.forEach(r=>{ if(reconcileRoom4489(r)) changed=true; });
-    return changed;
-  }
-  function run4489(){
-    try{
-      [window.source4402, window.currentObject, window.activeObject, window.projectData, window.appState]
-        .forEach(x=>{ if(x) reconcileAll4489(x); });
-      if(typeof window.refreshEstimateScopeLabels4477==='function') window.refreshEstimateScopeLabels4477();
-      if(typeof window.refreshChoice4402==='function') window.refreshChoice4402();
-    }catch(e){ console.warn('44.89 insert restore reconcile',e); }
-  }
-
-  // Saved objects are restored asynchronously in several paths; reconcile after UI settles.
-  document.addEventListener('DOMContentLoaded',()=>setTimeout(run4489,80));
-  window.addEventListener('load',()=>{setTimeout(run4489,120);setTimeout(run4489,500);});
-  document.addEventListener('click',function(e){
-    const t=e.target?.closest?.('button,a,[role="button"]');
-    if(!t)return;
-    const s=(t.textContent||'').toLowerCase();
-    if(s.includes('збереж')||s.includes('істор')||s.includes('об’єкт')||s.includes("об'єкт")||s.includes('кімната')){
-      setTimeout(run4489,120);
-      setTimeout(run4489,450);
-    }
-  },true);
-})();
-</script>
-
 </body></html>`;
   }
 
@@ -22165,8 +22095,31 @@ function clearPackageInsert4381(room){
 }
 function sanitizeInsert4381(){
   const room=room4381(),state=state4381(room);if(!room||state.type==='none')return;
-  /* Old 43.79/43.80 insert bars can lose their service markers after save/restore.
-     While preliminary insert is active, only explicitly manual insert objects survive. */
+
+  /* 44.89 ROOT FIX:
+     A deliberately selected perimeter insert is valid room data and must survive
+     planner redraw, room switching and saved-object restore. The old 43.81 cleanup
+     was clearing insertPackage + perimeterBindings on every render, which caused
+     the same saved room to reopen with a different price. */
+  const persistedType=String(
+    room?.insertPersistence4487?.type ||
+    room?.insertPackage ||
+    ''
+  ).toLowerCase();
+  const hasPersistedPackage=['white','black'].includes(persistedType);
+  const bindings=liveBindings4381();
+  const hasInsertBinding=bindings.some(list=>
+    (Array.isArray(list)?list:[]).some(type=>
+      ['insertWhite','insertBlack'].includes(String(type))
+    )
+  );
+
+  /* If this is a real saved/package insert, do NOT sanitize it away. */
+  if(hasPersistedPackage || hasInsertBinding || hasManualInsertBinding4381(room)){
+    return;
+  }
+
+  /* Legacy cleanup stays only for stale old synthetic insert bars. */
   const objects=liveObjects4381();
   const next=objects.filter(object=>!isInsert4381(object)||isManualInsert4381(object));
   if(next.length!==objects.length){
@@ -22174,14 +22127,6 @@ function sanitizeInsert4381(){
     room.planner=room.planner||{};room.planner.objects=copy4381(next);
     try{if(typeof selectedObjectIndex!=='undefined'&&selectedObjectIndex>=next.length)selectedObjectIndex=-1}catch(_){ }
   }
-  if(!hasManualInsertBinding4381(room)){
-    const bindings=liveBindings4381();
-    const cleaned=bindings.map(list=>(Array.isArray(list)?list:[]).filter(type=>!['insertWhite','insertBlack'].includes(String(type))));
-    if(JSON.stringify(cleaned)!==JSON.stringify(bindings)){
-      setLiveBindings4381(cleaned);room.perimeterBindings=copy4381(cleaned);
-    }
-  }
-  clearPackageInsert4381(room);
 }
 function drawOverlay4381(){
   const old=document.getElementById('preInsertOverlay4381');old?.remove();
@@ -29462,7 +29407,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
     if(document.getElementById('pixel4486BuildBadge')) return;
     var el=document.createElement('div');
     el.id='pixel4486BuildBadge';
-    el.textContent='BUILD 44.89 INSERT RESTORE';
+    el.textContent='BUILD 44.89 INSERT ROOT FIX';
     document.body.appendChild(el);
     try{
       document.documentElement.dataset.pixelVersion='44.86';
