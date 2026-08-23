@@ -29408,7 +29408,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
     if(document.getElementById('pixel4486BuildBadge')) return;
     var el=document.createElement('div');
     el.id='pixel4486BuildBadge';
-    el.textContent='BUILD 44.95 ADMIN PIN GATE';
+    el.textContent='BUILD 44.96 ADMIN PIN + TOP BUILD';
     document.body.appendChild(el);
     try{
       document.documentElement.dataset.pixelVersion='44.86';
@@ -29545,6 +29545,7 @@ window.__persistInsert4487=persist4487;
 })();
 </script>
 
+<!-- PIXEL 44.96: admin folder after PIN + static top build label | base 44.95 -->
 <!-- PIXEL 44.95: hide 'Мої об’єкти' until successful admin PIN unlock | base 44.94 -->
 <!-- PIXEL 44.94: folder item filters and opens its existing admin card directly | base 44.93 -->
 <!-- PIXEL 44.93: top admin folder = cloud objects count + names + jump to existing card | base 44.92 -->
@@ -29606,13 +29607,13 @@ function ensureFolder4493(){
   const admin=document.getElementById('tab_service');
   if(!admin)return null;
   let box=document.getElementById('adminObjectFolder4493');
-  if(!box){
-    box=document.createElement('div');
-    box.id='adminObjectFolder4493';
-    admin.prepend(box);
-  }else if(box.parentElement!==admin){
-    admin.prepend(box);
-  }
+  if(!box){box=document.createElement('div');box.id='adminObjectFolder4493';}
+  const firstPanel=[...admin.children].find(el=>{
+    if(!el || el===box)return false;
+    return /Панель адміністратора/i.test(el.textContent||'') || el.querySelector?.('.p60-object');
+  });
+  if(firstPanel)admin.insertBefore(box,firstPanel);
+  else if(box.parentElement!==admin)admin.prepend(box);
   return box;
 }
 function renderFolder4493(){
@@ -29685,19 +29686,13 @@ function adminActive4493(){
 }
 function adminUnlocked4495(){
   if(!adminActive4493())return false;
-
-  /* Existing admin UI is considered unlocked only when the real admin panel
-     is present/visible. The PIN-only screen must never expose object names. */
-  const panel=document.querySelector('#tab_service .p60-admin-head, #tab_service .service-admin-panel, #tab_service [data-service-admin-unlocked]');
-  if(panel && panel.getClientRects().length)return true;
-
-  const root=document.getElementById('serviceRoot60');
-  if(root && root.querySelector('.p60-object') && !document.querySelector('#tab_service .p60-login'))return true;
-
-  /* Fallback for current markup: "Панель адміністратора" heading exists only
-     after successful PIN authorization. */
-  return [...document.querySelectorAll('#tab_service h1,#tab_service h2,#tab_service h3,#tab_service .title')]
-    .some(el=>/Панель адміністратора/i.test(el.textContent||'') && el.getClientRects().length);
+  const tab=document.getElementById('tab_service');
+  if(!tab)return false;
+  const visibleCards=[...tab.querySelectorAll('.p60-object')].some(el=>el.getClientRects().length);
+  if(visibleCards)return true;
+  const heading=[...tab.querySelectorAll('h1,h2,h3,div,section')]
+    .find(el=>/Панель адміністратора/i.test((el.textContent||'').trim()) && el.getClientRects().length);
+  return !!heading;
 }
 function syncAdmin4493(){
   const active=adminActive4493();
@@ -29737,6 +29732,23 @@ window.addEventListener('pageshow',()=>setTimeout(syncAdmin4493,60),{passive:tru
 })();
 </script>
 
+
+<style id="pixel4496BuildBadgeStyles">
+#pixelBuild4496{position:static!important;margin:6px 16px 10px;padding:5px 9px;border-radius:9px;background:#0f172a;color:#fff;font-size:8px;font-weight:900;display:inline-block;pointer-events:none}
+</style>
+<script id="pixel4496BuildBadgeScript">
+(function(){
+  if(window.__pixel4496BuildBadge)return;window.__pixel4496BuildBadge=true;
+  function mount(){
+    document.querySelectorAll('body *').forEach(el=>{const s=getComputedStyle(el);if(s.position==='fixed'&&/BUILD 44\./.test(el.textContent||''))el.style.display='none';});
+    if(document.getElementById('pixelBuild4496'))return;
+    const el=document.createElement('div');el.id='pixelBuild4496';el.textContent='BUILD 44.96 ADMIN PIN + TOP BUILD';
+    const header=document.querySelector('header,.site-header,.topbar');
+    if(header)header.insertAdjacentElement('afterend',el);else document.body.prepend(el);
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',mount,{once:true});else mount();
+})();
+</script>
 </body></html>
 
 <!-- 44.41: surgical NW export fix based strictly on 44.40; selected insert is included in final NW order; no planner/canvas quantity logic changed. -->
