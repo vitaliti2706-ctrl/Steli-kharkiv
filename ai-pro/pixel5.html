@@ -29408,7 +29408,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
     if(document.getElementById('pixel4486BuildBadge')) return;
     var el=document.createElement('div');
     el.id='pixel4486BuildBadge';
-    el.textContent='BUILD 44.96 ADMIN PIN + TOP BUILD';
+    el.textContent='BUILD 44.97 ADMIN PANEL + FOLDER + SEARCH';
     document.body.appendChild(el);
     try{
       document.documentElement.dataset.pixelVersion='44.86';
@@ -29553,203 +29553,56 @@ window.__persistInsert4487=persist4487;
 <!-- PIXEL 44.91: ADMIN CLEANUP ONLY | base 44.90 -->
 
 
-<style id="pixel4493AdminFolderStyles">
-/* 44.93 — admin-only object folder/navigation. No planner/calculator/estimate rules. */
-html.admin-mode4493 .ai-request-section{display:none!important}
-#adminObjectFolder4493{display:none!important}
-html.admin-mode4493.admin-unlocked4495 #adminObjectFolder4493{
-  display:block;margin:10px 0 16px;padding:0;
-  border:1px solid #bfdbfe;border-radius:14px;background:#f8fbff;overflow:hidden
-}
-#adminObjectFolder4493 .a4493-head{
-  width:100%;border:0;background:transparent;padding:13px 14px;
-  display:flex;align-items:center;justify-content:space-between;gap:10px;
-  font-size:12px;font-weight:950;color:#0f172a;text-align:left
-}
-#adminObjectFolder4493 .a4493-count{
-  min-width:28px;height:28px;border-radius:999px;background:#075bff;color:#fff;
-  display:inline-flex;align-items:center;justify-content:center;font-size:10px;font-weight:950
-}
-#adminObjectFolder4493 .a4493-body{display:none;padding:0 12px 12px}
-#adminObjectFolder4493.open .a4493-body{display:block}
-#adminObjectFolder4493 .a4493-list{display:grid;gap:7px}
-#adminObjectFolder4493 .a4493-object{
-  width:100%;border:1px solid #cbd5e1;background:#fff;border-radius:10px;
-  padding:10px 11px;display:flex;align-items:center;justify-content:space-between;
-  gap:8px;text-align:left;color:#0f172a
-}
-#adminObjectFolder4493 .a4493-object b{font-size:10.5px}
-#adminObjectFolder4493 .a4493-object small{display:block;margin-top:2px;font-size:7.5px;color:#64748b;font-weight:800}
-#adminObjectFolder4493 .a4493-arrow{font-size:8.5px;color:#075bff;font-weight:950;white-space:nowrap}
-#adminObjectFolder4493 .a4493-empty{font-size:9px;color:#64748b;padding:4px 2px}
-.p60-object.a4493-focus{outline:3px solid rgba(7,91,255,.24);outline-offset:2px}
-html.admin-mode4493 .object-end-actions4394 .object-actions4393-head span{display:none!important}
-html.admin-mode4493 .object-end-actions4394 .object-actions4393-head b{font-size:18px!important}
+<style id="pixel4497AdminFolderStyles">
+#adminObjectFolder4497{display:none!important}
+html.admin-unlocked4497 #adminObjectFolder4497{display:block!important}
+#adminObjectFolder4497{margin:12px 0 16px;border:1px solid #bfdbfe;border-radius:14px;background:#f8fbff;overflow:hidden}
+#adminObjectFolder4497 .a4497-head{width:100%;border:0;background:transparent;padding:13px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px;text-align:left;color:#0f172a;font-size:12px;font-weight:950}
+#adminObjectFolder4497 .a4497-count{min-width:28px;height:28px;border-radius:999px;background:#075bff;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:10px;font-weight:950}
+#adminObjectFolder4497 .a4497-body{display:none;padding:0 12px 12px}
+#adminObjectFolder4497.open .a4497-body{display:block}
+#adminObjectFolder4497 .a4497-list{display:grid;gap:7px}
+#adminObjectFolder4497 .a4497-object{width:100%;border:1px solid #cbd5e1;background:#fff;border-radius:10px;padding:10px 11px;display:flex;align-items:center;justify-content:space-between;gap:8px;text-align:left;color:#0f172a}
+#adminObjectFolder4497 .a4497-object b{font-size:10.5px}
+#adminObjectFolder4497 .a4497-object small{display:block;margin-top:2px;font-size:7.5px;color:#64748b;font-weight:800}
+#adminObjectFolder4497 .a4497-open{font-size:8.5px;color:#075bff;font-weight:950;white-space:nowrap}
+#adminObjectFolder4497 .a4497-empty{font-size:9px;color:#64748b;padding:5px 2px}
+.p60-object.a4497-focus{outline:3px solid rgba(7,91,255,.24);outline-offset:2px}
+html.admin-unlocked4497 #objectActions4393{display:none!important}
+html.admin-mode4497 .ai-request-section{display:none!important}
 </style>
-
-<script id="pixel4493AdminFolderScript">
+<script id="pixel4497AdminFolderScript">
 (function(){
 'use strict';
-if(window.__pixel4493AdminFolder)return;
-window.__pixel4493AdminFolder=true;
-
-function esc4493(v){
-  return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
-}
-function rows4493(){
-  return Array.isArray(window.serviceRows60)?window.serviceRows60:[];
-}
-function rowName4493(r,index){
-  const o=r?.object_data&&typeof r.object_data==='object'?r.object_data:{};
-  return String(o.clientName||r?.object_number||('Об’єкт '+(index+1)));
-}
-function ensureFolder4493(){
-  const admin=document.getElementById('tab_service');
-  if(!admin)return null;
-  let box=document.getElementById('adminObjectFolder4493');
-  if(!box){box=document.createElement('div');box.id='adminObjectFolder4493';}
-  const firstPanel=[...admin.children].find(el=>{
-    if(!el || el===box)return false;
-    return /Панель адміністратора/i.test(el.textContent||'') || el.querySelector?.('.p60-object');
-  });
-  if(firstPanel)admin.insertBefore(box,firstPanel);
-  else if(box.parentElement!==admin)admin.prepend(box);
-  return box;
-}
-function renderFolder4493(){
-  const box=ensureFolder4493();if(!box)return;
-  const rows=rows4493();
-  const wasOpen=box.classList.contains('open');
-  box.innerHTML=
-    '<button type="button" class="a4493-head" data-a4493-toggle>'+
-      '<span>📁 Мої об’єкти</span><span class="a4493-count">'+rows.length+'</span>'+
-    '</button>'+
-    '<div class="a4493-body"><div class="a4493-list">'+
-      (rows.length?rows.map((r,i)=>{
-        const o=r?.object_data&&typeof r.object_data==='object'?r.object_data:{};
-        const meta=[r?.object_number||'',o.address||''].filter(Boolean).join(' · ');
-        return '<button type="button" class="a4493-object" data-a4493-object="'+esc4493(r.id)+'">'+
-          '<span><b>'+esc4493(rowName4493(r,i))+'</b><small>'+esc4493(meta||'Збережений об’єкт')+'</small></span>'+
-          '<span class="a4493-arrow">Відкрити ›</span>'+
-        '</button>';
-      }).join(''):'<div class="a4493-empty">Збережених об’єктів поки немає.</div>')+
-    '</div></div>';
-  box.classList.toggle('open',wasOpen);
-}
-function focusCard4493(id){
-  const card=document.getElementById('serviceObject60_'+id);
-  if(!card)return false;
-  document.querySelectorAll('.p60-object.a4493-focus').forEach(x=>x.classList.remove('a4493-focus'));
-  card.classList.add('a4493-focus');
-  card.scrollIntoView({behavior:'smooth',block:'start'});
-  setTimeout(()=>card.classList.remove('a4493-focus'),1800);
-  return true;
-}
-function directOpen4494(id){
-  const rows=rows4493();
-  const row=rows.find(r=>String(r?.id)===String(id));
-  if(!row)return;
-
-  /* Show only the selected existing admin card, then scroll directly to it.
-     This keeps the current card/menu and avoids stopping on the search field. */
-  const o=row?.object_data&&typeof row.object_data==='object'?row.object_data:{};
-  const exact=String(row.object_number||o.clientName||'').trim();
-
-  try{
-    if(typeof window.renderServiceList60==='function'){
-      window.renderServiceList60(exact);
-    }
-  }catch(_){}
-
-  setTimeout(()=>{
-    if(!focusCard4493(id)){
-      try{window.renderServiceList60?.('')}catch(_){}
-      setTimeout(()=>focusCard4493(id),80);
-    }
-  },60);
-}
-document.addEventListener('click',e=>{
-  const toggle=e.target.closest?.('[data-a4493-toggle]');
-  if(toggle){
-    e.preventDefault();
-    document.getElementById('adminObjectFolder4493')?.classList.toggle('open');
-    return;
-  }
-  const b=e.target.closest?.('[data-a4493-object]');
-  if(!b)return;
-  e.preventDefault();
-  directOpen4494(b.getAttribute('data-a4493-object'));
-},true);
-
-function adminActive4493(){
-  return document.getElementById('tab_service')?.classList.contains('active');
-}
-function adminUnlocked4495(){
-  if(!adminActive4493())return false;
-  const tab=document.getElementById('tab_service');
-  if(!tab)return false;
-  const visibleCards=[...tab.querySelectorAll('.p60-object')].some(el=>el.getClientRects().length);
-  if(visibleCards)return true;
-  const heading=[...tab.querySelectorAll('h1,h2,h3,div,section')]
-    .find(el=>/Панель адміністратора/i.test((el.textContent||'').trim()) && el.getClientRects().length);
-  return !!heading;
-}
-function syncAdmin4493(){
-  const active=adminActive4493();
-  const unlocked=adminUnlocked4495();
-
-  document.documentElement.classList.toggle('admin-mode4493',!!active);
-  document.documentElement.classList.toggle('admin-unlocked4495',!!unlocked);
-
-  if(active && unlocked){
-    const head=document.querySelector('#objectActions4393 .object-actions4393-head b');
-    if(head)head.textContent='⚙️ Керування об’єктом';
-    renderFolder4493();
-  }else{
-    document.getElementById('adminObjectFolder4493')?.classList.remove('open');
-  }
-}
-function start4493(){
-  syncAdmin4493();
-  const serviceRoot=document.getElementById('serviceRoot60');
-  if(serviceRoot){
-    new MutationObserver(()=>{
-      setTimeout(syncAdmin4493,20);
-      if(adminUnlocked4495())setTimeout(renderFolder4493,35);
-    }).observe(serviceRoot,{childList:true,subtree:true,attributes:true,attributeFilter:['class','style']});
-  }
-  const serviceTab=document.getElementById('tab_service');
-  if(serviceTab){
-    new MutationObserver(()=>setTimeout(syncAdmin4493,20))
-      .observe(serviceTab,{childList:true,subtree:true,attributes:true,attributeFilter:['class','style']});
-  }
-  document.querySelectorAll('.page-section').forEach(x=>
-    new MutationObserver(syncAdmin4493).observe(x,{attributes:true,attributeFilter:['class']})
-  );
-}
-if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start4493,{once:true});else start4493();
-window.addEventListener('pageshow',()=>setTimeout(syncAdmin4493,60),{passive:true});
+if(window.__pixel4497AdminFolder)return;window.__pixel4497AdminFolder=true;
+function esc4497(v){return String(v??'').replace(/[&<>\"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[m]));}
+function tab4497(){return document.getElementById('tab_service')}
+function adminActive4497(){return !!tab4497()?.classList.contains('active')}
+function rows4497(){return Array.isArray(window.serviceRows60)?window.serviceRows60:[]}
+function rowObject4497(r){return r?.object_data&&typeof r.object_data==='object'?r.object_data:{}}
+function rowName4497(r,i){const o=rowObject4497(r);return String(o.clientName||r?.client_name||r?.object_number||('Об’єкт '+(i+1))).trim()}
+function rowMeta4497(r){const o=rowObject4497(r);return [r?.object_number||'',o.address||r?.address||''].filter(Boolean).join(' · ')}
+function rowSearch4497(r,i){const o=rowObject4497(r);return [rowName4497(r,i),r?.object_number||'',o.address||r?.address||'',o.phone||r?.phone||''].join(' ').toLowerCase()}
+function adminUnlocked4497(){if(!adminActive4497())return false;const tab=tab4497();if(!tab)return false;const cards=[...tab.querySelectorAll('.p60-object')];if(cards.some(el=>el.getClientRects().length))return true;return [...tab.querySelectorAll('h1,h2,h3,div,section')].some(el=>/Панель адміністратора/i.test((el.textContent||'').trim())&&el.getClientRects().length)}
+function adminPanel4497(){const tab=tab4497();if(!tab)return null;return [...tab.children].find(el=>/Панель адміністратора/i.test((el.textContent||'').trim())||el.querySelector?.('.p60-object'))||null}
+function ensureFolder4497(){const tab=tab4497();if(!tab)return null;let box=document.getElementById('adminObjectFolder4497');if(!box){box=document.createElement('div');box.id='adminObjectFolder4497'}const panel=adminPanel4497();if(panel){const search=[...panel.children].find(el=>el.querySelector?.('input')||/Пошук:/i.test((el.textContent||'').trim()));if(search&&search.parentElement===panel)search.insertAdjacentElement('afterend',box);else if(box.parentElement!==panel)panel.insertBefore(box,panel.children[1]||null)}else if(box.parentElement!==tab)tab.appendChild(box);return box}
+function searchInput4497(){return document.querySelector('#tab_service input[placeholder*="Пошук"],#tab_service input[type="search"]')}
+function visibleRows4497(){const q=(searchInput4497()?.value||'').trim().toLowerCase();const rows=rows4497();return q?rows.filter((r,i)=>rowSearch4497(r,i).includes(q)):rows}
+function renderFolder4497(){const box=ensureFolder4497();if(!box)return;const all=rows4497(),filtered=visibleRows4497(),wasOpen=box.classList.contains('open');box.innerHTML='<button type="button" class="a4497-head" data-a4497-toggle><span>📁 Мої об’єкти</span><span class="a4497-count">'+all.length+'</span></button><div class="a4497-body"><div class="a4497-list">'+(filtered.length?filtered.map((r,i)=>'<button type="button" class="a4497-object" data-a4497-object="'+esc4497(r.id)+'"><span><b>'+esc4497(rowName4497(r,i))+'</b><small>'+esc4497(rowMeta4497(r)||'Збережений об’єкт')+'</small></span><span class="a4497-open">Відкрити ›</span></button>').join(''):'<div class="a4497-empty">'+(all.length?'За пошуком нічого не знайдено.':'Збережених об’єктів поки немає.')+'</div>')+'</div></div>';box.classList.toggle('open',wasOpen)}
+function focusCard4497(id){const card=document.getElementById('serviceObject60_'+id);if(!card)return false;document.querySelectorAll('.p60-object.a4497-focus').forEach(x=>x.classList.remove('a4497-focus'));card.classList.add('a4497-focus');card.scrollIntoView({behavior:'smooth',block:'start'});setTimeout(()=>card.classList.remove('a4497-focus'),1800);return true}
+function openCard4497(id){const rows=rows4497();const row=rows.find(r=>String(r?.id)===String(id));if(!row)return;const exact=String(row?.object_number||rowName4497(row,0)).trim();try{if(typeof window.renderServiceList60==='function')window.renderServiceList60(exact)}catch(_){}document.getElementById('adminObjectFolder4497')?.classList.remove('open');setTimeout(()=>{if(!focusCard4497(id)){try{window.renderServiceList60?.('')}catch(_){}setTimeout(()=>focusCard4497(id),100)}},80)}
+document.addEventListener('click',e=>{const t=e.target.closest?.('[data-a4497-toggle]');if(t){e.preventDefault();document.getElementById('adminObjectFolder4497')?.classList.toggle('open');return}const b=e.target.closest?.('[data-a4497-object]');if(!b)return;e.preventDefault();openCard4497(b.getAttribute('data-a4497-object'))},true)
+function bindSearch4497(){const s=searchInput4497();if(!s||s.dataset.a4497Bound)return;s.dataset.a4497Bound='1';s.addEventListener('input',()=>setTimeout(renderFolder4497,0),{passive:true})}
+function sync4497(){const active=adminActive4497(),unlocked=adminUnlocked4497();document.documentElement.classList.toggle('admin-mode4497',active);document.documentElement.classList.toggle('admin-unlocked4497',unlocked);if(active&&unlocked){bindSearch4497();renderFolder4497()}else document.getElementById('adminObjectFolder4497')?.classList.remove('open')}
+function start4497(){sync4497();const tab=tab4497();if(tab)new MutationObserver(()=>setTimeout(sync4497,20)).observe(tab,{childList:true,subtree:true,attributes:true,attributeFilter:['class','style']});document.querySelectorAll('.page-section').forEach(x=>new MutationObserver(sync4497).observe(x,{attributes:true,attributeFilter:['class']}))}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start4497,{once:true});else start4497();window.addEventListener('pageshow',()=>setTimeout(sync4497,60),{passive:true});
 })();
 </script>
 
 
-<style id="pixel4496BuildBadgeStyles">
-#pixelBuild4496{position:static!important;margin:6px 16px 10px;padding:5px 9px;border-radius:9px;background:#0f172a;color:#fff;font-size:8px;font-weight:900;display:inline-block;pointer-events:none}
-</style>
-<script id="pixel4496BuildBadgeScript">
-(function(){
-  if(window.__pixel4496BuildBadge)return;window.__pixel4496BuildBadge=true;
-  function mount(){
-    document.querySelectorAll('body *').forEach(el=>{const s=getComputedStyle(el);if(s.position==='fixed'&&/BUILD 44\./.test(el.textContent||''))el.style.display='none';});
-    if(document.getElementById('pixelBuild4496'))return;
-    const el=document.createElement('div');el.id='pixelBuild4496';el.textContent='BUILD 44.96 ADMIN PIN + TOP BUILD';
-    const header=document.querySelector('header,.site-header,.topbar');
-    if(header)header.insertAdjacentElement('afterend',el);else document.body.prepend(el);
-  }
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',mount,{once:true});else mount();
-})();
-</script>
-</body></html>
+
+
+<style id="pixel4497BuildLabelStyles">#pixelBuild4497{margin:6px 16px 10px;padding:5px 9px;border-radius:9px;background:#0f172a;color:#fff;font-size:8px;font-weight:900;display:inline-block;position:static!important;pointer-events:none}</style><script id="pixel4497BuildLabelScript">(function(){if(window.__pixel4497BuildLabel)return;window.__pixel4497BuildLabel=true;function mount(){if(document.getElementById('pixelBuild4497'))return;const el=document.createElement('div');el.id='pixelBuild4497';el.textContent='BUILD 44.97 ADMIN PANEL + FOLDER + SEARCH';const header=document.querySelector('header,.site-header,.topbar');if(header)header.insertAdjacentElement('afterend',el);else document.body.prepend(el)}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',mount,{once:true});else mount()})();</script></body></html>
 
 <!-- 44.41: surgical NW export fix based strictly on 44.40; selected insert is included in final NW order; no planner/canvas quantity logic changed. -->
 <script id="pixelVersion4449">(function(){try{document.documentElement.dataset.pixelVersion='44.62';document.title='Potolok AI PRO — Pixel 44.62'}catch(_){}})();</script>
