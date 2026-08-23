@@ -24474,6 +24474,11 @@ try{document.title='Potolok AI PRO — Pixel '+VERSION4401}catch(_){ }
 .choice-presets4402{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:14px 0 10px}.choice-preset4402{min-height:43px;border:1px solid #bfdbfe;background:#eff6ff;color:#075bff;border-radius:12px;font-weight:900;font-size:12px}.choice-preset4402.active{background:#075bff;color:#fff;border-color:#075bff}
 .choice-label4402{font-size:11px;font-weight:900;color:#334155;margin:13px 0 7px}.choice-list4402{display:grid;gap:8px}.choice-item4402{display:grid;grid-template-columns:28px 1fr auto;align-items:center;gap:10px;border:1px solid #dbe3ef;border-radius:14px;padding:11px 12px;background:#fff;cursor:pointer}.choice-item4402:has(input:checked){border-color:#93c5fd;background:#f8fbff}.choice-item4402 input{width:20px;height:20px;accent-color:#075bff;margin:0}.choice-item4402 strong{display:block;color:#0f172a;font-size:13px}.choice-item4402 small{display:block;color:#64748b;font-size:10px;line-height:1.35;margin-top:2px}.choice-item4402 b{font-size:12px;color:#075bff;white-space:nowrap}
 .choice-total4402{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:12px;padding:13px 14px;border-radius:14px;background:#071428;color:#fff}.choice-total4402 span{font-size:11px;color:#bfdbfe}.choice-total4402 b{font-size:22px}.choice-scope4473{margin:0 0 12px;padding:10px;border:1px solid #bfdbfe;background:#f8fbff;border-radius:13px}.choice-scope-title4473{font-size:9px;font-weight:950;color:#334155;margin-bottom:7px}.choice-scope-grid4473{display:grid;grid-template-columns:1fr 1fr;gap:7px}.choice-scope-btn4473{min-height:42px;border:1px solid #dbe3ef;background:#fff;color:#334155;border-radius:10px;padding:8px;font-size:10px;font-weight:950}.choice-scope-btn4473.active{background:#075bff;color:#fff;border-color:#075bff;box-shadow:0 7px 16px rgba(7,91,255,.18)}.choice-scope-note4473{margin-top:7px;font-size:8.5px;line-height:1.4;color:#64748b}.choice-scope-current4477{margin-top:8px;padding:8px 9px;border-radius:9px;background:#eaf2ff;color:#1e3a8a;font-size:10px;font-weight:800}.choice-scope-current4477 b{color:#075bff}
+.choice-room-list4488{display:flex;gap:7px;overflow-x:auto;padding:8px 1px 2px;margin-top:7px;scrollbar-width:thin}
+.choice-room-btn4488{flex:0 0 auto;min-height:36px;border:1px solid #bfdbfe;background:#fff;color:#1e3a8a;border-radius:10px;padding:7px 11px;font-size:9.5px;font-weight:950;white-space:nowrap}
+.choice-room-btn4488.active{background:#075bff;color:#fff;border-color:#075bff;box-shadow:0 6px 14px rgba(7,91,255,.18)}
+.choice-room-btn4488 small{display:block;font-size:7.5px;font-weight:800;opacity:.82;margin-top:2px}
+
 .choice-payment-grid4472{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:10px}.choice-payment-field4472{display:flex;flex-direction:column;gap:5px}.choice-payment-field4472 span{font-size:10px;font-weight:900;color:#334155}.choice-payment-field4472 input{width:100%;min-height:42px;border:1px solid #dbe3ef;border-radius:11px;background:#f8fafc;padding:9px 10px;color:#0f172a;font-weight:850}.choice-comment-field4482{grid-column:1/-1;display:flex;flex-direction:column;gap:5px}.choice-comment-field4482 span{font-size:10px;font-weight:900;color:#334155}.choice-comment-field4482 textarea{width:100%;min-height:76px;resize:vertical;border:1px solid #dbe3ef;border-radius:11px;background:#f8fafc;padding:10px;color:#0f172a;font:inherit;font-size:11px;line-height:1.4}.choice-payment-note4472{grid-column:1/-1;font-size:9px;line-height:1.4;color:#64748b}@media(max-width:430px){.choice-payment-grid4472{grid-template-columns:1fr}}
 .choice-actions4402{display:grid;gap:9px;margin-top:12px}.choice-action4402{width:100%;min-height:58px;border:1px solid #cbd5e1;border-radius:15px;background:#fff;padding:10px 13px;display:flex;align-items:center;gap:11px;text-align:left;color:#0f172a}.choice-action4402>span{font-size:23px}.choice-action4402 div{display:flex;flex-direction:column;gap:2px}.choice-action4402 strong{font-size:12px}.choice-action4402 small{font-size:9px;line-height:1.35;color:#64748b}.choice-action4402.primary{background:#075bff;color:#fff;border-color:#075bff}.choice-action4402.primary small{color:#dbeafe}.choice-action4402:disabled{opacity:.62}
 .choice-status4402{display:none;margin-top:10px;border-radius:11px;padding:10px 11px;font-size:10px;font-weight:800;line-height:1.4}.choice-status4402.show{display:block}.choice-status4402.ok{background:#ecfdf5;border:1px solid #a7f3d0;color:#047857}.choice-status4402.err{background:#fff1f2;border:1px solid #fecdd3;color:#be123c}
@@ -24528,6 +24533,37 @@ function estimateRoomName4477(){
   const room=rooms.find(r=>String(r?.id)===String(activeId))||rooms[0];
   return room?String(room.name||room.roomName||'Кімната'):'Кімнату не вибрано';
 }
+function roomDisplayName4488(room,index){
+  return String(room?.name||room?.roomName||('Кімната '+(index+1)));
+}
+function renderEstimateRooms4488(){
+  const box=document.getElementById('choiceRoomList4488');
+  if(!box)return;
+  const rooms=Array.isArray(source4402?.rooms)?source4402.rooms:[];
+  const activeId=source4402?.activeRoomId;
+  box.style.display=estimateScope4473==='room'?'flex':'none';
+  box.innerHTML=rooms.map((room,index)=>{
+    const active=String(room?.id)===String(activeId)||(activeId==null&&index===0);
+    const total=ceiling4402(room)+finishingTotal4402(room)+additionalTotal4402(room);
+    return '<button type="button" class="choice-room-btn4488 '+(active?'active':'')+'" onclick="setEstimateRoom4488('+index+')">'
+      +esc4402(roomDisplayName4488(room,index))
+      +'<small>'+money4402(total)+'</small></button>';
+  }).join('');
+}
+window.setEstimateRoom4488=function(index){
+  if(!source4402)return;
+  const rooms=Array.isArray(source4402.rooms)?source4402.rooms:[];
+  const room=rooms[Number(index)];
+  if(!room)return;
+  source4402.activeRoomId=room.id;
+  estimateScope4473='room';
+  document.getElementById('choiceScopeRoom4473')?.classList.add('active');
+  document.getElementById('choiceScopeObject4473')?.classList.remove('active');
+  const note=document.getElementById('choiceScopeNote4473');
+  if(note)note.textContent='Суми нижче рахуються тільки для вибраної кімнати.';
+  refreshEstimateScopeLabels4477();
+  refreshChoice4402();
+};
 function refreshEstimateScopeLabels4477(){
   const roomName=estimateRoomName4477();
   const current=document.getElementById('choiceScopeCurrent4477');
@@ -24541,6 +24577,7 @@ function refreshEstimateScopeLabels4477(){
     if(ceiling)ceiling.textContent='🏠 Стелі всього об’єкта';
     if(all)all.textContent='📋 Кошторис всього об’єкта';
   }
+  renderEstimateRooms4488();
 }
 
 window.setEstimateScope4473=function(scope){
@@ -24675,7 +24712,7 @@ function refreshChoice4402(){
 }
 function ensureModal4402(){
   let modal=document.getElementById('estimateChoiceModal4402');if(modal)return modal;
-  modal=document.createElement('div');modal.id='estimateChoiceModal4402';modal.innerHTML=`<div class="choice-sheet4402" role="dialog" aria-modal="true"><div class="choice-head4402"><div><h3>📄 Що включити в кошторис?</h3><p>За замовчуванням формується кошторис <b>поточної кімнати</b>. Для всього об’єкта перемкніть режим нижче.</p></div><button type="button" class="choice-close4402" onclick="closeEstimate4402()">×</button></div><div class="choice-scope4473"><div class="choice-scope-title4473">ЩО ВІДПРАВЛЯЄМО</div><div class="choice-scope-grid4473"><button id="choiceScopeRoom4473" class="choice-scope-btn4473 active" type="button" onclick="setEstimateScope4473('room')">🚪 Поточна кімната</button><button id="choiceScopeObject4473" class="choice-scope-btn4473" type="button" onclick="setEstimateScope4473('object')">🏠 Весь об’єкт</button></div><div id="choiceScopeCurrent4477" class="choice-scope-current4477">Поточна: <b>Кімната</b></div><div id="choiceScopeNote4473" class="choice-scope-note4473">Суми нижче рахуються тільки для поточної кімнати.</div></div><div class="choice-presets4402"><button id="choicePresetCeiling4402" class="choice-preset4402 active" type="button" onclick="estimatePreset4402('ceiling')">🏠 Стеля поточної кімнати</button><button id="choicePresetAll4402" class="choice-preset4402" type="button" onclick="estimatePreset4402('all')">📋 Кошторис поточної кімнати</button></div><div class="choice-label4402">Розділи кошторису</div><div class="choice-list4402"><label class="choice-item4402"><input id="choiceCeiling4402" type="checkbox" checked onchange="refreshEstimateChoice4402()"><span><strong>🏠 Натяжні стелі</strong><small>Полотно, профіль, освітлення та елементи стелі</small></span><b id="choiceCeilingValue4402">0 грн</b></label><label class="choice-item4402"><input id="choiceFinishing4402" type="checkbox" onchange="refreshEstimateChoice4402()"><span><strong>🧱 Оздоблення</strong><small>Оздоблювальні роботи по кімнатах</small></span><b id="choiceFinishingValue4402">0 грн</b></label><label class="choice-item4402"><input id="choiceAdditional4402" type="checkbox" onchange="refreshEstimateChoice4402()"><span><strong>🔧 Додаткові роботи</strong><small>Демонтаж, свердління, захист та інші роботи</small></span><b id="choiceAdditionalValue4402">0 грн</b></label><label class="choice-item4402"><input id="choiceMaterials4402" type="checkbox" onchange="refreshEstimateChoice4402()"><span><strong>📦 Матеріали об’єкта</strong><small>Загальний список шпаклівки, ґрунту, плівки та інших матеріалів</small></span><b id="choiceMaterialsValue4402">0 грн</b></label></div><div class="choice-total4402"><span>Буде відправлено на суму</span><b id="choiceTotal4402">0 грн</b></div><div class="choice-payment-grid4472"><label class="choice-payment-field4472"><span>Аванс, грн</span><input id="choiceAdvance4472" type="number" inputmode="decimal" min="0" step="1" value="0"></label><label class="choice-payment-field4472"><span>Дата кошторису</span><input id="choiceEstimateDate4472" type="text" inputmode="numeric" autocomplete="off" placeholder="дд.мм.рррр" maxlength="10"></label><label class="choice-comment-field4482"><span>Коментар</span><textarea id="choiceEstimateComment4482" rows="3" placeholder="Наприклад: роботи у 2 етапи, матеріали окремо..."></textarea></label><div class="choice-payment-note4472">Дата підставляється автоматично. Коментар буде видимий у кошторисі клієнта.</div></div><div class="choice-actions4402"><button class="choice-action4402 primary" type="button" onclick="shareSelectedEstimate4402(this)"><span>📎</span><div><strong>Надіслати вибраний кошторис файлом</strong><small>У файл потраплять тільки відмічені розділи</small></div></button><button class="choice-action4402" type="button" onclick="downloadSelectedEstimate4402(this)"><span>⬇️</span><div><strong>Завантажити вибраний кошторис</strong><small>Зберегти HTML-файл на телефон</small></div></button><button class="choice-action4402" type="button" onclick="shareSelectedEstimateText4402(this)"><span>💬</span><div><strong>Надіслати текстом</strong><small>Теж тільки обрані розділи</small></div></button></div><div id="choiceStatus4402" class="choice-status4402"></div></div>`;
+  modal=document.createElement('div');modal.id='estimateChoiceModal4402';modal.innerHTML=`<div class="choice-sheet4402" role="dialog" aria-modal="true"><div class="choice-head4402"><div><h3>📄 Що включити в кошторис?</h3><p>За замовчуванням формується кошторис <b>поточної кімнати</b>. Для всього об’єкта перемкніть режим нижче.</p></div><button type="button" class="choice-close4402" onclick="closeEstimate4402()">×</button></div><div class="choice-scope4473"><div class="choice-scope-title4473">ЩО ВІДПРАВЛЯЄМО</div><div class="choice-scope-grid4473"><button id="choiceScopeRoom4473" class="choice-scope-btn4473 active" type="button" onclick="setEstimateScope4473('room')">🚪 Поточна кімната</button><button id="choiceScopeObject4473" class="choice-scope-btn4473" type="button" onclick="setEstimateScope4473('object')">🏠 Весь об’єкт</button></div><div id="choiceScopeCurrent4477" class="choice-scope-current4477">Поточна: <b>Кімната</b></div><div id="choiceRoomList4488" class="choice-room-list4488" aria-label="Вибір кімнати для кошторису"></div><div id="choiceScopeNote4473" class="choice-scope-note4473">Суми нижче рахуються тільки для вибраної кімнати.</div></div><div class="choice-presets4402"><button id="choicePresetCeiling4402" class="choice-preset4402 active" type="button" onclick="estimatePreset4402('ceiling')">🏠 Стеля поточної кімнати</button><button id="choicePresetAll4402" class="choice-preset4402" type="button" onclick="estimatePreset4402('all')">📋 Кошторис поточної кімнати</button></div><div class="choice-label4402">Розділи кошторису</div><div class="choice-list4402"><label class="choice-item4402"><input id="choiceCeiling4402" type="checkbox" checked onchange="refreshEstimateChoice4402()"><span><strong>🏠 Натяжні стелі</strong><small>Полотно, профіль, освітлення та елементи стелі</small></span><b id="choiceCeilingValue4402">0 грн</b></label><label class="choice-item4402"><input id="choiceFinishing4402" type="checkbox" onchange="refreshEstimateChoice4402()"><span><strong>🧱 Оздоблення</strong><small>Оздоблювальні роботи по кімнатах</small></span><b id="choiceFinishingValue4402">0 грн</b></label><label class="choice-item4402"><input id="choiceAdditional4402" type="checkbox" onchange="refreshEstimateChoice4402()"><span><strong>🔧 Додаткові роботи</strong><small>Демонтаж, свердління, захист та інші роботи</small></span><b id="choiceAdditionalValue4402">0 грн</b></label><label class="choice-item4402"><input id="choiceMaterials4402" type="checkbox" onchange="refreshEstimateChoice4402()"><span><strong>📦 Матеріали об’єкта</strong><small>Загальний список шпаклівки, ґрунту, плівки та інших матеріалів</small></span><b id="choiceMaterialsValue4402">0 грн</b></label></div><div class="choice-total4402"><span>Буде відправлено на суму</span><b id="choiceTotal4402">0 грн</b></div><div class="choice-payment-grid4472"><label class="choice-payment-field4472"><span>Аванс, грн</span><input id="choiceAdvance4472" type="number" inputmode="decimal" min="0" step="1" value="0"></label><label class="choice-payment-field4472"><span>Дата кошторису</span><input id="choiceEstimateDate4472" type="text" inputmode="numeric" autocomplete="off" placeholder="дд.мм.рррр" maxlength="10"></label><label class="choice-comment-field4482"><span>Коментар</span><textarea id="choiceEstimateComment4482" rows="3" placeholder="Наприклад: роботи у 2 етапи, матеріали окремо..."></textarea></label><div class="choice-payment-note4472">Дата підставляється автоматично. Коментар буде видимий у кошторисі клієнта.</div></div><div class="choice-actions4402"><button class="choice-action4402 primary" type="button" onclick="shareSelectedEstimate4402(this)"><span>📎</span><div><strong>Надіслати вибраний кошторис файлом</strong><small>У файл потраплять тільки відмічені розділи</small></div></button><button class="choice-action4402" type="button" onclick="downloadSelectedEstimate4402(this)"><span>⬇️</span><div><strong>Завантажити вибраний кошторис</strong><small>Зберегти HTML-файл на телефон</small></div></button><button class="choice-action4402" type="button" onclick="shareSelectedEstimateText4402(this)"><span>💬</span><div><strong>Надіслати текстом</strong><small>Теж тільки обрані розділи</small></div></button></div><div id="choiceStatus4402" class="choice-status4402"></div></div>`;
   modal.addEventListener('click',event=>{if(event.target===modal)window.closeEstimate4402()});document.body.appendChild(modal);return modal;
 }
 window.refreshEstimateChoice4402=refreshChoice4402;
@@ -29354,7 +29391,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
     if(document.getElementById('pixel4486BuildBadge')) return;
     var el=document.createElement('div');
     el.id='pixel4486BuildBadge';
-    el.textContent='BUILD 44.87 INSERT FIX';
+    el.textContent='BUILD 44.88 ROOM SELECT';
     document.body.appendChild(el);
     try{
       document.documentElement.dataset.pixelVersion='44.86';
@@ -29367,6 +29404,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 })();
 </script>
 
+<!-- PIXEL 44.88: estimate room selector + preserve 44.87 insert persistence -->
 <!-- PIXEL 44.87: persist/restore perimeter insert per room -->
 <script id="pixel4487InsertPersistenceFix">
 (function(){
