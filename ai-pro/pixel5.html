@@ -29408,7 +29408,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
     if(document.getElementById('pixel4486BuildBadge')) return;
     var el=document.createElement('div');
     el.id='pixel4486BuildBadge';
-    el.textContent='BUILD 44.93 ADMIN OBJECT FOLDER';
+    el.textContent='BUILD 44.95 ADMIN PIN GATE';
     document.body.appendChild(el);
     try{
       document.documentElement.dataset.pixelVersion='44.86';
@@ -29545,6 +29545,8 @@ window.__persistInsert4487=persist4487;
 })();
 </script>
 
+<!-- PIXEL 44.95: hide 'Мої об’єкти' until successful admin PIN unlock | base 44.94 -->
+<!-- PIXEL 44.94: folder item filters and opens its existing admin card directly | base 44.93 -->
 <!-- PIXEL 44.93: top admin folder = cloud objects count + names + jump to existing card | base 44.92 -->
 <!-- PIXEL 44.92: move 'Мої об’єкти' to top of admin only | base 44.91 -->
 <!-- PIXEL 44.91: ADMIN CLEANUP ONLY | base 44.90 -->
@@ -29553,8 +29555,8 @@ window.__persistInsert4487=persist4487;
 <style id="pixel4493AdminFolderStyles">
 /* 44.93 — admin-only object folder/navigation. No planner/calculator/estimate rules. */
 html.admin-mode4493 .ai-request-section{display:none!important}
-#adminObjectFolder4493{display:none}
-html.admin-mode4493 #adminObjectFolder4493{
+#adminObjectFolder4493{display:none!important}
+html.admin-mode4493.admin-unlocked4495 #adminObjectFolder4493{
   display:block;margin:10px 0 16px;padding:0;
   border:1px solid #bfdbfe;border-radius:14px;background:#f8fbff;overflow:hidden
 }
@@ -29577,7 +29579,7 @@ html.admin-mode4493 #adminObjectFolder4493{
 }
 #adminObjectFolder4493 .a4493-object b{font-size:10.5px}
 #adminObjectFolder4493 .a4493-object small{display:block;margin-top:2px;font-size:7.5px;color:#64748b;font-weight:800}
-#adminObjectFolder4493 .a4493-arrow{font-size:13px;color:#075bff;font-weight:950}
+#adminObjectFolder4493 .a4493-arrow{font-size:8.5px;color:#075bff;font-weight:950;white-space:nowrap}
 #adminObjectFolder4493 .a4493-empty{font-size:9px;color:#64748b;padding:4px 2px}
 .p60-object.a4493-focus{outline:3px solid rgba(7,91,255,.24);outline-offset:2px}
 html.admin-mode4493 .object-end-actions4394 .object-actions4393-head span{display:none!important}
@@ -29627,7 +29629,7 @@ function renderFolder4493(){
         const meta=[r?.object_number||'',o.address||''].filter(Boolean).join(' · ');
         return '<button type="button" class="a4493-object" data-a4493-object="'+esc4493(r.id)+'">'+
           '<span><b>'+esc4493(rowName4493(r,i))+'</b><small>'+esc4493(meta||'Збережений об’єкт')+'</small></span>'+
-          '<span class="a4493-arrow">›</span>'+
+          '<span class="a4493-arrow">Відкрити ›</span>'+
         '</button>';
       }).join(''):'<div class="a4493-empty">Збережених об’єктів поки немає.</div>')+
     '</div></div>';
@@ -29642,6 +29644,29 @@ function focusCard4493(id){
   setTimeout(()=>card.classList.remove('a4493-focus'),1800);
   return true;
 }
+function directOpen4494(id){
+  const rows=rows4493();
+  const row=rows.find(r=>String(r?.id)===String(id));
+  if(!row)return;
+
+  /* Show only the selected existing admin card, then scroll directly to it.
+     This keeps the current card/menu and avoids stopping on the search field. */
+  const o=row?.object_data&&typeof row.object_data==='object'?row.object_data:{};
+  const exact=String(row.object_number||o.clientName||'').trim();
+
+  try{
+    if(typeof window.renderServiceList60==='function'){
+      window.renderServiceList60(exact);
+    }
+  }catch(_){}
+
+  setTimeout(()=>{
+    if(!focusCard4493(id)){
+      try{window.renderServiceList60?.('')}catch(_){}
+      setTimeout(()=>focusCard4493(id),80);
+    }
+  },60);
+}
 document.addEventListener('click',e=>{
   const toggle=e.target.closest?.('[data-a4493-toggle]');
   if(toggle){
@@ -29652,31 +29677,56 @@ document.addEventListener('click',e=>{
   const b=e.target.closest?.('[data-a4493-object]');
   if(!b)return;
   e.preventDefault();
-  const id=b.getAttribute('data-a4493-object');
-  if(!focusCard4493(id)){
-    try{window.renderServiceList60?.()}catch(_){}
-    setTimeout(()=>focusCard4493(id),100);
-  }
+  directOpen4494(b.getAttribute('data-a4493-object'));
 },true);
 
 function adminActive4493(){
   return document.getElementById('tab_service')?.classList.contains('active');
 }
+function adminUnlocked4495(){
+  if(!adminActive4493())return false;
+
+  /* Existing admin UI is considered unlocked only when the real admin panel
+     is present/visible. The PIN-only screen must never expose object names. */
+  const panel=document.querySelector('#tab_service .p60-admin-head, #tab_service .service-admin-panel, #tab_service [data-service-admin-unlocked]');
+  if(panel && panel.getClientRects().length)return true;
+
+  const root=document.getElementById('serviceRoot60');
+  if(root && root.querySelector('.p60-object') && !document.querySelector('#tab_service .p60-login'))return true;
+
+  /* Fallback for current markup: "Панель адміністратора" heading exists only
+     after successful PIN authorization. */
+  return [...document.querySelectorAll('#tab_service h1,#tab_service h2,#tab_service h3,#tab_service .title')]
+    .some(el=>/Панель адміністратора/i.test(el.textContent||'') && el.getClientRects().length);
+}
 function syncAdmin4493(){
   const active=adminActive4493();
+  const unlocked=adminUnlocked4495();
+
   document.documentElement.classList.toggle('admin-mode4493',!!active);
-  if(active){
+  document.documentElement.classList.toggle('admin-unlocked4495',!!unlocked);
+
+  if(active && unlocked){
     const head=document.querySelector('#objectActions4393 .object-actions4393-head b');
     if(head)head.textContent='⚙️ Керування об’єктом';
     renderFolder4493();
+  }else{
+    document.getElementById('adminObjectFolder4493')?.classList.remove('open');
   }
 }
 function start4493(){
   syncAdmin4493();
   const serviceRoot=document.getElementById('serviceRoot60');
   if(serviceRoot){
-    new MutationObserver(()=>{if(adminActive4493())setTimeout(renderFolder4493,20)})
-      .observe(serviceRoot,{childList:true,subtree:true});
+    new MutationObserver(()=>{
+      setTimeout(syncAdmin4493,20);
+      if(adminUnlocked4495())setTimeout(renderFolder4493,35);
+    }).observe(serviceRoot,{childList:true,subtree:true,attributes:true,attributeFilter:['class','style']});
+  }
+  const serviceTab=document.getElementById('tab_service');
+  if(serviceTab){
+    new MutationObserver(()=>setTimeout(syncAdmin4493,20))
+      .observe(serviceTab,{childList:true,subtree:true,attributes:true,attributeFilter:['class','style']});
   }
   document.querySelectorAll('.page-section').forEach(x=>
     new MutationObserver(syncAdmin4493).observe(x,{attributes:true,attributeFilter:['class']})
