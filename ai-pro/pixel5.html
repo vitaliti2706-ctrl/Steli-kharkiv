@@ -1,3 +1,4 @@
+<!-- PIXEL 44.90: restore 'Весь об’єкт' quick button in room summary | base 44.89 -->
 <!-- PIXEL 44.89: root fix — saved perimeter insert survives render/restore | base 44.88 -->
 <!-- PIXEL 44.87: persist/restore perimeter insert per room | base 44.86 -->
 <!-- PIXEL 44.50 FINISHING CUSTOM WORK FIX | base: 44.49 OBJECT HISTORY RELEASE -->
@@ -19468,7 +19469,7 @@ function ensure4365(){
     grid.id='objectQuickSections4365';
     grid.setAttribute('aria-label','Швидкий перехід до розділів з підсумку поточної кімнати');
     grid.innerHTML=''
-      +'<button type="button" class="planner-quick-section4358" data-object-summary-jump4365="room"><strong>🚪 Поточна кімната</strong><small data-object-room-label4477>Кімната</small></button>'
+      +'<button type="button" class="planner-quick-section4358" data-object-summary-jump4365="all"><strong>🏠 Весь об’єкт</strong><small>Загальний підсумок</small></button>'
       +'<button type="button" class="planner-quick-section4358" data-object-summary-jump4365="elements"><strong>🧩 Додаткові елементи</strong><small data-object-scope4365>Кімната</small></button>'
       +'<button type="button" class="planner-quick-section4358" data-object-summary-jump4365="works"><strong>🛠 Додаткові роботи</strong><small data-object-scope4365>Кімната</small></button>'
       +'<button type="button" class="planner-quick-section4358" data-object-summary-jump4365="finishing"><strong>🧱 Оздоблення</strong><small data-object-scope4365>Кімната</small></button>';
@@ -29407,7 +29408,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
     if(document.getElementById('pixel4486BuildBadge')) return;
     var el=document.createElement('div');
     el.id='pixel4486BuildBadge';
-    el.textContent='BUILD 44.89 INSERT ROOT FIX';
+    el.textContent='BUILD 44.90 OBJECT BUTTON';
     document.body.appendChild(el);
     try{
       document.documentElement.dataset.pixelVersion='44.86';
