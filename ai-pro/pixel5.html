@@ -29408,7 +29408,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
     if(document.getElementById('pixel4486BuildBadge')) return;
     var el=document.createElement('div');
     el.id='pixel4486BuildBadge';
-    el.textContent='BUILD 44.92 OBJECTS TOP';
+    el.textContent='BUILD 44.93 ADMIN OBJECT FOLDER';
     document.body.appendChild(el);
     try{
       document.documentElement.dataset.pixelVersion='44.86';
@@ -29545,153 +29545,148 @@ window.__persistInsert4487=persist4487;
 })();
 </script>
 
+<!-- PIXEL 44.93: top admin folder = cloud objects count + names + jump to existing card | base 44.92 -->
 <!-- PIXEL 44.92: move 'Мої об’єкти' to top of admin only | base 44.91 -->
 <!-- PIXEL 44.91: ADMIN CLEANUP ONLY | base 44.90 -->
 
-<style id="pixel4491AdminCleanupStyles">
-/* 44.91 — admin-only cleanup. No calculator/planner/estimate styles are touched. */
-html.admin-mode4491 .ai-request-section{display:none!important}
-#adminObjectChooser4491{display:none}
-html.admin-mode4491 #adminObjectChooser4491{
-  display:block;
-  margin:10px 0 16px;
-  padding:13px;
-  border:1px solid #bfdbfe;
-  border-radius:14px;
-  background:#f8fbff;
+
+<style id="pixel4493AdminFolderStyles">
+/* 44.93 — admin-only object folder/navigation. No planner/calculator/estimate rules. */
+html.admin-mode4493 .ai-request-section{display:none!important}
+#adminObjectFolder4493{display:none}
+html.admin-mode4493 #adminObjectFolder4493{
+  display:block;margin:10px 0 16px;padding:0;
+  border:1px solid #bfdbfe;border-radius:14px;background:#f8fbff;overflow:hidden
 }
-#adminObjectChooser4491 .a4491-title{
-  font-size:12px;font-weight:950;color:#0f172a;margin-bottom:5px
+#adminObjectFolder4493 .a4493-head{
+  width:100%;border:0;background:transparent;padding:13px 14px;
+  display:flex;align-items:center;justify-content:space-between;gap:10px;
+  font-size:12px;font-weight:950;color:#0f172a;text-align:left
 }
-#adminObjectChooser4491 .a4491-current{
-  font-size:10px;font-weight:850;color:#475569;margin-bottom:10px
+#adminObjectFolder4493 .a4493-count{
+  min-width:28px;height:28px;border-radius:999px;background:#075bff;color:#fff;
+  display:inline-flex;align-items:center;justify-content:center;font-size:10px;font-weight:950
 }
-#adminObjectChooser4491 .a4491-current b{color:#075bff}
-#adminObjectChooser4491 .a4491-list{
-  display:flex;gap:8px;overflow-x:auto;padding:1px 0 4px;scrollbar-width:thin
+#adminObjectFolder4493 .a4493-body{display:none;padding:0 12px 12px}
+#adminObjectFolder4493.open .a4493-body{display:block}
+#adminObjectFolder4493 .a4493-list{display:grid;gap:7px}
+#adminObjectFolder4493 .a4493-object{
+  width:100%;border:1px solid #cbd5e1;background:#fff;border-radius:10px;
+  padding:10px 11px;display:flex;align-items:center;justify-content:space-between;
+  gap:8px;text-align:left;color:#0f172a
 }
-#adminObjectChooser4491 .a4491-btn{
-  flex:0 0 auto;min-width:118px;max-width:190px;
-  border:1px solid #cbd5e1;border-radius:11px;background:#fff;
-  padding:9px 11px;text-align:left;color:#0f172a;font-weight:900
-}
-#adminObjectChooser4491 .a4491-btn.active{
-  border-color:#075bff;background:#eaf2ff;color:#075bff;
-  box-shadow:0 5px 14px rgba(7,91,255,.12)
-}
-#adminObjectChooser4491 .a4491-btn small{
-  display:block;margin-top:3px;font-size:8px;font-weight:800;color:#64748b
-}
-html.admin-mode4491 .object-end-actions4394 .object-actions4393-head span{
-  display:none!important
-}
-html.admin-mode4491 .object-end-actions4394 .object-actions4393-head b{
-  font-size:18px!important
-}
+#adminObjectFolder4493 .a4493-object b{font-size:10.5px}
+#adminObjectFolder4493 .a4493-object small{display:block;margin-top:2px;font-size:7.5px;color:#64748b;font-weight:800}
+#adminObjectFolder4493 .a4493-arrow{font-size:13px;color:#075bff;font-weight:950}
+#adminObjectFolder4493 .a4493-empty{font-size:9px;color:#64748b;padding:4px 2px}
+.p60-object.a4493-focus{outline:3px solid rgba(7,91,255,.24);outline-offset:2px}
+html.admin-mode4493 .object-end-actions4394 .object-actions4393-head span{display:none!important}
+html.admin-mode4493 .object-end-actions4394 .object-actions4393-head b{font-size:18px!important}
 </style>
 
-<script id="pixel4491AdminCleanupScript">
+<script id="pixel4493AdminFolderScript">
 (function(){
 'use strict';
-if(window.__pixel4491AdminCleanup)return;
-window.__pixel4491AdminCleanup=true;
+if(window.__pixel4493AdminFolder)return;
+window.__pixel4493AdminFolder=true;
 
-function esc4491(v){
+function esc4493(v){
   return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
 }
-function currentName4491(){
-  const n=(document.getElementById('clientName')?.value||'').trim();
-  const a=(document.getElementById('objectAddress')?.value||'').trim();
-  return n||a||'Новий об’єкт';
+function rows4493(){
+  return Array.isArray(window.serviceRows60)?window.serviceRows60:[];
 }
-function activeId4491(){
-  try{return String(window.activeObjectId||activeObjectId||'')}catch(_){return ''}
+function rowName4493(r,index){
+  const o=r?.object_data&&typeof r.object_data==='object'?r.object_data:{};
+  return String(o.clientName||r?.object_number||('Об’єкт '+(index+1)));
 }
-function historyObjects4491(){
-  const root=document.getElementById('objectList');
-  if(!root)return [];
-  return [...root.querySelectorAll('.object-card')].map((card,index)=>{
-    const open=[...card.querySelectorAll('button')].find(b=>/Відкрити/i.test(b.textContent||''));
-    const code=open?.getAttribute('onclick')||'';
-    const match=code.match(/loadObject\(['"]([^'"]+)['"]\)/);
-    const id=match?.[1]||'';
-    const title=(card.querySelector('b')?.textContent||'').trim();
-    const meta=(card.querySelector('span')?.textContent||'').trim();
-    return id?{id,title:title||('Об’єкт '+(index+1)),meta}:null;
-  }).filter(Boolean);
-}
-function ensureChooser4491(){
+function ensureFolder4493(){
   const admin=document.getElementById('tab_service');
   if(!admin)return null;
-  let box=document.getElementById('adminObjectChooser4491');
+  let box=document.getElementById('adminObjectFolder4493');
   if(!box){
     box=document.createElement('div');
-    box.id='adminObjectChooser4491';
-    const firstContent=[...admin.children].find(el=>{
-      if(!el || el.id==='adminObjectChooser4491')return false;
-      const tag=String(el.tagName||'').toLowerCase();
-      return tag!=='script' && tag!=='style';
-    });
-    if(firstContent)admin.insertBefore(box,firstContent);
-    else admin.prepend(box);
+    box.id='adminObjectFolder4493';
+    admin.prepend(box);
   }else if(box.parentElement!==admin){
     admin.prepend(box);
   }
   return box;
 }
-function renderChooser4491(){
-  const box=ensureChooser4491();
-  if(!box)return;
-  const items=historyObjects4491();
-  const active=activeId4491();
+function renderFolder4493(){
+  const box=ensureFolder4493();if(!box)return;
+  const rows=rows4493();
+  const wasOpen=box.classList.contains('open');
   box.innerHTML=
-    '<div class="a4491-title">📁 Мої об’єкти</div>'+
-    '<div class="a4491-current">Поточний об’єкт: <b>'+esc4491(currentName4491())+'</b></div>'+
-    '<div class="a4491-list">'+
-      (items.length?items.map(o=>
-        '<button type="button" class="a4491-btn '+(String(o.id)===active?'active':'')+'" data-admin-object4491="'+esc4491(o.id)+'">'+
-          esc4491((o.title||'').split(' — ')[0]||o.title)+
-          '<small>'+esc4491(o.meta||'Збережений об’єкт')+'</small>'+
-        '</button>'
-      ).join(''):'<div style="font-size:9px;color:#64748b">Збережених об’єктів поки немає.</div>')+
-    '</div>';
+    '<button type="button" class="a4493-head" data-a4493-toggle>'+
+      '<span>📁 Мої об’єкти</span><span class="a4493-count">'+rows.length+'</span>'+
+    '</button>'+
+    '<div class="a4493-body"><div class="a4493-list">'+
+      (rows.length?rows.map((r,i)=>{
+        const o=r?.object_data&&typeof r.object_data==='object'?r.object_data:{};
+        const meta=[r?.object_number||'',o.address||''].filter(Boolean).join(' · ');
+        return '<button type="button" class="a4493-object" data-a4493-object="'+esc4493(r.id)+'">'+
+          '<span><b>'+esc4493(rowName4493(r,i))+'</b><small>'+esc4493(meta||'Збережений об’єкт')+'</small></span>'+
+          '<span class="a4493-arrow">›</span>'+
+        '</button>';
+      }).join(''):'<div class="a4493-empty">Збережених об’єктів поки немає.</div>')+
+    '</div></div>';
+  box.classList.toggle('open',wasOpen);
 }
-async function openObject4491(id){
-  if(!id)return;
-  try{
-    if(typeof window.loadObject==='function')await window.loadObject(id);
-    else if(typeof loadObject==='function')await loadObject(id);
-  }catch(e){console.warn('44.91 load object',e)}
-  document.documentElement.classList.add('admin-mode4491');
-  setTimeout(renderChooser4491,80);
+function focusCard4493(id){
+  const card=document.getElementById('serviceObject60_'+id);
+  if(!card)return false;
+  document.querySelectorAll('.p60-object.a4493-focus').forEach(x=>x.classList.remove('a4493-focus'));
+  card.classList.add('a4493-focus');
+  card.scrollIntoView({behavior:'smooth',block:'start'});
+  setTimeout(()=>card.classList.remove('a4493-focus'),1800);
+  return true;
 }
 document.addEventListener('click',e=>{
-  const b=e.target.closest?.('[data-admin-object4491]');
+  const toggle=e.target.closest?.('[data-a4493-toggle]');
+  if(toggle){
+    e.preventDefault();
+    document.getElementById('adminObjectFolder4493')?.classList.toggle('open');
+    return;
+  }
+  const b=e.target.closest?.('[data-a4493-object]');
   if(!b)return;
   e.preventDefault();
-  openObject4491(b.getAttribute('data-admin-object4491'));
+  const id=b.getAttribute('data-a4493-object');
+  if(!focusCard4493(id)){
+    try{window.renderServiceList60?.()}catch(_){}
+    setTimeout(()=>focusCard4493(id),100);
+  }
 },true);
 
-function setAdminMode4491(){
-  const active=document.getElementById('tab_service')?.classList.contains('active');
-  document.documentElement.classList.toggle('admin-mode4491',!!active);
+function adminActive4493(){
+  return document.getElementById('tab_service')?.classList.contains('active');
+}
+function syncAdmin4493(){
+  const active=adminActive4493();
+  document.documentElement.classList.toggle('admin-mode4493',!!active);
   if(active){
     const head=document.querySelector('#objectActions4393 .object-actions4393-head b');
     if(head)head.textContent='⚙️ Керування об’єктом';
-    try{if(typeof window.renderHistory==='function')window.renderHistory()}catch(_){}
-    setTimeout(renderChooser4491,80);
-    setTimeout(renderChooser4491,350);
+    renderFolder4493();
   }
 }
-const observer=new MutationObserver(setAdminMode4491);
-function start4491(){
-  document.querySelectorAll('.page-section').forEach(x=>observer.observe(x,{attributes:true,attributeFilter:['class']}));
-  setAdminMode4491();
+function start4493(){
+  syncAdmin4493();
+  const serviceRoot=document.getElementById('serviceRoot60');
+  if(serviceRoot){
+    new MutationObserver(()=>{if(adminActive4493())setTimeout(renderFolder4493,20)})
+      .observe(serviceRoot,{childList:true,subtree:true});
+  }
+  document.querySelectorAll('.page-section').forEach(x=>
+    new MutationObserver(syncAdmin4493).observe(x,{attributes:true,attributeFilter:['class']})
+  );
 }
-if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start4491,{once:true});else start4491();
-window.addEventListener('pageshow',()=>setTimeout(setAdminMode4491,60),{passive:true});
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start4493,{once:true});else start4493();
+window.addEventListener('pageshow',()=>setTimeout(syncAdmin4493,60),{passive:true});
 })();
 </script>
+
 </body></html>
 
 <!-- 44.41: surgical NW export fix based strictly on 44.40; selected insert is included in final NW order; no planner/canvas quantity logic changed. -->
