@@ -1,4 +1,4 @@
-<!-- PIXEL 44.86: diagnostic build marker only | base 44.85 FINAL -->
+<!-- PIXEL 44.87: persist/restore perimeter insert per room | base 44.86 -->
 <!-- PIXEL 44.50 FINISHING CUSTOM WORK FIX | base: 44.49 OBJECT HISTORY RELEASE -->
 <!-- FILE: PIXEL 5.6 FULL HISTORY FIX | EXPECTED ~3150 LINES | 43.91 room delete -->
 <!DOCTYPE html>
@@ -29364,6 +29364,129 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   if(document.readyState==='loading'){
     document.addEventListener('DOMContentLoaded',mount,{once:true});
   }else{ mount(); }
+})();
+</script>
+
+<!-- PIXEL 44.87: persist/restore perimeter insert per room -->
+<script id="pixel4487InsertPersistenceFix">
+(function(){
+'use strict';
+if(window.__pixel4487InsertPersistenceFix)return;
+window.__pixel4487InsertPersistenceFix=true;
+
+const copy4487=v=>{try{return JSON.parse(JSON.stringify(v))}catch(_){return v}};
+function rooms4487(){try{return Array.isArray(projectRooms)?projectRooms:[]}catch(_){return Array.isArray(window.projectRooms)?window.projectRooms:[]}}
+function activeId4487(){try{return String(activeRoomId??'')}catch(_){return String(window.activeRoomId??'')}}
+function active4487(){return rooms4487().find(r=>String(r?.id||'')===activeId4487())||null}
+function liveBindings4487(){
+  try{if(Array.isArray(perimeterBindings))return copy4487(perimeterBindings)}catch(_){}
+  const r=active4487();return copy4487(Array.isArray(r?.perimeterBindings)?r.perimeterBindings:[]);
+}
+function bindingInsert4487(bindings){
+  let white=false,black=false;
+  (Array.isArray(bindings)?bindings:[]).forEach(list=>(Array.isArray(list)?list:[]).forEach(v=>{
+    if(String(v)==='insertWhite')white=true;
+    if(String(v)==='insertBlack')black=true;
+  }));
+  return black?'black':white?'white':'none';
+}
+function uiInsert4487(){
+  const ids=['calcInsert','roomPackageInsert','objectInsert47'];
+  for(const id of ids){
+    const v=String(document.getElementById(id)?.value||'').toLowerCase();
+    if(v==='white'||v==='black')return v;
+  }
+  if(document.getElementById('check_insertBlack')?.checked)return'black';
+  if(document.getElementById('check_insertWhite')?.checked)return'white';
+  return'none';
+}
+function setUi4487(type){
+  const t=(type==='white'||type==='black')?type:'none';
+  ['calcInsert','roomPackageInsert','objectInsert47'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el&&[...el.options||[]].some(o=>String(o.value)===t))el.value=t;
+  });
+  ['insertWhite','insertBlack'].forEach(id=>{
+    const on=(t==='white'&&id==='insertWhite')||(t==='black'&&id==='insertBlack');
+    const c=document.getElementById('check_'+id),f=document.getElementById('fields_'+id);
+    if(c)c.checked=on;
+    if(f)f.classList.toggle('hidden',!on);
+  });
+}
+function persist4487(){
+  const r=active4487();if(!r)return;
+  const bindings=liveBindings4487();
+  if(bindings.length)r.perimeterBindings=copy4487(bindings);
+  const fromBindings=bindingInsert4487(bindings);
+  const fromUi=uiInsert4487();
+  const previous=String(r.insertPackage||'').toLowerCase();
+  const type=fromBindings!=='none'?fromBindings:(fromUi!=='none'?fromUi:((previous==='white'||previous==='black')?previous:'none'));
+  r.insertPackage=type;
+  r.insertPersistence4487={type,bindings:copy4487(r.perimeterBindings||[]),savedAt:new Date().toISOString()};
+}
+
+const baseSync4487=window.syncActiveRoomFromUI;
+if(typeof baseSync4487==='function'){
+  window.syncActiveRoomFromUI=function(){
+    /* Save insert state before the legacy capture can replace the room object. */
+    const before=active4487();
+    const snapshot=before?{
+      insertPackage:String(before.insertPackage||'none'),
+      perimeterBindings:copy4487(liveBindings4487())
+    }:null;
+    const uiBefore=uiInsert4487();
+    const out=baseSync4487.apply(this,arguments);
+    const r=active4487();
+    if(r){
+      const live=liveBindings4487();
+      const savedBindings=(live&&live.length)?live:(snapshot?.perimeterBindings||[]);
+      if(savedBindings.length)r.perimeterBindings=copy4487(savedBindings);
+      const bound=bindingInsert4487(savedBindings);
+      const old=String(snapshot?.insertPackage||'').toLowerCase();
+      r.insertPackage=bound!=='none'?bound:(uiBefore!=='none'?uiBefore:((old==='white'||old==='black')?old:'none'));
+      r.insertPersistence4487={type:r.insertPackage,bindings:copy4487(r.perimeterBindings||[]),savedAt:new Date().toISOString()};
+    }
+    return out;
+  };
+}
+
+const baseRestore4487=window.restoreRoom;
+if(typeof baseRestore4487==='function'){
+  window.restoreRoom=function(room){
+    const savedBindings=copy4487(room?.insertPersistence4487?.bindings||room?.perimeterBindings||[]);
+    const bound=bindingInsert4487(savedBindings);
+    const savedType=String(room?.insertPersistence4487?.type||room?.insertPackage||'').toLowerCase();
+    const type=bound!=='none'?bound:((savedType==='white'||savedType==='black')?savedType:'none');
+
+    const out=baseRestore4487.apply(this,arguments);
+
+    setTimeout(()=>{
+      try{
+        const r=active4487()||room;
+        if(savedBindings.length){
+          try{perimeterBindings=copy4487(savedBindings)}catch(_){window.perimeterBindings=copy4487(savedBindings)}
+          r.perimeterBindings=copy4487(savedBindings);
+        }
+        r.insertPackage=type;
+        r.insertPersistence4487={type,bindings:copy4487(savedBindings),savedAt:r?.insertPersistence4487?.savedAt||''};
+        setUi4487(type);
+        try{if(typeof renderPlanner==='function')renderPlanner()}catch(_){}
+        try{if(typeof recalc==='function')recalc()}catch(_){}
+        try{if(typeof updateSummary==='function')updateSummary()}catch(_){}
+      }catch(e){console.warn('44.87 insert restore',e)}
+    },120);
+    return out;
+  };
+}
+
+/* Also capture changes immediately when insert controls are changed. */
+document.addEventListener('change',e=>{
+  if(['calcInsert','roomPackageInsert','objectInsert47','check_insertWhite','check_insertBlack'].includes(String(e.target?.id||''))){
+    setTimeout(()=>{try{persist4487();if(typeof autosave==='function')autosave()}catch(_){}},0);
+  }
+},true);
+
+window.__persistInsert4487=persist4487;
 })();
 </script>
 </body></html>
