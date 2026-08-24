@@ -30424,3 +30424,156 @@ if(document.readyState==='loading'){
 window.addEventListener('pageshow',function(){setTimeout(sync4498,80)},{passive:true});
 })();
 </script>
+
+
+<!-- PIXEL 44.99: OBJECT OPEN FIX | base 44.98
+Fix: leaving Admin before loading an object, then forcing the normal Object tab/UI back on.
+No calculator/room/estimate logic changed.
+-->
+<style id="pixel4499ObjectOpenFixStyles">
+/* Admin-only hiding must never survive on the object screen. */
+html:not(.admin-mode4497) #objectActions4393,
+html:not(.admin-mode4497) #objectEndActions4394,
+html:not(.admin-mode4497) .ai-request-section{
+  visibility:visible!important;
+  opacity:1!important;
+}
+
+/* Build marker stays at the top and never overlays UI. */
+#pixelBuild4498{display:none!important}
+#pixelBuild4499{
+  position:static!important;
+  display:inline-block!important;
+  margin:7px 16px 10px!important;
+  padding:5px 9px!important;
+  border-radius:9px!important;
+  background:#0f172a!important;
+  color:#fff!important;
+  font:900 8px/1.2 Arial,Helvetica,sans-serif!important;
+  pointer-events:none!important;
+  box-shadow:none!important;
+}
+</style>
+
+<script id="pixel4499ObjectOpenFixScript">
+(function(){
+'use strict';
+if(window.__pixel4499ObjectOpenFix)return;
+window.__pixel4499ObjectOpenFix=true;
+
+function objectButton4499(){
+  return [...document.querySelectorAll('.main-tab')]
+    .find(b => /showMainTab\(['"]object['"]/.test(b.getAttribute('onclick')||''))
+    || [...document.querySelectorAll('.main-tab')].find(b => /Об.?єкт|Объект/i.test(b.textContent||''));
+}
+
+function forceObjectMode4499(){
+  const root=document.documentElement;
+  root.classList.remove('admin-mode4497','admin-unlocked4497');
+
+  document.querySelectorAll('.page-section').forEach(s=>s.classList.remove('active'));
+  const object=document.getElementById('tab_object');
+  if(object)object.classList.add('active');
+
+  document.querySelectorAll('.main-tab').forEach(b=>b.classList.remove('active'));
+  const btn=objectButton4499();
+  if(btn)btn.classList.add('active');
+
+  /* Remove any stale hiding left by Admin navigation. */
+  ['objectActions4393','objectEndActions4394'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el){
+      el.style.removeProperty('display');
+      el.style.removeProperty('visibility');
+      el.style.removeProperty('opacity');
+    }
+  });
+  document.querySelectorAll('.ai-request-section').forEach(el=>{
+    el.style.removeProperty('display');
+    el.style.removeProperty('visibility');
+    el.style.removeProperty('opacity');
+  });
+}
+
+function refreshObject4499(){
+  forceObjectMode4499();
+
+  /* Repaint the normal object UI using already-existing renderers only. */
+  const calls=[
+    'renderRooms',
+    'renderPlanner',
+    'renderPalette',
+    'recalc',
+    'updateAISpec',
+    'renderObjectCenter4325'
+  ];
+  calls.forEach(name=>{
+    try{
+      const fn=window[name];
+      if(typeof fn==='function')fn();
+    }catch(_){}
+  });
+}
+
+function mountBuild4499(){
+  document.getElementById('pixelBuild4498')?.remove();
+  let el=document.getElementById('pixelBuild4499');
+  if(!el){
+    el=document.createElement('div');
+    el.id='pixelBuild4499';
+    el.textContent='BUILD 44.99 OBJECT OPEN FIX';
+  }
+  const header=document.querySelector('.header,header,.site-header,.topbar');
+  if(header){
+    if(el.previousElementSibling!==header)header.insertAdjacentElement('afterend',el);
+  }else if(!el.isConnected){
+    document.body.prepend(el);
+  }
+}
+
+function install4499(){
+  mountBuild4499();
+
+  const original=window.openCloudObject56;
+  if(typeof original==='function' && !original.__pixel4499Wrapped){
+    const wrapped=async function(){
+      /* Critical: exit Admin BEFORE loadObject() starts. */
+      forceObjectMode4499();
+
+      let result;
+      try{
+        result=await original.apply(this,arguments);
+      }finally{
+        /* Some old admin observers run asynchronously. Win the race again. */
+        refreshObject4499();
+        setTimeout(refreshObject4499,40);
+        setTimeout(refreshObject4499,150);
+        setTimeout(refreshObject4499,450);
+        setTimeout(()=>window.scrollTo({top:0,behavior:'auto'}),500);
+      }
+      return result;
+    };
+    wrapped.__pixel4499Wrapped=true;
+    wrapped.__pixel4499Original=original;
+    window.openCloudObject56=wrapped;
+  }
+
+  try{
+    document.documentElement.dataset.pixelVersion='44.99';
+    document.documentElement.dataset.pixelBuild='44.99-object-open-fix';
+    document.title='Potolok AI PRO — Pixel 44.99';
+  }catch(_){}
+}
+
+if(document.readyState==='loading'){
+  document.addEventListener('DOMContentLoaded',install4499,{once:true});
+}else{
+  install4499();
+}
+window.addEventListener('pageshow',()=>setTimeout(install4499,60),{passive:true});
+
+/* Re-install if a legacy script reassigns openCloudObject56 later during startup. */
+setTimeout(install4499,250);
+setTimeout(install4499,900);
+})();
+</script>
