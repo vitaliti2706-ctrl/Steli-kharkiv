@@ -30205,3 +30205,222 @@ setTimeout(mark4469,3200);
   }catch(_){}
 })();
 </script>
+
+
+<!-- PIXEL 44.98: ADMIN 4 FIXES | base: uploaded current 44.97
+1) build badge moved to top and all old bottom badges removed
+2) admin objects hidden by default; objects live in "Мої об’єкти" folder, only chosen card opens
+3) published status compact; no giant green circle
+4) "Керування об’єктом" hidden while Admin tab is active (including PIN screen)
+-->
+<style id="pixel4498AdminFourFixesStyles">
+/* 1. Build label: never overlay controls. */
+#pixel4486BuildBadge,
+#pixelBuild4497{
+  display:none!important;
+}
+#pixelBuild4498{
+  position:static!important;
+  display:inline-block!important;
+  margin:7px 16px 10px!important;
+  padding:5px 9px!important;
+  border-radius:9px!important;
+  background:#0f172a!important;
+  color:#fff!important;
+  font:900 8px/1.2 Arial,Helvetica,sans-serif!important;
+  letter-spacing:.15px!important;
+  box-shadow:none!important;
+  pointer-events:none!important;
+  z-index:auto!important;
+}
+
+/* 2. No loose object cards in Admin.
+   Folder remains the navigation. Only the object explicitly chosen from it is shown. */
+html.admin-unlocked4497 #tab_service .p60-object{
+  display:none!important;
+}
+html.admin-unlocked4497 #tab_service .p60-object.a4498-selected{
+  display:block!important;
+}
+
+/* Keep the folder directly under the admin search and visually primary. */
+html.admin-unlocked4497 #adminObjectFolder4497{
+  display:block!important;
+  margin:10px 0 14px!important;
+}
+
+/* 3. Published status must be a compact pill, never a large circle. */
+#tab_service .p60-key,
+#tab_service .p60-key.published{
+  width:auto!important;
+  height:auto!important;
+  min-width:0!important;
+  min-height:0!important;
+  max-width:max-content!important;
+  aspect-ratio:auto!important;
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  flex:0 0 auto!important;
+  align-self:flex-start!important;
+  padding:5px 8px!important;
+  margin:0!important;
+  border-radius:999px!important;
+  line-height:1.15!important;
+  font-family:Arial,Helvetica,sans-serif!important;
+  font-size:9px!important;
+  font-weight:950!important;
+  letter-spacing:0!important;
+  white-space:nowrap!important;
+  box-shadow:none!important;
+  transform:none!important;
+}
+#tab_service .p60-key.published{
+  color:#15803d!important;
+  background:#dcfce7!important;
+  border:1px solid #86efac!important;
+}
+
+/* 4. Object-management block belongs to the normal object workflow,
+   not to Admin / PIN. */
+html.admin-mode4497 #objectEndActions4394,
+html.admin-mode4497 #objectActions4393{
+  display:none!important;
+}
+</style>
+
+<script id="pixel4498AdminFourFixesScript">
+(function(){
+'use strict';
+if(window.__pixel4498AdminFourFixes)return;
+window.__pixel4498AdminFourFixes=true;
+
+let selected4498='';
+
+function adminTab4498(){
+  return document.getElementById('tab_service');
+}
+function adminActive4498(){
+  return !!adminTab4498()?.classList.contains('active');
+}
+function adminUnlocked4498(){
+  return document.documentElement.classList.contains('admin-unlocked4497');
+}
+
+function mountBuild4498(){
+  document.getElementById('pixel4486BuildBadge')?.remove();
+  document.getElementById('pixelBuild4497')?.remove();
+
+  let el=document.getElementById('pixelBuild4498');
+  if(!el){
+    el=document.createElement('div');
+    el.id='pixelBuild4498';
+    el.textContent='BUILD 44.98 ADMIN 4 FIXES';
+  }
+
+  const header=document.querySelector('.header,header,.site-header,.topbar');
+  if(header){
+    if(el.previousElementSibling!==header) header.insertAdjacentElement('afterend',el);
+  }else if(el.parentElement!==document.body || document.body.firstElementChild!==el){
+    document.body.prepend(el);
+  }
+}
+
+function markSelected4498(){
+  const tab=adminTab4498();
+  if(!tab)return;
+  tab.querySelectorAll('.p60-object.a4498-selected').forEach(card=>{
+    if(card.id!=='serviceObject60_'+selected4498)card.classList.remove('a4498-selected');
+  });
+  if(!selected4498)return;
+  const card=document.getElementById('serviceObject60_'+selected4498);
+  if(card)card.classList.add('a4498-selected');
+}
+
+function placeFolder4498(){
+  if(!adminActive4498() || !adminUnlocked4498())return;
+  const folder=document.getElementById('adminObjectFolder4497');
+  const search=document.querySelector('#tab_service .p60-search, #tab_service input[placeholder*="Пошук"], #tab_service input[type="search"]');
+  if(!folder || !search)return;
+
+  /* Put folder immediately after the search control/container. */
+  let anchor=search;
+  const candidate=search.parentElement;
+  if(candidate && candidate!==adminTab4498() && !candidate.classList.contains('p60-object')){
+    const txt=(candidate.textContent||'').trim();
+    if(candidate.children.length<=3 || /Пошук/i.test(txt)) anchor=candidate;
+  }
+  if(anchor.nextElementSibling!==folder) anchor.insertAdjacentElement('afterend',folder);
+}
+
+function sync4498(){
+  mountBuild4498();
+  placeFolder4498();
+  markSelected4498();
+
+  try{
+    document.documentElement.dataset.pixelVersion='44.98';
+    document.documentElement.dataset.pixelBuild='44.98-admin-4-fixes';
+    document.title='Potolok AI PRO — Pixel 44.98';
+  }catch(_){}
+}
+
+/* Folder item: remember exactly which existing admin card may be shown. */
+document.addEventListener('click',function(e){
+  const item=e.target.closest?.('#adminObjectFolder4497 [data-a4497-object]');
+  if(item){
+    selected4498=String(item.getAttribute('data-a4497-object')||'');
+    setTimeout(markSelected4498,0);
+    setTimeout(markSelected4498,90);
+    setTimeout(markSelected4498,240);
+    return;
+  }
+
+  /* Opening/closing the folder itself returns to a clean list-only admin view. */
+  const head=e.target.closest?.('#adminObjectFolder4497 [data-a4497-toggle]');
+  if(head){
+    selected4498='';
+    setTimeout(markSelected4498,0);
+  }
+},true);
+
+/* Search is for the folder list, not for spilling cards down the page. */
+document.addEventListener('input',function(e){
+  if(e.target.matches?.('#tab_service .p60-search, #tab_service input[placeholder*="Пошук"], #tab_service input[type="search"]')){
+    selected4498='';
+    setTimeout(markSelected4498,0);
+    setTimeout(placeFolder4498,30);
+  }
+},true);
+
+function start4498(){
+  sync4498();
+
+  const tab=adminTab4498();
+  if(tab){
+    new MutationObserver(function(){
+      setTimeout(sync4498,20);
+    }).observe(tab,{childList:true,subtree:true,attributes:true,attributeFilter:['class','style']});
+  }
+
+  new MutationObserver(function(){
+    setTimeout(mountBuild4498,20);
+    setTimeout(markSelected4498,20);
+  }).observe(document.body,{childList:true,subtree:true});
+
+  document.querySelectorAll('.page-section').forEach(function(section){
+    new MutationObserver(function(){setTimeout(sync4498,20)})
+      .observe(section,{attributes:true,attributeFilter:['class']});
+  });
+
+  [80,250,700,1400].forEach(function(ms){setTimeout(sync4498,ms)});
+}
+
+if(document.readyState==='loading'){
+  document.addEventListener('DOMContentLoaded',start4498,{once:true});
+}else{
+  start4498();
+}
+window.addEventListener('pageshow',function(){setTimeout(sync4498,80)},{passive:true});
+})();
+</script>
