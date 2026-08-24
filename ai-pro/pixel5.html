@@ -1,4 +1,4 @@
-<!-- PIXEL 44.90B: CALENDAR BUTTON FIX ONLY | base 44.90A CLEAN ADMIN -->
+<!-- PIXEL 44.90A-CAL: CALENDAR FIX DIRECTLY FROM 44.90A CLEAN ADMIN; 44.90B NOT USED -->
 <!-- PIXEL 44.90A: CLEAN ADMIN ONLY | stable base 44.90; object/room/insert logic untouched -->
 <!-- PIXEL 44.90: restore 'Весь об’єкт' quick button in room summary | base 44.89 -->
 <!-- PIXEL 44.89: root fix — saved perimeter insert survives render/restore | base 44.88 -->
@@ -7119,6 +7119,12 @@ window.openCloudObject56=async function(id){
 };
 
 window.scheduleObject58=function(id,date=''){const r=crmRows58.find(x=>String(x.id)===String(id));if(!r)return alert('Об’єкт не знайдено для календаря.');const o=rowObj58(r);const today=date||localDateISO();openModal58('📅 Запланувати подію',`<div class="crm58-grid"><div><label class="crm58-label">Дата</label><input id="evDate58" type="date" value="${esc58(today)}"></div><div><label class="crm58-label">Час</label><input id="evTime58" type="time" value="09:00"></div><div class="crm58-full"><label class="crm58-label">Тип події</label><select id="evType58"><option value="measure">📏 Замір</option><option value="calculation">🧮 Прорахунок</option><option value="call">📞 Дзвінок</option><option value="install">🛠 Монтаж</option><option value="payment">💰 Оплата</option><option value="review">⭐ Відгук</option><option value="busy">🔴 День зайнятий</option><option value="other">📌 Інше</option></select></div><div class="crm58-full"><label class="crm58-label">Нагадування</label><select id="evReminder58"><option value="0">У день події</option><option value="60">За 1 годину</option><option value="1440">За 1 день</option><option value="2880">За 2 дні</option></select></div><div class="crm58-full"><label class="crm58-label">Коментар</label><textarea id="evNote58" placeholder="Адреса, що взяти, кому подзвонити…"></textarea></div></div><div class="crm58-modal-actions"><button onclick="closeCrm58Modal()">Скасувати</button><button class="blue" onclick="saveEvent58('${id}')">Додати подію</button></div>`)};
+window.openCalendarForService58=function(row){
+  if(!row||row.id==null)return alert('Об’єкт не знайдено у панелі адміністратора.');
+  const index=crmRows58.findIndex(x=>String(x.id)===String(row.id));
+  if(index>=0)crmRows58[index]=row;else crmRows58.push(row);
+  window.scheduleObject58(row.id);
+};
 window.saveEvent58=async function(id){try{const event={id:'ev_'+Date.now(),date:document.getElementById('evDate58').value,time:document.getElementById('evTime58').value,type:document.getElementById('evType58').value,reminder:Number(document.getElementById('evReminder58').value||0),note:document.getElementById('evNote58').value,done:false};await req58(API58,{method:'POST',body:JSON.stringify({action:'addScheduleEvent',cloudId:id,event})});closeCrm58Modal();await renderHistory()}catch(e){alert('Не вдалося додати подію: '+e.message)}};
 window.deleteEvent58=async function(id,eventId){if(!confirm('Видалити подію?'))return;try{await req58(API58,{method:'POST',body:JSON.stringify({action:'deleteScheduleEvent',cloudId:id,eventId})});await renderHistory()}catch(e){alert(e.message)}};
 
@@ -7577,10 +7583,8 @@ window.requestClientAccess72=function(){
 window.serviceSchedule72=function(id){
   const row=(Array.isArray(serviceRows60)?serviceRows60:[]).find(x=>String(x.id)===String(id));
   if(!row)return alert('Об’єкт не знайдено у панелі адміністратора.');
-  if(!Array.isArray(crmRows58))crmRows58=[];
-  const index=crmRows58.findIndex(x=>String(x.id)===String(id));
-  if(index>=0)crmRows58[index]=row;else crmRows58.push(row);
-  scheduleObject58(String(id));
+  if(typeof window.openCalendarForService58!=='function')return alert('Модуль календаря ще не готовий. Оновіть сторінку.');
+  window.openCalendarForService58(row);
 };
 
 injectTabs60();setTimeout(injectTabs60,400);
@@ -29502,12 +29506,12 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
     if(document.getElementById('pixel4486BuildBadge')) return;
     var el=document.createElement('div');
     el.id='pixel4486BuildBadge';
-    el.textContent='BUILD 44.90B CALENDAR FIX';
+    el.textContent='BUILD 44.90A-CAL CALENDAR FIX';
     var header=document.querySelector('.header,header,.site-header,.topbar');
     if(header)header.insertAdjacentElement('afterend',el);else document.body.prepend(el);
     try{
-      document.documentElement.dataset.pixelVersion='44.90B';
-      document.documentElement.dataset.pixelBuild='44.90B-calendar-fix';
+      document.documentElement.dataset.pixelVersion='44.90A-CAL';
+      document.documentElement.dataset.pixelBuild='44.90A-calendar-fix';
     }catch(_){}
   }
   if(document.readyState==='loading'){
