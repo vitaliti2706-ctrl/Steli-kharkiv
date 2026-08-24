@@ -1,3 +1,4 @@
+<!-- PIXEL 44.90A: CLEAN ADMIN ONLY | stable base 44.90; object/room/insert logic untouched -->
 <!-- PIXEL 44.90: restore 'Весь об’єкт' quick button in room summary | base 44.89 -->
 <!-- PIXEL 44.89: root fix — saved perimeter insert survives render/restore | base 44.88 -->
 <!-- PIXEL 44.87: persist/restore perimeter insert per room | base 44.86 -->
@@ -7272,6 +7273,35 @@ injectTab58();setTimeout(()=>{injectTab58();window.renderHistory?.()},300);
 <section id="tab_service" class="page-section"><div id="serviceRoot60"></div></section>
 <div id="modal60" class="p60-modal" onclick="if(event.target===this)closeModal60()"><div class="p60-sheet"><div class="p60-sheet-head"><h3 id="modalTitle60">Дані</h3><button class="p60-close" onclick="closeModal60()">×</button></div><div id="modalBody60"></div></div></div>
 
+
+<style id="pixel4490aCleanAdminStyles">
+.p60-folder4490a{margin:10px 0 14px;border:1px solid #bfdbfe;border-radius:14px;background:#f8fbff;overflow:hidden}
+.p60-folder-head4490a{width:100%;border:0;background:transparent;padding:13px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px;text-align:left;color:#0f172a;font-size:12px;font-weight:950}
+.p60-folder-count4490a{min-width:28px;height:28px;padding:0 8px;border-radius:999px;background:#075bff;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:10px;font-weight:950}
+.p60-folder-body4490a{display:none;padding:0 12px 12px}
+.p60-folder4490a.open .p60-folder-body4490a{display:grid;gap:7px}
+.p60-folder-object4490a{width:100%;border:1px solid #cbd5e1;background:#fff;border-radius:10px;padding:10px 11px;display:flex;align-items:center;justify-content:space-between;gap:8px;text-align:left;color:#0f172a}
+.p60-folder-object4490a span{min-width:0}.p60-folder-object4490a b{display:block;font-size:10.5px;overflow-wrap:anywhere}
+.p60-folder-object4490a small{display:block;margin-top:3px;font-size:7.5px;color:#64748b;font-weight:800;overflow-wrap:anywhere}
+.p60-folder-object4490a strong{flex:0 0 auto;font-size:8.5px;color:#075bff;font-weight:950;white-space:nowrap}
+.p60-folder-empty4490a{padding:6px 2px}
+#adminSelectedCard4490a .p60-object{margin-top:10px}
+
+#tab_service .p60-object-top>.p60-key{
+  display:inline-flex!important;align-items:center!important;justify-content:center!important;
+  flex:0 0 auto!important;align-self:flex-start!important;
+  width:auto!important;height:auto!important;min-width:0!important;min-height:0!important;
+  max-width:max-content!important;aspect-ratio:auto!important;
+  padding:6px 9px!important;margin:0!important;border-radius:999px!important;
+  font-family:Arial,sans-serif!important;font-size:9px!important;line-height:1.15!important;
+  letter-spacing:0!important;white-space:nowrap!important;box-shadow:none!important
+}
+
+body:has(#tab_service.active) #objectEndActions4394,
+body:has(#tab_service.active) #objectActions4393,
+body:has(#tab_service.active) .ai-request-section{display:none!important}
+</style>
+
 <script id="pixel60Script">
 (()=>{'use strict';
 const API60='/api/objects';let serviceToken60=sessionStorage.getItem('potolok_service_token')||'';let serviceRows60=[];let currentClientView60=null;let reviewStars60=5;
@@ -7288,10 +7318,74 @@ if(adminTab&&typeof showMainTab==='function'){
   showMainTab('service',adminTab);
 }
 }catch(e){serviceStatus60(e.message)}};
-window.serviceLogout60=()=>{serviceToken60='';serviceRows60=[];sessionStorage.removeItem('potolok_service_token');renderService60()};
+window.serviceLogout60=()=>{serviceToken60='';serviceRows60=[];adminSelected60='';adminFolderOpen60=false;adminFilter60='';sessionStorage.removeItem('potolok_service_token');renderService60()};
 async function loadService60(){const root=document.getElementById('serviceRoot60');root.innerHTML='<div class="p60-shell">Завантаження…</div>';try{const d=await api60({action:'serviceList'});serviceRows60=d.objects||[];window.serviceRows60=serviceRows60;renderServiceList60()}catch(e){serviceToken60='';sessionStorage.removeItem('potolok_service_token');renderService60();serviceStatus60(e.message)}}
 function obj60(r){return r.object_data&&typeof r.object_data==='object'?r.object_data:{}}
-function renderServiceList60(filter=''){const root=document.getElementById('serviceRoot60');const q=filter.toLowerCase();const rows=serviceRows60.filter(r=>{const o=obj60(r);return [r.object_number,o.clientName,o.address,o.clientPhone].join(' ').toLowerCase().includes(q)});root.innerHTML=`<div class="p60-shell"><div class="p60-head"><div><h2>🔒 Панель адміністратора</h2><div class="p60-note">Ключі, оплата, монтаж, кошториси та відгуки.</div></div><button class="p60-btn" onclick="serviceLogout60()">Вийти</button></div><input class="p60-search" placeholder="Пошук: номер, клієнт, адреса" oninput="renderServiceList60(this.value)"><div>${rows.length?rows.map(serviceCard60).join(''):'<div class="p60-note">Нічого не знайдено.</div>'}</div></div>`}
+let adminSelected60='';
+let adminFolderOpen60=false;
+let adminFilter60='';
+
+function adminSearchText60(r){
+  const o=obj60(r);
+  return [r.object_number,o.clientName,o.address,o.clientPhone].join(' ').toLowerCase();
+}
+function adminFilteredRows60(){
+  const q=String(adminFilter60||'').trim().toLowerCase();
+  return q?serviceRows60.filter(r=>adminSearchText60(r).includes(q)):serviceRows60.slice();
+}
+function adminObjectLabel60(r,index){
+  const o=obj60(r);
+  return e60(o.clientName||r.object_number||('Об’єкт '+(index+1)));
+}
+function adminFolderHtml60(){
+  const rows=adminFilteredRows60();
+  const list=rows.length?rows.map((r,index)=>{
+    const o=obj60(r);
+    const meta=[r.object_number||'',o.address||'',o.clientPhone||''].filter(Boolean).join(' · ');
+    return `<button type="button" class="p60-folder-object4490a" onclick="showAdminObject60('${e60(r.id)}')"><span><b>${adminObjectLabel60(r,index)}</b><small>${e60(meta||'Збережений об’єкт')}</small></span><strong>Відкрити ›</strong></button>`;
+  }).join(''):`<div class="p60-note p60-folder-empty4490a">${serviceRows60.length?'За пошуком нічого не знайдено.':'Збережених об’єктів поки немає.'}</div>`;
+  return `<div class="p60-folder4490a ${adminFolderOpen60?'open':''}">
+    <button type="button" class="p60-folder-head4490a" onclick="toggleAdminFolder60()"><span>📁 Мої об’єкти</span><span class="p60-folder-count4490a">${serviceRows60.length}</span></button>
+    <div class="p60-folder-body4490a">${list}</div>
+  </div>`;
+}
+function renderAdminFolderOnly60(){
+  const holder=document.getElementById('adminFolderHolder4490a');
+  if(holder)holder.innerHTML=adminFolderHtml60();
+}
+window.filterAdminFolder60=function(value){
+  adminFilter60=String(value||'');
+  adminSelected60='';
+  renderAdminFolderOnly60();
+  const card=document.getElementById('adminSelectedCard4490a');
+  if(card)card.innerHTML='';
+};
+window.toggleAdminFolder60=function(){
+  adminFolderOpen60=!adminFolderOpen60;
+  renderAdminFolderOnly60();
+};
+window.showAdminObject60=function(id){
+  adminSelected60=String(id||'');
+  adminFolderOpen60=false;
+  const row=serviceRows60.find(r=>String(r.id)===adminSelected60);
+  renderAdminFolderOnly60();
+  const card=document.getElementById('adminSelectedCard4490a');
+  if(card)card.innerHTML=row?serviceCard60(row):'<div class="p60-note">Об’єкт не знайдено.</div>';
+  setTimeout(()=>document.getElementById('adminSelectedCard4490a')?.scrollIntoView({behavior:'smooth',block:'start'}),20);
+};
+
+function renderServiceList60(filter=''){
+  const root=document.getElementById('serviceRoot60');
+  adminFilter60=String(filter||adminFilter60||'');
+  if(adminSelected60 && !serviceRows60.some(r=>String(r.id)===adminSelected60))adminSelected60='';
+  const selected=serviceRows60.find(r=>String(r.id)===adminSelected60);
+  root.innerHTML=`<div class="p60-shell p60-clean-admin4490a">
+    <div class="p60-head"><div><h2>🔒 Панель адміністратора</h2><div class="p60-note">Об’єкти, доступи клієнтів, кошториси та монтаж.</div></div><button class="p60-btn" onclick="serviceLogout60()">Вийти</button></div>
+    <input class="p60-search" value="${e60(adminFilter60)}" placeholder="Пошук: номер, клієнт, адреса, телефон" oninput="filterAdminFolder60(this.value)">
+    <div id="adminFolderHolder4490a">${adminFolderHtml60()}</div>
+    <div id="adminSelectedCard4490a">${selected?serviceCard60(selected):''}</div>
+  </div>`;
+}
 window.renderServiceList60=renderServiceList60;
 function serviceCard60(r){
   const o=obj60(r);
@@ -29395,11 +29489,10 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 
 <style id="pixel4486BuildBadgeStyle">
 #pixel4486BuildBadge{
-  position:fixed;left:8px;bottom:8px;z-index:2147483646;
-  padding:6px 9px;border-radius:10px;background:#071a33;color:#fff;
-  font:700 11px/1.2 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
-  letter-spacing:.2px;box-shadow:0 3px 12px rgba(0,0,0,.22);
-  opacity:.92;pointer-events:none
+  position:static;display:inline-block;margin:7px 16px 10px;
+  padding:5px 9px;border-radius:9px;background:#071a33;color:#fff;
+  font:900 8px/1.2 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  letter-spacing:.15px;box-shadow:none;opacity:.96;pointer-events:none
 }
 </style>
 <script id="pixel4486BuildBadgeScript">
@@ -29408,11 +29501,12 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
     if(document.getElementById('pixel4486BuildBadge')) return;
     var el=document.createElement('div');
     el.id='pixel4486BuildBadge';
-    el.textContent='BUILD 44.97 ADMIN PANEL + FOLDER + SEARCH';
-    document.body.appendChild(el);
+    el.textContent='BUILD 44.90A CLEAN ADMIN';
+    var header=document.querySelector('.header,header,.site-header,.topbar');
+    if(header)header.insertAdjacentElement('afterend',el);else document.body.prepend(el);
     try{
-      document.documentElement.dataset.pixelVersion='44.86';
-      document.documentElement.dataset.pixelBuild='44.86-final-test';
+      document.documentElement.dataset.pixelVersion='44.90A';
+      document.documentElement.dataset.pixelBuild='44.90A-clean-admin';
     }catch(_){}
   }
   if(document.readyState==='loading'){
@@ -29544,65 +29638,7 @@ document.addEventListener('change',e=>{
 window.__persistInsert4487=persist4487;
 })();
 </script>
-
-<!-- PIXEL 44.96: admin folder after PIN + static top build label | base 44.95 -->
-<!-- PIXEL 44.95: hide 'Мої об’єкти' until successful admin PIN unlock | base 44.94 -->
-<!-- PIXEL 44.94: folder item filters and opens its existing admin card directly | base 44.93 -->
-<!-- PIXEL 44.93: top admin folder = cloud objects count + names + jump to existing card | base 44.92 -->
-<!-- PIXEL 44.92: move 'Мої об’єкти' to top of admin only | base 44.91 -->
-<!-- PIXEL 44.91: ADMIN CLEANUP ONLY | base 44.90 -->
-
-
-<style id="pixel4497AdminFolderStyles">
-#adminObjectFolder4497{display:none!important}
-html.admin-unlocked4497 #adminObjectFolder4497{display:block!important}
-#adminObjectFolder4497{margin:12px 0 16px;border:1px solid #bfdbfe;border-radius:14px;background:#f8fbff;overflow:hidden}
-#adminObjectFolder4497 .a4497-head{width:100%;border:0;background:transparent;padding:13px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px;text-align:left;color:#0f172a;font-size:12px;font-weight:950}
-#adminObjectFolder4497 .a4497-count{min-width:28px;height:28px;border-radius:999px;background:#075bff;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:10px;font-weight:950}
-#adminObjectFolder4497 .a4497-body{display:none;padding:0 12px 12px}
-#adminObjectFolder4497.open .a4497-body{display:block}
-#adminObjectFolder4497 .a4497-list{display:grid;gap:7px}
-#adminObjectFolder4497 .a4497-object{width:100%;border:1px solid #cbd5e1;background:#fff;border-radius:10px;padding:10px 11px;display:flex;align-items:center;justify-content:space-between;gap:8px;text-align:left;color:#0f172a}
-#adminObjectFolder4497 .a4497-object b{font-size:10.5px}
-#adminObjectFolder4497 .a4497-object small{display:block;margin-top:2px;font-size:7.5px;color:#64748b;font-weight:800}
-#adminObjectFolder4497 .a4497-open{font-size:8.5px;color:#075bff;font-weight:950;white-space:nowrap}
-#adminObjectFolder4497 .a4497-empty{font-size:9px;color:#64748b;padding:5px 2px}
-.p60-object.a4497-focus{outline:3px solid rgba(7,91,255,.24);outline-offset:2px}
-html.admin-unlocked4497 #objectActions4393{display:none!important}
-html.admin-mode4497 .ai-request-section{display:none!important}
-</style>
-<script id="pixel4497AdminFolderScript">
-(function(){
-'use strict';
-if(window.__pixel4497AdminFolder)return;window.__pixel4497AdminFolder=true;
-function esc4497(v){return String(v??'').replace(/[&<>\"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[m]));}
-function tab4497(){return document.getElementById('tab_service')}
-function adminActive4497(){return !!tab4497()?.classList.contains('active')}
-function rows4497(){return Array.isArray(window.serviceRows60)?window.serviceRows60:[]}
-function rowObject4497(r){return r?.object_data&&typeof r.object_data==='object'?r.object_data:{}}
-function rowName4497(r,i){const o=rowObject4497(r);return String(o.clientName||r?.client_name||r?.object_number||('Об’єкт '+(i+1))).trim()}
-function rowMeta4497(r){const o=rowObject4497(r);return [r?.object_number||'',o.address||r?.address||''].filter(Boolean).join(' · ')}
-function rowSearch4497(r,i){const o=rowObject4497(r);return [rowName4497(r,i),r?.object_number||'',o.address||r?.address||'',o.phone||r?.phone||''].join(' ').toLowerCase()}
-function adminUnlocked4497(){if(!adminActive4497())return false;const tab=tab4497();if(!tab)return false;const cards=[...tab.querySelectorAll('.p60-object')];if(cards.some(el=>el.getClientRects().length))return true;return [...tab.querySelectorAll('h1,h2,h3,div,section')].some(el=>/Панель адміністратора/i.test((el.textContent||'').trim())&&el.getClientRects().length)}
-function adminPanel4497(){const tab=tab4497();if(!tab)return null;return [...tab.children].find(el=>/Панель адміністратора/i.test((el.textContent||'').trim())||el.querySelector?.('.p60-object'))||null}
-function ensureFolder4497(){const tab=tab4497();if(!tab)return null;let box=document.getElementById('adminObjectFolder4497');if(!box){box=document.createElement('div');box.id='adminObjectFolder4497'}const panel=adminPanel4497();if(panel){const search=[...panel.children].find(el=>el.querySelector?.('input')||/Пошук:/i.test((el.textContent||'').trim()));if(search&&search.parentElement===panel)search.insertAdjacentElement('afterend',box);else if(box.parentElement!==panel)panel.insertBefore(box,panel.children[1]||null)}else if(box.parentElement!==tab)tab.appendChild(box);return box}
-function searchInput4497(){return document.querySelector('#tab_service input[placeholder*="Пошук"],#tab_service input[type="search"]')}
-function visibleRows4497(){const q=(searchInput4497()?.value||'').trim().toLowerCase();const rows=rows4497();return q?rows.filter((r,i)=>rowSearch4497(r,i).includes(q)):rows}
-function renderFolder4497(){const box=ensureFolder4497();if(!box)return;const all=rows4497(),filtered=visibleRows4497(),wasOpen=box.classList.contains('open');box.innerHTML='<button type="button" class="a4497-head" data-a4497-toggle><span>📁 Мої об’єкти</span><span class="a4497-count">'+all.length+'</span></button><div class="a4497-body"><div class="a4497-list">'+(filtered.length?filtered.map((r,i)=>'<button type="button" class="a4497-object" data-a4497-object="'+esc4497(r.id)+'"><span><b>'+esc4497(rowName4497(r,i))+'</b><small>'+esc4497(rowMeta4497(r)||'Збережений об’єкт')+'</small></span><span class="a4497-open">Відкрити ›</span></button>').join(''):'<div class="a4497-empty">'+(all.length?'За пошуком нічого не знайдено.':'Збережених об’єктів поки немає.')+'</div>')+'</div></div>';box.classList.toggle('open',wasOpen)}
-function focusCard4497(id){const card=document.getElementById('serviceObject60_'+id);if(!card)return false;document.querySelectorAll('.p60-object.a4497-focus').forEach(x=>x.classList.remove('a4497-focus'));card.classList.add('a4497-focus');card.scrollIntoView({behavior:'smooth',block:'start'});setTimeout(()=>card.classList.remove('a4497-focus'),1800);return true}
-function openCard4497(id){const rows=rows4497();const row=rows.find(r=>String(r?.id)===String(id));if(!row)return;const exact=String(row?.object_number||rowName4497(row,0)).trim();try{if(typeof window.renderServiceList60==='function')window.renderServiceList60(exact)}catch(_){}document.getElementById('adminObjectFolder4497')?.classList.remove('open');setTimeout(()=>{if(!focusCard4497(id)){try{window.renderServiceList60?.('')}catch(_){}setTimeout(()=>focusCard4497(id),100)}},80)}
-document.addEventListener('click',e=>{const t=e.target.closest?.('[data-a4497-toggle]');if(t){e.preventDefault();document.getElementById('adminObjectFolder4497')?.classList.toggle('open');return}const b=e.target.closest?.('[data-a4497-object]');if(!b)return;e.preventDefault();openCard4497(b.getAttribute('data-a4497-object'))},true)
-function bindSearch4497(){const s=searchInput4497();if(!s||s.dataset.a4497Bound)return;s.dataset.a4497Bound='1';s.addEventListener('input',()=>setTimeout(renderFolder4497,0),{passive:true})}
-function sync4497(){const active=adminActive4497(),unlocked=adminUnlocked4497();document.documentElement.classList.toggle('admin-mode4497',active);document.documentElement.classList.toggle('admin-unlocked4497',unlocked);if(active&&unlocked){bindSearch4497();renderFolder4497()}else document.getElementById('adminObjectFolder4497')?.classList.remove('open')}
-function start4497(){sync4497();const tab=tab4497();if(tab)new MutationObserver(()=>setTimeout(sync4497,20)).observe(tab,{childList:true,subtree:true,attributes:true,attributeFilter:['class','style']});document.querySelectorAll('.page-section').forEach(x=>new MutationObserver(sync4497).observe(x,{attributes:true,attributeFilter:['class']}))}
-if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start4497,{once:true});else start4497();window.addEventListener('pageshow',()=>setTimeout(sync4497,60),{passive:true});
-})();
-</script>
-
-
-
-
-<style id="pixel4497BuildLabelStyles">#pixelBuild4497{margin:6px 16px 10px;padding:5px 9px;border-radius:9px;background:#0f172a;color:#fff;font-size:8px;font-weight:900;display:inline-block;position:static!important;pointer-events:none}</style><script id="pixel4497BuildLabelScript">(function(){if(window.__pixel4497BuildLabel)return;window.__pixel4497BuildLabel=true;function mount(){if(document.getElementById('pixelBuild4497'))return;const el=document.createElement('div');el.id='pixelBuild4497';el.textContent='BUILD 44.97 ADMIN PANEL + FOLDER + SEARCH';const header=document.querySelector('header,.site-header,.topbar');if(header)header.insertAdjacentElement('afterend',el);else document.body.prepend(el)}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',mount,{once:true});else mount()})();</script></body></html>
+</body></html>
 
 <!-- 44.41: surgical NW export fix based strictly on 44.40; selected insert is included in final NW order; no planner/canvas quantity logic changed. -->
 <script id="pixelVersion4449">(function(){try{document.documentElement.dataset.pixelVersion='44.62';document.title='Potolok AI PRO — Pixel 44.62'}catch(_){}})();</script>
@@ -30203,377 +30239,5 @@ setTimeout(mark4469,3200);
     document.documentElement.dataset.pixelVersion='44.80';
     document.title='Potolok AI PRO — Pixel 44.80';
   }catch(_){}
-})();
-</script>
-
-
-<!-- PIXEL 44.98: ADMIN 4 FIXES | base: uploaded current 44.97
-1) build badge moved to top and all old bottom badges removed
-2) admin objects hidden by default; objects live in "Мої об’єкти" folder, only chosen card opens
-3) published status compact; no giant green circle
-4) "Керування об’єктом" hidden while Admin tab is active (including PIN screen)
--->
-<style id="pixel4498AdminFourFixesStyles">
-/* 1. Build label: never overlay controls. */
-#pixel4486BuildBadge,
-#pixelBuild4497{
-  display:none!important;
-}
-#pixelBuild4498{
-  position:static!important;
-  display:inline-block!important;
-  margin:7px 16px 10px!important;
-  padding:5px 9px!important;
-  border-radius:9px!important;
-  background:#0f172a!important;
-  color:#fff!important;
-  font:900 8px/1.2 Arial,Helvetica,sans-serif!important;
-  letter-spacing:.15px!important;
-  box-shadow:none!important;
-  pointer-events:none!important;
-  z-index:auto!important;
-}
-
-/* 2. No loose object cards in Admin.
-   Folder remains the navigation. Only the object explicitly chosen from it is shown. */
-html.admin-unlocked4497 #tab_service .p60-object{
-  display:none!important;
-}
-html.admin-unlocked4497 #tab_service .p60-object.a4498-selected{
-  display:block!important;
-}
-
-/* Keep the folder directly under the admin search and visually primary. */
-html.admin-unlocked4497 #adminObjectFolder4497{
-  display:block!important;
-  margin:10px 0 14px!important;
-}
-
-/* 3. Published status must be a compact pill, never a large circle. */
-#tab_service .p60-key,
-#tab_service .p60-key.published{
-  width:auto!important;
-  height:auto!important;
-  min-width:0!important;
-  min-height:0!important;
-  max-width:max-content!important;
-  aspect-ratio:auto!important;
-  display:inline-flex!important;
-  align-items:center!important;
-  justify-content:center!important;
-  flex:0 0 auto!important;
-  align-self:flex-start!important;
-  padding:5px 8px!important;
-  margin:0!important;
-  border-radius:999px!important;
-  line-height:1.15!important;
-  font-family:Arial,Helvetica,sans-serif!important;
-  font-size:9px!important;
-  font-weight:950!important;
-  letter-spacing:0!important;
-  white-space:nowrap!important;
-  box-shadow:none!important;
-  transform:none!important;
-}
-#tab_service .p60-key.published{
-  color:#15803d!important;
-  background:#dcfce7!important;
-  border:1px solid #86efac!important;
-}
-
-/* 4. Object-management block belongs to the normal object workflow,
-   not to Admin / PIN. */
-html.admin-mode4497 #objectEndActions4394,
-html.admin-mode4497 #objectActions4393{
-  display:none!important;
-}
-</style>
-
-<script id="pixel4498AdminFourFixesScript">
-(function(){
-'use strict';
-if(window.__pixel4498AdminFourFixes)return;
-window.__pixel4498AdminFourFixes=true;
-
-let selected4498='';
-
-function adminTab4498(){
-  return document.getElementById('tab_service');
-}
-function adminActive4498(){
-  return !!adminTab4498()?.classList.contains('active');
-}
-function adminUnlocked4498(){
-  return document.documentElement.classList.contains('admin-unlocked4497');
-}
-
-function mountBuild4498(){
-  document.getElementById('pixel4486BuildBadge')?.remove();
-  document.getElementById('pixelBuild4497')?.remove();
-
-  let el=document.getElementById('pixelBuild4498');
-  if(!el){
-    el=document.createElement('div');
-    el.id='pixelBuild4498';
-    el.textContent='BUILD 44.98 ADMIN 4 FIXES';
-  }
-
-  const header=document.querySelector('.header,header,.site-header,.topbar');
-  if(header){
-    if(el.previousElementSibling!==header) header.insertAdjacentElement('afterend',el);
-  }else if(el.parentElement!==document.body || document.body.firstElementChild!==el){
-    document.body.prepend(el);
-  }
-}
-
-function markSelected4498(){
-  const tab=adminTab4498();
-  if(!tab)return;
-  tab.querySelectorAll('.p60-object.a4498-selected').forEach(card=>{
-    if(card.id!=='serviceObject60_'+selected4498)card.classList.remove('a4498-selected');
-  });
-  if(!selected4498)return;
-  const card=document.getElementById('serviceObject60_'+selected4498);
-  if(card)card.classList.add('a4498-selected');
-}
-
-function placeFolder4498(){
-  if(!adminActive4498() || !adminUnlocked4498())return;
-  const folder=document.getElementById('adminObjectFolder4497');
-  const search=document.querySelector('#tab_service .p60-search, #tab_service input[placeholder*="Пошук"], #tab_service input[type="search"]');
-  if(!folder || !search)return;
-
-  /* Put folder immediately after the search control/container. */
-  let anchor=search;
-  const candidate=search.parentElement;
-  if(candidate && candidate!==adminTab4498() && !candidate.classList.contains('p60-object')){
-    const txt=(candidate.textContent||'').trim();
-    if(candidate.children.length<=3 || /Пошук/i.test(txt)) anchor=candidate;
-  }
-  if(anchor.nextElementSibling!==folder) anchor.insertAdjacentElement('afterend',folder);
-}
-
-function sync4498(){
-  mountBuild4498();
-  placeFolder4498();
-  markSelected4498();
-
-  try{
-    document.documentElement.dataset.pixelVersion='44.98';
-    document.documentElement.dataset.pixelBuild='44.98-admin-4-fixes';
-    document.title='Potolok AI PRO — Pixel 44.98';
-  }catch(_){}
-}
-
-/* Folder item: remember exactly which existing admin card may be shown. */
-document.addEventListener('click',function(e){
-  const item=e.target.closest?.('#adminObjectFolder4497 [data-a4497-object]');
-  if(item){
-    selected4498=String(item.getAttribute('data-a4497-object')||'');
-    setTimeout(markSelected4498,0);
-    setTimeout(markSelected4498,90);
-    setTimeout(markSelected4498,240);
-    return;
-  }
-
-  /* Opening/closing the folder itself returns to a clean list-only admin view. */
-  const head=e.target.closest?.('#adminObjectFolder4497 [data-a4497-toggle]');
-  if(head){
-    selected4498='';
-    setTimeout(markSelected4498,0);
-  }
-},true);
-
-/* Search is for the folder list, not for spilling cards down the page. */
-document.addEventListener('input',function(e){
-  if(e.target.matches?.('#tab_service .p60-search, #tab_service input[placeholder*="Пошук"], #tab_service input[type="search"]')){
-    selected4498='';
-    setTimeout(markSelected4498,0);
-    setTimeout(placeFolder4498,30);
-  }
-},true);
-
-function start4498(){
-  sync4498();
-
-  const tab=adminTab4498();
-  if(tab){
-    new MutationObserver(function(){
-      setTimeout(sync4498,20);
-    }).observe(tab,{childList:true,subtree:true,attributes:true,attributeFilter:['class','style']});
-  }
-
-  new MutationObserver(function(){
-    setTimeout(mountBuild4498,20);
-    setTimeout(markSelected4498,20);
-  }).observe(document.body,{childList:true,subtree:true});
-
-  document.querySelectorAll('.page-section').forEach(function(section){
-    new MutationObserver(function(){setTimeout(sync4498,20)})
-      .observe(section,{attributes:true,attributeFilter:['class']});
-  });
-
-  [80,250,700,1400].forEach(function(ms){setTimeout(sync4498,ms)});
-}
-
-if(document.readyState==='loading'){
-  document.addEventListener('DOMContentLoaded',start4498,{once:true});
-}else{
-  start4498();
-}
-window.addEventListener('pageshow',function(){setTimeout(sync4498,80)},{passive:true});
-})();
-</script>
-
-
-<!-- PIXEL 44.99: OBJECT OPEN FIX | base 44.98
-Fix: leaving Admin before loading an object, then forcing the normal Object tab/UI back on.
-No calculator/room/estimate logic changed.
--->
-<style id="pixel4499ObjectOpenFixStyles">
-/* Admin-only hiding must never survive on the object screen. */
-html:not(.admin-mode4497) #objectActions4393,
-html:not(.admin-mode4497) #objectEndActions4394,
-html:not(.admin-mode4497) .ai-request-section{
-  visibility:visible!important;
-  opacity:1!important;
-}
-
-/* Build marker stays at the top and never overlays UI. */
-#pixelBuild4498{display:none!important}
-#pixelBuild4499{
-  position:static!important;
-  display:inline-block!important;
-  margin:7px 16px 10px!important;
-  padding:5px 9px!important;
-  border-radius:9px!important;
-  background:#0f172a!important;
-  color:#fff!important;
-  font:900 8px/1.2 Arial,Helvetica,sans-serif!important;
-  pointer-events:none!important;
-  box-shadow:none!important;
-}
-</style>
-
-<script id="pixel4499ObjectOpenFixScript">
-(function(){
-'use strict';
-if(window.__pixel4499ObjectOpenFix)return;
-window.__pixel4499ObjectOpenFix=true;
-
-function objectButton4499(){
-  return [...document.querySelectorAll('.main-tab')]
-    .find(b => /showMainTab\(['"]object['"]/.test(b.getAttribute('onclick')||''))
-    || [...document.querySelectorAll('.main-tab')].find(b => /Об.?єкт|Объект/i.test(b.textContent||''));
-}
-
-function forceObjectMode4499(){
-  const root=document.documentElement;
-  root.classList.remove('admin-mode4497','admin-unlocked4497');
-
-  document.querySelectorAll('.page-section').forEach(s=>s.classList.remove('active'));
-  const object=document.getElementById('tab_object');
-  if(object)object.classList.add('active');
-
-  document.querySelectorAll('.main-tab').forEach(b=>b.classList.remove('active'));
-  const btn=objectButton4499();
-  if(btn)btn.classList.add('active');
-
-  /* Remove any stale hiding left by Admin navigation. */
-  ['objectActions4393','objectEndActions4394'].forEach(id=>{
-    const el=document.getElementById(id);
-    if(el){
-      el.style.removeProperty('display');
-      el.style.removeProperty('visibility');
-      el.style.removeProperty('opacity');
-    }
-  });
-  document.querySelectorAll('.ai-request-section').forEach(el=>{
-    el.style.removeProperty('display');
-    el.style.removeProperty('visibility');
-    el.style.removeProperty('opacity');
-  });
-}
-
-function refreshObject4499(){
-  forceObjectMode4499();
-
-  /* Repaint the normal object UI using already-existing renderers only. */
-  const calls=[
-    'renderRooms',
-    'renderPlanner',
-    'renderPalette',
-    'recalc',
-    'updateAISpec',
-    'renderObjectCenter4325'
-  ];
-  calls.forEach(name=>{
-    try{
-      const fn=window[name];
-      if(typeof fn==='function')fn();
-    }catch(_){}
-  });
-}
-
-function mountBuild4499(){
-  document.getElementById('pixelBuild4498')?.remove();
-  let el=document.getElementById('pixelBuild4499');
-  if(!el){
-    el=document.createElement('div');
-    el.id='pixelBuild4499';
-    el.textContent='BUILD 44.99 OBJECT OPEN FIX';
-  }
-  const header=document.querySelector('.header,header,.site-header,.topbar');
-  if(header){
-    if(el.previousElementSibling!==header)header.insertAdjacentElement('afterend',el);
-  }else if(!el.isConnected){
-    document.body.prepend(el);
-  }
-}
-
-function install4499(){
-  mountBuild4499();
-
-  const original=window.openCloudObject56;
-  if(typeof original==='function' && !original.__pixel4499Wrapped){
-    const wrapped=async function(){
-      /* Critical: exit Admin BEFORE loadObject() starts. */
-      forceObjectMode4499();
-
-      let result;
-      try{
-        result=await original.apply(this,arguments);
-      }finally{
-        /* Some old admin observers run asynchronously. Win the race again. */
-        refreshObject4499();
-        setTimeout(refreshObject4499,40);
-        setTimeout(refreshObject4499,150);
-        setTimeout(refreshObject4499,450);
-        setTimeout(()=>window.scrollTo({top:0,behavior:'auto'}),500);
-      }
-      return result;
-    };
-    wrapped.__pixel4499Wrapped=true;
-    wrapped.__pixel4499Original=original;
-    window.openCloudObject56=wrapped;
-  }
-
-  try{
-    document.documentElement.dataset.pixelVersion='44.99';
-    document.documentElement.dataset.pixelBuild='44.99-object-open-fix';
-    document.title='Potolok AI PRO — Pixel 44.99';
-  }catch(_){}
-}
-
-if(document.readyState==='loading'){
-  document.addEventListener('DOMContentLoaded',install4499,{once:true});
-}else{
-  install4499();
-}
-window.addEventListener('pageshow',()=>setTimeout(install4499,60),{passive:true});
-
-/* Re-install if a legacy script reassigns openCloudObject56 later during startup. */
-setTimeout(install4499,250);
-setTimeout(install4499,900);
 })();
 </script>
