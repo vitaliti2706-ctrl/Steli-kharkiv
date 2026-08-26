@@ -14950,6 +14950,133 @@ else setTimeout(install4336,350);
 @media(max-width:520px){.nw-usd-box4425{grid-template-columns:1fr}.nw-usd-result4425 b{font-size:13px}}
 </style>
 
+
+<!-- PIXEL 44.90A-R8 | ALL POSITION INTERNAL TOTAL FIX -->
+<style id="pixel4490aR8TotalStyles">
+#nwInternalTotalR6{display:none!important}
+#nwInternalTotalR8{
+  margin:10px 0 0;padding:12px 14px;border-radius:12px;background:#0f172a;color:#fff;
+  display:flex;justify-content:space-between;align-items:flex-start;gap:12px;
+  font-weight:950;font-size:10px
+}
+#nwInternalTotalR8 .r8-right{text-align:right}
+#nwInternalTotalR8 small{display:block;margin-top:4px;color:#bfdbfe;font-size:8px;font-weight:800;line-height:1.35}
+</style>
+<script id="pixel4490aR8AllPositionTotalFixed">
+(function(){
+'use strict';
+if(window.__pixel4490aR8Installed)return;
+window.__pixel4490aR8Installed=true;
+
+const N=v=>Number(String(v??'').replace(',','.'))||0;
+const MONEY=v=>N(v).toLocaleString('uk-UA',{minimumFractionDigits:0,maximumFractionDigits:2});
+
+function roomR8(){
+  try{return (projectRooms||[]).find(r=>String(r.id)===String(activeRoomId))||null}catch(_){return null}
+}
+function itemsR8(){
+  const r=roomR8();
+  if(!r)return [];
+  r.productionNoPlan4463=r.productionNoPlan4463||{items:[]};
+  r.productionNoPlan4463.items=Array.isArray(r.productionNoPlan4463.items)?r.productionNoPlan4463.items:[];
+  return r.productionNoPlan4463.items;
+}
+function usdRateR8(){
+  try{
+    if(typeof usdRate4425==='function')return N(usdRate4425());
+  }catch(_){}
+  try{
+    return N(localStorage.getItem('potolok_usd_uah_rate_4425'));
+  }catch(_){return 0}
+}
+function totalsR8(){
+  let uah=0,usd=0,priced=0,totalRows=0;
+  itemsR8().forEach(it=>{
+    const q=N(it?.qty);
+    if(!(q>0))return;
+    totalRows++;
+    const up=N(it?.price);
+    const dp=N(it?.usdPrice);
+    if(up>0){uah+=q*up;priced++}
+    else if(dp>0){usd+=q*dp;priced++}
+  });
+  const rate=usdRateR8();
+  return {uah,usd,rate,all:uah+(rate>0?usd*rate:0),priced,totalRows};
+}
+function updateR8(){
+  const box=document.getElementById('nwNoPlan4463');
+  if(!box)return;
+  let bar=document.getElementById('nwInternalTotalR8');
+  if(!bar){
+    bar=document.createElement('div');
+    bar.id='nwInternalTotalR8';
+    const old=document.getElementById('nwInternalTotalR6');
+    if(old)old.insertAdjacentElement('afterend',bar);
+    else{
+      const items=document.getElementById('nwNoPlanItems4463');
+      items?.insertAdjacentElement('afterend',bar);
+    }
+  }
+  const t=totalsR8();
+  let value='0 грн',detail=`Пораховано позицій з ціною: ${t.priced} із ${t.totalRows}.`;
+  if(t.usd>0){
+    if(t.rate>0){
+      value=MONEY(t.all)+' грн';
+      detail=`${MONEY(t.uah)} грн + $${t.usd.toFixed(2)} × ${t.rate.toFixed(2)} · позицій з ціною: ${t.priced} із ${t.totalRows}.`;
+    }else{
+      value=MONEY(t.uah)+' грн + $'+t.usd.toFixed(2);
+      detail=`Для єдиного підсумку в грн вкажіть курс USD → грн. Позицій з ціною: ${t.priced} із ${t.totalRows}.`;
+    }
+  }else{
+    value=MONEY(t.uah)+' грн';
+  }
+  bar.innerHTML=`<span>💰 Разом для себе · всі позиції</span><span class="r8-right">${value}<small>${detail}</small></span>`;
+}
+
+/* Обновляем итог строго ПОСЛЕ штатного рендера списка. */
+const prevRefresh=window.refreshNoPlanOrder4469;
+if(typeof prevRefresh==='function'){
+  window.refreshNoPlanOrder4469=function(){
+    const out=prevRefresh.apply(this,arguments);
+    setTimeout(updateR8,0);
+    return out;
+  };
+}
+
+/* После сохранения/добавления/удаления/изменения количества. */
+['input','change'].forEach(ev=>{
+  document.addEventListener(ev,e=>{if(!e.target?.closest?.('#nwNoPlan4463'))return;setTimeout(updateR8,120)},true);
+});
+
+/* Если меняется рабочий курс USD — пересчитать и этот заказ. */
+const prevSetRate=window.setUsdRate4425;
+if(typeof prevSetRate==='function'){
+  window.setUsdRate4425=function(){
+    const out=prevSetRate.apply(this,arguments);
+    setTimeout(updateR8,0);
+    return out;
+  };
+}
+
+/* Отправка поставщику остается из R6:
+   цены/суммы в PNG обнуляются только во временной копии и поставщику не показываются. */
+
+function bootR8(){
+  updateR8();
+  try{
+    document.documentElement.dataset.pixelVersion='44.90A-R8';
+    document.documentElement.dataset.pixelBuild='44.90A-r8-all-position-total-fixed';
+  }catch(_){}
+}
+if(document.readyState==='loading'){
+  document.addEventListener('DOMContentLoaded',()=>setTimeout(bootR8,350),{once:true});
+}else setTimeout(bootR8,350);
+setTimeout(bootR8,1300);
+})();
+</script>
+
+\n<script id="pixel4490aR12VisibleBuildGuard">\n(function(){\n  function fix(){\n    var el=document.getElementById('pixel4486BuildBadge');\n    if(el) el.textContent='BUILD 44.90A-R12 · BASE R9 · SEPARATE POSITIONS';\n    try{\n      document.documentElement.dataset.pixelVersion='44.90A-R12';\n      document.documentElement.dataset.pixelBuild='44.90A-r12-from-r9-separate-positions-final';\n      document.title='Potolok AI PRO — Pixel 44.90A-R12';\n    }catch(_){}\n  }\n  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',()=>setTimeout(fix,0),{once:true});\n  else setTimeout(fix,0);\n  setTimeout(fix,600);\n})();\n</script>\n
+<!-- PIXEL 44.90A-R15.2 | STABLE TOTAL SOURCE + NO JERK | base: R15.1 -->
 </body></html>`;
   }
 
@@ -28548,14 +28675,181 @@ function blob(items){
  return new Promise((res,rej)=>c.toBlob(b=>b?res(b):rej(new Error('Не вдалося створити PNG')),'image/png',.98));
 }
 window.shareNoPlan4463=async function(){
- const s=state(),items=(s?.items||[]).filter(x=>String(x?.name||'').trim()&&N(x.qty)>0),st=document.getElementById('nwNoPlanStatus4463');
- if(!items.length){if(st)st.textContent='Додайте хоча б одну позицію.';return}
- try{
-   if(st)st.textContent='Готую замовлення без плану…';
-   const b=await blob(items),r=room(),safe=String(r?.name||'room').replace(/[^\p{L}\p{N}_-]+/gu,'_'),f=new File([b],`NW_BEZ_PLANU_${safe}_${Date.now()}.png`,{type:'image/png'});
-   if(navigator.share&&navigator.canShare?.({files:[f]})){await navigator.share({title:'Замовлення NW без плану',text:'Додаткові комплектуючі без плану.',files:[f]});if(st)st.textContent='✅ Замовлення передано в меню поширення.'}
-   else{const u=URL.createObjectURL(f),a=document.createElement('a');a.href=u;a.download=f.name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),1800);if(st)st.textContent='✅ PNG замовлення без плану збережено.'}
- }catch(e){if(e?.name!=='AbortError'&&st)st.textContent=e?.message||'Не вдалося підготувати замовлення.'}
+  const s=stateR1(),items=(s?.items||[]).filter(x=>String(x?.name||'').trim()&&N(x.qty)>0);
+  const st=document.getElementById('nwNoPlanStatus4463');
+  if(!items.length){if(st)st.textContent='Додайте хоча б одну позицію.';return}
+
+  const m=metricsR1();
+
+  function alphaR3(i){
+    let s='',n=i+1;
+    while(n>0){n--;s=String.fromCharCode(65+(n%26))+s;n=Math.floor(n/26)}
+    return s;
+  }
+
+  function geometryR3(){
+    let pts=[];
+    let lens=[];
+
+    try{
+      if(Array.isArray(window.roomPoints)&&window.roomPoints.length>=3){
+        pts=window.roomPoints.map(p=>[Number(p[0])||0,Number(p[1])||0]);
+      }
+    }catch(_){}
+
+    try{
+      if(Array.isArray(window.segmentLengths)&&window.segmentLengths.length===pts.length){
+        lens=window.segmentLengths.map(v=>N(v));
+      }
+    }catch(_){}
+
+    // Fallback to the saved current-room planner.
+    if(pts.length<3){
+      try{
+        const p=m.room?.planner||{};
+        if(Array.isArray(p.points)&&p.points.length>=3){
+          pts=p.points.map(q=>[Number(q[0])||0,Number(q[1])||0]);
+          if(Array.isArray(p.segments)&&p.segments.length===pts.length)lens=p.segments.map(v=>N(v));
+        }
+      }catch(_){}
+    }
+
+    // If segment lengths are absent, derive proportions from screen coordinates,
+    // then scale them to the known perimeter so the printed dimensions remain useful.
+    if(pts.length>=3 && lens.length!==pts.length){
+      const raw=pts.map((p,i)=>{
+        const q=pts[(i+1)%pts.length];
+        return Math.hypot(q[0]-p[0],q[1]-p[1]);
+      });
+      const sum=raw.reduce((a,b)=>a+b,0)||1;
+      const scale=m.perimeter>0?m.perimeter/sum:1;
+      lens=raw.map(v=>v*scale);
+    }
+    return {pts,lens};
+  }
+
+  function drawCleanPlanR3(ctx,geom,x0,y0,w,h){
+    const pts=geom.pts||[],lens=geom.lens||[];
+    if(pts.length<3){
+      ctx.fillStyle='#64748b';ctx.font='700 21px Arial';
+      ctx.fillText('Контур кімнати відсутній.',x0+30,y0+55);
+      return;
+    }
+
+    const xs=pts.map(p=>p[0]),ys=pts.map(p=>p[1]);
+    const minX=Math.min(...xs),maxX=Math.max(...xs),minY=Math.min(...ys),maxY=Math.max(...ys);
+    const bw=Math.max(1,maxX-minX),bh=Math.max(1,maxY-minY);
+    const pad=85;
+    const fit=Math.min((w-pad*2)/bw,(h-pad*2)/bh);
+    const ox=x0+(w-bw*fit)/2-minX*fit;
+    const oy=y0+(h-bh*fit)/2-minY*fit;
+    const P=pts.map(([x,y])=>[ox+x*fit,oy+y*fit]);
+
+    // Background only; no room elements are rendered.
+    ctx.fillStyle='#f8fafc';ctx.fillRect(x0,y0,w,h);
+    ctx.strokeStyle='#dbeafe';ctx.lineWidth=2;ctx.strokeRect(x0,y0,w,h);
+
+    // Polygon.
+    ctx.beginPath();
+    P.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1]));
+    ctx.closePath();
+    ctx.fillStyle='rgba(7,91,255,.08)';ctx.fill();
+    ctx.strokeStyle='#075bff';ctx.lineWidth=5;ctx.stroke();
+
+    const cx=P.reduce((s,p)=>s+p[0],0)/P.length;
+    const cy=P.reduce((s,p)=>s+p[1],0)/P.length;
+
+    P.forEach((p,i)=>{
+      const q=P[(i+1)%P.length];
+
+      // Vertex.
+      ctx.beginPath();ctx.arc(p[0],p[1],10,0,Math.PI*2);
+      ctx.fillStyle='#fff';ctx.fill();
+      ctx.strokeStyle='#075bff';ctx.lineWidth=4;ctx.stroke();
+
+      // A/B/C... label.
+      let vx=p[0]-cx,vy=p[1]-cy,vl=Math.hypot(vx,vy)||1;
+      ctx.fillStyle='#0f172a';ctx.font='900 22px Arial';ctx.textAlign='center';
+      ctx.fillText(alphaR3(i),p[0]+vx/vl*27,p[1]+vy/vl*27+7);
+
+      // Side dimension placed outward from polygon centroid.
+      const mx=(p[0]+q[0])/2,my=(p[1]+q[1])/2;
+      const dx=q[0]-p[0],dy=q[1]-p[1],dl=Math.hypot(dx,dy)||1;
+      let nx=-dy/dl,ny=dx/dl;
+      if(nx*(cx-mx)+ny*(cy-my)>0){nx=-nx;ny=-ny}
+      const tx=mx+nx*34,ty=my+ny*34;
+      const len=N(lens[i]);
+      ctx.font='900 20px Arial';ctx.fillStyle='#075bff';ctx.textAlign='center';
+      ctx.fillText((len>0?len.toFixed(2):'—')+' м',tx,ty+7);
+    });
+
+    ctx.textAlign='left';
+  }
+
+  try{
+    if(st)st.textContent='Готую замовлення з чистим планом…';
+
+    const geom=geometryR3();
+    const planH=620;
+    const itemsH=Math.max(250,items.length*82+100);
+    const H=390+planH+itemsH+120;
+
+    const c=document.createElement('canvas');
+    c.width=1500;c.height=H;
+    const x=c.getContext('2d');
+
+    x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);
+    x.fillStyle='#071428';x.font='900 48px Arial';x.fillText('Potolok.in.ua',60,70);
+    x.font='900 34px Arial';x.fillText('ЗАМОВЛЕННЯ NW · ПОЛОТНО / КОМПЛЕКТАЦІЯ',60,125);
+    x.fillStyle='#334155';x.font='800 24px Arial';
+    x.fillText(`${m.room?.name||'Кімната'} · ${new Date().toLocaleString('uk-UA')}`,60,170);
+
+    x.fillStyle='#eff6ff';x.fillRect(55,195,1390,92);
+    x.fillStyle='#075bff';x.font='900 24px Arial';
+    x.fillText(`ПЛОЩА: ${m.area.toFixed(2)} м²`,85,232);
+    x.fillText(`ПЕРИМЕТР: ${m.perimeter.toFixed(2)} м.п.`,510,232);
+    x.fillText(`КУТИ: ${m.corners} шт`,1030,232);
+    x.fillStyle='#475569';x.font='700 18px Arial';
+    x.fillText('Нижче — чистий план для розкрою: тільки контур, точки та розміри сторін.',85,266);
+
+    x.fillStyle='#0f172a';x.font='900 29px Arial';x.fillText('ПЛАН ДЛЯ РОЗКРОЮ',60,340);
+    drawCleanPlanR3(x,geom,60,365,1380,planH);
+
+    let y=365+planH+70;
+    x.fillStyle='#075bff';x.font='900 28px Arial';x.fillText(`ПОЗИЦІЇ · ${items.length}`,60,y);
+    y+=48;
+    items.forEach((it,i)=>{
+      x.fillStyle='#0f172a';x.font='800 24px Arial';
+      x.fillText(`${i+1}. ${String(it.name).trim()}`,75,y);
+      x.textAlign='right';x.fillStyle='#075bff';
+      x.fillText(`${N(it.qty).toLocaleString('uk-UA',{maximumFractionDigits:2})} ${it.unit||'шт'}`,1420,y);
+      x.textAlign='left';
+      y+=42;x.strokeStyle='#e2e8f0';x.beginPath();x.moveTo(60,y);x.lineTo(1440,y);x.stroke();y+=32;
+    });
+
+    x.fillStyle='#64748b';x.font='700 18px Arial';
+    x.fillText('План містить тільки геометрію кімнати. Світильники, люстри, карнизи та інші елементи не передаються.',60,H-55);
+
+    const blob=await new Promise((res,rej)=>c.toBlob(b=>b?res(b):rej(new Error('Не вдалося створити PNG')),'image/png',.98));
+    const safe=String(m.room?.name||'room').replace(/[^\p{L}\p{N}_-]+/gu,'_');
+    const f=new File([blob],`NW_KIMNATA_PLAN_${safe}_${Date.now()}.png`,{type:'image/png'});
+
+    if(navigator.share&&navigator.canShare?.({files:[f]})){
+      await navigator.share({
+        title:'Замовлення NW з планом для розкрою',
+        text:`${m.room?.name||'Кімната'} · ${m.area.toFixed(2)} м² · ${m.perimeter.toFixed(2)} м · ${m.corners} кут.`,
+        files:[f]
+      });
+      if(st)st.textContent='✅ Замовлення з чистим планом передано в меню поширення.';
+    }else{
+      const u=URL.createObjectURL(f),a=document.createElement('a');
+      a.href=u;a.download=f.name;document.body.appendChild(a);a.click();a.remove();
+      setTimeout(()=>URL.revokeObjectURL(u),1800);
+      if(st)st.textContent='✅ PNG замовлення з чистим планом збережено.';
+    }
+  }catch(e){
+    if(e?.name!=='AbortError'&&st)st.textContent=e?.message||'Не вдалося підготувати замовлення.';
+  }
 };
 
 /* 44.65: режим каталогу NW без прив'язки до плану.
@@ -29501,12 +29795,12 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
     if(document.getElementById('pixel4486BuildBadge')) return;
     var el=document.createElement('div');
     el.id='pixel4486BuildBadge';
-    el.textContent='BUILD 44.90A CLEAN ADMIN';
+    el.textContent='BUILD 44.90A-R12 · BASE R9 · SEPARATE POSITIONS';
     var header=document.querySelector('.header,header,.site-header,.topbar');
     if(header)header.insertAdjacentElement('afterend',el);else document.body.prepend(el);
     try{
-      document.documentElement.dataset.pixelVersion='44.90A';
-      document.documentElement.dataset.pixelBuild='44.90A-clean-admin';
+      document.documentElement.dataset.pixelVersion='44.90A-R12';
+      document.documentElement.dataset.pixelBuild='44.90A-r12-from-r9-separate-positions-final';
     }catch(_){}
   }
   if(document.readyState==='loading'){
@@ -29636,6 +29930,121 @@ document.addEventListener('change',e=>{
 },true);
 
 window.__persistInsert4487=persist4487;
+})();
+</script>
+
+<!-- PIXEL 44.90A-R12 | BASE R9 | SEPARATE POSITIONS + FILM METRICS + USD PRIVATE TOTAL -->
+<style id="pixel4490aR12Styles">
+html,body{max-width:100%;overflow-x:hidden!important}
+.wrap,.app,.panel,#nwNoPlan4463{max-width:100%}
+#nwInternalTotalR9{display:none!important}
+#nwInternalTotalR12{margin-top:10px;padding:13px 14px;border-radius:12px;background:#0f172a;color:#fff;font-weight:950;font-size:10px}
+#nwInternalTotalR12 .r12top{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
+#nwInternalTotalR12 .r12right{text-align:right;font-size:12px}
+#nwInternalTotalR12 small{display:block;color:#bfdbfe;font-size:8px;line-height:1.4;margin-top:4px;font-weight:800}
+#nwInternalTotalR12 .r12rate{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:9px;padding-top:9px;border-top:1px solid rgba(255,255,255,.16)}
+#nwInternalTotalR12 .r12rate input{width:110px;max-width:42%;border:1px solid #334155;border-radius:8px;padding:7px 8px;background:#fff;color:#0f172a;font-weight:900;text-align:right}
+.np-r12-filmmeta{margin:7px 0 2px;padding:8px 9px;border-radius:8px;background:#eff6ff;color:#334155;font-size:8px;font-weight:850;line-height:1.5}
+@media(max-width:560px){#nwInternalTotalR12 .r12top{gap:8px}#nwInternalTotalR12{padding:12px}.np-order-card4469{max-width:100%;overflow:hidden}}
+</style>
+<script id="pixel4490aR12Final">
+(function(){
+'use strict';
+if(window.__pixel4490aR12Installed)return;window.__pixel4490aR12Installed=true;
+const N=v=>Number(String(v??'').replace(',','.'))||0;
+const M=v=>N(v).toLocaleString('uk-UA',{minimumFractionDigits:0,maximumFractionDigits:2});
+function room(){try{return (projectRooms||[]).find(r=>String(r.id)===String(activeRoomId))||null}catch(_){return null}}
+function list(){const r=room();return Array.isArray(r?.productionNoPlan4463?.items)?r.productionNoPlan4463.items:[]}
+function metrics(){const r=room();let area=N(r?.area),per=N(r?.perimeter),corners=N(r?.corners);try{const d=window.getFingerDrawingState4408?.();if(N(d?.area)>0)area=N(d.area);if(N(d?.perimeter)>0)per=N(d.perimeter);if(N(d?.corners)>0)corners=N(d.corners);else if(!corners&&Array.isArray(d?.points))corners=d.points.length}catch(_){}if(!corners&&Array.isArray(r?.planner?.points))corners=r.planner.points.length;return{area,per,corners:Math.round(corners||0)}}
+function rate(){try{const v=N(localStorage.getItem('potolok_usd_uah_rate_4425'));if(v>0)return v}catch(_){}return 0}
+function setRate(v){v=N(v);try{if(v>0)localStorage.setItem('potolok_usd_uah_rate_4425',String(v));else localStorage.removeItem('potolok_usd_uah_rate_4425')}catch(_){}try{const e=document.getElementById('nwUsdRate4425');if(e)e.value=v||''}catch(_){}renderTotal()}
+window.setR12UsdRate=setRate;
+function decorate(){
+ const box=document.getElementById('nwNoPlan4463');if(!box)return;
+ const main=box.querySelector(':scope > button');if(main)main.textContent='📦 Замовлення по окремих позиціях';
+ const intro=box.querySelector(':scope > p');if(intro)intro.textContent='План кімнати вже є. Додавайте окремі позиції з каталогу NW: полотно, профіль, вставку, комплектуючі та інше. Площа, периметр і кути кімнати підтягуються автоматично.';
+ const h=box.querySelector('.nw-noplan-head4463');if(h){const b=h.querySelector('b'),sp=h.querySelector('span');if(b)b.textContent='Замовлення по окремих позиціях';if(sp)sp.textContent='план уже є · метрика кімнати автоматично'}
+ document.querySelectorAll('#nwNoPlan4463 button').forEach(b=>{if(/додати позицію/i.test(b.textContent||''))b.textContent='＋ Додати позицію з NW'});
+}
+function decorateFilmRows(){
+ const m=metrics();
+ document.querySelectorAll('#nwNoPlanItems4463 .np-order-card4469').forEach((card,i)=>{
+   const it=list()[i];if(!it)return;const text=(String(it.name||'')+' '+String(it.category||'')+' '+String(it.source||'')).toLowerCase();
+   if(!/полотно|film|msd|мат\b|матов/.test(text))return;
+   let meta=card.querySelector('.np-r12-filmmeta');if(!meta){meta=document.createElement('div');meta.className='np-r12-filmmeta';const top=card.querySelector('.np-order-top4469');top?.insertAdjacentElement('afterend',meta)}
+   meta.innerHTML='🧵 <b>Полотно:</b> '+(it.name||'—')+'<br>📐 Квадратура: <b>'+m.area.toFixed(2)+' м²</b> · Периметр: <b>'+m.per.toFixed(2)+' м.п.</b> · Кути по полотну: <b>'+m.corners+' шт</b>';
+ });
+}
+function renderTotal(){
+ const host=document.getElementById('nwNoPlanItems4463');if(!host)return;let b=document.getElementById('nwInternalTotalR12');if(!b){b=document.createElement('div');b.id='nwInternalTotalR12';host.insertAdjacentElement('afterend',b)}
+ let uah=0,usd=0,priced=0;list().forEach(x=>{const q=N(x.qty),p=N(x.price),d=N(x.usdPrice);if(d>0){usd+=q*d;priced++}else if(p>0){uah+=q*p;priced++}});const r=rate(),all=r>0?uah+usd*r:uah;
+ let value=usd>0?(r>0?M(all)+' грн':M(uah)+' грн + $'+usd.toFixed(2)):M(uah)+' грн';
+ let detail=usd>0?(r>0?M(uah)+' грн + $'+usd.toFixed(2)+' × '+r.toFixed(2):'Вкажіть курс USD → грн для перерахунку полотна'):'Усі позиції в гривні';
+ b.innerHTML='<div class="r12top"><span>💰 ЦІНА ВСІХ ПОЗИЦІЙ</span><span class="r12right">'+value+'<small>'+detail+' · з ціною: '+priced+' із '+list().length+' поз.</small></span></div>'+(usd>0?'<label class="r12rate"><span>Курс USD → грн</span><input type="number" inputmode="decimal" min="0" step="0.01" value="'+(r||'')+'" placeholder="напр. 41.50" onchange="setR12UsdRate(this.value)" oninput="setR12UsdRate(this.value)"></label>':'');
+}
+function refresh(){decorate();setTimeout(()=>{decorateFilmRows();renderTotal()},0)}
+const old=window.refreshNoPlanOrder4469;if(typeof old==='function')window.refreshNoPlanOrder4469=function(){const z=old.apply(this,arguments);setTimeout(refresh,0);return z};
+let r12RefreshTimer=0;
+document.addEventListener('change',e=>{
+  if(!e.target?.closest?.('#nwNoPlan4463'))return;
+  clearTimeout(r12RefreshTimer);r12RefreshTimer=setTimeout(refresh,120);
+},true);
+function boot(){refresh();try{document.documentElement.dataset.pixelVersion='44.90A-R12';document.documentElement.dataset.pixelBuild='44.90A-r12-from-r9-separate-positions-final';document.title='Potolok AI PRO — Pixel 44.90A-R12'}catch(_){}}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(boot,500),{once:true});else setTimeout(boot,500);setTimeout(boot,1600);
+})();
+</script>
+
+
+<!-- PIXEL 44.90A-R13 | VISIBLE PRICES IN NW CART + AUTO NBU USD RATE -->
+<style id="pixel4490aR13Styles">
+.np-r13-price{font-size:8px;font-weight:950;color:#075bff;text-align:right;white-space:nowrap}
+.np-r13-price small{display:block;font-size:7px;color:#64748b;margin-top:2px}
+#nwNoPlanCart4469 .np-cart-row4469{grid-template-columns:minmax(0,1fr) auto auto auto!important;align-items:center}
+#nwNoPlanCart4469 .np-cart-head4469 span{font-weight:950;color:#075bff}
+#nwR13Rate{margin:7px 10px 0;padding:7px 9px;border:1px solid #bfdbfe;border-radius:9px;background:#eff6ff;display:flex;justify-content:space-between;gap:8px;align-items:center;font-size:7.5px;font-weight:850;color:#475569}
+#nwR13Rate b{color:#075bff;font-size:8.5px}
+</style>
+<script id="pixel4490aR13PricesVisible">
+(function(){
+'use strict';
+if(window.__pixel4490aR13Installed)return;window.__pixel4490aR13Installed=true;
+const N=v=>Number(String(v??'').replace(',','.'))||0;
+const M=v=>N(v).toLocaleString('uk-UA',{minimumFractionDigits:0,maximumFractionDigits:2});
+function room(){try{return (projectRooms||[]).find(r=>String(r.id)===String(activeRoomId))||null}catch(_){return null}}
+function items(){const r=room();return Array.isArray(r?.productionNoPlan4463?.items)?r.productionNoPlan4463.items:[]}
+function rate(){try{return N(localStorage.getItem('potolok_usd_uah_rate_4425'))}catch(_){return 0}}
+function setRate(v){v=N(v);if(v>0)try{localStorage.setItem('potolok_usd_uah_rate_4425',String(v))}catch(_){} }
+function pinfo(x){const q=N(x?.qty),uah=N(x?.price),usd=N(x?.usdPrice),r=rate();if(usd>0){return{unit:'$'+usd.toFixed(2)+(r>0?' ≈ '+M(usd*r)+' грн':''),sum:'$'+(usd*q).toFixed(2)+(r>0?' ≈ '+M(usd*q*r)+' грн':''),uah:r>0?usd*q*r:0,usd:usd*q}}return{unit:M(uah)+' грн',sum:M(uah*q)+' грн',uah:uah*q,usd:0}}
+function totals(){let u=0,d=0;items().forEach(x=>{const p=pinfo(x);u+=p.uah;d+=p.usd});return{uah:u,usd:d}}
+async function loadNbu(){
+ try{
+  const res=await fetch('https://bank.gov.ua/NBUStatService/v1/statdirectory/exchange?valcode=USD&json',{cache:'no-store'});
+  if(!res.ok)throw 0;const a=await res.json();const v=N(a?.[0]?.rate);if(v>0){setRate(v);decorate();try{window.refreshNoPlanOrder4469?.()}catch(_){}}
+ }catch(_){/* keep last saved rate */}
+}
+function decorate(){
+ const cart=document.getElementById('nwNoPlanCart4469');if(!cart)return;
+ const a=items(),t=totals(),r=rate();
+ const head=cart.querySelector('.np-cart-head4469 span');
+ if(head){let txt=a.length+' поз. · '+M(t.uah)+' грн';if(t.usd>0&&!r)txt=a.length+' поз. · $'+t.usd.toFixed(2)+' + '+M(t.uah)+' грн';head.textContent=txt}
+ cart.querySelectorAll('.np-cart-row4469').forEach((row,i)=>{
+  const x=a[i];if(!x)return;let el=row.querySelector('.np-r13-price');if(!el){el=document.createElement('div');el.className='np-r13-price';const del=row.querySelector('.np-cart-del4469');row.insertBefore(el,del||null)}
+  const p=pinfo(x);el.innerHTML=p.unit+'<small>сума: '+p.sum+'</small>';
+ });
+ let rb=document.getElementById('nwR13Rate');
+ if(!rb){rb=document.createElement('div');rb.id='nwR13Rate';const h=cart.querySelector('.np-cart-head4469');h?.insertAdjacentElement('afterend',rb)}
+ rb.innerHTML='<span>Курс USD → грн · НБУ / збережений</span><b>'+(r>0?r.toFixed(4)+' грн':'завантаження…')+'</b>';
+}
+/* Correct wording now that the drawing exists. */
+function labels(){
+ const box=document.getElementById('nwNoPlan4463');if(!box)return;
+ const intro=box.querySelector(':scope > p');if(intro)intro.textContent='Замовлення по окремих позиціях з прив’язкою до поточної кімнати. План, площа, периметр і кути вже є; кількість позицій можна коригувати вручну.';
+ const head=box.querySelector('.nw-noplan-head4463');if(head){const b=head.querySelector('b'),sp=head.querySelector('span');if(b)b.textContent='Замовлення по окремих позиціях';if(sp)sp.textContent='план уже є · ціни видно тільки вам'}
+}
+const prev=window.refreshNoPlanOrder4469;window.refreshNoPlanOrder4469=function(){try{prev?.apply(this,arguments)}finally{setTimeout(()=>{decorate();labels()},0)}};
+/* R15.1: body-wide observer removed. refreshNoPlanOrder4469 already decorates cart after real order renders. */
+function boot(){labels();decorate();loadNbu();try{document.documentElement.dataset.pixelVersion='44.90A-R13';document.documentElement.dataset.pixelBuild='44.90A-r13-prices-visible-nbu'}catch(_){}}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(boot,500),{once:true});else setTimeout(boot,500);setTimeout(boot,1800);
 })();
 </script>
 </body></html>
@@ -30203,12 +30612,13 @@ const obs4469=new MutationObserver(()=>{
 function watch4469(){
  const modal=document.getElementById('nwModal4413');
  if(modal){
-   obs4469.observe(modal,{childList:true,subtree:true});
+   const grid=modal.querySelector('.nw-grid4413');
+   if(grid)obs4469.observe(grid,{childList:true,subtree:true});
    window.refreshNoPlanOrder4469();
  }else setTimeout(watch4469,500);
 }
 setTimeout(watch4469,700);
-document.addEventListener('click',()=>setTimeout(window.refreshNoPlanOrder4469,30),true);
+/* R15.2: removed global every-click order refresh; real add/edit/delete flows refresh themselves. */
 
 function mark4469(){
  try{document.documentElement.dataset.pixelVersion='44.69';document.title='Potolok AI PRO — Pixel 44.69'}catch(_){}
@@ -30239,5 +30649,1908 @@ setTimeout(mark4469,3200);
     document.documentElement.dataset.pixelVersion='44.80';
     document.title='Potolok AI PRO — Pixel 44.80';
   }catch(_){}
+})();
+</script>
+
+
+<!-- PIXEL 44.90A-R1 | ROOM-LINKED NW ORDER WITHOUT DRAWING -->
+<script id="pixel4490aRoomLinkedNoPlan">
+(function(){
+'use strict';
+if(window.__pixel4490aRoomLinkedNoPlanInstalled)return;
+window.__pixel4490aRoomLinkedNoPlanInstalled=true;
+
+const N=v=>Number(String(v??'').replace(',','.'))||0;
+const E=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+function roomR1(){
+  /* R2/R3: не пересобираем комнату во время заказа.
+     Иначе productionNoPlan4463 может быть потерян до commit. */
+  try{return (projectRooms||[]).find(r=>String(r.id)===String(activeRoomId))||null}catch(_){return null}
+}
+function metricsR1(){
+  const r=roomR1();
+  let area=N(r?.area), perimeter=N(r?.perimeter), corners=N(r?.corners);
+
+  try{
+    const s=window.getFingerDrawingState4408?.();
+    if(N(s?.area)>0)area=N(s.area);
+    if(N(s?.perimeter)>0)perimeter=N(s.perimeter);
+    if(N(s?.corners)>0)corners=N(s.corners);
+    else if(!corners&&Array.isArray(s?.points))corners=s.points.length;
+  }catch(_){}
+
+  if(!corners){
+    try{if(Array.isArray(r?.planner?.points))corners=r.planner.points.length}catch(_){}
+  }
+
+  return{
+    room:r,
+    area:Math.max(0,area),
+    perimeter:Math.max(0,perimeter),
+    corners:Math.max(0,Math.round(corners))
+  };
+}
+function stateR1(){
+  const r=roomR1();
+  if(!r)return null;
+  r.productionNoPlan4463=r.productionNoPlan4463||{items:[]};
+  r.productionNoPlan4463.items=Array.isArray(r.productionNoPlan4463.items)?r.productionNoPlan4463.items:[];
+  return r.productionNoPlan4463;
+}
+function commitR1(){
+  const r=roomR1();
+  try{window.commitNoPlanOrder4469?.(r)}catch(_){}
+  try{autosave?.()}catch(_){}
+  try{window.renderNoPlan4466?.()}catch(_){}
+  try{window.refreshNoPlanOrder4469?.()}catch(_){}
+}
+function upsertR1(item){
+  const s=stateR1();if(!s)return false;
+  const key=String(item.nwKey||item.nwId||item.name||'');
+  const old=s.items.find(x=>String(x?.nwKey||x?.nwId||x?.name||'')===key);
+  if(old)Object.assign(old,item);
+  else s.items.push(item);
+  commitR1();
+  return true;
+}
+function ensureCornersR1(){
+  const m=metricsR1();
+  if(!(m.corners>0))return;
+  upsertR1({
+    nwKey:'room-linked-canvas-corners',
+    nwId:'room-linked-canvas-corners',
+    name:'Кути полотна',
+    qty:m.corners,
+    unit:'шт',
+    price:17.60,
+    category:'Полотно',
+    source:'room-linked-44.90A-R1'
+  });
+}
+
+/* ---------- UI: show room metrics next to the no-plan order ---------- */
+function decoratePanelR1(){
+  const box=document.getElementById('nwNoPlan4463');
+  if(!box)return;
+
+  const mainBtn=box.querySelector(':scope > button');
+  if(mainBtn)mainBtn.textContent='📦 Замовлення по кімнаті без плану';
+
+  const intro=box.querySelector(':scope > p');
+  if(intro)intro.textContent='Замовлення без креслення, але з прив’язкою до поточної кімнати: площа, периметр і кути підтягуються автоматично. Кількість будь-якої позиції можна виправити вручну.';
+
+  const head=box.querySelector('.nw-noplan-head4463');
+  if(head){
+    const b=head.querySelector('b'),s=head.querySelector('span');
+    if(b)b.textContent='Замовлення NW по поточній кімнаті';
+    if(s)s.textContent='без креслення · з метрикою кімнати';
+  }
+
+  let info=document.getElementById('nwRoomMetricsR1');
+  if(!info){
+    info=document.createElement('div');
+    info.id='nwRoomMetricsR1';
+    info.style.cssText='margin:8px 0;padding:9px 10px;border:1px solid #bfdbfe;border-radius:10px;background:#eff6ff;color:#334155;font-size:9px;font-weight:850;line-height:1.45';
+    const items=document.getElementById('nwNoPlanItems4463');
+    items?.insertAdjacentElement('beforebegin',info);
+  }
+  const m=metricsR1();
+  info.innerHTML=`<b>${E(m.room?.name||'Поточна кімната')}</b><br>Площа: <b>${m.area.toFixed(2)} м²</b> · Периметр: <b>${m.perimeter.toFixed(2)} м.п.</b> · Кути: <b>${m.corners} шт</b>`;
+}
+
+/* ---------- Film: use current room area and auto-add canvas corners ---------- */
+const originalFilmR1=window.openNWFilm4413;
+if(typeof originalFilmR1==='function'){
+  window.openNWFilm4413=function(){
+    if(!window.__nwNoPlanMode4465)return originalFilmR1.apply(this,arguments);
+
+    const host=document.getElementById('nwMiniHost4413');
+    if(!host)return;
+    const films=window.NW4415?.films?.()||[];
+    if(!films.length)return alert('Прайс полотна не завантажений.');
+
+    const m=metricsR1();
+    host.innerHTML=`<div class="nw-mini-modal4413"><div class="nw-mini-sheet4413">
+      <div class="nw-mini-title4413"><h3>🧵 Полотно · по кімнаті без плану</h3><button class="nw-close4413" id="r1FilmClose">×</button></div>
+      <div style="margin:0 0 9px;padding:8px 9px;border:1px solid #bfdbfe;border-radius:9px;background:#eff6ff;font-size:8.5px;line-height:1.45">
+        ${E(m.room?.name||'Кімната')} · площа <b>${m.area.toFixed(2)} м²</b> · периметр <b>${m.perimeter.toFixed(2)} м</b> · кути <b>${m.corners} шт</b>
+      </div>
+      <img id="r1FilmImg" class="nw-brand4413" alt="">
+      <div class="nw-mini-grid4413">
+        <div class="wide"><label class="nw-lbl4413">Виробник</label><select id="r1FilmSeries" class="nw-sel4413">${films.map((g,i)=>`<option value="${i}">${E(g.label||g.brand||'')}</option>`).join('')}</select></div>
+        <div class="wide"><label class="nw-lbl4413">Фактура</label><select id="r1FilmTexture" class="nw-sel4413"><option value="matte">Мат</option><option value="satin">Сатин</option><option value="glossy">Глянець</option></select></div>
+        <div class="wide"><label class="nw-lbl4413">Ширина / позиція</label><select id="r1FilmItem" class="nw-sel4413"></select></div>
+        <div><label class="nw-lbl4413">Площа, м²</label><input id="r1FilmArea" class="nw-in4413" type="number" min="0.01" step="0.01" value="${m.area>0?m.area.toFixed(2):'1'}"></div>
+        <div><label class="nw-lbl4413">Ціна, $/м²</label><input id="r1FilmPrice" class="nw-in4413" type="number" min="0" step="0.01"></div>
+        <div class="wide"><label class="nw-lbl4413">Колір / номер полотна</label><input id="r1FilmColor" class="nw-in4413" placeholder="Напр.: білий 301"></div>
+        <div class="wide"><label class="nw-lbl4413">Коментар</label><textarea id="r1FilmComment" class="nw-ta4413" placeholder="Напр.: гарпун білий"></textarea></div>
+      </div>
+      <div id="r1FilmCalc" style="text-align:right;font-weight:900;font-size:10px;margin-top:8px"></div>
+      <button id="r1FilmAdd" class="nw-primary4413">＋ Додати полотно (${m.area.toFixed(2)} м²) + ${m.corners} кут.</button>
+    </div></div>`;
+
+    const se=document.getElementById('r1FilmSeries'),tx=document.getElementById('r1FilmTexture'),
+          it=document.getElementById('r1FilmItem'),ar=document.getElementById('r1FilmArea'),
+          pr=document.getElementById('r1FilmPrice'),im=document.getElementById('r1FilmImg');
+
+    const textureName=()=>tx.value==='glossy'?'Глянець':tx.value==='satin'?'Сатин':'Мат';
+    const compatible=x=>{
+      const n=String(x?.name||'').toLowerCase();
+      if(tx.value==='glossy')return /лак|глян/.test(n);
+      if(tx.value==='satin')return /сатин/.test(n);
+      return /мат/.test(n);
+    };
+    const selected=()=>films[N(se.value)]?.items?.[N(it.value)]||null;
+    const calc=()=>{const el=document.getElementById('r1FilmCalc');if(el)el.textContent='Сума полотна: $'+(N(ar.value)*N(pr.value)).toFixed(2)};
+    function fillItems(){
+      const g=films[N(se.value)],all=g?.items||[];
+      let list=all.map((x,i)=>({x,i})).filter(({x})=>compatible(x));
+      if(!list.length)list=all.map((x,i)=>({x,i}));
+      it.innerHTML=list.map(({x,i})=>`<option value="${i}">${E(x.name)} — $${N(x.price).toFixed(2)}/м²</option>`).join('');
+      const x=selected();pr.value=x?.price||'';calc();
+    }
+    function fill(){
+      const g=films[N(se.value)];
+      im.src=window.NW4415?.filmImage?.(g?.image)||'';
+      fillItems();
+    }
+
+    se.onchange=fill;tx.onchange=fillItems;it.onchange=()=>{const x=selected();pr.value=x?.price||'';calc()};
+    ar.oninput=calc;pr.oninput=calc;
+    document.getElementById('r1FilmClose').onclick=()=>host.replaceChildren();
+
+    document.getElementById('r1FilmAdd').onclick=()=>{
+      const g=films[N(se.value)],x=selected(),qty=N(ar.value),color=String(document.getElementById('r1FilmColor').value||'').trim();
+      if(!x||!(qty>0))return alert('Вкажіть площу.');
+      const name=`Полотно ${g.brand||g.label||''} — ${textureName()} · ${String(x.name||'').trim()}${color?' · '+color:''}`;
+      if(!upsertR1({
+        nwKey:'room-linked-film',
+        nwId:'room-linked-film',
+        name,
+        qty,
+        unit:'м²',
+        price:0,
+        usdPrice:N(pr.value),
+        category:'Полотно',
+        comment:String(document.getElementById('r1FilmComment').value||''),
+        source:'room-linked-44.90A-R1'
+      }))return alert('Не знайдено поточну кімнату.');
+
+      ensureCornersR1();
+      host.replaceChildren();
+      window.__nwNoPlanMode4465=true;
+      decoratePanelR1();
+      try{window.refreshNoPlanOrder4469?.()}catch(_){}
+    };
+    fill();
+  };
+}
+
+/* ---------- Generic NW item: auto-fill quantity from room metric ---------- */
+function autoQtyForProductR1(p,unit){
+  const m=metricsR1();
+  const t=(String(p?.title||'')+' '+String(p?.category||'')).toLowerCase();
+  if(unit==='м²')return m.area>0?m.area:1;
+  if(unit==='м.п.' && /профіл|профиль|багет|вставк/.test(t))return m.perimeter>0?m.perimeter:1;
+  if(unit==='шт' && /кут|угол/.test(t))return m.corners>0?m.corners:1;
+  return 1;
+}
+
+function patchPickerR1(){
+  if(!window.__nwNoPlanMode4465)return;
+  const pHost=document.getElementById('nwMiniHost4413');
+  if(!pHost)return;
+
+  const qty=pHost.querySelector('#npQty4466,#npQty4467');
+  const unit=pHost.querySelector('#npUnit4466,#npUnit4467');
+  if(!qty||!unit||qty.dataset.r1==='1')return;
+
+  const title=pHost.querySelector('.nw-mini-title4413 h3')?.textContent||'';
+  let fake={title};
+  const v=autoQtyForProductR1(fake,String(unit.value||''));
+  qty.value=String(Math.round((v+Number.EPSILON)*100)/100);
+  qty.dataset.r1='1';
+
+  let hint=pHost.querySelector('.hint');
+  if(hint){
+    const m=metricsR1();
+    hint.innerHTML=`📐 <b>Поточна кімната:</b> ${m.area.toFixed(2)} м² · ${m.perimeter.toFixed(2)} м.п. · ${m.corners} кут. Кількість підставлена автоматично; її можна змінити вручну.`;
+  }
+}
+
+document.addEventListener('click',function(){
+  setTimeout(patchPickerR1,25);
+  setTimeout(decoratePanelR1,40);
+},true);
+
+/* ---------- Export: include room metrics in the PNG ---------- */
+window.shareNoPlan4463=async function(){
+  const s=stateR1(),items=(s?.items||[]).filter(x=>String(x?.name||'').trim()&&N(x.qty)>0);
+  const st=document.getElementById('nwNoPlanStatus4463');
+  if(!items.length){if(st)st.textContent='Додайте хоча б одну позицію.';return}
+
+  const m=metricsR1();
+  try{
+    if(st)st.textContent='Готую замовлення по кімнаті…';
+    const H=Math.max(980,430+items.length*92);
+    const c=document.createElement('canvas');c.width=1500;c.height=H;const x=c.getContext('2d');
+    x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);
+    x.fillStyle='#071428';x.font='900 48px Arial';x.fillText('Potolok.in.ua',60,70);
+    x.font='900 34px Arial';x.fillText('ЗАМОВЛЕННЯ NW · ПО КІМНАТІ БЕЗ КРЕСЛЕННЯ',60,125);
+    x.fillStyle='#334155';x.font='800 24px Arial';x.fillText(`${m.room?.name||'Кімната'} · ${new Date().toLocaleString('uk-UA')}`,60,170);
+
+    x.fillStyle='#eff6ff';x.fillRect(55,195,1390,92);
+    x.fillStyle='#075bff';x.font='900 24px Arial';
+    x.fillText(`ПЛОЩА: ${m.area.toFixed(2)} м²`,85,232);
+    x.fillText(`ПЕРИМЕТР: ${m.perimeter.toFixed(2)} м.п.`,510,232);
+    x.fillText(`КУТИ: ${m.corners} шт`,1030,232);
+    x.fillStyle='#475569';x.font='700 18px Arial';x.fillText('Метрика автоматично взята з поточної кімнати. Креслення не додається.',85,266);
+
+    let y=340;
+    x.fillStyle='#075bff';x.font='900 28px Arial';x.fillText(`ПОЗИЦІЇ · ${items.length}`,60,y);y+=48;
+    items.forEach((it,i)=>{
+      x.fillStyle='#0f172a';x.font='800 24px Arial';x.fillText(`${i+1}. ${String(it.name).trim()}`,75,y);
+      x.textAlign='right';x.fillStyle='#075bff';
+      x.fillText(`${N(it.qty).toLocaleString('uk-UA',{maximumFractionDigits:2})} ${it.unit||'шт'}`,1420,y);
+      x.textAlign='left';y+=45;x.strokeStyle='#e2e8f0';x.beginPath();x.moveTo(60,y);x.lineTo(1440,y);x.stroke();y+=34;
+    });
+    x.fillStyle='#64748b';x.font='700 18px Arial';x.fillText('Замовлення сформовано без креслення; кількості можна коригувати вручну перед відправкою.',60,H-60);
+
+    const blob=await new Promise((res,rej)=>c.toBlob(b=>b?res(b):rej(new Error('Не вдалося створити PNG')),'image/png',.98));
+    const safe=String(m.room?.name||'room').replace(/[^\p{L}\p{N}_-]+/gu,'_');
+    const f=new File([blob],`NW_KIMNATA_BEZ_PLANU_${safe}_${Date.now()}.png`,{type:'image/png'});
+    if(navigator.share&&navigator.canShare?.({files:[f]})){
+      await navigator.share({title:'Замовлення NW по кімнаті',text:`${m.room?.name||'Кімната'} · ${m.area.toFixed(2)} м² · ${m.perimeter.toFixed(2)} м · ${m.corners} кут.`,files:[f]});
+      if(st)st.textContent='✅ Замовлення передано в меню поширення.';
+    }else{
+      const u=URL.createObjectURL(f),a=document.createElement('a');a.href=u;a.download=f.name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),1800);
+      if(st)st.textContent='✅ PNG замовлення збережено.';
+    }
+  }catch(e){
+    if(e?.name!=='AbortError'&&st)st.textContent=e?.message||'Не вдалося підготувати замовлення.';
+  }
+};
+
+function bootR1(){
+  decoratePanelR1();
+  try{document.documentElement.dataset.pixelVersion='44.90A-R3';document.documentElement.dataset.pixelBuild='44.90A-room-linked-clean-plan'}catch(_){}
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(bootR1,300),{once:true});else setTimeout(bootR1,300);
+setTimeout(bootR1,1200);
+})();
+</script>
+
+
+<!-- PIXEL 44.90A-R4 | FIX: SEND + ADD NEXT POSITION -->
+<script id="pixel4490aR4SendAddFix">
+(function(){
+'use strict';
+if(window.__pixel4490aR4SendAddFixInstalled)return;
+window.__pixel4490aR4SendAddFixInstalled=true;
+
+const N=v=>Number(String(v??'').replace(',','.'))||0;
+const E=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+function roomR4(){
+  try{return (projectRooms||[]).find(r=>String(r.id)===String(activeRoomId))||null}catch(_){return null}
+}
+function stateR4(){
+  const r=roomR4();if(!r)return null;
+  r.productionNoPlan4463=r.productionNoPlan4463||{items:[]};
+  r.productionNoPlan4463.items=Array.isArray(r.productionNoPlan4463.items)?r.productionNoPlan4463.items:[];
+  return r.productionNoPlan4463;
+}
+function saveR4(){
+  const r=roomR4();
+  try{window.commitNoPlanOrder4469?.(r)}catch(_){}
+  try{autosave?.()}catch(_){}
+  try{window.renderNoPlan4466?.()}catch(_){}
+  try{window.refreshNoPlanOrder4469?.()}catch(_){}
+}
+
+/* FIX 1: "Додати позицію" теперь точно добавляет новую строку
+   в тот же productionNoPlan4463 и сразу фиксирует состояние. */
+window.addNoPlanItem4463=function(){
+  const s=stateR4();if(!s)return alert('Не знайдено поточну кімнату.');
+  s.items.push({
+    nwKey:'manual-r4-'+Date.now()+'-'+Math.random().toString(36).slice(2,7),
+    nwId:'',
+    name:'Нова позиція',
+    qty:1,
+    unit:'шт',
+    price:0,
+    category:'Вручну',
+    source:'manual-room-linked-r4'
+  });
+  saveR4();
+  setTimeout(()=>{
+    const rows=document.querySelectorAll('#nwNoPlanItems4463 .np-order-card4469,#nwNoPlanItems4463 .nw-noplan-row4463');
+    const last=rows[rows.length-1];
+    last?.querySelector('input')?.focus();
+  },30);
+};
+
+/* Дополнительная страховка для товаров из каталога NW:
+   после штатного добавления принудительно обновляем корзину, не закрывая каталог. */
+document.addEventListener('click',function(e){
+  if(!window.__nwNoPlanMode4465)return;
+  if(!e.target?.closest?.('#npApply4467,#npApply4466'))return;
+  setTimeout(saveR4,40);
+  setTimeout(saveR4,160);
+},false);
+
+function metricsR4(){
+  const r=roomR4();
+  let area=N(r?.area),perimeter=N(r?.perimeter),corners=N(r?.corners);
+  try{
+    const s=window.getFingerDrawingState4408?.();
+    if(N(s?.area)>0)area=N(s.area);
+    if(N(s?.perimeter)>0)perimeter=N(s.perimeter);
+    if(N(s?.corners)>0)corners=N(s.corners);
+    else if(!corners&&Array.isArray(s?.points))corners=s.points.length;
+  }catch(_){}
+  if(!corners&&Array.isArray(r?.planner?.points))corners=r.planner.points.length;
+  return{r,area,perimeter,corners:Math.round(corners||0)};
+}
+
+function geomR4(){
+  const r=roomR4();
+  let pts=[],lens=[];
+  try{
+    if(Array.isArray(r?.planner?.points)&&r.planner.points.length>=3)
+      pts=r.planner.points.map(p=>[N(p?.[0]??p?.x),N(p?.[1]??p?.y)]);
+    if(Array.isArray(r?.planner?.segments)&&r.planner.segments.length===pts.length)
+      lens=r.planner.segments.map(N);
+  }catch(_){}
+  if(pts.length>=3&&lens.length!==pts.length){
+    const raw=pts.map((p,i)=>{
+      const q=pts[(i+1)%pts.length];
+      return Math.hypot(q[0]-p[0],q[1]-p[1]);
+    });
+    const sum=raw.reduce((a,b)=>a+b,0)||1;
+    const per=metricsR4().perimeter;
+    const k=per>0?per/sum:1;
+    lens=raw.map(v=>v*k);
+  }
+  return{pts,lens};
+}
+function alphaR4(i){
+  let s='',n=i+1;
+  while(n>0){n--;s=String.fromCharCode(65+n%26)+s;n=Math.floor(n/26)}
+  return s;
+}
+function drawPlanR4(ctx,g,x0,y0,w,h){
+  const pts=g.pts||[],lens=g.lens||[];
+  ctx.fillStyle='#f8fafc';ctx.fillRect(x0,y0,w,h);
+  ctx.strokeStyle='#dbeafe';ctx.lineWidth=2;ctx.strokeRect(x0,y0,w,h);
+  if(pts.length<3){
+    ctx.fillStyle='#64748b';ctx.font='700 22px Arial';
+    ctx.fillText('Контур кімнати не знайдено.',x0+30,y0+55);
+    return;
+  }
+  const xs=pts.map(p=>p[0]),ys=pts.map(p=>p[1]);
+  const minX=Math.min(...xs),maxX=Math.max(...xs),minY=Math.min(...ys),maxY=Math.max(...ys);
+  const bw=Math.max(1,maxX-minX),bh=Math.max(1,maxY-minY),pad=95;
+  const sc=Math.min((w-pad*2)/bw,(h-pad*2)/bh);
+  const ox=x0+(w-bw*sc)/2-minX*sc,oy=y0+(h-bh*sc)/2-minY*sc;
+  const P=pts.map(([x,y])=>[ox+x*sc,oy+y*sc]);
+
+  ctx.beginPath();
+  P.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1]));
+  ctx.closePath();ctx.fillStyle='rgba(7,91,255,.08)';ctx.fill();
+  ctx.strokeStyle='#075bff';ctx.lineWidth=5;ctx.stroke();
+
+  const cx=P.reduce((s,p)=>s+p[0],0)/P.length;
+  const cy=P.reduce((s,p)=>s+p[1],0)/P.length;
+
+  P.forEach((p,i)=>{
+    const q=P[(i+1)%P.length];
+    ctx.beginPath();ctx.arc(p[0],p[1],10,0,Math.PI*2);
+    ctx.fillStyle='#fff';ctx.fill();ctx.strokeStyle='#075bff';ctx.lineWidth=4;ctx.stroke();
+
+    let vx=p[0]-cx,vy=p[1]-cy,vl=Math.hypot(vx,vy)||1;
+    ctx.fillStyle='#0f172a';ctx.font='900 22px Arial';ctx.textAlign='center';
+    ctx.fillText(alphaR4(i),p[0]+vx/vl*28,p[1]+vy/vl*28+7);
+
+    const mx=(p[0]+q[0])/2,my=(p[1]+q[1])/2;
+    const dx=q[0]-p[0],dy=q[1]-p[1],dl=Math.hypot(dx,dy)||1;
+    let nx=-dy/dl,ny=dx/dl;
+    if(nx*(cx-mx)+ny*(cy-my)>0){nx=-nx;ny=-ny}
+    ctx.fillStyle='#075bff';ctx.font='900 20px Arial';
+    ctx.fillText((N(lens[i])>0?N(lens[i]).toFixed(2):'—')+' м',mx+nx*38,my+ny*38+7);
+  });
+  ctx.textAlign='left';
+}
+
+/* FIX 2: самостоятельная и максимально простая отправка.
+   Если системный share не сработал — автоматически сохраняем PNG,
+   а не молча остаёмся без результата. */
+window.shareNoPlan4463=async function(){
+  const st=document.getElementById('nwNoPlanStatus4463');
+  const s=stateR4();
+  const items=(s?.items||[]).filter(x=>String(x?.name||'').trim()&&N(x.qty)>0);
+  if(!items.length){
+    if(st)st.textContent='Додайте хоча б одну позицію.';
+    return;
+  }
+  const m=metricsR4(),g=geomR4();
+
+  try{
+    if(st)st.textContent='Готую PNG замовлення…';
+
+    const planH=600;
+    const H=420+planH+Math.max(260,items.length*86)+100;
+    const c=document.createElement('canvas');
+    c.width=1400;c.height=H;
+    const x=c.getContext('2d');
+
+    x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);
+    x.fillStyle='#071428';x.font='900 44px Arial';x.fillText('Potolok.in.ua',55,65);
+    x.font='900 31px Arial';x.fillText('ЗАМОВЛЕННЯ NW · ПЛАН ДЛЯ РОЗКРОЮ',55,115);
+    x.fillStyle='#475569';x.font='700 22px Arial';
+    x.fillText(`${m.r?.name||'Кімната'} · ${new Date().toLocaleString('uk-UA')}`,55,155);
+
+    x.fillStyle='#eff6ff';x.fillRect(50,180,1300,85);
+    x.fillStyle='#075bff';x.font='900 22px Arial';
+    x.fillText(`Площа: ${m.area.toFixed(2)} м²`,80,215);
+    x.fillText(`Периметр: ${m.perimeter.toFixed(2)} м.п.`,500,215);
+    x.fillText(`Кути: ${m.corners} шт`,1030,215);
+    x.fillStyle='#475569';x.font='700 17px Arial';
+    x.fillText('На плані тільки контур, точки та розміри сторін. Без світильників та інших елементів.',80,247);
+
+    x.fillStyle='#0f172a';x.font='900 27px Arial';x.fillText('ПЛАН',55,310);
+    drawPlanR4(x,g,55,335,1290,planH);
+
+    let y=335+planH+60;
+    x.fillStyle='#075bff';x.font='900 27px Arial';x.fillText(`ПОЗИЦІЇ · ${items.length}`,55,y);
+    y+=45;
+    for(let i=0;i<items.length;i++){
+      const it=items[i];
+      x.fillStyle='#0f172a';x.font='800 22px Arial';
+      x.fillText(`${i+1}. ${String(it.name).trim()}`,70,y);
+      x.textAlign='right';x.fillStyle='#075bff';
+      x.fillText(`${N(it.qty).toLocaleString('uk-UA',{maximumFractionDigits:2})} ${it.unit||'шт'}`,1330,y);
+      x.textAlign='left';
+      y+=38;x.strokeStyle='#e2e8f0';x.beginPath();x.moveTo(55,y);x.lineTo(1345,y);x.stroke();y+=30;
+    }
+
+    const blob=await new Promise((resolve,reject)=>{
+      c.toBlob(b=>b?resolve(b):reject(new Error('Не вдалося створити PNG')),'image/png',0.94);
+    });
+    const safe=String(m.r?.name||'room').replace(/[^\p{L}\p{N}_-]+/gu,'_');
+    const file=new File([blob],`NW_${safe}_${Date.now()}.png`,{type:'image/png'});
+
+    let shared=false;
+    try{
+      if(navigator.share&&navigator.canShare?.({files:[file]})){
+        await navigator.share({
+          title:'Замовлення NW',
+          text:`${m.r?.name||'Кімната'} · ${m.area.toFixed(2)} м² · ${m.perimeter.toFixed(2)} м · ${m.corners} кут.`,
+          files:[file]
+        });
+        shared=true;
+      }
+    }catch(e){
+      if(e?.name==='AbortError'){
+        if(st)st.textContent='Відправлення скасовано.';
+        return;
+      }
+    }
+
+    if(shared){
+      if(st)st.textContent='✅ Замовлення передано в меню поширення.';
+      return;
+    }
+
+    const u=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    a.href=u;a.download=file.name;
+    document.body.appendChild(a);a.click();a.remove();
+    setTimeout(()=>URL.revokeObjectURL(u),2500);
+    if(st)st.textContent='✅ PNG збережено. Системне меню поширення недоступне.';
+  }catch(e){
+    console.error('R4 share error',e);
+    if(st)st.textContent='❌ '+(e?.message||'Помилка формування замовлення.');
+    alert('Не вдалося відправити замовлення: '+(e?.message||'невідома помилка'));
+  }
+};
+
+try{
+  document.documentElement.dataset.pixelVersion='44.90A-R4';
+  document.documentElement.dataset.pixelBuild='44.90A-r4-send-add-fix';
+}catch(_){}
+})();
+</script>
+
+
+<!-- PIXEL 44.90A-R5 | LIVE CLEAN PLAN PREVIEW + ADD POSITION OPENS NW -->
+<style id="pixel4490aR5Styles">
+#nwPlanPreviewR5{
+  margin:9px 0 10px;
+  border:1px solid #bfdbfe;
+  border-radius:12px;
+  background:#fff;
+  overflow:hidden;
+}
+#nwPlanPreviewR5 .r5-head{
+  padding:9px 11px 7px;
+  display:flex;
+  justify-content:space-between;
+  gap:8px;
+  align-items:center;
+  background:#eff6ff;
+  color:#0f172a;
+  font-size:9px;
+  font-weight:950;
+}
+#nwPlanPreviewR5 .r5-sub{
+  color:#64748b;
+  font-size:7.5px;
+  font-weight:800;
+  white-space:nowrap;
+}
+#nwPlanPreviewR5 canvas{
+  display:block;
+  width:100%;
+  height:auto;
+  background:#f8fafc;
+}
+</style>
+<script id="pixel4490aR5PreviewAddNW">
+(function(){
+'use strict';
+if(window.__pixel4490aR5Installed)return;
+window.__pixel4490aR5Installed=true;
+
+const N=v=>Number(String(v??'').replace(',','.'))||0;
+
+function roomR5(){
+  try{return (projectRooms||[]).find(r=>String(r.id)===String(activeRoomId))||null}catch(_){return null}
+}
+function metricsR5(){
+  const r=roomR5();
+  let area=N(r?.area),perimeter=N(r?.perimeter),corners=N(r?.corners);
+  try{
+    const s=window.getFingerDrawingState4408?.();
+    if(N(s?.area)>0)area=N(s.area);
+    if(N(s?.perimeter)>0)perimeter=N(s.perimeter);
+    if(N(s?.corners)>0)corners=N(s.corners);
+    else if(!corners&&Array.isArray(s?.points))corners=s.points.length;
+  }catch(_){}
+  if(!corners&&Array.isArray(r?.planner?.points))corners=r.planner.points.length;
+  return{r,area,perimeter,corners:Math.round(corners||0)};
+}
+function geomR5(){
+  const r=roomR5();
+  let pts=[],lens=[];
+  try{
+    if(Array.isArray(r?.planner?.points)&&r.planner.points.length>=3){
+      pts=r.planner.points.map(p=>[
+        N(p?.[0]??p?.x),
+        N(p?.[1]??p?.y)
+      ]);
+    }
+    if(Array.isArray(r?.planner?.segments)&&r.planner.segments.length===pts.length){
+      lens=r.planner.segments.map(N);
+    }
+  }catch(_){}
+
+  if(pts.length<3){
+    try{
+      const s=window.getFingerDrawingState4408?.();
+      if(Array.isArray(s?.points)&&s.points.length>=3){
+        pts=s.points.map(p=>[N(p?.[0]??p?.x),N(p?.[1]??p?.y)]);
+      }
+      if(Array.isArray(s?.segments)&&s.segments.length===pts.length){
+        lens=s.segments.map(N);
+      }
+    }catch(_){}
+  }
+
+  if(pts.length>=3&&lens.length!==pts.length){
+    const raw=pts.map((p,i)=>{
+      const q=pts[(i+1)%pts.length];
+      return Math.hypot(q[0]-p[0],q[1]-p[1]);
+    });
+    const sum=raw.reduce((a,b)=>a+b,0)||1;
+    const per=metricsR5().perimeter;
+    const k=per>0?per/sum:1;
+    lens=raw.map(v=>v*k);
+  }
+  return{pts,lens};
+}
+function alphaR5(i){
+  let s='',n=i+1;
+  while(n>0){n--;s=String.fromCharCode(65+n%26)+s;n=Math.floor(n/26)}
+  return s;
+}
+function drawPreviewR5(){
+  const c=document.getElementById('nwPlanCanvasR5');
+  if(!c)return;
+  const ctx=c.getContext('2d');
+  const g=geomR5(),pts=g.pts||[],lens=g.lens||[];
+  const W=c.width,H=c.height;
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle='#f8fafc';ctx.fillRect(0,0,W,H);
+
+  if(pts.length<3){
+    ctx.fillStyle='#64748b';ctx.font='700 22px Arial';ctx.textAlign='center';
+    ctx.fillText('Контур кімнати не знайдено',W/2,H/2);
+    ctx.textAlign='left';
+    return;
+  }
+
+  const xs=pts.map(p=>p[0]),ys=pts.map(p=>p[1]);
+  const minX=Math.min(...xs),maxX=Math.max(...xs),minY=Math.min(...ys),maxY=Math.max(...ys);
+  const bw=Math.max(1,maxX-minX),bh=Math.max(1,maxY-minY),pad=115;
+  const sc=Math.min((W-pad*2)/bw,(H-pad*2)/bh);
+  const ox=(W-bw*sc)/2-minX*sc,oy=(H-bh*sc)/2-minY*sc;
+  const P=pts.map(([x,y])=>[ox+x*sc,oy+y*sc]);
+
+  ctx.beginPath();
+  P.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1]));
+  ctx.closePath();
+  ctx.fillStyle='rgba(7,91,255,.09)';ctx.fill();
+  ctx.strokeStyle='#075bff';ctx.lineWidth=6;ctx.stroke();
+
+  const cx=P.reduce((s,p)=>s+p[0],0)/P.length;
+  const cy=P.reduce((s,p)=>s+p[1],0)/P.length;
+
+  P.forEach((p,i)=>{
+    const q=P[(i+1)%P.length];
+
+    ctx.beginPath();ctx.arc(p[0],p[1],11,0,Math.PI*2);
+    ctx.fillStyle='#fff';ctx.fill();
+    ctx.strokeStyle='#075bff';ctx.lineWidth=4;ctx.stroke();
+
+    let vx=p[0]-cx,vy=p[1]-cy,vl=Math.hypot(vx,vy)||1;
+    ctx.fillStyle='#0f172a';ctx.font='900 24px Arial';ctx.textAlign='center';
+    ctx.fillText(alphaR5(i),p[0]+vx/vl*31,p[1]+vy/vl*31+8);
+
+    const mx=(p[0]+q[0])/2,my=(p[1]+q[1])/2;
+    const dx=q[0]-p[0],dy=q[1]-p[1],dl=Math.hypot(dx,dy)||1;
+    let nx=-dy/dl,ny=dx/dl;
+    if(nx*(cx-mx)+ny*(cy-my)>0){nx=-nx;ny=-ny}
+    ctx.fillStyle='#075bff';ctx.font='900 22px Arial';
+    const len=N(lens[i]);
+    ctx.fillText((len>0?len.toFixed(2):'—')+' м',mx+nx*42,my+ny*42+7);
+  });
+
+  const m=metricsR5();
+  ctx.textAlign='left';
+  ctx.fillStyle='#475569';ctx.font='800 19px Arial';
+  ctx.fillText(`${m.area.toFixed(2)} м²  ·  ${m.perimeter.toFixed(2)} м.п.  ·  ${m.corners} кут.`,28,H-28);
+}
+
+function ensurePreviewR5(){
+  const box=document.getElementById('nwNoPlan4463');
+  const items=document.getElementById('nwNoPlanItems4463');
+  if(!box||!items)return;
+
+  let wrap=document.getElementById('nwPlanPreviewR5');
+  if(!wrap){
+    wrap=document.createElement('div');
+    wrap.id='nwPlanPreviewR5';
+    wrap.innerHTML=`
+      <div class="r5-head">
+        <span>📐 План, який піде разом із замовленням</span>
+        <span class="r5-sub">тільки контур + розміри</span>
+      </div>
+      <canvas id="nwPlanCanvasR5" width="1100" height="620"></canvas>
+    `;
+    items.insertAdjacentElement('beforebegin',wrap);
+  }
+  drawPreviewR5();
+
+  const addBtn=box.querySelector('.nw-noplan-actions4463 .add');
+  if(addBtn){
+    addBtn.textContent='＋ Додати позицію з NW';
+    addBtn.onclick=function(){
+      window.openNWNoPlan4465?.();
+    };
+  }
+
+  const main=box.querySelector(':scope > button');
+  if(main)main.textContent='📦 Замовлення по кімнаті';
+}
+
+/* R5: кнопка "+ Додати позицію" больше НЕ создаёт пустую строку.
+   Она всегда открывает NW в режиме текущего заказа. */
+window.addNoPlanItem4463=function(){
+  window.openNWNoPlan4465?.();
+};
+
+/* После закрытия мини-окна/добавления товара перерисовываем превью,
+   чтобы на экране всегда был тот же план, что и в отправляемом PNG. */
+document.addEventListener('click',function(e){
+  if(!e.target?.closest?.('#nwNoPlan4463 button,#nwModal4413 button,#roomList button,[data-room-switch4350]'))return;
+  setTimeout(ensurePreviewR5,80);
+},true);
+
+const mo=new MutationObserver(()=>{setTimeout(ensurePreviewR5,60)});
+const previewHostR5=document.getElementById('nwNoPlanItems4463');
+if(previewHostR5)mo.observe(previewHostR5,{childList:true});
+
+function bootR5(){
+  ensurePreviewR5();
+  try{
+    document.documentElement.dataset.pixelVersion='44.90A-R5';
+    document.documentElement.dataset.pixelBuild='44.90A-r5-preview-add-nw';
+  }catch(_){}
+}
+if(document.readyState==='loading'){
+  document.addEventListener('DOMContentLoaded',()=>setTimeout(bootR5,300),{once:true});
+}else setTimeout(bootR5,300);
+setTimeout(bootR5,1200);
+})();
+</script>
+
+
+<!-- PIXEL 44.90A-R6 | INTERNAL TOTAL VISIBLE / SUPPLIER PNG WITHOUT PRICES -->
+<script id="pixel4490aR6InternalTotalNoSupplierPrices">
+(function(){
+'use strict';
+if(window.__pixel4490aR6Installed)return;
+window.__pixel4490aR6Installed=true;
+
+const N=v=>Number(String(v??'').replace(',','.'))||0;
+
+function roomR6(){
+  try{return (projectRooms||[]).find(r=>String(r.id)===String(activeRoomId))||null}catch(_){return null}
+}
+function stateR6(){
+  const r=roomR6();if(!r)return null;
+  r.productionNoPlan4463=r.productionNoPlan4463||{items:[]};
+  r.productionNoPlan4463.items=Array.isArray(r.productionNoPlan4463.items)?r.productionNoPlan4463.items:[];
+  return r.productionNoPlan4463;
+}
+function internalTotalR6(){
+  const s=stateR6();
+  return (s?.items||[]).reduce((sum,it)=>{
+    const q=N(it?.qty);
+    const p=N(it?.price);
+    return sum+q*p;
+  },0);
+}
+function updateInternalTotalR6(){
+  const box=document.getElementById('nwNoPlan4463');
+  if(!box)return;
+  let bar=document.getElementById('nwInternalTotalR6');
+  if(!bar){
+    bar=document.createElement('div');
+    bar.id='nwInternalTotalR6';
+    bar.style.cssText='margin:10px 0 0;padding:12px 14px;border-radius:12px;background:#0f172a;color:#fff;display:flex;justify-content:space-between;align-items:center;font-weight:950;font-size:10px';
+    const items=document.getElementById('nwNoPlanItems4463');
+    items?.insertAdjacentElement('afterend',bar);
+  }
+  const total=internalTotalR6();
+  bar.innerHTML=`<span>💰 Внутрішня сума замовлення</span><span>${total.toLocaleString('uk-UA',{minimumFractionDigits:0,maximumFractionDigits:2})} грн</span>`;
+}
+
+/* Внутри интерфейса цена и итог остаются видимыми только вам.
+   В отправляемый поставщику PNG цены, суммы и дилерские ставки не рисуются. */
+const prevShareR6=window.shareNoPlan4463;
+window.shareNoPlan4463=async function(){
+  const s=stateR6();
+  const items=(s?.items||[]).filter(x=>String(x?.name||'').trim()&&N(x.qty)>0);
+  const st=document.getElementById('nwNoPlanStatus4463');
+  if(!items.length){
+    if(st)st.textContent='Додайте хоча б одну позицію.';
+    return;
+  }
+
+  /* Используем R4/R5 текущую геометрию, но перед экспортом временно
+     обнуляем только отображаемые цены в копии данных, не меняя заказ. */
+  const clone=items.map(it=>({...it, price:0, usdPrice:0}));
+
+  const originalItems=s.items;
+  try{
+    s.items=clone;
+    return await prevShareR6();
+  }finally{
+    s.items=originalItems;
+    setTimeout(()=>{
+      try{window.refreshNoPlanOrder4469?.()}catch(_){}
+      updateInternalTotalR6();
+    },30);
+  }
+};
+
+/* R15.1: legacy R6 total is hidden by later layers; global listeners removed to prevent redundant reflows. */
+
+function bootR6(){
+  updateInternalTotalR6();
+  try{
+    document.documentElement.dataset.pixelVersion='44.90A-R6';
+    document.documentElement.dataset.pixelBuild='44.90A-r6-internal-total-supplier-no-prices';
+  }catch(_){}
+}
+if(document.readyState==='loading'){
+  document.addEventListener('DOMContentLoaded',()=>setTimeout(bootR6,300),{once:true});
+}else setTimeout(bootR6,300);
+setTimeout(bootR6,1200);
+})();
+</script>
+
+<!-- PIXEL 44.90A-R9 | REAL NW POSITIONS + PRICE/SUM PER ROW + ALL TOTAL -->
+<style id="pixel4490aR9Styles">
+#nwInternalTotalR6,#nwInternalTotalR8{display:none!important}
+.np-r9-meta{display:flex;gap:6px;flex-wrap:wrap;margin-top:5px;font-size:8px;color:#64748b;font-weight:800}
+.np-r9-controls{display:grid;grid-template-columns:minmax(72px,.75fr) minmax(74px,.75fr) minmax(86px,1fr) minmax(92px,1fr) 42px;gap:7px;align-items:end;margin-top:9px}
+.np-r9-field label{display:block;font-size:7.5px;color:#64748b;font-weight:900;margin:0 0 4px}
+.np-r9-field input,.np-r9-field select{width:100%;min-width:0;border:1px solid #dbe3ef;border-radius:9px;padding:9px 7px;background:#fff;color:#0f172a;font-size:9px;font-weight:850}
+.np-r9-sum{min-height:36px;display:flex;align-items:center;justify-content:flex-end;padding:7px 8px;border-radius:9px;background:#eff6ff;color:#075bff;font-size:9px;font-weight:950;text-align:right}
+.np-r9-del{width:42px;height:36px;border:1px solid #fecaca;border-radius:9px;background:#fff1f2;color:#dc2626;font-size:15px;font-weight:950}
+#nwInternalTotalR9{margin-top:10px;padding:13px 14px;border-radius:12px;background:#0f172a;color:#fff;display:flex;justify-content:space-between;gap:12px;align-items:flex-start;font-weight:950;font-size:10px}
+#nwInternalTotalR9 .right{text-align:right;font-size:12px}#nwInternalTotalR9 small{display:block;color:#bfdbfe;font-size:8px;line-height:1.4;margin-top:4px;font-weight:800}
+@media(max-width:560px){.np-r9-controls{grid-template-columns:1fr 1fr}.np-r9-sum{justify-content:flex-start}.np-r9-del{width:100%}}
+</style>
+<script id="pixel4490aR9RealOrder">
+(function(){
+'use strict';
+if(window.__pixel4490aR9Installed)return;window.__pixel4490aR9Installed=true;
+const N=v=>Number(String(v??'').replace(',','.'))||0;
+const E=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const M=v=>N(v).toLocaleString('uk-UA',{minimumFractionDigits:0,maximumFractionDigits:2});
+function room(){try{return (projectRooms||[]).find(r=>String(r.id)===String(activeRoomId))||null}catch(_){return null}}
+function items(){const r=room();if(!r)return[];r.productionNoPlan4463=r.productionNoPlan4463||{items:[]};let a=Array.isArray(r.productionNoPlan4463.items)?r.productionNoPlan4463.items:[];if(!a.length){try{const saved=JSON.parse(localStorage.getItem('potolok:nw-no-plan:44.69:'+String(r.id||'no-room'))||'[]');if(Array.isArray(saved)&&saved.length){a=saved;r.productionNoPlan4463.items=saved}}catch(_){}}return a}
+function rate(){try{const el=document.querySelector('#nwUsdRate4425,#usdRate4425,input[data-usd-rate]');if(el&&N(el.value)>0)return N(el.value)}catch(_){} try{return N(localStorage.getItem('potolok_usd_uah_rate_4425'))}catch(_){return 0}}
+function save(){try{window.commitNoPlanOrder4469?.(room())}catch(_){}try{autosave?.()}catch(_){}render()}
+window.setNoPlanR9=function(i,k,v){const a=items();if(!a[i])return;a[i][k]=(k==='qty'||k==='price'||k==='usdPrice')?N(v):v;save()};
+window.deleteNoPlanR9=function(i){const a=items();if(!a[i])return;a.splice(i,1);save()};
+function rowPrice(x){const q=N(x.qty),u=N(x.price),d=N(x.usdPrice);if(d>0)return{currency:'$',unit:d,sum:q*d};return{currency:'грн',unit:u,sum:q*u}}
+function render(){
+ const box=document.getElementById('nwNoPlanItems4463');if(!box)return;const a=items();
+ if(!a.length){box.innerHTML='<div class="np-empty4469">Позицій ще немає. Натисніть «＋ Додати позицію з NW» і виберіть реальний товар.</div>';renderTotal();return}
+ box.innerHTML='<div class="np-order-head4469"><b>🧾 Вибрано до відправки</b><span>'+a.length+' поз.</span></div>'+a.map((x,i)=>{const p=rowPrice(x),isUsd=p.currency==='$';return `<div class="np-order-card4469"><div class="np-order-top4469"><div><div class="np-order-name4469">${i+1}. ${E(x.name||'Позиція NW')}</div><div class="np-r9-meta"><span>${E(x.category||'NW')}</span>${x.comment?`<span>· ${E(x.comment)}</span>`:''}</div></div><div class="np-order-price4469">${p.unit>0?(isUsd?'$'+p.unit.toFixed(2):M(p.unit)+' грн')+'/'+E(x.unit||'шт'):'ціна не задана'}</div></div><div class="np-r9-controls"><div class="np-r9-field"><label>Кількість</label><input type="number" min="0" step="0.01" value="${N(x.qty)}" onchange="setNoPlanR9(${i},'qty',this.value)"></div><div class="np-r9-field"><label>Од.</label><select onchange="setNoPlanR9(${i},'unit',this.value)">${['шт','м.п.','м²','компл.','уп.'].map(u=>`<option ${String(x.unit||'шт')===u?'selected':''}>${u}</option>`).join('')}</select></div><div class="np-r9-field"><label>Ціна ${isUsd?'$':'грн'}</label><input type="number" min="0" step="0.01" value="${p.unit}" onchange="setNoPlanR9(${i},'${isUsd?'usdPrice':'price'}',this.value)"></div><div class="np-r9-field"><label>Сума</label><div class="np-r9-sum">${isUsd?'$'+p.sum.toFixed(2):M(p.sum)+' грн'}</div></div><button class="np-r9-del" type="button" onclick="deleteNoPlanR9(${i})">🗑</button></div></div>`}).join('');
+ renderTotal();
+ try{const st=document.getElementById('nwNoPlanStatus4463');if(st)st.textContent=`✅ У замовленні: ${a.length} поз.`}catch(_){}
+}
+function renderTotal(){const box=document.getElementById('nwNoPlan4463');if(!box)return;let b=document.getElementById('nwInternalTotalR9');if(!b){b=document.createElement('div');b.id='nwInternalTotalR9';document.getElementById('nwNoPlanItems4463')?.insertAdjacentElement('afterend',b)}let u=0,d=0,priced=0;items().forEach(x=>{const q=N(x.qty),p=N(x.price),dp=N(x.usdPrice);if(p>0){u+=q*p;priced++}else if(dp>0){d+=q*dp;priced++}});const r=rate();let val=M(u)+' грн',det=`З ціною: ${priced} із ${items().length} поз.`;if(d>0&&r>0){val=M(u+d*r)+' грн';det=`${M(u)} грн + $${d.toFixed(2)} × ${r.toFixed(2)} · ${det}`}else if(d>0){val=M(u)+' грн + $'+d.toFixed(2);det='USD показано окремо, доки не задано курс. '+det}b.innerHTML=`<span>💰 Разом для себе · всі позиції</span><span class="right">${val}<small>${det}</small></span>`}
+/* Никакой фиктивной "Нова позиція": кнопка ведет сразу в каталог NW. */
+window.addNoPlanItem4463=function(){window.openNWNoPlan4465?.()};
+/* Последняя обертка штатного refresh: после любых добавлений из каталога рисуем наш полный список. */
+const oldRefresh=window.refreshNoPlanOrder4469;window.refreshNoPlanOrder4469=function(){try{oldRefresh?.apply(this,arguments)}catch(_){}setTimeout(render,0)};
+let r9TotalTimer=0;
+['input','change'].forEach(ev=>document.addEventListener(ev,e=>{
+  if(!e.target?.closest?.('#nwNoPlan4463'))return;
+  clearTimeout(r9TotalTimer);r9TotalTimer=setTimeout(renderTotal,140);
+},true));
+function boot(){
+ document.querySelectorAll('#nwNoPlan4463 button').forEach(b=>{if(/додати позицію(?! з nw)/i.test(b.textContent||''))b.textContent='＋ Додати позицію з NW'});
+ render();
+ try{document.documentElement.dataset.pixelVersion='44.90A-R9';document.documentElement.dataset.pixelBuild='44.90A-r9-real-nw-price-sum-total'}catch(_){}
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(boot,450),{once:true});else setTimeout(boot,450);setTimeout(boot,1600);
+})();
+</script>
+
+
+<!-- PIXEL 44.90A-R14 | FULLSCREEN NW CATALOG UI | base: R13 | logic/prices/order untouched -->
+<style id="pixel4490aR14FullscreenNWStyles">
+html.nw-r14-open,body.nw-r14-open{overflow:hidden!important;overscroll-behavior:none!important}
+#nwModal4413.nw-modal4413{
+  position:fixed!important;inset:0!important;z-index:10000!important;
+  width:100vw!important;height:100vh!important;height:100dvh!important;
+  max-width:none!important;max-height:none!important;margin:0!important;padding:0!important;
+  align-items:stretch!important;justify-content:stretch!important;background:#f4f7fb!important
+}
+#nwModal4413.nw-modal4413.open{display:flex!important}
+#nwModal4413>.nw-sheet4413{
+  width:100%!important;height:100%!important;max-width:none!important;max-height:none!important;
+  margin:0!important;border-radius:0!important;box-shadow:none!important;overflow:hidden!important;
+  display:flex!important;flex-direction:column!important;min-height:0!important;background:#f4f7fb!important
+}
+#nwModal4413 .nw-head4413{
+  flex:0 0 auto!important;padding:9px 10px 8px!important;background:#fff!important;
+  border-bottom:1px solid #dce4ef!important
+}
+#nwModal4413 .nw-headline4413{align-items:center!important}
+#nwModal4413 .nw-headline4413 h3{font-size:17px!important;line-height:1.15!important}
+#nwModal4413 .nw-headline4413 p{font-size:8px!important;line-height:1.3!important;margin-top:3px!important}
+#nwModal4413 .nw-close4413{flex:0 0 40px!important;width:40px!important;height:40px!important;font-size:23px!important}
+#nwModal4413 #nwNoPlanCart4469{
+  margin:7px 0 7px!important;border-radius:11px!important;max-width:none!important;overflow:hidden!important
+}
+#nwModal4413 #nwNoPlanCart4469 .np-cart-head4469{padding:7px 8px!important;min-height:32px!important}
+#nwModal4413 #nwNoPlanCart4469 .np-cart-head4469 b{font-size:8.5px!important}
+#nwModal4413 #nwNoPlanCart4469 .np-cart-head4469 span{font-size:7.5px!important}
+#nwModal4413 #nwR13Rate{margin:5px 7px 0!important;padding:5px 7px!important;min-height:25px!important;font-size:7px!important}
+#nwModal4413 #nwR13Rate b{font-size:7.5px!important}
+#nwModal4413 #nwNoPlanCart4469 .np-cart-list4469{
+  max-height:82px!important;overflow:auto!important;padding:6px!important;gap:4px!important;overscroll-behavior:contain!important
+}
+#nwModal4413 #nwNoPlanCart4469 .np-cart-row4469{padding:5px 6px!important;min-height:31px!important;gap:5px!important}
+#nwModal4413 #nwNoPlanCart4469 .np-cart-name4469{font-size:7.3px!important;line-height:1.2!important}
+#nwModal4413 #nwNoPlanCart4469 .np-cart-qty4469{font-size:7.2px!important}
+#nwModal4413 #nwNoPlanCart4469 .np-r13-price{font-size:7.1px!important}
+#nwModal4413 #nwNoPlanCart4469 .np-r13-price small{font-size:6.4px!important;margin-top:1px!important}
+#nwModal4413 #nwNoPlanCart4469 .np-cart-del4469{width:30px!important;height:28px!important}
+#nwModal4413 #nwNoPlanCart4469 .np-cart-actions4469{padding:0 6px 6px!important;gap:6px!important}
+#nwModal4413 #nwNoPlanCart4469 .np-cart-actions4469 button{min-height:31px!important;font-size:7.4px!important}
+#nwModal4413 .nw-tabs4413{margin-top:6px!important;gap:6px!important}
+#nwModal4413 .nw-tab4413{padding:7px!important;min-height:34px!important}
+#nwModal4413 .nw-actions4413{margin-top:6px!important;gap:5px!important}
+#nwModal4413 .nw-actions4413 button{padding:7px 5px!important;min-height:33px!important}
+#nwModal4413 .nw-controls4413{
+  flex:0 0 auto!important;padding:7px 10px 6px!important;background:#fff!important;
+  border-bottom:1px solid #dce4ef!important;position:relative!important;z-index:2!important
+}
+#nwModal4413 .nw-search4413{padding:9px!important;font-size:10px!important}
+#nwModal4413 .nw-chips4413{padding:6px 0 1px!important;gap:5px!important}
+#nwModal4413 .nw-chip4413{padding:6px 8px!important;font-size:7.6px!important}
+#nwModal4413 .nw-section4413{margin-top:5px!important;padding:7px!important}
+#nwModal4413 .nw-stat4413{flex:0 0 auto!important;padding:5px 10px!important;background:#f4f7fb!important}
+#nwModal4413 .nw-grid4413{
+  flex:1 1 auto!important;min-height:0!important;overflow:auto!important;overscroll-behavior:contain!important;
+  padding:0 8px 12px!important;align-content:start!important;grid-auto-rows:max-content!important
+}
+#nwModal4413 .nw-card4413{min-height:0!important;height:auto!important}
+#nwModal4413 .nw-pic4413{height:150px!important}
+#nwModal4413 #nwMiniHost4413{position:relative!important;z-index:10020!important}
+#pixel4486BuildBadge{position:static!important;top:auto!important;bottom:auto!important;left:auto!important;right:auto!important;z-index:auto!important}
+@media(max-width:520px){
+  #nwModal4413 .nw-head4413{padding:8px 8px 7px!important}
+  #nwModal4413 .nw-headline4413 p{display:none!important}
+  #nwModal4413 .nw-actions4413{grid-template-columns:1fr 1fr!important}
+  #nwModal4413 .nw-grid4413{grid-template-columns:1fr!important;padding-left:7px!important;padding-right:7px!important}
+  #nwModal4413 .nw-pic4413{height:145px!important}
+  #nwModal4413 #nwNoPlanCart4469 .np-cart-list4469{max-height:72px!important}
+  #nwModal4413 #nwNoPlanCart4469 .np-cart-row4469{grid-template-columns:minmax(0,1fr) auto auto auto!important}
+}
+@media(min-width:900px){
+  #nwModal4413 .nw-grid4413{grid-template-columns:repeat(auto-fill,minmax(260px,1fr))!important;padding:0 14px 16px!important}
+  #nwModal4413 .nw-head4413,#nwModal4413 .nw-controls4413{padding-left:16px!important;padding-right:16px!important}
+}
+</style>
+<script id="pixel4490aR14FullscreenNWScript">
+(function(){
+'use strict';
+if(window.__pixel4490aR14Installed)return;window.__pixel4490aR14Installed=true;
+let lockStateR14=null,modalObserverR14=null,termTimerR14=0;
+function modalR14(){return document.getElementById('nwModal4413')}
+function isOpenR14(){const m=modalR14();return !!(m&&m.classList.contains('open'))}
+function lockR14(){
+  if(lockStateR14)return;
+  lockStateR14={html:document.documentElement.style.overflow||'',body:document.body?.style.overflow||''};
+  document.documentElement.classList.add('nw-r14-open');document.body?.classList.add('nw-r14-open');
+}
+function unlockR14(){
+  document.documentElement.classList.remove('nw-r14-open');document.body?.classList.remove('nw-r14-open');
+  if(lockStateR14){document.documentElement.style.overflow=lockStateR14.html;if(document.body)document.body.style.overflow=lockStateR14.body;lockStateR14=null}
+}
+function terminologyR14(){
+  const m=modalR14();if(!m)return;
+  if(window.__nwNoPlanMode4465){
+    const title=m.querySelector('.nw-headline4413 h3');if(title)title.textContent='🛒 Каталог NW';
+    const desc=m.querySelector('.nw-headline4413 p');if(desc)desc.textContent='Окремі позиції для поточної кімнати · після додавання каталог залишається відкритим.';
+    const cartTitle=m.querySelector('#nwNoPlanCart4469 .np-cart-head4469 b');if(cartTitle)cartTitle.textContent='🧾 Вибрано по окремих позиціях';
+    m.querySelectorAll('.nw-add4413').forEach(b=>{if(/без плану/i.test(b.textContent||''))b.textContent='＋ До окремих позицій'});
+    const empty=m.querySelector('#nwNoPlanCart4469 .np-empty4469');if(empty&&/без плану/i.test(empty.textContent||''))empty.textContent='Ще нічого не вибрано. Натискайте «＋ До окремих позицій» на потрібних товарах.';
+    const back=m.querySelector('#nwNoPlanCart4469 .np-cart-back4469');if(back)back.textContent='Готово · до замовлення';
+  }
+}
+function syncR14(resetGrid){
+  const m=modalR14();if(!m)return;
+  if(isOpenR14()){
+    lockR14();
+    terminologyR14();
+    if(resetGrid){const g=document.getElementById('nwGrid4413');if(g)g.scrollTop=0}
+  }else unlockR14();
+}
+function watchR14(){
+  const m=modalR14();if(!m){setTimeout(watchR14,250);return}
+  if(modalObserverR14)modalObserverR14.disconnect();
+  modalObserverR14=new MutationObserver(()=>{
+    clearTimeout(termTimerR14);termTimerR14=setTimeout(()=>syncR14(false),35);
+  });
+  modalObserverR14.observe(m,{attributes:true,attributeFilter:['class']});
+  syncR14(false);
+}
+const openCatalogR14=window.openNWCatalog4413;
+if(typeof openCatalogR14==='function')window.openNWCatalog4413=function(){
+  const out=openCatalogR14.apply(this,arguments);setTimeout(()=>syncR14(true),0);setTimeout(()=>syncR14(false),80);return out;
+};
+const openNoPlanR14=window.openNWNoPlan4465;
+if(typeof openNoPlanR14==='function')window.openNWNoPlan4465=function(){
+  const out=openNoPlanR14.apply(this,arguments);setTimeout(()=>syncR14(true),0);setTimeout(()=>syncR14(false),100);return out;
+};
+const closeCatalogR14=window.closeNWCatalog4413;
+if(typeof closeCatalogR14==='function')window.closeNWCatalog4413=function(){
+  const out=closeCatalogR14.apply(this,arguments);setTimeout(()=>syncR14(false),0);return out;
+};
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&isOpenR14())window.closeNWCatalog4413?.()});
+document.addEventListener('click',()=>setTimeout(()=>{if(isOpenR14())terminologyR14()},45),true);
+function markR14(){
+  const badge=document.getElementById('pixel4486BuildBadge');
+  if(badge)badge.textContent='BUILD 44.90A-R14 · BASE R13 · FULLSCREEN NW CATALOG';
+  try{document.documentElement.dataset.pixelVersion='44.90A-R14';document.documentElement.dataset.pixelBuild='44.90A-r14-fullscreen-nw-catalog';document.title='Potolok AI PRO — Pixel 44.90A-R14'}catch(_){}
+}
+function bootR14(){watchR14();markR14();setTimeout(markR14,700);setTimeout(markR14,1800)}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(bootR14,120),{once:true});else setTimeout(bootR14,120);
+})();
+</script>
+
+
+<!-- PIXEL 44.90A-R14.1 | LARGER CATALOG VIEWPORT | base: R14 | UI only -->
+<style id="pixel4490aR141LargeCatalogAreaStyles">
+#nwModal4413.nw-r141-cart-collapsed #nwNoPlanCart4469 #nwR13Rate,
+#nwModal4413.nw-r141-cart-collapsed #nwNoPlanCart4469 .np-cart-list4469,
+#nwModal4413.nw-r141-cart-collapsed #nwNoPlanCart4469 .np-cart-actions4469{display:none!important}
+#nwModal4413 #nwNoPlanCart4469 .np-cart-head4469{position:relative!important;padding-right:92px!important;cursor:pointer!important}
+#nwModal4413 #nwNoPlanCart4469 .r141-cart-toggle{
+  position:absolute;right:7px;top:50%;transform:translateY(-50%);
+  min-width:76px;height:30px;border:1px solid #bfdbfe;border-radius:9px;
+  background:#fff;color:#075bff;font-size:9px;font-weight:950;padding:0 8px
+}
+#nwModal4413.nw-r141-cart-collapsed #nwNoPlanCart4469{margin:5px 0!important}
+#nwModal4413.nw-r141-cart-collapsed #nwNoPlanCart4469 .np-cart-head4469{min-height:42px!important;padding-top:7px!important;padding-bottom:7px!important}
+#nwModal4413.nw-r141-cart-collapsed #nwNoPlanCart4469 .np-cart-head4469 b{font-size:10px!important}
+#nwModal4413.nw-r141-cart-collapsed #nwNoPlanCart4469 .np-cart-head4469 span{font-size:9px!important}
+@media(max-width:760px){
+  #nwModal4413 .nw-head4413{padding:8px 10px 6px!important}
+  #nwModal4413 .nw-headline4413 h3{font-size:20px!important}
+  #nwModal4413 .nw-close4413{width:46px!important;height:46px!important;font-size:26px!important}
+  #nwModal4413 .nw-tabs4413{margin-top:6px!important;gap:6px!important}
+  #nwModal4413 .nw-tab4413{min-height:40px!important;padding:8px 6px!important;font-size:10px!important}
+  #nwModal4413 .nw-actions4413{grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:5px!important;margin-top:5px!important}
+  #nwModal4413 .nw-actions4413 button{min-height:42px!important;padding:6px 4px!important;font-size:8.5px!important;line-height:1.12!important}
+  #nwModal4413 .nw-controls4413{padding:7px 10px 6px!important}
+  #nwModal4413 .nw-search4413{min-height:46px!important;padding:11px 12px!important;font-size:13px!important}
+  #nwModal4413 .nw-chip4413{padding:7px 10px!important;font-size:9px!important}
+  #nwModal4413 .nw-section4413{min-height:40px!important;padding:9px 10px!important;font-size:10px!important}
+  #nwModal4413 .nw-stat4413{padding:5px 10px!important;font-size:9px!important}
+  #nwModal4413 .nw-grid4413{padding:0 9px 12px!important;gap:10px!important}
+  #nwModal4413 .nw-pic4413{height:175px!important}
+  #nwModal4413 .nw-body4413{padding:11px!important}
+  #nwModal4413 .nw-meta4413{font-size:8.5px!important}
+  #nwModal4413 .nw-body4413 h4{font-size:14px!important;line-height:1.28!important;margin:6px 0 9px!important}
+  #nwModal4413 .nw-price4413{font-size:10px!important;padding:7px 8px!important}
+  #nwModal4413 .nw-card-actions4413 button{min-height:44px!important;font-size:10px!important}
+}
+@media(max-width:430px){
+  #nwModal4413 .nw-actions4413{grid-template-columns:repeat(4,minmax(86px,1fr))!important;overflow-x:auto!important;padding-bottom:2px!important}
+  #nwModal4413 .nw-actions4413 button{min-width:86px!important}
+  #nwModal4413 .nw-pic4413{height:165px!important}
+}
+</style>
+<script id="pixel4490aR141LargeCatalogAreaScript">
+(function(){
+'use strict';
+if(window.__pixel4490aR141Installed)return;window.__pixel4490aR141Installed=true;
+function modal(){return document.getElementById('nwModal4413')}
+function ensureToggle(){
+  const m=modal(),cart=m?.querySelector('#nwNoPlanCart4469'),head=cart?.querySelector('.np-cart-head4469');
+  if(!m||!cart||!head)return;
+  let b=head.querySelector('.r141-cart-toggle');
+  if(!b){
+    b=document.createElement('button');b.type='button';b.className='r141-cart-toggle';
+    b.addEventListener('click',function(e){e.preventDefault();e.stopPropagation();toggle()});
+    head.addEventListener('click',function(e){if(e.target.closest('button'))return;toggle()});
+    head.appendChild(b);
+  }
+  b.textContent=m.classList.contains('nw-r141-cart-collapsed')?'Показати ▾':'Згорнути ▴';
+}
+function toggle(force){
+  const m=modal();if(!m)return;
+  const collapsed=typeof force==='boolean'?force:!m.classList.contains('nw-r141-cart-collapsed');
+  m.classList.toggle('nw-r141-cart-collapsed',collapsed);ensureToggle();
+}
+function sync(){
+  const m=modal();if(!m)return;
+  if(m.classList.contains('open')&&!m.dataset.r141Init){m.dataset.r141Init='1';toggle(true)}
+  if(!m.classList.contains('open'))delete m.dataset.r141Init;
+  ensureToggle();
+}
+const mo=new MutationObserver(()=>setTimeout(sync,20));
+function mark(){
+  const b=document.getElementById('pixel4486BuildBadge');if(b)b.textContent='BUILD 44.90A-R14.1 · BASE R14 · LARGE CATALOG AREA';
+  try{document.documentElement.dataset.pixelVersion='44.90A-R14.1';document.documentElement.dataset.pixelBuild='44.90A-r14-1-large-catalog-area';document.title='Potolok AI PRO — Pixel 44.90A-R14.1'}catch(_){}
+}
+function boot(){
+  const m=modal();if(!m){setTimeout(boot,200);return}
+  mo.observe(m,{attributes:true,attributeFilter:['class']});sync();mark();setTimeout(mark,800);setTimeout(mark,1800);
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(boot,120),{once:true});else setTimeout(boot,120);
+})();
+</script>
+
+
+<!-- PIXEL 44.90A-R14.2 | TALL SELECTED ITEMS PANEL | base: R14.1 | UI only -->
+<style id="pixel4490aR142TallSelectedItemsStyles">
+/* Увеличиваем именно верхнее окно выбранных позиций — расчёты и заказ не меняем. */
+#nwModal4413 #nwNoPlanCart4469{margin:8px 0 9px!important}
+#nwModal4413 #nwNoPlanCart4469 .np-cart-head4469{
+  min-height:46px!important;
+  padding:10px 10px!important;
+}
+#nwModal4413 #nwNoPlanCart4469 .np-cart-head4469 b{font-size:11px!important;line-height:1.25!important}
+#nwModal4413 #nwNoPlanCart4469 .np-cart-head4469 span{font-size:9.5px!important;line-height:1.2!important}
+#nwModal4413 #nwR13Rate{
+  min-height:38px!important;
+  margin:8px 9px 0!important;
+  padding:8px 10px!important;
+  font-size:9px!important;
+}
+#nwModal4413 #nwR13Rate b{font-size:10px!important}
+#nwModal4413 #nwNoPlanCart4469 .np-cart-list4469{
+  max-height:230px!important;
+  overflow-y:auto!important;
+  padding:9px!important;
+  gap:8px!important;
+}
+#nwModal4413 #nwNoPlanCart4469 .np-cart-row4469{
+  min-height:70px!important;
+  padding:11px 10px!important;
+  gap:9px!important;
+  align-items:center!important;
+}
+#nwModal4413 #nwNoPlanCart4469 .np-cart-name4469{
+  font-size:11px!important;
+  line-height:1.3!important;
+}
+#nwModal4413 #nwNoPlanCart4469 .np-cart-qty4469{font-size:10px!important;line-height:1.25!important}
+#nwModal4413 #nwNoPlanCart4469 .np-r13-price{font-size:10px!important;line-height:1.25!important}
+#nwModal4413 #nwNoPlanCart4469 .np-r13-price small{font-size:8.5px!important;line-height:1.2!important;margin-top:3px!important}
+#nwModal4413 #nwNoPlanCart4469 .np-cart-del4469{
+  width:46px!important;height:46px!important;min-width:46px!important;
+  font-size:19px!important;border-radius:12px!important;
+}
+#nwModal4413 #nwNoPlanCart4469 .np-cart-actions4469{padding:0 9px 10px!important;gap:8px!important}
+#nwModal4413 #nwNoPlanCart4469 .np-cart-actions4469 button{min-height:48px!important;font-size:10px!important}
+
+@media(max-width:520px){
+  #nwModal4413 #nwNoPlanCart4469 .np-cart-list4469{max-height:220px!important;padding:8px!important;gap:8px!important}
+  #nwModal4413 #nwNoPlanCart4469 .np-cart-row4469{min-height:72px!important;padding:11px 9px!important}
+  #nwModal4413 #nwNoPlanCart4469 .np-cart-name4469{font-size:11.2px!important}
+  #nwModal4413 #nwNoPlanCart4469 .np-cart-qty4469{font-size:10px!important}
+  #nwModal4413 #nwNoPlanCart4469 .np-r13-price{font-size:10px!important}
+  #nwModal4413 #nwNoPlanCart4469 .np-r13-price small{font-size:8.5px!important}
+}
+</style>
+<script id="pixel4490aR142TallSelectedItemsScript">
+(function(){
+'use strict';
+if(window.__pixel4490aR142Installed)return;window.__pixel4490aR142Installed=true;
+function mark(){
+  const b=document.getElementById('pixel4486BuildBadge');
+  if(b)b.textContent='BUILD 44.90A-R14.2 · BASE R14.1 · TALL SELECTED ITEMS';
+  try{
+    document.documentElement.dataset.pixelVersion='44.90A-R14.2';
+    document.documentElement.dataset.pixelBuild='44.90A-r14-2-tall-selected-items';
+    document.title='Potolok AI PRO — Pixel 44.90A-R14.2';
+  }catch(_){}
+}
+function boot(){mark();setTimeout(mark,700);setTimeout(mark,1800)}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(boot,120),{once:true});else setTimeout(boot,120);
+})();
+</script>
+
+<!-- PIXEL 44.90A-R14.3 | SWIPE SCROLL CATALOG | base: R14.2 | UI only -->
+<style id="pixel4490aR143SwipeScrollCatalogStyles">
+/* Даём каталогу естественную вертикальную прокрутку свайпами по всей высоте. */
+#nwModal4413>.nw-sheet4413{
+  overflow-y:auto!important;
+  overflow-x:hidden!important;
+  -webkit-overflow-scrolling:touch!important;
+  overscroll-behavior:contain!important;
+  scroll-behavior:smooth!important;
+  touch-action:pan-y!important;
+}
+#nwModal4413 .nw-head4413{
+  position:sticky!important;
+  top:0!important;
+  z-index:20!important;
+}
+#nwModal4413 .nw-controls4413,
+#nwModal4413 .nw-stat4413{
+  flex:0 0 auto!important;
+}
+#nwModal4413 .nw-grid4413{
+  flex:0 0 auto!important;
+  min-height:auto!important;
+  overflow:visible!important;
+  padding-bottom:28px!important;
+  -webkit-overflow-scrolling:touch!important;
+  overscroll-behavior:unset!important;
+  touch-action:pan-y!important;
+}
+#nwModal4413 .nw-card4413,
+#nwModal4413 .nw-body4413,
+#nwModal4413 .nw-price4413,
+#nwModal4413 .nw-pic4413,
+#nwModal4413 .nw-stat4413{
+  touch-action:pan-y!important;
+}
+#nwModal4413 .nw-chips4413{
+  touch-action:pan-x pan-y!important;
+}
+@media(max-width:520px){
+  #nwModal4413>.nw-sheet4413{padding-bottom:8px!important}
+  #nwModal4413 .nw-grid4413{padding-bottom:34px!important}
+}
+</style>
+<script id="pixel4490aR143SwipeScrollCatalogScript">
+(function(){
+'use strict';
+if(window.__pixel4490aR143Installed)return;window.__pixel4490aR143Installed=true;
+function modal(){return document.getElementById('nwModal4413')}
+function syncScrollMode(){
+  const m=modal(); if(!m) return;
+  const sheet=m.querySelector('.nw-sheet4413');
+  const grid=m.querySelector('.nw-grid4413');
+  if(sheet){
+    sheet.style.overflowY='auto';
+    sheet.style.overflowX='hidden';
+    sheet.style.webkitOverflowScrolling='touch';
+  }
+  if(grid){
+    grid.style.overflow='visible';
+    grid.style.minHeight='auto';
+  }
+}
+const openPrev=window.openNWCatalog4413;
+if(typeof openPrev==='function')window.openNWCatalog4413=function(){
+  const out=openPrev.apply(this,arguments);
+  setTimeout(syncScrollMode,0);
+  setTimeout(syncScrollMode,80);
+  setTimeout(syncScrollMode,260);
+  return out;
+};
+function mark(){
+  const b=document.getElementById('pixel4486BuildBadge');
+  if(b)b.textContent='BUILD 44.90A-R14.3 · BASE R14.2 · SWIPE SCROLL CATALOG';
+  try{
+    document.documentElement.dataset.pixelVersion='44.90A-R14.3';
+    document.documentElement.dataset.pixelBuild='44.90A-r14-3-swipe-scroll-catalog';
+    document.title='Potolok AI PRO — Pixel 44.90A-R14.3';
+  }catch(_){}
+}
+function boot(){syncScrollMode();mark();setTimeout(mark,700);setTimeout(mark,1800)}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(boot,120),{once:true});else setTimeout(boot,120);
+})();
+</script>
+
+<!-- PIXEL 44.90A-R14.4 | COMPACT SELECTED PANEL | base: R14.3 | UI only -->
+<style id="pixel4490aR144CompactSelectedPanelStyles">
+/* Делаем верхнее окно выбранных позиций примерно вдвое компактнее,
+   чтобы обзор каталога был заметно больше. */
+#nwModal4413 #nwNoPlanCart4469{margin:6px 0 7px!important}
+#nwModal4413 #nwNoPlanCart4469 .np-cart-head4469{
+  min-height:38px!important;
+  padding:8px 9px!important;
+}
+#nwModal4413 #nwNoPlanCart4469 .np-cart-head4469 b{font-size:9.5px!important;line-height:1.2!important}
+#nwModal4413 #nwNoPlanCart4469 .np-cart-head4469 span{font-size:8.5px!important;line-height:1.15!important}
+#nwModal4413 #nwR13Rate{
+  min-height:30px!important;
+  margin:6px 8px 0!important;
+  padding:6px 8px!important;
+  font-size:8px!important;
+}
+#nwModal4413 #nwR13Rate b{font-size:8.8px!important}
+#nwModal4413 #nwNoPlanCart4469 .np-cart-list4469{
+  max-height:118px!important;
+  overflow-y:auto!important;
+  padding:7px!important;
+  gap:6px!important;
+}
+#nwModal4413 #nwNoPlanCart4469 .np-cart-row4469{
+  min-height:48px!important;
+  padding:8px 8px!important;
+  gap:7px!important;
+  align-items:center!important;
+}
+#nwModal4413 #nwNoPlanCart4469 .np-cart-name4469{
+  font-size:9.2px!important;
+  line-height:1.22!important;
+}
+#nwModal4413 #nwNoPlanCart4469 .np-cart-qty4469{
+  font-size:8.8px!important;
+  line-height:1.18!important;
+}
+#nwModal4413 #nwNoPlanCart4469 .np-r13-price{
+  font-size:8.7px!important;
+  line-height:1.18!important;
+}
+#nwModal4413 #nwNoPlanCart4469 .np-r13-price small{
+  font-size:7.6px!important;
+  line-height:1.12!important;
+  margin-top:2px!important;
+}
+#nwModal4413 #nwNoPlanCart4469 .np-cart-del4469{
+  width:38px!important;height:38px!important;min-width:38px!important;
+  font-size:16px!important;border-radius:11px!important;
+}
+#nwModal4413 #nwNoPlanCart4469 .np-cart-actions4469{padding:0 8px 8px!important;gap:7px!important}
+#nwModal4413 #nwNoPlanCart4469 .np-cart-actions4469 button{min-height:40px!important;font-size:9px!important}
+@media(max-width:520px){
+  #nwModal4413 #nwNoPlanCart4469 .np-cart-list4469{max-height:112px!important;padding:6px!important;gap:6px!important}
+  #nwModal4413 #nwNoPlanCart4469 .np-cart-row4469{min-height:46px!important;padding:8px 7px!important}
+  #nwModal4413 #nwNoPlanCart4469 .np-cart-name4469{font-size:9px!important}
+  #nwModal4413 #nwNoPlanCart4469 .np-cart-qty4469{font-size:8.6px!important}
+  #nwModal4413 #nwNoPlanCart4469 .np-r13-price{font-size:8.5px!important}
+  #nwModal4413 #nwNoPlanCart4469 .np-r13-price small{font-size:7.4px!important}
+}
+</style>
+<script id="pixel4490aR144CompactSelectedPanelScript">
+(function(){
+'use strict';
+if(window.__pixel4490aR144Installed)return;window.__pixel4490aR144Installed=true;
+function mark(){
+  const b=document.getElementById('pixel4486BuildBadge');
+  if(b)b.textContent='BUILD 44.90A-R14.4 · BASE R14.3 · COMPACT SELECTED PANEL';
+  try{
+    document.documentElement.dataset.pixelVersion='44.90A-R14.4';
+    document.documentElement.dataset.pixelBuild='44.90A-r14-4-compact-selected-panel';
+    document.title='Potolok AI PRO — Pixel 44.90A-R14.4';
+  }catch(_){}
+}
+function boot(){mark();setTimeout(mark,700);setTimeout(mark,1800)}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(boot,120),{once:true});else setTimeout(boot,120);
+})();
+</script>
+
+<!-- PIXEL 44.90A-R14.5 | STICKY CATALOG CONTROLS | base: R14.4 | UI only -->
+<style id="pixel4490aR145StickyCatalogControlsStyles">
+/* Возвращаем постоянный доступ к поиску и разделам каталога.
+   Верх каталога и панель выбора остаются на месте, свайпается только список товаров. */
+#nwModal4413>.nw-sheet4413{
+  overflow:hidden!important;
+  display:flex!important;
+  flex-direction:column!important;
+}
+#nwModal4413 .nw-head4413{
+  flex:0 0 auto!important;
+  position:relative!important;
+  z-index:8!important;
+  background:#fff!important;
+}
+#nwModal4413 .nw-controls4413{
+  flex:0 0 auto!important;
+  position:relative!important;
+  z-index:7!important;
+  background:#fff!important;
+  box-shadow:0 1px 0 #dce4ef!important;
+}
+#nwModal4413 .nw-stat4413{
+  flex:0 0 auto!important;
+  position:relative!important;
+  z-index:6!important;
+  background:#f4f7fb!important;
+}
+#nwModal4413 .nw-grid4413{
+  flex:1 1 auto!important;
+  min-height:0!important;
+  overflow-y:auto!important;
+  overflow-x:hidden!important;
+  -webkit-overflow-scrolling:touch!important;
+  overscroll-behavior:contain!important;
+  touch-action:pan-y!important;
+  align-content:start!important;
+  padding-bottom:28px!important;
+}
+#nwModal4413 .nw-card4413,
+#nwModal4413 .nw-body4413,
+#nwModal4413 .nw-price4413,
+#nwModal4413 .nw-pic4413,
+#nwModal4413 .nw-grid4413 *{
+  touch-action:pan-y!important;
+}
+#nwModal4413 .nw-chips4413{touch-action:pan-x pan-y!important}
+@media(max-width:520px){
+  #nwModal4413 .nw-grid4413{padding-bottom:34px!important}
+}
+</style>
+<script id="pixel4490aR145StickyCatalogControlsScript">
+(function(){
+'use strict';
+if(window.__pixel4490aR145Installed)return;window.__pixel4490aR145Installed=true;
+function modal(){return document.getElementById('nwModal4413')}
+function syncR145(){
+  const m=modal(); if(!m) return;
+  const sheet=m.querySelector('.nw-sheet4413');
+  const grid=m.querySelector('.nw-grid4413');
+  const head=m.querySelector('.nw-head4413');
+  const controls=m.querySelector('.nw-controls4413');
+  const stat=m.querySelector('.nw-stat4413');
+  if(sheet){
+    sheet.style.overflow='hidden';
+    sheet.style.display='flex';
+    sheet.style.flexDirection='column';
+  }
+  if(head){ head.style.flex='0 0 auto'; }
+  if(controls){ controls.style.flex='0 0 auto'; }
+  if(stat){ stat.style.flex='0 0 auto'; }
+  if(grid){
+    grid.style.flex='1 1 auto';
+    grid.style.minHeight='0';
+    grid.style.overflowY='auto';
+    grid.style.overflowX='hidden';
+    grid.style.webkitOverflowScrolling='touch';
+  }
+}
+const openPrev=window.openNWCatalog4413;
+if(typeof openPrev==='function')window.openNWCatalog4413=function(){
+  const out=openPrev.apply(this,arguments);
+  setTimeout(syncR145,0);
+  setTimeout(syncR145,80);
+  setTimeout(syncR145,260);
+  return out;
+};
+function mark(){
+  const b=document.getElementById('pixel4486BuildBadge');
+  if(b)b.textContent='BUILD 44.90A-R14.5 · BASE R14.4 · STICKY CATALOG CONTROLS';
+  try{
+    document.documentElement.dataset.pixelVersion='44.90A-R14.5';
+    document.documentElement.dataset.pixelBuild='44.90A-r14-5-sticky-catalog-controls';
+    document.title='Potolok AI PRO — Pixel 44.90A-R14.5';
+  }catch(_){}
+}
+function boot(){syncR145();mark();setTimeout(mark,700);setTimeout(mark,1800)}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(boot,120),{once:true});else setTimeout(boot,120);
+})();
+</script>
+
+<!-- PIXEL 44.90A-R14.6 | TOTAL SYNC FIX | base: R14.5 | calculation display only -->
+<script id="pixel4490aR146TotalSyncFixScript">
+(function(){
+'use strict';
+if(window.__pixel4490aR146Installed)return;window.__pixel4490aR146Installed=true;
+const N=v=>Number(String(v??'').replace(',','.'))||0;
+const M=v=>N(v).toLocaleString('uk-UA',{minimumFractionDigits:0,maximumFractionDigits:2});
+function room(){try{return (projectRooms||[]).find(r=>String(r.id)===String(activeRoomId))||null}catch(_){return null}}
+function items(){const r=room();if(!r)return[];r.productionNoPlan4463=r.productionNoPlan4463||{items:[]};let a=Array.isArray(r.productionNoPlan4463.items)?r.productionNoPlan4463.items:[];if(!a.length){try{const saved=JSON.parse(localStorage.getItem('potolok:nw-no-plan:44.69:'+String(r.id||'no-room'))||'[]');if(Array.isArray(saved)&&saved.length){a=saved;r.productionNoPlan4463.items=saved}}catch(_){}}return a}
+function rate(){try{return N(localStorage.getItem('potolok_usd_uah_rate_4425'))}catch(_){return 0}}
+function totals(){
+  const r=rate();let uah=0,usd=0,priced=0;
+  items().forEach(x=>{
+    const q=N(x?.qty),p=N(x?.price),d=N(x?.usdPrice);
+    if(!(q>0))return;
+    if(d>0){usd+=q*d;priced++;return}
+    if(p>0){uah+=q*p;priced++}
+  });
+  return{uah,usd,rate:r,all:r>0?uah+usd*r:uah,priced,count:items().length};
+}
+function repaint(){
+  const host=document.getElementById('nwNoPlanItems4463');if(!host)return;
+  let b=document.getElementById('nwInternalTotalR12');
+  if(!b){b=document.createElement('div');b.id='nwInternalTotalR12';host.insertAdjacentElement('afterend',b)}
+  const t=totals();
+  let value,detail;
+  if(t.usd>0){
+    if(t.rate>0){
+      value=M(t.all)+' грн';
+      detail=M(t.uah)+' грн + $'+t.usd.toFixed(2)+' × '+t.rate.toFixed(4)+' · з ціною: '+t.priced+' із '+t.count+' поз.';
+    }else{
+      value=M(t.uah)+' грн + $'+t.usd.toFixed(2);
+      detail='USD окремо до появи курсу · з ціною: '+t.priced+' із '+t.count+' поз.';
+    }
+  }else{
+    value=M(t.uah)+' грн';
+    detail='Усі позиції в гривні · з ціною: '+t.priced+' із '+t.count+' поз.';
+  }
+  b.innerHTML='<div class="r12top"><span>💰 ЦІНА ВСІХ ПОЗИЦІЙ</span><span class="r12right">'+value+'<small>'+detail+'</small></span></div>';
+
+  /* Синхронизируем и краткий итог в шапке каталога тем же источником данных. */
+  const head=document.querySelector('#nwNoPlanCart4469 .np-cart-head4469 span');
+  if(head){
+    let hv=t.rate>0?M(t.all)+' грн':(t.usd>0?M(t.uah)+' грн + $'+t.usd.toFixed(2):M(t.uah)+' грн');
+    head.textContent=t.count+' поз. · '+hv;
+  }
+}
+let timer=0;function queue(ms=0){clearTimeout(timer);timer=setTimeout(repaint,ms)}
+const prev=window.refreshNoPlanOrder4469;
+if(typeof prev==='function')window.refreshNoPlanOrder4469=function(){
+  const out=prev.apply(this,arguments);queue(20);setTimeout(repaint,120);return out;
+};
+['input','change'].forEach(ev=>document.addEventListener(ev,e=>{
+  if(!e.target?.closest?.('#nwNoPlan4463'))return;
+  queue(ev==='input'?180:90);
+},true));
+document.addEventListener('click',e=>{
+  if(!e.target?.closest?.('#nwNoPlan4463 .np-r9-del'))return;
+  queue(90);
+},true);
+function mark(){
+  const b=document.getElementById('pixel4486BuildBadge');
+  if(b)b.textContent='BUILD 44.90A-R14.6 · BASE R14.5 · TOTAL SYNC FIXED';
+  try{document.documentElement.dataset.pixelVersion='44.90A-R14.6';document.documentElement.dataset.pixelBuild='44.90A-r14-6-total-sync-fixed';document.title='Potolok AI PRO — Pixel 44.90A-R14.6'}catch(_){}
+}
+function boot(){repaint();mark();setTimeout(repaint,600);setTimeout(repaint,1600);setTimeout(mark,700);setTimeout(mark,1800)}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(boot,150),{once:true});else setTimeout(boot,150);
+})();
+</script>
+
+<!-- PIXEL 44.90A-R15 | CLEAN BASE R14.6 + SINGLE ORDER CARD EXPORT -->
+<script id="pixel4490aR15CleanExport">
+(function(){
+'use strict';
+if(window.__pixel4490aR15Installed)return;
+window.__pixel4490aR15Installed=true;
+
+const N=v=>Number(String(v??'').replace(',','.'))||0;
+const F=v=>N(v).toLocaleString('uk-UA',{minimumFractionDigits:0,maximumFractionDigits:2});
+const Q=v=>N(v).toLocaleString('uk-UA',{minimumFractionDigits:0,maximumFractionDigits:2});
+
+function currentRoom(){
+  try{return (projectRooms||[]).find(r=>String(r.id)===String(activeRoomId))||null}catch(_){return null}
+}
+function savedKey(r){return 'potolok:nw-no-plan:44.69:'+String(r?.id||'no-room')}
+function orderItems(){
+  const r=currentRoom();
+  if(!r)return [];
+  r.productionNoPlan4463=r.productionNoPlan4463||{items:[]};
+  let a=Array.isArray(r.productionNoPlan4463.items)?r.productionNoPlan4463.items:[];
+  if(!a.length){
+    try{
+      const s=JSON.parse(localStorage.getItem(savedKey(r))||'[]');
+      if(Array.isArray(s)&&s.length){
+        a=s;
+        r.productionNoPlan4463.items=s;
+      }
+    }catch(_){}
+  }
+  return a;
+}
+function usdRate(){
+  try{
+    const el=document.querySelector('#nwUsdRate4425,#usdRate4425,input[data-usd-rate]');
+    if(el&&N(el.value)>0)return N(el.value);
+  }catch(_){}
+  try{return N(localStorage.getItem('potolok_usd_uah_rate_4425'))}catch(_){return 0}
+}
+function metrics(){
+  const r=currentRoom();
+  let area=N(r?.area),perimeter=N(r?.perimeter),corners=N(r?.corners);
+  try{
+    const s=window.getFingerDrawingState4408?.();
+    if(N(s?.area)>0)area=N(s.area);
+    if(N(s?.perimeter)>0)perimeter=N(s.perimeter);
+    if(N(s?.corners)>0)corners=N(s.corners);
+    else if(!corners&&Array.isArray(s?.points))corners=s.points.length;
+  }catch(_){}
+  if(!corners&&Array.isArray(r?.planner?.points))corners=r.planner.points.length;
+  return {r,area,perimeter,corners:Math.round(corners||0)};
+}
+function geometry(){
+  const r=currentRoom();let pts=[],lens=[];
+  try{
+    if(Array.isArray(r?.planner?.points)&&r.planner.points.length>=3)
+      pts=r.planner.points.map(p=>[N(p?.[0]??p?.x),N(p?.[1]??p?.y)]);
+    if(Array.isArray(r?.planner?.segments)&&r.planner.segments.length===pts.length)
+      lens=r.planner.segments.map(N);
+  }catch(_){}
+  if(pts.length>=3&&lens.length!==pts.length){
+    const raw=pts.map((p,i)=>{const q=pts[(i+1)%pts.length];return Math.hypot(q[0]-p[0],q[1]-p[1])});
+    const sum=raw.reduce((a,b)=>a+b,0)||1, per=metrics().perimeter, k=per>0?per/sum:1;
+    lens=raw.map(v=>v*k);
+  }
+  return {pts,lens};
+}
+function alpha(i){let s='',n=i+1;while(n>0){n--;s=String.fromCharCode(65+n%26)+s;n=Math.floor(n/26)}return s}
+function roundRect(ctx,x,y,w,h,r,fill,stroke){
+  r=Math.min(r,w/2,h/2);ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();
+  if(fill){ctx.fillStyle=fill;ctx.fill()} if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=2;ctx.stroke()}
+}
+function drawPlan(ctx,g,x0,y0,w,h){
+  roundRect(ctx,x0,y0,w,h,18,'#f8fbff','#dbeafe');
+  const pts=g.pts||[],lens=g.lens||[];
+  if(pts.length<3){ctx.fillStyle='#64748b';ctx.font='700 22px Arial';ctx.fillText('Контур кімнати не знайдено.',x0+30,y0+55);return}
+  const xs=pts.map(p=>p[0]),ys=pts.map(p=>p[1]);
+  const minX=Math.min(...xs),maxX=Math.max(...xs),minY=Math.min(...ys),maxY=Math.max(...ys);
+  const bw=Math.max(1,maxX-minX),bh=Math.max(1,maxY-minY),pad=90;
+  const sc=Math.min((w-pad*2)/bw,(h-pad*2)/bh);
+  const ox=x0+(w-bw*sc)/2-minX*sc,oy=y0+(h-bh*sc)/2-minY*sc;
+  const P=pts.map(([x,y])=>[ox+x*sc,oy+y*sc]);
+  ctx.beginPath();P.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1]));ctx.closePath();ctx.fillStyle='rgba(7,91,255,.09)';ctx.fill();ctx.strokeStyle='#075bff';ctx.lineWidth=5;ctx.stroke();
+  const cx=P.reduce((s,p)=>s+p[0],0)/P.length,cy=P.reduce((s,p)=>s+p[1],0)/P.length;
+  P.forEach((p,i)=>{
+    const q=P[(i+1)%P.length];
+    ctx.beginPath();ctx.arc(p[0],p[1],10,0,Math.PI*2);ctx.fillStyle='#fff';ctx.fill();ctx.strokeStyle='#075bff';ctx.lineWidth=4;ctx.stroke();
+    let vx=p[0]-cx,vy=p[1]-cy,vl=Math.hypot(vx,vy)||1;
+    ctx.fillStyle='#0f172a';ctx.font='900 22px Arial';ctx.textAlign='center';ctx.fillText(alpha(i),p[0]+vx/vl*28,p[1]+vy/vl*28+7);
+    const mx=(p[0]+q[0])/2,my=(p[1]+q[1])/2,dx=q[0]-p[0],dy=q[1]-p[1],dl=Math.hypot(dx,dy)||1;
+    let nx=-dy/dl,ny=dx/dl;if(nx*(cx-mx)+ny*(cy-my)>0){nx=-nx;ny=-ny}
+    ctx.fillStyle='#075bff';ctx.font='900 20px Arial';ctx.fillText((N(lens[i])>0?N(lens[i]).toFixed(2):'—')+' м',mx+nx*38,my+ny*38+7);
+  });
+  ctx.textAlign='left';
+}
+function totals(a){
+  const r=usdRate();let uah=0,usd=0,priced=0;
+  a.forEach(it=>{const q=N(it?.qty),p=N(it?.price),d=N(it?.usdPrice);if(!(q>0))return;if(d>0){usd+=q*d;priced++}else if(p>0){uah+=q*p;priced++}});
+  return {rate:r,uah,usd,priced,count:a.length,all:r>0?uah+usd*r:uah};
+}
+function healVisibleOrder(){
+  const a=orderItems();
+  if(!a.length)return;
+  const host=document.getElementById('nwNoPlanItems4463');
+  if(host && /Позицій ще немає/i.test(host.textContent||'')){
+    try{window.refreshNoPlanOrder4469?.()}catch(_){}
+  }
+}
+
+window.shareNoPlan4463=async function(){
+  const st=document.getElementById('nwNoPlanStatus4463');
+  healVisibleOrder();
+  const a=orderItems().filter(it=>String(it?.name||'').trim()&&N(it?.qty)>0);
+  if(!a.length){
+    if(st)st.textContent='❌ Не бачу позицій у поточній кімнаті. Відкрийте NW і перевірте список.';
+    return;
+  }
+  const m=metrics(),g=geometry(),t=totals(a);
+  try{
+    if(st)st.textContent='Готую картку замовлення…';
+    const W=1400,margin=48,planH=570,rowH=86;
+    const totalH=t.usd>0?150:124;
+    const H=330+planH+120+a.length*rowH+totalH+130;
+    const c=document.createElement('canvas');c.width=W;c.height=H;const x=c.getContext('2d');
+    x.fillStyle='#eef4fb';x.fillRect(0,0,W,H);
+    roundRect(x,margin,margin,W-margin*2,H-margin*2,28,'#fff','#dbe7f5');
+
+    x.fillStyle='#071428';x.font='900 46px Arial';x.fillText('Potolok.in.ua',84,105);
+    x.font='900 30px Arial';x.fillText('ЗАМОВЛЕННЯ NW · ПЛАН ДЛЯ РОЗКРОЮ',84,148);
+    x.fillStyle='#64748b';x.font='700 20px Arial';x.fillText(`${m.r?.name||'Кімната'} · ${new Date().toLocaleString('uk-UA')}`,84,182);
+
+    const my=205,gap=18,cw=(W-168-gap*2)/3;
+    [['Площа',`${m.area.toFixed(2)} м²`],['Периметр',`${m.perimeter.toFixed(2)} м.п.`],['Кути',`${m.corners} шт`]].forEach((v,i)=>{
+      const xx=84+i*(cw+gap);roundRect(x,xx,my,cw,78,16,'#eff6ff','#bfdbfe');
+      x.fillStyle='#64748b';x.font='800 17px Arial';x.fillText(v[0],xx+18,my+29);
+      x.fillStyle='#075bff';x.font='900 27px Arial';x.fillText(v[1],xx+18,my+59);
+    });
+
+    let y=320;x.fillStyle='#0f172a';x.font='900 29px Arial';x.fillText('ПЛАН',84,y);
+    y+=22;drawPlan(x,g,84,y,W-168,planH);y+=planH+48;
+
+    x.fillStyle='#075bff';x.font='900 29px Arial';x.fillText(`ПОЗИЦІЇ · ${a.length}`,84,y);y+=24;
+    roundRect(x,84,y,W-168,44,13,'#f8fbff','#dbeafe');
+    x.fillStyle='#64748b';x.font='900 16px Arial';x.fillText('Назва',104,y+28);x.fillText('К-сть',840,y+28);x.fillText('Ціна',1000,y+28);x.fillText('Сума',1190,y+28);y+=56;
+
+    a.forEach((it,i)=>{
+      const q=N(it.qty),p=N(it.price),d=N(it.usdPrice),unit=String(it.unit||'шт');
+      roundRect(x,84,y,W-168,rowH-8,13,i%2?'#fbfdff':'#fff','#e5edf7');
+      x.fillStyle='#0f172a';x.font='900 20px Arial';x.fillText(`${i+1}. ${String(it.name).trim()}`,104,y+30);
+      x.fillStyle='#075bff';x.font='900 19px Arial';x.fillText(`${Q(q)} ${unit}`,840,y+40);
+      x.fillStyle='#0f172a';x.font='900 19px Arial';
+      const priceText=d>0?`$${d.toFixed(2)}`:(p>0?`${F(p)} грн`:'—');
+      const sumText=d>0?(t.rate>0?`${F(q*d*t.rate)} грн`:`$${(q*d).toFixed(2)}`):(p>0?`${F(q*p)} грн`:'—');
+      x.fillText(priceText,1000,y+40);x.fillStyle='#075bff';x.font='900 20px Arial';x.fillText(sumText,1190,y+40);
+      if(d>0&&t.rate>0){x.fillStyle='#64748b';x.font='700 15px Arial';x.fillText(`$${(q*d).toFixed(2)} · курс ${t.rate.toFixed(4)}`,104,y+59)}
+      y+=rowH;
+    });
+
+    roundRect(x,84,y+8,W-168,totalH,22,'#071428','#071428');
+    x.fillStyle='#fff';x.font='900 28px Arial';x.fillText('ЦІНА ВСІХ ПОЗИЦІЙ',108,y+52);
+    const grand=t.usd>0?(t.rate>0?`${F(t.all)} грн`:`${F(t.uah)} грн + $${t.usd.toFixed(2)}`):`${F(t.uah)} грн`;
+    x.textAlign='right';x.font='900 36px Arial';x.fillText(grand,W-108,y+55);x.textAlign='left';
+    x.fillStyle='#dbeafe';x.font='700 17px Arial';
+    if(t.usd>0&&t.rate>0)x.fillText(`${F(t.uah)} грн + $${t.usd.toFixed(2)} × ${t.rate.toFixed(4)} · з ціною: ${t.priced} із ${t.count}`,108,y+94);
+    else if(t.usd>0)x.fillText(`${F(t.uah)} грн + $${t.usd.toFixed(2)} · курс USD не задано · з ціною: ${t.priced} із ${t.count}`,108,y+94);
+    else x.fillText(`Усі позиції в гривні · з ціною: ${t.priced} із ${t.count}`,108,y+94);
+
+    const blob=await new Promise((resolve,reject)=>c.toBlob(b=>b?resolve(b):reject(new Error('Не вдалося створити PNG')),'image/png',0.95));
+    const safe=String(m.r?.name||'room').replace(/[^\p{L}\p{N}_-]+/gu,'_');
+    const file=new File([blob],`NW_${safe}_${Date.now()}.png`,{type:'image/png'});
+    let shared=false;
+    try{
+      if(navigator.share&&navigator.canShare?.({files:[file]})){
+        await navigator.share({title:'Замовлення NW',text:`${m.r?.name||'Кімната'} · ${grand}`,files:[file]});
+        shared=true;
+      }
+    }catch(e){if(e?.name==='AbortError'){if(st)st.textContent='Відправлення скасовано.';return}}
+    if(shared){if(st)st.textContent='✅ Картку замовлення передано в меню поширення.';return}
+    const u=URL.createObjectURL(blob),link=document.createElement('a');link.href=u;link.download=file.name;document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(u),2500);
+    if(st)st.textContent='✅ Картку замовлення збережено у PNG.';
+  }catch(e){console.error('R15 export',e);if(st)st.textContent='❌ '+(e?.message||'Помилка формування картки.');alert('Не вдалося сформувати картку: '+(e?.message||'невідома помилка'))}
+};
+
+function mark(){
+  const b=document.getElementById('pixel4486BuildBadge');
+  if(b)b.textContent='BUILD 44.90A-R15.3 · STABLE · OPTIONAL PRICES';
+  try{document.documentElement.dataset.pixelVersion='44.90A-R15.3';document.documentElement.dataset.pixelBuild='44.90A-r15-3-optional-prices';document.title='Potolok AI PRO — Pixel 44.90A-R15.3 STABLE'}catch(_){}
+}
+function boot(){healVisibleOrder();mark()}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(boot,250),{once:true});else setTimeout(boot,250);
+[700,1500,3000,5000].forEach(ms=>setTimeout(()=>{healVisibleOrder();mark()},ms));
+window.addEventListener('pageshow',()=>setTimeout(()=>{healVisibleOrder();mark()},120));
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)setTimeout(()=>{healVisibleOrder();mark()},120)});
+})();
+</script>
+
+<!-- PIXEL 44.90A-R15.2 | STABLE DATA HYDRATE + SMOOTH EVENTS | base: R15 STABLE -->
+<script id="pixel4490aR151StableHydrateSmooth">
+(function(){
+'use strict';
+if(window.__pixel4490aR151Installed)return;
+window.__pixel4490aR151Installed=true;
+
+const N=v=>Number(String(v??'').replace(',','.'))||0;
+function roomR151(){
+  try{return (projectRooms||[]).find(r=>String(r.id)===String(activeRoomId))||null}catch(_){return null}
+}
+function keyR151(r){return 'potolok:nw-no-plan:44.69:'+String(r?.id||'no-room')}
+function hydrateR151(){
+  const r=roomR151(); if(!r)return false;
+  r.productionNoPlan4463=r.productionNoPlan4463||{items:[]};
+  let current=Array.isArray(r.productionNoPlan4463.items)?r.productionNoPlan4463.items:[];
+  if(!current.length){
+    try{
+      const saved=JSON.parse(localStorage.getItem(keyR151(r))||'[]');
+      if(Array.isArray(saved)&&saved.length){
+        r.productionNoPlan4463.items=saved;
+        current=saved;
+      }
+    }catch(_){}
+  }
+  return current.length>0;
+}
+let syncTimerR151=0;
+function syncR151(delay=0){
+  clearTimeout(syncTimerR151);
+  syncTimerR151=setTimeout(()=>{
+    const ok=hydrateR151();
+    if(!roomR151())return;
+    try{window.refreshNoPlanOrder4469?.()}catch(_){}
+    markR151();
+    document.documentElement.classList.toggle('r151-order-ready',ok);
+  },delay);
+}
+function markR151(){
+  const b=document.getElementById('pixel4486BuildBadge');
+  if(b)b.textContent='BUILD 44.90A-R15.3 · STABLE · OPTIONAL PRICES';
+  try{
+    document.documentElement.dataset.pixelVersion='44.90A-R15.3';
+    document.documentElement.dataset.pixelBuild='44.90A-r15-3-optional-prices';
+    document.title='Potolok AI PRO — Pixel 44.90A-R15.3 STABLE';
+  }catch(_){}
+}
+/* Hydrate before old total painters get a chance to show a stale zero. */
+function bootR151(){
+  syncR151(0);
+  setTimeout(()=>syncR151(0),180);
+  setTimeout(markR151,700);
+}
+if(document.readyState==='loading'){
+  document.addEventListener('DOMContentLoaded',()=>setTimeout(bootR151,40),{once:true});
+}else setTimeout(bootR151,40);
+
+/* Only resync when room/object context actually changes. */
+document.addEventListener('click',e=>{
+  if(!e.target?.closest?.('#roomList,[data-room-switch4350],[onclick*="loadObject"],[onclick*="openObject"],#tab_object'))return;
+  syncR151(140);
+},true);
+window.addEventListener('pageshow',()=>syncR151(80));
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)syncR151(100)});
+})();
+</script>
+
+
+<!-- PIXEL 44.90A-R15.3 | OPTIONAL PRICES IN OUTGOING NW CARD | base: R15.2 -->
+<style id="pixel4490aR153OptionalPricesStyles">
+#nwNoPlan4463 .r153-export-price-toggle{display:grid;grid-template-columns:1fr auto;align-items:center;gap:10px;margin-top:8px;padding:10px 11px;border:1px solid #dbeafe;background:#f8fbff;border-radius:11px}
+#nwNoPlan4463 .r153-export-price-toggle b{display:block;font-size:9px;color:#0f172a;line-height:1.25}
+#nwNoPlan4463 .r153-export-price-toggle span{display:block;margin-top:2px;font-size:7.5px;color:#64748b;line-height:1.25}
+#nwNoPlan4463 .r153-export-price-btn{min-width:112px;min-height:38px;border-radius:9px;border:1px solid #075bff;background:#075bff;color:#fff;font-size:8px;font-weight:950;padding:7px 9px}
+#nwNoPlan4463 .r153-export-price-btn.off{background:#fff;color:#475569;border-color:#cbd5e1}
+</style>
+<script id="pixel4490aR153OptionalPricesScript">
+(function(){
+'use strict';
+if(window.__pixel4490aR153Installed)return;
+window.__pixel4490aR153Installed=true;
+
+const N=v=>Number(String(v??'').replace(',','.'))||0;
+const F=v=>N(v).toLocaleString('uk-UA',{minimumFractionDigits:0,maximumFractionDigits:2});
+const Q=v=>N(v).toLocaleString('uk-UA',{minimumFractionDigits:0,maximumFractionDigits:2});
+let showPricesR153=true;
+
+function roomR153(){try{return (projectRooms||[]).find(r=>String(r.id)===String(activeRoomId))||null}catch(_){return null}}
+function keyR153(r){return 'potolok:nw-no-plan:44.69:'+String(r?.id||'no-room')}
+function itemsR153(){
+  const r=roomR153(); if(!r)return [];
+  r.productionNoPlan4463=r.productionNoPlan4463||{items:[]};
+  let a=Array.isArray(r.productionNoPlan4463.items)?r.productionNoPlan4463.items:[];
+  if(!a.length){
+    try{const s=JSON.parse(localStorage.getItem(keyR153(r))||'[]');if(Array.isArray(s)&&s.length){a=s;r.productionNoPlan4463.items=s}}catch(_){}
+  }
+  return a;
+}
+function rateR153(){
+  try{const el=document.querySelector('#nwUsdRate4425,#usdRate4425,input[data-usd-rate]');if(el&&N(el.value)>0)return N(el.value)}catch(_){}
+  try{return N(localStorage.getItem('potolok_usd_uah_rate_4425'))}catch(_){return 0}
+}
+function metricsR153(){
+  const r=roomR153();let area=N(r?.area),perimeter=N(r?.perimeter),corners=N(r?.corners);
+  try{const s=window.getFingerDrawingState4408?.();if(N(s?.area)>0)area=N(s.area);if(N(s?.perimeter)>0)perimeter=N(s.perimeter);if(N(s?.corners)>0)corners=N(s.corners);else if(!corners&&Array.isArray(s?.points))corners=s.points.length}catch(_){}
+  if(!corners&&Array.isArray(r?.planner?.points))corners=r.planner.points.length;
+  return {r,area,perimeter,corners:Math.round(corners||0)};
+}
+function geometryR153(){
+  const r=roomR153();let pts=[],lens=[];
+  try{
+    if(Array.isArray(r?.planner?.points)&&r.planner.points.length>=3)pts=r.planner.points.map(p=>[N(p?.[0]??p?.x),N(p?.[1]??p?.y)]);
+    if(Array.isArray(r?.planner?.segments)&&r.planner.segments.length===pts.length)lens=r.planner.segments.map(N);
+  }catch(_){}
+  if(pts.length>=3&&lens.length!==pts.length){
+    const raw=pts.map((p,i)=>{const q=pts[(i+1)%pts.length];return Math.hypot(q[0]-p[0],q[1]-p[1])});
+    const sum=raw.reduce((a,b)=>a+b,0)||1,per=metricsR153().perimeter,k=per>0?per/sum:1;lens=raw.map(v=>v*k);
+  }
+  return {pts,lens};
+}
+function totalsR153(a){const r=rateR153();let uah=0,usd=0,priced=0;a.forEach(it=>{const q=N(it?.qty),p=N(it?.price),d=N(it?.usdPrice);if(!(q>0))return;if(d>0){usd+=q*d;priced++}else if(p>0){uah+=q*p;priced++}});return {rate:r,uah,usd,priced,count:a.length,all:r>0?uah+usd*r:uah}}
+function rrR153(ctx,x,y,w,h,r,fill,stroke){r=Math.min(r,w/2,h/2);ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();if(fill){ctx.fillStyle=fill;ctx.fill()}if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=2;ctx.stroke()}}
+function alphaR153(i){let s='',n=i+1;while(n>0){n--;s=String.fromCharCode(65+n%26)+s;n=Math.floor(n/26)}return s}
+function drawPlanR153(ctx,g,x0,y0,w,h){
+  rrR153(ctx,x0,y0,w,h,18,'#f8fbff','#dbeafe');const pts=g.pts||[],lens=g.lens||[];
+  if(pts.length<3){ctx.fillStyle='#64748b';ctx.font='700 22px Arial';ctx.fillText('Контур кімнати не знайдено.',x0+30,y0+55);return}
+  const xs=pts.map(p=>p[0]),ys=pts.map(p=>p[1]),minX=Math.min(...xs),maxX=Math.max(...xs),minY=Math.min(...ys),maxY=Math.max(...ys),bw=Math.max(1,maxX-minX),bh=Math.max(1,maxY-minY),pad=90;
+  const sc=Math.min((w-pad*2)/bw,(h-pad*2)/bh),ox=x0+(w-bw*sc)/2-minX*sc,oy=y0+(h-bh*sc)/2-minY*sc,P=pts.map(([x,y])=>[ox+x*sc,oy+y*sc]);
+  ctx.beginPath();P.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1]));ctx.closePath();ctx.fillStyle='rgba(7,91,255,.09)';ctx.fill();ctx.strokeStyle='#075bff';ctx.lineWidth=5;ctx.stroke();
+  const cx=P.reduce((s,p)=>s+p[0],0)/P.length,cy=P.reduce((s,p)=>s+p[1],0)/P.length;
+  P.forEach((p,i)=>{const q=P[(i+1)%P.length];ctx.beginPath();ctx.arc(p[0],p[1],10,0,Math.PI*2);ctx.fillStyle='#fff';ctx.fill();ctx.strokeStyle='#075bff';ctx.lineWidth=4;ctx.stroke();let vx=p[0]-cx,vy=p[1]-cy,vl=Math.hypot(vx,vy)||1;ctx.fillStyle='#0f172a';ctx.font='900 22px Arial';ctx.textAlign='center';ctx.fillText(alphaR153(i),p[0]+vx/vl*28,p[1]+vy/vl*28+7);const mx=(p[0]+q[0])/2,my=(p[1]+q[1])/2,dx=q[0]-p[0],dy=q[1]-p[1],dl=Math.hypot(dx,dy)||1;let nx=-dy/dl,ny=dx/dl;if(nx*(cx-mx)+ny*(cy-my)>0){nx=-nx;ny=-ny}ctx.fillStyle='#075bff';ctx.font='900 20px Arial';ctx.fillText((N(lens[i])>0?N(lens[i]).toFixed(2):'—')+' м',mx+nx*38,my+ny*38+7)});ctx.textAlign='left';
+}
+function updateToggleR153(){
+  const btn=document.getElementById('r153ExportPriceBtn');if(btn){btn.textContent=showPricesR153?'ПОКАЗУВАТИ':'ПРИХОВАНО';btn.classList.toggle('off',!showPricesR153)}
+  const send=document.querySelector('#nwNoPlan4463 button[onclick="shareNoPlan4463()"]');if(send)send.textContent=showPricesR153?'📤 Відправити замовлення з цінами':'📤 Відправити замовлення без цін';
+}
+window.toggleR153ExportPrices=function(){showPricesR153=!showPricesR153;updateToggleR153()};
+function injectToggleR153(){
+  const host=document.getElementById('nwNoPlanPanel4463');if(!host||document.getElementById('r153ExportPriceToggle'))return;
+  const send=document.querySelector('#nwNoPlan4463 button[onclick="shareNoPlan4463()"]');if(!send)return;
+  const box=document.createElement('div');box.id='r153ExportPriceToggle';box.className='r153-export-price-toggle';box.innerHTML='<div><b>💰 Ціни у картці для відправки</b><span>На вашому екрані розрахунок завжди залишається видимим.</span></div><button id="r153ExportPriceBtn" type="button" class="r153-export-price-btn" onclick="toggleR153ExportPrices()">ПОКАЗУВАТИ</button>';
+  const row=send.parentElement;row.parentElement.insertBefore(box,row);updateToggleR153();
+}
+window.shareNoPlan4463=async function(){
+  const st=document.getElementById('nwNoPlanStatus4463');
+  const a=itemsR153().filter(it=>String(it?.name||'').trim()&&N(it?.qty)>0);
+  if(!a.length){if(st)st.textContent='❌ Не бачу позицій у поточній кімнаті. Відкрийте NW і перевірте список.';return}
+  const m=metricsR153(),g=geometryR153(),t=totalsR153(a),withPrices=showPricesR153;
+  try{
+    if(st)st.textContent=withPrices?'Готую картку замовлення з цінами…':'Готую картку замовлення без цін…';
+    const W=1400,margin=48,planH=570,rowH=86,totalH=withPrices?(t.usd>0?150:124):0;
+    const H=330+planH+120+a.length*rowH+totalH+(withPrices?130:105);
+    const c=document.createElement('canvas');c.width=W;c.height=H;const x=c.getContext('2d');x.fillStyle='#eef4fb';x.fillRect(0,0,W,H);rrR153(x,margin,margin,W-margin*2,H-margin*2,28,'#fff','#dbe7f5');
+    x.fillStyle='#071428';x.font='900 46px Arial';x.fillText('Potolok.in.ua',84,105);x.font='900 30px Arial';x.fillText('ЗАМОВЛЕННЯ NW · ПЛАН ДЛЯ РОЗКРОЮ',84,148);x.fillStyle='#64748b';x.font='700 20px Arial';x.fillText(`${m.r?.name||'Кімната'} · ${new Date().toLocaleString('uk-UA')}`,84,182);
+    const my=205,gap=18,cw=(W-168-gap*2)/3;[['Площа',`${m.area.toFixed(2)} м²`],['Периметр',`${m.perimeter.toFixed(2)} м.п.`],['Кути',`${m.corners} шт`]].forEach((v,i)=>{const xx=84+i*(cw+gap);rrR153(x,xx,my,cw,78,16,'#eff6ff','#bfdbfe');x.fillStyle='#64748b';x.font='800 17px Arial';x.fillText(v[0],xx+18,my+29);x.fillStyle='#075bff';x.font='900 27px Arial';x.fillText(v[1],xx+18,my+59)});
+    let y=320;x.fillStyle='#0f172a';x.font='900 29px Arial';x.fillText('ПЛАН',84,y);y+=22;drawPlanR153(x,g,84,y,W-168,planH);y+=planH+48;x.fillStyle='#075bff';x.font='900 29px Arial';x.fillText(`ПОЗИЦІЇ · ${a.length}`,84,y);y+=24;
+    rrR153(x,84,y,W-168,44,13,'#f8fbff','#dbeafe');x.fillStyle='#64748b';x.font='900 16px Arial';x.fillText('Назва',104,y+28);x.fillText('К-сть',withPrices?840:1110,y+28);if(withPrices){x.fillText('Ціна',1000,y+28);x.fillText('Сума',1190,y+28)}y+=56;
+    a.forEach((it,i)=>{const q=N(it.qty),p=N(it.price),d=N(it.usdPrice),unit=String(it.unit||'шт');rrR153(x,84,y,W-168,rowH-8,13,i%2?'#fbfdff':'#fff','#e5edf7');x.fillStyle='#0f172a';x.font='900 20px Arial';x.fillText(`${i+1}. ${String(it.name).trim()}`,104,y+30);x.fillStyle='#075bff';x.font='900 19px Arial';x.fillText(`${Q(q)} ${unit}`,withPrices?840:1110,y+40);if(withPrices){x.fillStyle='#0f172a';x.font='900 19px Arial';const priceText=d>0?`$${d.toFixed(2)}`:(p>0?`${F(p)} грн`:'—');const sumText=d>0?(t.rate>0?`${F(q*d*t.rate)} грн`:`$${(q*d).toFixed(2)}`):(p>0?`${F(q*p)} грн`:'—');x.fillText(priceText,1000,y+40);x.fillStyle='#075bff';x.font='900 20px Arial';x.fillText(sumText,1190,y+40);if(d>0&&t.rate>0){x.fillStyle='#64748b';x.font='700 15px Arial';x.fillText(`$${(q*d).toFixed(2)} · курс ${t.rate.toFixed(4)}`,104,y+59)}}y+=rowH});
+    let grand='';
+    if(withPrices){rrR153(x,84,y+8,W-168,totalH,22,'#071428','#071428');x.fillStyle='#fff';x.font='900 28px Arial';x.fillText('ЦІНА ВСІХ ПОЗИЦІЙ',108,y+52);grand=t.usd>0?(t.rate>0?`${F(t.all)} грн`:`${F(t.uah)} грн + $${t.usd.toFixed(2)}`):`${F(t.uah)} грн`;x.textAlign='right';x.font='900 36px Arial';x.fillText(grand,W-108,y+55);x.textAlign='left';x.fillStyle='#dbeafe';x.font='700 17px Arial';if(t.usd>0&&t.rate>0)x.fillText(`${F(t.uah)} грн + $${t.usd.toFixed(2)} × ${t.rate.toFixed(4)} · з ціною: ${t.priced} із ${t.count}`,108,y+94);else if(t.usd>0)x.fillText(`${F(t.uah)} грн + $${t.usd.toFixed(2)} · курс USD не задано · з ціною: ${t.priced} із ${t.count}`,108,y+94);else x.fillText(`Усі позиції в гривні · з ціною: ${t.priced} із ${t.count}`,108,y+94)}
+    else{y+=12;x.fillStyle='#64748b';x.font='700 17px Arial';x.fillText('Ціни та суми приховано перед відправкою.',104,y+34)}
+    const blob=await new Promise((resolve,reject)=>c.toBlob(b=>b?resolve(b):reject(new Error('Не вдалося створити PNG')),'image/png',0.95));
+    const safe=String(m.r?.name||'room').replace(/[^\p{L}\p{N}_-]+/gu,'_'),file=new File([blob],`NW_${safe}_${Date.now()}.png`,{type:'image/png'});let shared=false;
+    try{if(navigator.share&&navigator.canShare?.({files:[file]})){const text=withPrices?`${m.r?.name||'Кімната'} · ${grand}`:`${m.r?.name||'Кімната'} · замовлення NW без цін`;await navigator.share({title:'Замовлення NW',text,files:[file]});shared=true}}catch(e){if(e?.name==='AbortError'){if(st)st.textContent='Відправлення скасовано.';return}}
+    if(shared){if(st)st.textContent=withPrices?'✅ Картку з цінами передано в меню поширення.':'✅ Картку без цін передано в меню поширення.';return}
+    const u=URL.createObjectURL(blob),link=document.createElement('a');link.href=u;link.download=file.name;document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(u),2500);if(st)st.textContent=withPrices?'✅ Картку з цінами збережено у PNG.':'✅ Картку без цін збережено у PNG.';
+  }catch(e){console.error('R15.3 export',e);if(st)st.textContent='❌ '+(e?.message||'Помилка формування картки.');alert('Не вдалося сформувати картку: '+(e?.message||'невідома помилка'))}
+};
+function markR153(){const b=document.getElementById('pixel4486BuildBadge');if(b)b.textContent='BUILD 44.90A-R15.3 · STABLE · OPTIONAL PRICES';try{document.documentElement.dataset.pixelVersion='44.90A-R15.3';document.documentElement.dataset.pixelBuild='44.90A-r15-3-optional-prices';document.title='Potolok AI PRO — Pixel 44.90A-R15.3 STABLE'}catch(_){}}
+function bootR153(){injectToggleR153();updateToggleR153();markR153()}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(bootR153,250),{once:true});else setTimeout(bootR153,250);
+[700,1500,3000,5000].forEach(ms=>setTimeout(bootR153,ms));
+window.addEventListener('pageshow',()=>setTimeout(bootR153,120));
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)setTimeout(bootR153,120)});
 })();
 </script>
