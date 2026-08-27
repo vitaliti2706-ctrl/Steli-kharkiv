@@ -951,7 +951,7 @@ th:nth-child(2),th:nth-child(3),th:nth-child(4),td:nth-child(2),td:nth-child(3),
 <div class="field"><label>Виробник полотна</label><select id="calcManufacturer" onchange="recalc();autosave()"><option>MSD Premium</option><option>MSD Classic</option><option>MSD Premium Exclusive</option><option>BAUF</option><option>Pongs</option><option>Teqtum</option><option>Descor</option><option>Інший</option></select></div>
 <div class="field"><label>Фактура полотна</label><select id="calcTexture" onchange="syncCeilingPackage()"><option value="matte">Матове — 500 грн/м²</option><option value="satin">Сатин — 550 грн/м²</option><option value="glossy">Лак / глянець — 600 грн/м²</option></select></div>
 <div class="field"><label>Основний профіль</label><select id="calcBaseProfile" onchange="syncCeilingPackage()"><option value="h">Алюмінієвий H-подібний</option><option value="p">Алюмінієвий П-подібний</option></select></div>
-<div class="field"><label>Декоративна вставка</label><select id="calcInsert" onchange="syncCeilingPackage()"><option value="none">Без вставки</option><option value="white">Біла — 50 грн/м.п.</option><option value="black">Чорна — 50 грн/м.п.</option></select></div>
+<div class="field"><label>Декоративна вставка</label><select id="calcInsert" onchange="syncCeilingPackage(true);autosave()"><option value="none">Без вставки</option><option value="white">Біла — 50 грн/м.п.</option><option value="black">Чорна — 50 грн/м.п.</option></select></div>
 </div>
 <div class="planner-hint">Базова ціна включає полотно, алюмінієвий H- або П-подібний профіль і монтаж. Декоративна вставка рахується окремо.</div>
 </div>
@@ -1707,9 +1707,11 @@ function profileState(){
 function currentCalculatedTotal(){return currentRows().reduce((s,r)=>s+r.sum,0)}
 function captureCurrentRoom(){
   const existing=projectRooms.find(r=>r.id===activeRoomId);
+  const preserved=deepCopy(existing||{});
   return{
-    id:activeRoomId||uid('room'),
-    name:(roomName?.value||existing?.name||'Кімната').trim()||'Кімната',
+    ...preserved,
+    id:activeRoomId||preserved.id||uid('room'),
+    name:(roomName?.value||preserved.name||'Кімната').trim()||'Кімната',
     photo:uploadedImageBase64||'',
     area:num('area'),
     perimeter:num('perimeter'),
@@ -1722,19 +1724,21 @@ function captureCurrentRoom(){
     calcTexture:document.getElementById('calcTexture')?.value||'matte',
     prompt:customPrompt.value||'',
     planner:{
+      ...deepCopy(preserved.planner||{}),
       points:deepCopy(roomPoints),
       objects:deepCopy(plannerObjects),
       template:roomTemplate,
       segments:deepCopy(segmentLengths)
     },
     extras:{
+      ...deepCopy(preserved.extras||{}),
       checked:checkedMap('check_',EXTRA_ITEMS.filter(i=>!i.always)),
       qty:quantityMap('qty_',EXTRA_ITEMS.filter(i=>!i.always))
     },
     profiles:profileState(),
     ai:checkedMap('ai_',AI_OPTIONS),
     rows:deepCopy(currentRows()),
-    finishingWorks:deepCopy(existing?.finishingWorks||{items:[],total:0,geometrySnapshot:null}),
+    finishingWorks:deepCopy(preserved.finishingWorks||{items:[],total:0,geometrySnapshot:null}),
     calculated:currentCalculatedTotal(),
     total:priceWithObjectRule(currentCalculatedTotal()),
     updatedAt:new Date().toISOString()
@@ -3717,7 +3721,7 @@ loadMarkupFromRoom();drawMarkupCanvas();renderHistory();
     if(document.getElementById('preWish56'))preWish56.value=pre.wish||'';
   },0)};
   const oldCaptureRoom56=window.captureCurrentRoom;
-  window.captureCurrentRoom=function(){const r=oldCaptureRoom56();r.preliminary={area:Number(document.getElementById('preArea56')?.value)||0,perimeter:Number(document.getElementById('prePerimeter56')?.value)||0,texture:document.getElementById('preTexture56')?.value||selectedTexture,lighting:document.getElementById('preLight56')?.value||'none',wish:document.getElementById('preWish56')?.value||''};return r};
+  window.captureCurrentRoom=function(){const r=oldCaptureRoom56();r.preliminary=Object.assign({},r.preliminary||{}, {area:Number(document.getElementById('preArea56')?.value)||0,perimeter:Number(document.getElementById('prePerimeter56')?.value)||0,texture:document.getElementById('preTexture56')?.value||selectedTexture,lighting:document.getElementById('preLight56')?.value||'none',wish:document.getElementById('preWish56')?.value||''});return r};
 
   // 3) Full photo controls directly in Plan: camera, gallery, delete, 3–5 photos.
   const planPhotoBox=document.getElementById('plannerPhotoGrid55')?.closest('.p55-block');
@@ -4489,8 +4493,14 @@ function insertPackageLabel(){
   const v=document.getElementById('calcInsert')?.value||'none';
   return v==='white'?'Декоративна вставка біла':v==='black'?'Декоративна вставка чорна':'Без вставки';
 }
-function syncCeilingPackage(){
+function syncCeilingPackage(persistChoice=false){
   const insert=document.getElementById('calcInsert')?.value||'none';
+  if(persistChoice){
+    try{
+      const room=Array.isArray(projectRooms)?projectRooms.find(r=>String(r?.id)===String(activeRoomId)):null;
+      if(room)room.insertPackage=['white','black'].includes(insert)?insert:'none';
+    }catch(_){}
+  }
   ['White','Black'].forEach(t=>{
     const id='insert'+t;
     const check=document.getElementById('check_'+id);
@@ -4537,8 +4547,12 @@ currentRows=function(){
 const _captureCurrentRoom61=captureCurrentRoom;
 captureCurrentRoom=function(){
   const r=_captureCurrentRoom61();
-  r.baseProfile=document.getElementById('calcBaseProfile')?.value||'h';
-  r.insertPackage=document.getElementById('calcInsert')?.value||'none';
+  r.baseProfile=document.getElementById('calcBaseProfile')?.value||r.baseProfile||'h';
+  const liveInsert61=String(document.getElementById('calcInsert')?.value||'').toLowerCase();
+  const savedInsert61=String(r.insertPackage||'').toLowerCase();
+  r.insertPackage=['white','black'].includes(liveInsert61)
+    ?liveInsert61
+    :(['white','black'].includes(savedInsert61)?savedInsert61:'none');
   return r;
 };
 
@@ -5050,8 +5064,13 @@ function applyBindingsToCalculator(){
 /* збереження окремо для кожної кімнати */
 const captureCurrentRoom63=captureCurrentRoom;
 captureCurrentRoom=function(){
+  const before=Array.isArray(projectRooms)?projectRooms.find(r=>String(r?.id)===String(activeRoomId)):null;
   const room=captureCurrentRoom63();
-  room.perimeterBindings=deepCopy(perimeterBindings);
+  const live=deepCopy(Array.isArray(perimeterBindings)?perimeterBindings:[]);
+  const saved=deepCopy(Array.isArray(before?.perimeterBindings)?before.perimeterBindings:[]);
+  const hasLive=live.some(list=>Array.isArray(list)&&list.length);
+  const hasSaved=saved.some(list=>Array.isArray(list)&&list.length);
+  room.perimeterBindings=(hasLive||!hasSaved)?live:saved;
   return room;
 };
 const restoreRoom63=restoreRoom;
@@ -5124,8 +5143,10 @@ function setUnifiedPackageProfile(value){
   syncActiveRoomFromUI(false);autosave();
 }
 function setUnifiedPackageInsert(value){
-  if(document.getElementById('calcInsert'))calcInsert.value=['white','black'].includes(value)?value:'none';
-  syncCeilingPackage();syncActiveRoomFromUI(false);autosave();
+  const v=['white','black'].includes(value)?value:'none';
+  if(document.getElementById('calcInsert'))calcInsert.value=v;
+  try{const room=Array.isArray(projectRooms)?projectRooms.find(r=>String(r?.id)===String(activeRoomId)):null;if(room)room.insertPackage=v}catch(_){}
+  syncCeilingPackage(false);syncActiveRoomFromUI(false);autosave();
 }
 
 /* Pixel 6.8: будь-яке рішення зі списку прив'язується до всього периметра */
@@ -5591,7 +5612,14 @@ captureCurrentRoom=function(){
   r.outerCorners=r.outerCornersManual==null?auto.outer:r.outerCornersManual;
   r.innerCorners=r.innerCornersManual==null?auto.inner:r.innerCornersManual;
   r.corners=r.outerCorners+r.innerCorners;
-  r.insertPackage=document.getElementById('objectInsert47')?.value||document.getElementById('calcInsert')?.value||old.insertPackage||'none';
+  const objectInsert47Value=String(document.getElementById('objectInsert47')?.value||'').toLowerCase();
+  const calcInsert47Value=String(document.getElementById('calcInsert')?.value||'').toLowerCase();
+  const oldInsert47Value=String(old.insertPackage||r.insertPackage||'').toLowerCase();
+  r.insertPackage=['white','black'].includes(objectInsert47Value)
+    ?objectInsert47Value
+    :(['white','black'].includes(calcInsert47Value)
+      ?calcInsert47Value
+      :(['white','black'].includes(oldInsert47Value)?oldInsert47Value:'none'));
   return r;
 };
 const restoreRoom47=restoreRoom;
@@ -13796,9 +13824,10 @@ function syncAutoWorkQuantities4328(){const rs=rooms4325();const area=rs.reduce(
 function worksTotal4325(){syncAutoWorkQuantities4328();return objectWorks4325.reduce((s,x)=>s+(Number(x.quantity)||0)*(Number(x.price)||0),0)}
 window.__objectWorksTotal4328=worksTotal4325;
 function refreshLegacyTotals4328(){try{let calculated=0;const rs=rooms4325();rs.forEach(r=>{calculated+=String(r?.id)===String(typeof activeRoomId!=='undefined'?activeRoomId:'')&&typeof currentCalculatedTotal==='function'?(Number(currentCalculatedTotal())||0):(Number(r?.calculated)||0)});if(!rs.length&&typeof currentCalculatedTotal==='function')calculated=Number(currentCalculatedTotal())||0;const base=typeof priceWithObjectRule==='function'?(Number(priceWithObjectRule(calculated))||0):calculated;const works=worksTotal4325();const total=base+works;const objectBox=document.getElementById('objectPriceTotal');if(objectBox)objectBox.textContent=money4325(total);const worksBox=document.getElementById('grandWorks4328');if(worksBox)worksBox.textContent=money4325(works);const totalBox=document.getElementById('grandTotal4319');if(totalBox)totalBox.textContent=money4325(total)}catch(e){console.warn('43(28) legacy totals',e)}}
-function objectTotals4325(){const rs=rooms4325();const ceiling=rs.reduce((s,r)=>s+(Number(r.calculated)||Number(r.total)||0),0);const finishing=rs.reduce((s,r)=>s+roomFinishing4325(r),0);const materials=rs.reduce((s,r)=>s+roomMaterials4325(r),0);const works=worksTotal4325();return{rooms:rs.length,area:rs.reduce((s,r)=>s+(Number(r.area)||0),0),perimeter:rs.reduce((s,r)=>s+(Number(r.perimeter)||0),0),ceiling,finishing,materials,works,grand:ceiling+finishing+materials+works}}
+function cornerCost4325(r){let count=(Number(r?.outerCorners)||0)+(Number(r?.innerCorners)||0);if(!(count>0))count=Number(r?.corners)||0;return Math.max(0,count)*70}
+function objectTotals4325(){const rs=rooms4325();const ceiling=rs.reduce((s,r)=>s+(Number(r.calculated)||Number(r.total)||0)+cornerCost4325(r),0);const finishing=rs.reduce((s,r)=>s+roomFinishing4325(r),0);const materials=rs.reduce((s,r)=>s+roomMaterials4325(r),0);const works=worksTotal4325();return{rooms:rs.length,area:rs.reduce((s,r)=>s+(Number(r.area)||0),0),perimeter:rs.reduce((s,r)=>s+(Number(r.perimeter)||0),0),ceiling,finishing,materials,works,grand:ceiling+finishing+materials+works}}
 function allElements4325(){const out=[];rooms4325().forEach(room=>{const objs=Array.isArray(room?.planner?.objects)?room.planner.objects:[];objs.forEach((o,index)=>{const m=TYPE4325[o.type]||{icon:'•',name:o.label||o.type||'Елемент',unit:'шт',price:0};const qty=m.linear?Math.max(0,Number(o.length)||0):1;out.push({kind:'object',room,roomId:room.id,index,type:o.type,icon:m.icon,name:m.name,unit:m.unit,qty,price:Number(m.price)||0,sum:qty*(Number(m.price)||0)})});const binds=Array.isArray(room?.perimeterBindings)?room.perimeterBindings:[];const segs=Array.isArray(room?.planner?.segments)?room.planner.segments:[];binds.forEach((types,side)=>{(Array.isArray(types)?types:[]).forEach((type,typeIndex)=>{const m=BIND4325[type]||{icon:'━',name:type,price:0};const qty=Math.max(0,Number(segs[side])||0);out.push({kind:'binding',room,roomId:room.id,side,typeIndex,type,icon:m.icon,name:m.name,unit:'м.п.',qty,price:Number(m.price)||0,sum:qty*(Number(m.price)||0)})})})});return out}
-function renderAll4325(){const p=document.getElementById('objectCenterPanel4325');if(!p)return;const t=objectTotals4325();p.innerHTML=`<div class="object-center-head4325"><div><h4>Весь об’єкт</h4><p>Окремо по кімнатах, роботах, матеріалах і загальному підсумку.</p></div></div><div class="object-summary-grid4325"><div class="object-summary-card4325"><span>Кімнат</span><b>${t.rooms}</b></div><div class="object-summary-card4325"><span>Загальна площа</span><b>${t.area.toFixed(2)} м²</b></div><div class="object-summary-card4325"><span>Загальний периметр</span><b>${t.perimeter.toFixed(2)} м/пог.</b></div><div class="object-summary-card4325"><span>Натяжні стелі</span><b>${money4325(t.ceiling)}</b></div><div class="object-summary-card4325"><span>Оздоблення</span><b>${money4325(t.finishing)}</b></div><div class="object-summary-card4325"><span>Матеріали</span><b>${money4325(t.materials)}</b></div><div class="object-summary-card4325"><span>Додаткові роботи</span><b>${money4325(t.works)}</b></div><div class="object-summary-card4325 grand"><span>Разом весь об’єкт</span><b>${money4325(t.grand)}</b></div></div>${rooms4325().map(r=>`<div class="object-room-row4325"><div><b>${esc4325(r.name||'Кімната')}</b><span>${Number(r.area||0).toFixed(2)} м² · ${Number(r.perimeter||0).toFixed(2)} м/пог. · оздоблення ${money4325(roomFinishing4325(r))}</span></div><div class="object-row-price4325"><b>${money4325((Number(r.calculated)||0)+roomFinishing4325(r)+roomMaterials4325(r))}</b><span>разом кімната</span></div></div>`).join('')}`}
+function renderAll4325(){const p=document.getElementById('objectCenterPanel4325');if(!p)return;const t=objectTotals4325();p.innerHTML=`<div class="object-center-head4325"><div><h4>Весь об’єкт</h4><p>Окремо по кімнатах, роботах, матеріалах і загальному підсумку.</p></div></div><div class="object-summary-grid4325"><div class="object-summary-card4325"><span>Кімнат</span><b>${t.rooms}</b></div><div class="object-summary-card4325"><span>Загальна площа</span><b>${t.area.toFixed(2)} м²</b></div><div class="object-summary-card4325"><span>Загальний периметр</span><b>${t.perimeter.toFixed(2)} м/пог.</b></div><div class="object-summary-card4325"><span>Натяжні стелі</span><b>${money4325(t.ceiling)}</b></div><div class="object-summary-card4325"><span>Оздоблення</span><b>${money4325(t.finishing)}</b></div><div class="object-summary-card4325"><span>Матеріали</span><b>${money4325(t.materials)}</b></div><div class="object-summary-card4325"><span>Додаткові роботи</span><b>${money4325(t.works)}</b></div><div class="object-summary-card4325 grand"><span>Разом весь об’єкт</span><b>${money4325(t.grand)}</b></div></div>${rooms4325().map(r=>`<div class="object-room-row4325"><div><b>${esc4325(r.name||'Кімната')}</b><span>${Number(r.area||0).toFixed(2)} м² · ${Number(r.perimeter||0).toFixed(2)} м/пог. · оздоблення ${money4325(roomFinishing4325(r))}</span></div><div class="object-row-price4325"><b>${money4325((Number(r.calculated)||Number(r.total)||0)+cornerCost4325(r)+roomFinishing4325(r)+roomMaterials4325(r))}</b><span>разом кімната</span></div></div>`).join('')}`}
 function renderElements4325(){const p=document.getElementById('objectCenterPanel4325');if(!p)return;const rows=allElements4325();const sum=rows.reduce((s,x)=>s+x.sum,0);p.innerHTML=`<div class="object-center-head4325"><div><h4>Додаткові елементи всього об’єкта</h4><p>Кожен елемент прив’язаний до кімнати та плану. Видалення тут одразу видаляє його з креслення.</p></div><b>${money4325(sum)}</b></div>${rows.length?rows.map((x,i)=>`<div class="object-element-row4325"><div class="object-element-icon4325">${x.icon}</div><div><b>${esc4325(x.name)}</b><span>${esc4325(x.room?.name||'Кімната')} · ${x.kind==='binding'?'стіна '+(x.side+1):'елемент '+(x.index+1)} · ${x.qty.toFixed(x.unit==='шт'?0:2)} ${x.unit}</span></div><div class="object-row-price4325"><b>${x.price?money4325(x.sum):'інформаційно'}</b><span>${x.price?money4325(x.price)+' / '+x.unit:'без тарифу'}</span></div><button class="object-delete4325" type="button" data-object-element-delete4325="${i}" aria-label="Видалити">🗑</button></div>`).join(''):'<div class="object-empty4325">У кімнатах ще немає додаткових елементів або прив’язок.</div>'}`;p.querySelectorAll('[data-object-element-delete4325]').forEach(b=>b.addEventListener('click',()=>deleteObjectElement4325(rows[Number(b.dataset.objectElementDelete4325)])))}
 function renderWorks4325(){
  const p=document.getElementById('objectCenterPanel4325');
@@ -14890,17 +14919,29 @@ else setTimeout(install4336,350);
     const items=room?.finishingWorks?.materials;
     return Array.isArray(items)?items.reduce((sum,item)=>sum+num4338(item.quantity)*num4338(item.price),0):0;
   }
+  function roomCornerCount4338(room){
+    let total=num4338(room?.corners), outer=num4338(room?.outerCorners), inner=num4338(room?.innerCorners);
+    try{if(typeof window.roomCornerData47==='function'){const d=window.roomCornerData47(room);if(num4338(d?.total)>0)total=num4338(d.total)}}catch(_){}
+    return outer+inner>0?outer+inner:total;
+  }
+  function roomCornerRate4338(){
+    try{const list=(typeof EXTRA_ITEMS!=='undefined'&&Array.isArray(EXTRA_ITEMS))?EXTRA_ITEMS:[];const item=list.find(x=>x?.id==='corners');return Math.max(0,num4338(item?.price)||70)}catch(_){return 70}
+  }
+  function roomCornersTotal4338(room){return roomCornerCount4338(room)*roomCornerRate4338()}
   function objectWorks4338(object){
     return Array.isArray(object?.objectWorks4325)?object.objectWorks4325:[];
   }
   function roomTotal4338(room){
-    return num4338(room?.calculated||room?.total)+roomFinishing4338(room)+roomMaterials4338(room);
+    return num4338(room?.calculated||room?.total)+roomCornersTotal4338(room)+roomFinishing4338(room)+roomMaterials4338(room);
   }
 
   function detailRows4338(room){
     const rows=Array.isArray(room?.rows)?room.rows:[];
-    if(!rows.length)return '<tr><td colspan="4" class="muted">Деталізація відсутня</td></tr>';
-    return rows.map(row=>`<tr><td>${esc4338(row.name||'Позиція')}</td><td>${esc4338(num4338(row.qty).toLocaleString('uk-UA',{maximumFractionDigits:2}))} ${esc4338(row.unit||'')}</td><td>${money4338(row.price)}</td><td><b>${money4338(row.sum)}</b></td></tr>`).join('');
+    const body=rows.map(row=>`<tr><td>${esc4338(row.name||'Позиція')}</td><td>${esc4338(num4338(row.qty).toLocaleString('uk-UA',{maximumFractionDigits:2}))} ${esc4338(row.unit||'')}</td><td>${money4338(row.price)}</td><td><b>${money4338(row.sum)}</b></td></tr>`).join('');
+    const count=roomCornerCount4338(room),rate=roomCornerRate4338();
+    const hasCorner=rows.some(row=>String(row?.id||'').toLowerCase()==='corners'||/кут/i.test(String(row?.name||row?.title||'')));
+    const corners=count>0&&!hasCorner?`<tr><td>Кути полотна</td><td>${count} шт</td><td>${money4338(rate)}</td><td><b>${money4338(count*rate)}</b></td></tr>`:'';
+    return body+corners||'<tr><td colspan="4" class="muted">Деталізація відсутня</td></tr>';
   }
 
   function finishingRows4338(room){
@@ -14918,7 +14959,7 @@ else setTimeout(install4336,350);
     const works=objectWorks4338(object);
     const area=rooms.reduce((sum,room)=>sum+num4338(room.area),0);
     const perimeter=rooms.reduce((sum,room)=>sum+num4338(room.perimeter),0);
-    const ceiling=rooms.reduce((sum,room)=>sum+num4338(room.calculated||room.total),0);
+    const ceiling=rooms.reduce((sum,room)=>sum+num4338(room.calculated||room.total)+roomCornersTotal4338(room),0);
     const finishing=rooms.reduce((sum,room)=>sum+roomFinishing4338(room),0);
     const materials=rooms.reduce((sum,room)=>sum+roomMaterials4338(room),0);
     const worksTotal=works.reduce((sum,work)=>sum+num4338(work.quantity)*num4338(work.price),0);
@@ -14929,155 +14970,7 @@ else setTimeout(install4336,350);
 
     const worksHtml=works.length?`<section class="room"><div class="room-head"><div><h3>Додаткові роботи об’єкта</h3></div><strong>${money4338(worksTotal)}</strong></div><table><thead><tr><th>Робота</th><th>Кількість</th><th>Ціна</th><th>Сума</th></tr></thead><tbody>${works.map(work=>`<tr><td>${esc4338(work.name||'Додаткова робота')}</td><td>${num4338(work.quantity).toLocaleString('uk-UA',{maximumFractionDigits:2})} ${esc4338(work.unit||'')}</td><td>${money4338(work.price)}</td><td><b>${money4338(num4338(work.quantity)*num4338(work.price))}</b></td></tr>`).join('')}</tbody></table></section>`:'';
 
-    return `<!doctype html><html lang="uk"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Кошторис Potolok.in.ua</title><style>*{box-sizing:border-box}body{margin:0;background:#f4f7fb;color:#0f172a;font-family:Arial,sans-serif}.wrap{max-width:920px;margin:auto;padding:22px}.head,.room,.summary{background:#fff;border:1px solid #dbe3ef;border-radius:16px;padding:18px;margin-bottom:14px}.brand{font-size:28px;font-weight:950}.brand span{color:#075bff}.head-grid,.summary-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:9px;margin-top:14px}.box{background:#f8fafc;border:1px solid #e5e7eb;border-radius:10px;padding:10px}.box span{display:block;color:#64748b;font-size:12px}.box b{display:block;margin-top:4px}.room-head{display:flex;justify-content:space-between;gap:14px;align-items:flex-start}.room h3{margin:0;font-size:19px}.room h4{margin:16px 0 7px}.room p{margin:5px 0 0;color:#64748b}.room strong{color:#075bff;font-size:20px;white-space:nowrap}table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:9px 7px;border-bottom:1px solid #e5e7eb;text-align:left}th:nth-child(n+2),td:nth-child(n+2){text-align:right}.muted{color:#94a3b8;text-align:center!important}.grand{margin-top:12px;background:linear-gradient(135deg,#071428,#075bff);color:#fff;border-radius:14px;padding:16px}.grand span{display:block;color:#bfdbfe}.grand b{display:block;font-size:34px;margin-top:6px}.note{font-size:12px;color:#64748b;line-height:1.5}@media(max-width:600px){.wrap{padding:10px}.head-grid,.summary-grid{grid-template-columns:1fr}.room-head{flex-direction:column}table{font-size:11px}th,td{padding:7px 4px}}</style></head><body><main class="wrap"><section class="head"><div class="brand">Potolok<span>.in.ua</span></div><h1>Кошторис об’єкта</h1><div class="head-grid"><div class="box"><span>Клієнт</span><b>${esc4338(object.clientName||'—')}</b></div><div class="box"><span>Телефон</span><b>${esc4338(object.clientPhone||'—')}</b></div><div class="box"><span>Адреса</span><b>${esc4338(object.address||'—')}</b></div><div class="box"><span>Дата заміру</span><b>${esc4338(object.date||'—')}</b></div></div></section>${roomHtml||'<section class="room">Кімнати ще не додані.</section>'}${worksHtml}<section class="summary"><h2>Підсумок об’єкта</h2><div class="summary-grid"><div class="box"><span>Кімнат</span><b>${rooms.length}</b></div><div class="box"><span>Загальна площа</span><b>${area.toFixed(2)} м²</b></div><div class="box"><span>Загальний периметр</span><b>${perimeter.toFixed(2)} м/пог.</b></div><div class="box"><span>Стелі та елементи</span><b>${money4338(ceiling)}</b></div><div class="box"><span>Оздоблення</span><b>${money4338(finishing)}</b></div><div class="box"><span>Матеріали</span><b>${money4338(materials)}</b></div><div class="box"><span>Додаткові роботи</span><b>${money4338(worksTotal)}</b></div></div><div class="grand"><span>Загальна сума</span><b>${money4338(total)}</b></div></section><p class="note">Кошторис сформовано ${esc4338(generated)}. Вартість попередня та може уточнюватися після остаточного погодження робіт. Potolok.in.ua · 097 454 67 13.</p></main><!-- 43(41): estimate share now auto-downloads on browser permission failure; no technical error shown -->
-<!-- 43(57): perimeter labels in live room/object summaries show м/пог.; share labels retained -->
-
-<!-- PIXEL 43(85): room-specific preliminary spot auto-activation + stable mobile scrolling -->
-
-
-
-
-<style id="fix4425Styles">
-.nw-angle-hint4425{margin-bottom:6px;background:#f5f3ff!important;border-color:#ddd6fe!important;color:#5b21b6!important}
-.nw-usd-box4425{display:grid;grid-template-columns:minmax(150px,.72fr) minmax(0,1.28fr);gap:8px;padding:9px;border-top:1px solid #bbf7d0;background:#f8fffa}
-.nw-usd-rate4425,.nw-usd-result4425{display:flex;flex-direction:column;gap:4px;min-width:0}
-.nw-usd-rate4425>span,.nw-usd-result4425>span{font-size:7.2px;font-weight:950;color:#166534}
-.nw-usd-rate4425 input{width:100%;box-sizing:border-box;border:1px solid #86efac;border-radius:9px;background:#fff;padding:8px 9px;font-size:10px;font-weight:900;color:#0f172a;outline:none}
-.nw-usd-rate4425 input:focus{border-color:#16a34a;box-shadow:0 0 0 2px rgba(22,163,74,.10)}
-.nw-usd-rate4425 small,.nw-usd-result4425 small{font-size:6.4px;line-height:1.35;color:#64748b}
-.nw-usd-result4425 b{font-size:12px;line-height:1.15;color:#065f46}
-.nw-usd-result4425 em{font-size:5.9px;line-height:1.35;color:#64748b;font-style:normal}
-@media(max-width:520px){.nw-usd-box4425{grid-template-columns:1fr}.nw-usd-result4425 b{font-size:13px}}
-</style>
-
-
-<!-- PIXEL 44.90A-R8 | ALL POSITION INTERNAL TOTAL FIX -->
-<style id="pixel4490aR8TotalStyles">
-#nwInternalTotalR6{display:none!important}
-#nwInternalTotalR8{
-  margin:10px 0 0;padding:12px 14px;border-radius:12px;background:#0f172a;color:#fff;
-  display:flex;justify-content:space-between;align-items:flex-start;gap:12px;
-  font-weight:950;font-size:10px
-}
-#nwInternalTotalR8 .r8-right{text-align:right}
-#nwInternalTotalR8 small{display:block;margin-top:4px;color:#bfdbfe;font-size:8px;font-weight:800;line-height:1.35}
-</style>
-<script id="pixel4490aR8AllPositionTotalFixed">
-(function(){
-'use strict';
-if(window.__pixel4490aR8Installed)return;
-window.__pixel4490aR8Installed=true;
-
-const N=v=>Number(String(v??'').replace(',','.'))||0;
-const MONEY=v=>N(v).toLocaleString('uk-UA',{minimumFractionDigits:0,maximumFractionDigits:2});
-
-function roomR8(){
-  try{return (projectRooms||[]).find(r=>String(r.id)===String(activeRoomId))||null}catch(_){return null}
-}
-function itemsR8(){
-  const r=roomR8();
-  if(!r)return [];
-  r.productionNoPlan4463=r.productionNoPlan4463||{items:[]};
-  r.productionNoPlan4463.items=Array.isArray(r.productionNoPlan4463.items)?r.productionNoPlan4463.items:[];
-  return r.productionNoPlan4463.items;
-}
-function usdRateR8(){
-  try{
-    if(typeof usdRate4425==='function')return N(usdRate4425());
-  }catch(_){}
-  try{
-    return N(localStorage.getItem('potolok_usd_uah_rate_4425'));
-  }catch(_){return 0}
-}
-function totalsR8(){
-  let uah=0,usd=0,priced=0,totalRows=0;
-  itemsR8().forEach(it=>{
-    const q=N(it?.qty);
-    if(!(q>0))return;
-    totalRows++;
-    const up=N(it?.price);
-    const dp=N(it?.usdPrice);
-    if(up>0){uah+=q*up;priced++}
-    else if(dp>0){usd+=q*dp;priced++}
-  });
-  const rate=usdRateR8();
-  return {uah,usd,rate,all:uah+(rate>0?usd*rate:0),priced,totalRows};
-}
-function updateR8(){
-  const box=document.getElementById('nwNoPlan4463');
-  if(!box)return;
-  let bar=document.getElementById('nwInternalTotalR8');
-  if(!bar){
-    bar=document.createElement('div');
-    bar.id='nwInternalTotalR8';
-    const old=document.getElementById('nwInternalTotalR6');
-    if(old)old.insertAdjacentElement('afterend',bar);
-    else{
-      const items=document.getElementById('nwNoPlanItems4463');
-      items?.insertAdjacentElement('afterend',bar);
-    }
-  }
-  const t=totalsR8();
-  let value='0 грн',detail=`Пораховано позицій з ціною: ${t.priced} із ${t.totalRows}.`;
-  if(t.usd>0){
-    if(t.rate>0){
-      value=MONEY(t.all)+' грн';
-      detail=`${MONEY(t.uah)} грн + $${t.usd.toFixed(2)} × ${t.rate.toFixed(2)} · позицій з ціною: ${t.priced} із ${t.totalRows}.`;
-    }else{
-      value=MONEY(t.uah)+' грн + $'+t.usd.toFixed(2);
-      detail=`Для єдиного підсумку в грн вкажіть курс USD → грн. Позицій з ціною: ${t.priced} із ${t.totalRows}.`;
-    }
-  }else{
-    value=MONEY(t.uah)+' грн';
-  }
-  bar.innerHTML=`<span>💰 Разом для себе · всі позиції</span><span class="r8-right">${value}<small>${detail}</small></span>`;
-}
-
-/* Обновляем итог строго ПОСЛЕ штатного рендера списка. */
-const prevRefresh=window.refreshNoPlanOrder4469;
-if(typeof prevRefresh==='function'){
-  window.refreshNoPlanOrder4469=function(){
-    const out=prevRefresh.apply(this,arguments);
-    setTimeout(updateR8,0);
-    return out;
-  };
-}
-
-/* После сохранения/добавления/удаления/изменения количества. */
-['input','change'].forEach(ev=>{
-  document.addEventListener(ev,e=>{if(!e.target?.closest?.('#nwNoPlan4463'))return;setTimeout(updateR8,120)},true);
-});
-
-/* Если меняется рабочий курс USD — пересчитать и этот заказ. */
-const prevSetRate=window.setUsdRate4425;
-if(typeof prevSetRate==='function'){
-  window.setUsdRate4425=function(){
-    const out=prevSetRate.apply(this,arguments);
-    setTimeout(updateR8,0);
-    return out;
-  };
-}
-
-/* Отправка поставщику остается из R6:
-   цены/суммы в PNG обнуляются только во временной копии и поставщику не показываются. */
-
-function bootR8(){
-  updateR8();
-  try{
-    document.documentElement.dataset.pixelVersion='44.90A-R8';
-    document.documentElement.dataset.pixelBuild='44.90A-r8-all-position-total-fixed';
-  }catch(_){}
-}
-if(document.readyState==='loading'){
-  document.addEventListener('DOMContentLoaded',()=>setTimeout(bootR8,350),{once:true});
-}else setTimeout(bootR8,350);
-setTimeout(bootR8,1300);
-})();
-</script>
-
-\n<script id="pixel4490aR12VisibleBuildGuard">\n(function(){\n  function fix(){\n    var el=document.getElementById('pixel4486BuildBadge');\n    if(el) el.textContent='BUILD 44.90A-R12 · BASE R9 · SEPARATE POSITIONS';\n    try{\n      document.documentElement.dataset.pixelVersion='44.90A-R12';\n      document.documentElement.dataset.pixelBuild='44.90A-r12-from-r9-separate-positions-final';\n      document.title='Potolok AI PRO — Pixel 44.90A-R12';\n    }catch(_){}\n  }\n  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',()=>setTimeout(fix,0),{once:true});\n  else setTimeout(fix,0);\n  setTimeout(fix,600);\n})();\n</script>\n
-<!-- PIXEL 44.90A-R15.2 | STABLE TOTAL SOURCE + NO JERK | base: R15.1 -->
-</body></html>`;
+    return `<!doctype html><html lang="uk"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Кошторис Potolok.in.ua</title><style>*{box-sizing:border-box}body{margin:0;background:#f4f7fb;color:#0f172a;font-family:Arial,sans-serif}.wrap{max-width:920px;margin:auto;padding:22px}.head,.room,.summary{background:#fff;border:1px solid #dbe3ef;border-radius:16px;padding:18px;margin-bottom:14px}.brand{font-size:28px;font-weight:950}.brand span{color:#075bff}.head-grid,.summary-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:9px;margin-top:14px}.box{background:#f8fafc;border:1px solid #e5e7eb;border-radius:10px;padding:10px}.box span{display:block;color:#64748b;font-size:12px}.box b{display:block;margin-top:4px}.room-head{display:flex;justify-content:space-between;gap:14px;align-items:flex-start}.room h3{margin:0;font-size:19px}.room h4{margin:16px 0 7px}.room p{margin:5px 0 0;color:#64748b}.room strong{color:#075bff;font-size:20px;white-space:nowrap}table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:9px 7px;border-bottom:1px solid #e5e7eb;text-align:left}th:nth-child(n+2),td:nth-child(n+2){text-align:right}.muted{color:#94a3b8;text-align:center!important}.grand{margin-top:12px;background:linear-gradient(135deg,#071428,#075bff);color:#fff;border-radius:14px;padding:16px}.grand span{display:block;color:#bfdbfe}.grand b{display:block;font-size:34px;margin-top:6px}.note{font-size:12px;color:#64748b;line-height:1.5}@media(max-width:600px){.wrap{padding:10px}.head-grid,.summary-grid{grid-template-columns:1fr}.room-head{flex-direction:column}table{font-size:11px}th,td{padding:7px 4px}}</style></head><body><main class="wrap"><section class="head"><div class="brand">Potolok<span>.in.ua</span></div><h1>Кошторис об’єкта</h1><div class="head-grid"><div class="box"><span>Клієнт</span><b>${esc4338(object.clientName||'—')}</b></div><div class="box"><span>Телефон</span><b>${esc4338(object.clientPhone||'—')}</b></div><div class="box"><span>Адреса</span><b>${esc4338(object.address||'—')}</b></div><div class="box"><span>Дата заміру</span><b>${esc4338(object.date||'—')}</b></div></div></section>${roomHtml||'<section class="room">Кімнати ще не додані.</section>'}${worksHtml}<section class="summary"><h2>Підсумок об’єкта</h2><div class="summary-grid"><div class="box"><span>Кімнат</span><b>${rooms.length}</b></div><div class="box"><span>Загальна площа</span><b>${area.toFixed(2)} м²</b></div><div class="box"><span>Загальний периметр</span><b>${perimeter.toFixed(2)} м/пог.</b></div><div class="box"><span>Стелі та елементи</span><b>${money4338(ceiling)}</b></div><div class="box"><span>Оздоблення</span><b>${money4338(finishing)}</b></div><div class="box"><span>Матеріали</span><b>${money4338(materials)}</b></div><div class="box"><span>Додаткові роботи</span><b>${money4338(worksTotal)}</b></div></div><div class="grand"><span>Загальна сума</span><b>${money4338(total)}</b></div></section><p class="note">Кошторис сформовано ${esc4338(generated)}. Вартість попередня та може уточнюватися після остаточного погодження робіт. Potolok.in.ua · 097 454 67 13.</p></main></body></html>`;
   }
 
   function setBusy4338(button,busy,text){
@@ -15105,7 +14998,7 @@ setTimeout(bootR8,1300);
     const works=objectWorks4338(object);
     const area=rooms.reduce((sum,room)=>sum+num4338(room.area),0);
     const perimeter=rooms.reduce((sum,room)=>sum+num4338(room.perimeter),0);
-    const ceiling=rooms.reduce((sum,room)=>sum+num4338(room.calculated||room.total),0);
+    const ceiling=rooms.reduce((sum,room)=>sum+num4338(room.calculated||room.total)+roomCornersTotal4338(room),0);
     const finishing=rooms.reduce((sum,room)=>sum+roomFinishing4338(room),0);
     const materials=rooms.reduce((sum,room)=>sum+roomMaterials4338(room),0);
     const worksTotal=works.reduce((sum,work)=>sum+num4338(work.quantity)*num4338(work.price),0);
@@ -15262,6 +15155,175 @@ setTimeout(bootR8,1300);
   setTimeout(install4338,1000);
 })();
 </script>
+
+<!-- R15.4 TEST3: recovered live patches that were accidentally inside estimate template -->
+<!-- 43(41): estimate share now auto-downloads on browser permission failure; no technical error shown -->
+<!-- 43(57): perimeter labels in live room/object summaries show м/пог.; share labels retained -->
+
+<!-- PIXEL 43(85): room-specific preliminary spot auto-activation + stable mobile scrolling -->
+
+
+
+
+<style id="fix4425Styles">
+.nw-angle-hint4425{margin-bottom:6px;background:#f5f3ff!important;border-color:#ddd6fe!important;color:#5b21b6!important}
+.nw-usd-box4425{display:grid;grid-template-columns:minmax(150px,.72fr) minmax(0,1.28fr);gap:8px;padding:9px;border-top:1px solid #bbf7d0;background:#f8fffa}
+.nw-usd-rate4425,.nw-usd-result4425{display:flex;flex-direction:column;gap:4px;min-width:0}
+.nw-usd-rate4425>span,.nw-usd-result4425>span{font-size:7.2px;font-weight:950;color:#166534}
+.nw-usd-rate4425 input{width:100%;box-sizing:border-box;border:1px solid #86efac;border-radius:9px;background:#fff;padding:8px 9px;font-size:10px;font-weight:900;color:#0f172a;outline:none}
+.nw-usd-rate4425 input:focus{border-color:#16a34a;box-shadow:0 0 0 2px rgba(22,163,74,.10)}
+.nw-usd-rate4425 small,.nw-usd-result4425 small{font-size:6.4px;line-height:1.35;color:#64748b}
+.nw-usd-result4425 b{font-size:12px;line-height:1.15;color:#065f46}
+.nw-usd-result4425 em{font-size:5.9px;line-height:1.35;color:#64748b;font-style:normal}
+@media(max-width:520px){.nw-usd-box4425{grid-template-columns:1fr}.nw-usd-result4425 b{font-size:13px}}
+</style>
+
+
+<!-- PIXEL 44.90A-R8 | ALL POSITION INTERNAL TOTAL FIX -->
+<style id="pixel4490aR8TotalStyles">
+#nwInternalTotalR6{display:none!important}
+#nwInternalTotalR8{
+  margin:10px 0 0;padding:12px 14px;border-radius:12px;background:#0f172a;color:#fff;
+  display:flex;justify-content:space-between;align-items:flex-start;gap:12px;
+  font-weight:950;font-size:10px
+}
+#nwInternalTotalR8 .r8-right{text-align:right}
+#nwInternalTotalR8 small{display:block;margin-top:4px;color:#bfdbfe;font-size:8px;font-weight:800;line-height:1.35}
+</style>
+<script id="pixel4490aR8AllPositionTotalFixed">
+(function(){
+'use strict';
+if(window.__pixel4490aR8Installed)return;
+window.__pixel4490aR8Installed=true;
+
+const N=v=>Number(String(v??'').replace(',','.'))||0;
+const MONEY=v=>N(v).toLocaleString('uk-UA',{minimumFractionDigits:0,maximumFractionDigits:2});
+
+function roomR8(){
+  try{return (projectRooms||[]).find(r=>String(r.id)===String(activeRoomId))||null}catch(_){return null}
+}
+function itemsR8(){
+  const r=roomR8();
+  if(!r)return [];
+  r.productionNoPlan4463=r.productionNoPlan4463||{items:[]};
+  r.productionNoPlan4463.items=Array.isArray(r.productionNoPlan4463.items)?r.productionNoPlan4463.items:[];
+  return r.productionNoPlan4463.items;
+}
+function usdRateR8(){
+  try{
+    if(typeof usdRate4425==='function')return N(usdRate4425());
+  }catch(_){}
+  try{
+    return N(localStorage.getItem('potolok_usd_uah_rate_4425'));
+  }catch(_){return 0}
+}
+function totalsR8(){
+  let uah=0,usd=0,priced=0,totalRows=0;
+  itemsR8().forEach(it=>{
+    const q=N(it?.qty);
+    if(!(q>0))return;
+    totalRows++;
+    const up=N(it?.price);
+    const dp=N(it?.usdPrice);
+    if(up>0){uah+=q*up;priced++}
+    else if(dp>0){usd+=q*dp;priced++}
+  });
+  const rate=usdRateR8();
+  return {uah,usd,rate,all:uah+(rate>0?usd*rate:0),priced,totalRows};
+}
+function updateR8(){
+  const box=document.getElementById('nwNoPlan4463');
+  if(!box)return;
+  let bar=document.getElementById('nwInternalTotalR8');
+  if(!bar){
+    bar=document.createElement('div');
+    bar.id='nwInternalTotalR8';
+    const old=document.getElementById('nwInternalTotalR6');
+    if(old)old.insertAdjacentElement('afterend',bar);
+    else{
+      const items=document.getElementById('nwNoPlanItems4463');
+      items?.insertAdjacentElement('afterend',bar);
+    }
+  }
+  const t=totalsR8();
+  let value='0 грн',detail=`Пораховано позицій з ціною: ${t.priced} із ${t.totalRows}.`;
+  if(t.usd>0){
+    if(t.rate>0){
+      value=MONEY(t.all)+' грн';
+      detail=`${MONEY(t.uah)} грн + $${t.usd.toFixed(2)} × ${t.rate.toFixed(2)} · позицій з ціною: ${t.priced} із ${t.totalRows}.`;
+    }else{
+      value=MONEY(t.uah)+' грн + $'+t.usd.toFixed(2);
+      detail=`Для єдиного підсумку в грн вкажіть курс USD → грн. Позицій з ціною: ${t.priced} із ${t.totalRows}.`;
+    }
+  }else{
+    value=MONEY(t.uah)+' грн';
+  }
+  bar.innerHTML=`<span>💰 Разом для себе · всі позиції</span><span class="r8-right">${value}<small>${detail}</small></span>`;
+}
+
+/* Обновляем итог строго ПОСЛЕ штатного рендера списка. */
+const prevRefresh=window.refreshNoPlanOrder4469;
+if(typeof prevRefresh==='function'){
+  window.refreshNoPlanOrder4469=function(){
+    const out=prevRefresh.apply(this,arguments);
+    setTimeout(updateR8,0);
+    return out;
+  };
+}
+
+/* После сохранения/добавления/удаления/изменения количества. */
+['input','change'].forEach(ev=>{
+  document.addEventListener(ev,e=>{if(!e.target?.closest?.('#nwNoPlan4463'))return;setTimeout(updateR8,120)},true);
+});
+
+/* Если меняется рабочий курс USD — пересчитать и этот заказ. */
+const prevSetRate=window.setUsdRate4425;
+if(typeof prevSetRate==='function'){
+  window.setUsdRate4425=function(){
+    const out=prevSetRate.apply(this,arguments);
+    setTimeout(updateR8,0);
+    return out;
+  };
+}
+
+/* Отправка поставщику остается из R6:
+   цены/суммы в PNG обнуляются только во временной копии и поставщику не показываются. */
+
+function bootR8(){
+  updateR8();
+  try{
+    document.documentElement.dataset.pixelVersion='44.90A-R15.4';
+    document.documentElement.dataset.pixelBuild='44.90A-r15-4-stable-root-room-persist';
+  }catch(_){}
+}
+if(document.readyState==='loading'){
+  document.addEventListener('DOMContentLoaded',()=>setTimeout(bootR8,350),{once:true});
+}else setTimeout(bootR8,350);
+setTimeout(bootR8,1300);
+})();
+</script>
+
+
+<script id="pixel4490aR12VisibleBuildGuard">
+(function(){
+  function fix(){
+    var el=document.getElementById('pixel4486BuildBadge');
+    if(el) el.textContent='BUILD 44.90A-R15.4 · STABLE · ROOT ROOM PERSIST';
+    try{
+      document.documentElement.dataset.pixelVersion='44.90A-R15.4';
+      document.documentElement.dataset.pixelBuild='44.90A-r15-4-stable-root-room-persist';
+      document.title='Potolok AI PRO — Pixel 44.90A-R15.4 STABLE';
+    }catch(_){}
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',()=>setTimeout(fix,0),{once:true});
+  else setTimeout(fix,0);
+  setTimeout(fix,600);
+})();
+</script>
+
+<!-- PIXEL 44.90A-R15.2 | STABLE TOTAL SOURCE + NO JERK | base: R15.1 -->
+
+
 
 
 
@@ -15897,7 +15959,10 @@ function esc4345(value){return String(value??'').replace(/[&<>"']/g,c=>({'&':'&a
 function materialTotal4345(item){return Math.max(0,Number(item?.quantity)||0)*Math.max(0,Number(item?.price)||0)}
 function materialsTotal4345(){return materials4345.reduce((sum,item)=>sum+materialTotal4345(item),0)}
 function roomFinishing4345(room){const list=room?.finishingWorks?.items;return Array.isArray(list)?list.reduce((sum,item)=>sum+(item?.enabled?(Number(item.quantity)||0)*(Number(item.price)||0):0),0):0}
-function ceilingTotal4345(){return rooms4345().reduce((sum,room)=>sum+(Number(room?.calculated)||Number(room?.total)||0),0)}
+function roomCornerCount4345(room){let count=(Number(room?.outerCorners)||0)+(Number(room?.innerCorners)||0);if(!(count>0))count=Number(room?.corners)||0;return Math.max(0,count)}
+function roomCornerRate4345(){try{const list=(typeof EXTRA_ITEMS!=='undefined'&&Array.isArray(EXTRA_ITEMS))?EXTRA_ITEMS:[];return Math.max(0,Number(list.find(x=>x?.id==='corners')?.price)||70)}catch(_){return 70}}
+function roomCornerTotal4345(room){return roomCornerCount4345(room)*roomCornerRate4345()}
+function ceilingTotal4345(){return rooms4345().reduce((sum,room)=>sum+(Number(room?.calculated)||Number(room?.total)||0)+roomCornerTotal4345(room),0)}
 function finishingTotal4345(){return rooms4345().reduce((sum,room)=>sum+roomFinishing4345(room),0)}
 function objectWorks4345(object){return Array.isArray(object?.objectWorks4325)?object.objectWorks4325:[]}
 function objectTokenNow4345(){let id='draft';try{id=String(activeObjectId||'draft')}catch(_){}return id+'|'+rooms4345().map(r=>String(r?.id||'')).join('|')}
@@ -16075,7 +16140,7 @@ if(typeof selectBase4345==='function')window.selectRoom=function(){const out=sel
 const deleteBase4345=window.deleteRoom;
 if(typeof deleteBase4345==='function')window.deleteRoom=function(){loadMaterials4345(false);const snapshot=copy4345(materials4345);const out=deleteBase4345.apply(this,arguments);materials4345=snapshot;objectToken4345=objectTokenNow4345();syncMaterialsToRooms4345();setTimeout(queueRefresh4345,0);return out};
 const collectBase4345=window.collectObject;
-if(typeof collectBase4345==='function')window.collectObject=function(){loadMaterials4345(false);syncMaterialsToRooms4345();const object=collectBase4345.apply(this,arguments);object.objectMaterials4345=copy4345(materials4345);object.materialsTotal4345=materialsTotal4345();const rooms=Array.isArray(object.rooms)?object.rooms:[];rooms.forEach(room=>{if(!room.finishingWorks||typeof room.finishingWorks!=='object')room.finishingWorks={};room.finishingWorks.materials=[];room.finishingWorks.objectMaterials4345=copy4345(materials4345)});const ceiling=rooms.reduce((s,r)=>s+(Number(r?.calculated)||Number(r?.total)||0),0);const finishing=rooms.reduce((s,r)=>s+roomFinishing4345(r),0);const works=objectWorks4345(object).reduce((s,w)=>s+(Number(w?.quantity)||0)*(Number(w?.price)||0),0);object.total=ceiling+finishing+materialsTotal4345()+works;object.version4345=VERSION4345;return object};
+if(typeof collectBase4345==='function')window.collectObject=function(){loadMaterials4345(false);syncMaterialsToRooms4345();const object=collectBase4345.apply(this,arguments);object.objectMaterials4345=copy4345(materials4345);object.materialsTotal4345=materialsTotal4345();const rooms=Array.isArray(object.rooms)?object.rooms:[];rooms.forEach(room=>{if(!room.finishingWorks||typeof room.finishingWorks!=='object')room.finishingWorks={};room.finishingWorks.materials=[];room.finishingWorks.objectMaterials4345=copy4345(materials4345)});const ceiling=rooms.reduce((s,r)=>s+(Number(r?.calculated)||Number(r?.total)||0)+roomCornerTotal4345(r),0);const finishing=rooms.reduce((s,r)=>s+roomFinishing4345(r),0);const works=objectWorks4345(object).reduce((s,w)=>s+(Number(w?.quantity)||0)*(Number(w?.price)||0),0);object.total=ceiling+finishing+materialsTotal4345()+works;object.version4345=VERSION4345;return object};
 const loadBase4345=window.loadObject;
 if(typeof loadBase4345==='function')window.loadObject=async function(){const out=await loadBase4345.apply(this,arguments);objectToken4345='';loadMaterials4345(true);setTimeout(queueRefresh4345,0);return out};
 ['newObject','startAnotherObject'].forEach(name=>{const base=window[name];if(typeof base==='function')window[name]=function(){materials4345=[];objectToken4345='';const out=base.apply(this,arguments);setTimeout(()=>{loadMaterials4345(true);queueRefresh4345()},0);return out}});
@@ -16086,23 +16151,23 @@ function estimateObject4345(){
   object.objectMaterials4345=copy4345(materials4345);return object;
 }
 function safeFile4345(value){return String(value||'object').trim().replace(/[^a-zA-Z0-9а-яА-ЯіІїЇєЄґҐ_-]+/g,'-').replace(/-+/g,'-').replace(/^-|-$/g,'')||'object'}
-function detailRows4345(room){const rows=Array.isArray(room?.rows)?room.rows:[];return rows.length?rows.map(row=>`<tr><td>${esc4345(row.name||'Позиція')}</td><td>${num4345(row.qty).toLocaleString('uk-UA',{maximumFractionDigits:2})} ${esc4345(row.unit||'')}</td><td>${money4345(row.price)}</td><td><b>${money4345(row.sum)}</b></td></tr>`).join(''):'<tr><td colspan="4" class="muted">Деталізація відсутня</td></tr>'}
+function detailRows4345(room){const rows=Array.isArray(room?.rows)?room.rows:[];const body=rows.map(row=>`<tr><td>${esc4345(row.name||'Позиція')}</td><td>${num4345(row.qty).toLocaleString('uk-UA',{maximumFractionDigits:2})} ${esc4345(row.unit||'')}</td><td>${money4345(row.price)}</td><td><b>${money4345(row.sum)}</b></td></tr>`).join('');const count=roomCornerCount4345(room),rate=roomCornerRate4345(),has=rows.some(row=>String(row?.id||'').toLowerCase()==='corners'||/кут/i.test(String(row?.name||row?.title||'')));const corners=count>0&&!has?`<tr><td>Кути полотна</td><td>${count} шт</td><td>${money4345(rate)}</td><td><b>${money4345(count*rate)}</b></td></tr>`:'';return body+corners||'<tr><td colspan="4" class="muted">Деталізація відсутня</td></tr>'}
 function finishingRows4345(room){const items=Array.isArray(room?.finishingWorks?.items)?room.finishingWorks.items.filter(x=>x?.enabled):[];return items.length?`<h4>Оздоблення кімнати</h4><table><thead><tr><th>Робота</th><th>Кількість</th><th>Ціна</th><th>Сума</th></tr></thead><tbody>${items.map(item=>`<tr><td>${esc4345(item.name||'Оздоблення')}</td><td>${num4345(item.quantity).toLocaleString('uk-UA',{maximumFractionDigits:2})} ${esc4345(item.unit||'')}</td><td>${money4345(item.price)}</td><td><b>${money4345(num4345(item.quantity)*num4345(item.price))}</b></td></tr>`).join('')}</tbody></table>`:''}
 function buildEstimateHtml4345(object){
   const rooms=Array.isArray(object?.rooms)?object.rooms:[];
   const mats=Array.isArray(object?.objectMaterials4345)?object.objectMaterials4345:[];
   const works=objectWorks4345(object);
   const area=rooms.reduce((s,r)=>s+num4345(r.area),0),perimeter=rooms.reduce((s,r)=>s+num4345(r.perimeter),0);
-  const ceiling=rooms.reduce((s,r)=>s+(num4345(r.calculated)||num4345(r.total)),0),finishing=rooms.reduce((s,r)=>s+roomFinishing4345(r),0),materials=mats.reduce((s,m)=>s+materialTotal4345(m),0),worksTotal=works.reduce((s,w)=>s+num4345(w.quantity)*num4345(w.price),0),total=ceiling+finishing+materials+worksTotal;
-  const roomHtml=rooms.map((room,index)=>{const roomTotal=(num4345(room.calculated)||num4345(room.total))+roomFinishing4345(room);return `<section class="room"><div class="room-head"><div><h3>${esc4345(room.name||('Кімната '+(index+1)))}</h3><p>${num4345(room.area).toFixed(2)} м² · ${num4345(room.perimeter).toFixed(2)} м</p></div><strong>${money4345(roomTotal)}</strong></div><h4>Стеля та елементи</h4><table><thead><tr><th>Позиція</th><th>Кількість</th><th>Ціна</th><th>Сума</th></tr></thead><tbody>${detailRows4345(room)}</tbody></table>${finishingRows4345(room)}</section>`}).join('');
+  const ceiling=rooms.reduce((s,r)=>s+(num4345(r.calculated)||num4345(r.total))+roomCornerTotal4345(r),0),finishing=rooms.reduce((s,r)=>s+roomFinishing4345(r),0),materials=mats.reduce((s,m)=>s+materialTotal4345(m),0),worksTotal=works.reduce((s,w)=>s+num4345(w.quantity)*num4345(w.price),0),total=ceiling+finishing+materials+worksTotal;
+  const roomHtml=rooms.map((room,index)=>{const roomTotal=(num4345(room.calculated)||num4345(room.total))+roomCornerTotal4345(room)+roomFinishing4345(room);return `<section class="room"><div class="room-head"><div><h3>${esc4345(room.name||('Кімната '+(index+1)))}</h3><p>${num4345(room.area).toFixed(2)} м² · ${num4345(room.perimeter).toFixed(2)} м</p></div><strong>${money4345(roomTotal)}</strong></div><h4>Стеля та елементи</h4><table><thead><tr><th>Позиція</th><th>Кількість</th><th>Ціна</th><th>Сума</th></tr></thead><tbody>${detailRows4345(room)}</tbody></table>${finishingRows4345(room)}</section>`}).join('');
   const matsHtml=`<section class="room"><div class="room-head"><div><h3>Матеріали всього об’єкта</h3><p>Не прив’язані до окремих кімнат</p></div><strong>${money4345(materials)}</strong></div>${mats.length?`<table><thead><tr><th>Матеріал</th><th>Кількість</th><th>Ціна</th><th>Сума</th></tr></thead><tbody>${mats.map(m=>`<tr><td>${esc4345(m.name||'Матеріал')}</td><td>${num4345(m.quantity).toLocaleString('uk-UA',{maximumFractionDigits:2})} ${esc4345(m.unit||'')}</td><td>${money4345(m.price)}</td><td><b>${money4345(materialTotal4345(m))}</b></td></tr>`).join('')}</tbody></table>`:'<p>Матеріали ще не додані.</p>'}</section>`;
   const worksHtml=works.length?`<section class="room"><div class="room-head"><div><h3>Додаткові роботи об’єкта</h3></div><strong>${money4345(worksTotal)}</strong></div><table><thead><tr><th>Робота</th><th>Кількість</th><th>Ціна</th><th>Сума</th></tr></thead><tbody>${works.map(w=>`<tr><td>${esc4345(w.name||'Додаткова робота')}</td><td>${num4345(w.quantity).toLocaleString('uk-UA',{maximumFractionDigits:2})} ${esc4345(w.unit||'')}</td><td>${money4345(w.price)}</td><td><b>${money4345(num4345(w.quantity)*num4345(w.price))}</b></td></tr>`).join('')}</tbody></table></section>`:'';
   return `<!doctype html><html lang="uk"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Кошторис Potolok.in.ua</title><style>*{box-sizing:border-box}body{margin:0;background:#f4f7fb;color:#0f172a;font-family:Arial,sans-serif}.wrap{max-width:920px;margin:auto;padding:22px}.head,.room,.summary{background:#fff;border:1px solid #dbe3ef;border-radius:16px;padding:18px;margin-bottom:14px}.brand{font-size:28px;font-weight:950}.brand span{color:#075bff}.head-grid,.summary-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:9px;margin-top:14px}.box{background:#f8fafc;border:1px solid #e5e7eb;border-radius:10px;padding:10px}.box span{display:block;color:#64748b;font-size:12px}.box b{display:block;margin-top:4px}.room-head{display:flex;justify-content:space-between;gap:14px;align-items:flex-start}.room h3{margin:0;font-size:19px}.room h4{margin:16px 0 7px}.room p{margin:5px 0 0;color:#64748b}.room strong{color:#075bff;font-size:20px;white-space:nowrap}table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:9px 7px;border-bottom:1px solid #e5e7eb;text-align:left}th:nth-child(n+2),td:nth-child(n+2){text-align:right}.muted{color:#94a3b8;text-align:center!important}.grand{margin-top:12px;background:linear-gradient(135deg,#071428,#075bff);color:#fff;border-radius:14px;padding:16px}.grand span{display:block;color:#bfdbfe}.grand b{display:block;font-size:34px;margin-top:6px}.note{font-size:12px;color:#64748b;line-height:1.5}@media(max-width:600px){.wrap{padding:10px}.head-grid,.summary-grid{grid-template-columns:1fr}.room-head{flex-direction:column}table{font-size:11px}th,td{padding:7px 4px}}</style></head><body><main class="wrap"><section class="head"><div class="brand">Potolok<span>.in.ua</span></div><h1>Кошторис об’єкта</h1><div class="head-grid"><div class="box"><span>Клієнт</span><b>${esc4345(object.clientName||'—')}</b></div><div class="box"><span>Телефон</span><b>${esc4345(object.clientPhone||'—')}</b></div><div class="box"><span>Адреса</span><b>${esc4345(object.address||'—')}</b></div><div class="box"><span>Дата заміру</span><b>${esc4345(object.date||'—')}</b></div></div></section>${roomHtml||'<section class="room">Кімнати ще не додані.</section>'}${matsHtml}${worksHtml}<section class="summary"><h2>Підсумок об’єкта</h2><div class="summary-grid"><div class="box"><span>Кімнат</span><b>${rooms.length}</b></div><div class="box"><span>Загальна площа</span><b>${area.toFixed(2)} м²</b></div><div class="box"><span>Загальний периметр</span><b>${perimeter.toFixed(2)} м/пог.</b></div><div class="box"><span>Стелі та елементи</span><b>${money4345(ceiling)}</b></div><div class="box"><span>Оздоблення</span><b>${money4345(finishing)}</b></div><div class="box"><span>Матеріали всього об’єкта</span><b>${money4345(materials)}</b></div><div class="box"><span>Додаткові роботи</span><b>${money4345(worksTotal)}</b></div></div><div class="grand"><span>Загальна сума</span><b>${money4345(total)}</b></div></section><p class="note">Матеріали винесені в окремий загальний блок і не включені до сум окремих кімнат. Potolok.in.ua · 097 454 67 13.</p></main></body></html>`;
 }
 function estimateText4345(object){
   const rooms=Array.isArray(object?.rooms)?object.rooms:[],mats=Array.isArray(object?.objectMaterials4345)?object.objectMaterials4345:[],works=objectWorks4345(object);
-  const ceiling=rooms.reduce((s,r)=>s+(num4345(r.calculated)||num4345(r.total)),0),finishing=rooms.reduce((s,r)=>s+roomFinishing4345(r),0),materials=mats.reduce((s,m)=>s+materialTotal4345(m),0),worksTotal=works.reduce((s,w)=>s+num4345(w.quantity)*num4345(w.price),0);
-  return ['КОШТОРИС POTOLOK.IN.UA',`Клієнт: ${object.clientName||'—'}`,`Адреса: ${object.address||'—'}`,'',...rooms.map((r,i)=>`${i+1}. ${r.name||('Кімната '+(i+1))}: ${money4345((num4345(r.calculated)||num4345(r.total))+roomFinishing4345(r))}`),'',`Стелі та елементи: ${money4345(ceiling)}`,`Оздоблення: ${money4345(finishing)}`,`Матеріали всього об’єкта: ${money4345(materials)}`,`Додаткові роботи: ${money4345(worksTotal)}`,`ЗАГАЛЬНА СУМА: ${money4345(ceiling+finishing+materials+worksTotal)}`].join('\n');
+  const ceiling=rooms.reduce((s,r)=>s+(num4345(r.calculated)||num4345(r.total))+roomCornerTotal4345(r),0),finishing=rooms.reduce((s,r)=>s+roomFinishing4345(r),0),materials=mats.reduce((s,m)=>s+materialTotal4345(m),0),worksTotal=works.reduce((s,w)=>s+num4345(w.quantity)*num4345(w.price),0);
+  return ['КОШТОРИС POTOLOK.IN.UA',`Клієнт: ${object.clientName||'—'}`,`Адреса: ${object.address||'—'}`,'',...rooms.map((r,i)=>`${i+1}. ${r.name||('Кімната '+(i+1))}: ${money4345((num4345(r.calculated)||num4345(r.total))+roomCornerTotal4345(r)+roomFinishing4345(r))}`),'',`Стелі та елементи: ${money4345(ceiling)}`,`Оздоблення: ${money4345(finishing)}`,`Матеріали всього об’єкта: ${money4345(materials)}`,`Додаткові роботи: ${money4345(worksTotal)}`,`ЗАГАЛЬНА СУМА: ${money4345(ceiling+finishing+materials+worksTotal)}`].join('\n');
 }
 function ensureShareModal4345(){
   let modal=document.getElementById('shareEstimateModal4345');if(modal)return modal;
@@ -17269,21 +17334,24 @@ document.addEventListener('click',event=>{
 document.addEventListener('input',event=>{if(event.target?.closest?.('#tab_planner,#tab_object,#tab_finishing'))queue4349(35)});
 document.addEventListener('change',event=>{if(event.target?.closest?.('#tab_planner,#tab_object,#tab_finishing'))queue4349(35)});
 
+function cornerCount4349(room){let count=num4349(room?.outerCorners)+num4349(room?.innerCorners);if(!(count>0))count=num4349(room?.corners);return Math.max(0,count)}
+function cornerRate4349(){try{const list=(typeof EXTRA_ITEMS!=='undefined'&&Array.isArray(EXTRA_ITEMS))?EXTRA_ITEMS:[];return Math.max(0,num4349(list.find(x=>x?.id==='corners')?.price)||70)}catch(_){return 70}}
+function cornerTotal4349(room){return cornerCount4349(room)*cornerRate4349()}
 function estimateHtml4349(object){
   const list=Array.isArray(object?.rooms)?object.rooms:[];
   const mats=Array.isArray(object?.objectMaterials4345)?object.objectMaterials4345:[];
   const esc=esc4349,money=money4349,num=num4349;
-  const rowsHtml=room=>{const rows=Array.isArray(room?.rows)?room.rows:[];return rows.length?rows.map(row=>`<tr><td>${esc(row?.name||'Позиція')}</td><td>${num(row?.qty).toLocaleString('uk-UA',{maximumFractionDigits:2})} ${esc(row?.unit||'')}</td><td>${money(row?.price)}</td><td><b>${money(row?.sum)}</b></td></tr>`).join(''):'<tr><td colspan="4" class="muted">Деталізація відсутня</td></tr>'};
+  const rowsHtml=room=>{const rows=Array.isArray(room?.rows)?room.rows:[];const body=rows.map(row=>`<tr><td>${esc(row?.name||'Позиція')}</td><td>${num(row?.qty).toLocaleString('uk-UA',{maximumFractionDigits:2})} ${esc(row?.unit||'')}</td><td>${money(row?.price)}</td><td><b>${money(row?.sum)}</b></td></tr>`).join('');const count=cornerCount4349(room),rate=cornerRate4349(),has=rows.some(row=>String(row?.id||'').toLowerCase()==='corners'||/кут/i.test(String(row?.name||row?.title||'')));const corners=count>0&&!has?`<tr><td>Кути полотна</td><td>${count} шт</td><td>${money(rate)}</td><td><b>${money(count*rate)}</b></td></tr>`:'';return body+corners||'<tr><td colspan="4" class="muted">Деталізація відсутня</td></tr>'};
   const workTable=(title,items)=>items.length?`<h4>${title}</h4><table><thead><tr><th>Робота</th><th>Кількість</th><th>Ціна</th><th>Сума</th></tr></thead><tbody>${items.map(item=>`<tr><td>${esc(item?.name||'Робота')}</td><td>${num(item?.quantity).toLocaleString('uk-UA',{maximumFractionDigits:2})} ${esc(item?.unit||'')}</td><td>${money(item?.price)}</td><td><b>${money(num(item?.quantity)*num(item?.price))}</b></td></tr>`).join('')}</tbody></table>`:'';
   const roomHtml=list.map((room,index)=>{
     const finishing=Array.isArray(room?.finishingWorks?.items)?room.finishingWorks.items.filter(item=>item?.enabled):[];
     const works=roomWorks4349(room,false);
-    const total=(num(room?.calculated)||num(room?.total))+finishingTotal4349(room)+roomWorksTotal4349(room);
+    const total=(num(room?.calculated)||num(room?.total))+cornerTotal4349(room)+finishingTotal4349(room)+roomWorksTotal4349(room);
     return `<section class="room"><div class="room-head"><div><h3>${esc(room?.name||('Кімната '+(index+1)))}</h3><p class="room-params4355"><span><b>Площа кімнати:</b> ${num(room?.area).toFixed(2)} м²</span><span><b>Периметр кімнати:</b> ${num(room?.perimeter).toFixed(2)} м/пог.</span></p></div><strong>${money(total)}</strong></div><h4>Стеля та додаткові елементи</h4><table><thead><tr><th>Позиція</th><th>Кількість</th><th>Ціна</th><th>Сума</th></tr></thead><tbody>${rowsHtml(room)}</tbody></table>${workTable('Оздоблення кімнати',finishing)}${workTable('Додаткові роботи кімнати',works)}</section>`;
   }).join('');
   const matsTotal=mats.reduce((sum,item)=>sum+num(item?.quantity)*num(item?.price),0);
   const matsHtml=mats.length?`<section class="room"><div class="room-head"><div><h3>Матеріали всього об’єкта</h3></div><strong>${money(matsTotal)}</strong></div><table><thead><tr><th>Матеріал</th><th>Кількість</th><th>Ціна</th><th>Сума</th></tr></thead><tbody>${mats.map(item=>`<tr><td>${esc(item?.name||'Матеріал')}</td><td>${num(item?.quantity).toLocaleString('uk-UA',{maximumFractionDigits:2})} ${esc(item?.unit||'')}</td><td>${money(item?.price)}</td><td><b>${money(num(item?.quantity)*num(item?.price))}</b></td></tr>`).join('')}</tbody></table></section>`:'';
-  const ceiling=list.reduce((sum,room)=>sum+(num(room?.calculated)||num(room?.total)),0);
+  const ceiling=list.reduce((sum,room)=>sum+(num(room?.calculated)||num(room?.total))+cornerTotal4349(room),0);
   const finishing=list.reduce((sum,room)=>sum+finishingTotal4349(room),0);
   const works=list.reduce((sum,room)=>sum+roomWorksTotal4349(room),0);
   const area=list.reduce((sum,room)=>sum+num(room?.area),0),perimeter=list.reduce((sum,room)=>sum+num(room?.perimeter),0);
@@ -20058,7 +20126,7 @@ else setTimeout(markVersion4366,350);
   line-height:1.35;
 }
 .room-corner-breakdown4367 strong{color:#0f172a;font-size:10px}
-.room-corner-breakdown4367 em{font-style:normal;color:#92400e;font-weight:900;white-space:nowrap}
+.room-corner-breakdown4367 em,.room-corner-breakdown4367>b{font-style:normal;color:#92400e;font-weight:900;white-space:nowrap}
 @media(max-width:520px){
   .pre-shape-grid4367{grid-template-columns:1fr 1fr}
   .pre-shape-head4367{flex-direction:column}
@@ -20214,17 +20282,34 @@ function ensureCornerBreakdown4367(box){
   let row=lines.querySelector('.room-corner-breakdown4367');
   if(!row){
     row=document.createElement('div');
-    row.className='room-corner-breakdown4367';
+    row.className='room-summary-line4343 room-corner-breakdown4367';
     base.insertAdjacentElement('afterend',row);
   }
   const data=cornerData4367(activeRoom4367());
   const rate=cornerRate4367();
-  row.innerHTML='<span><strong>Кути цієї кімнати</strong><br>внутрішні '+data.inner+' · зовнішні '+data.outer+' · разом '+data.total+' шт</span><em>'+data.total+' × '+rate+' = '+money4367(data.total*rate)+'</em>';
+  row.className='room-summary-line4343 room-corner-breakdown4367';
+  row.innerHTML='<span><strong>Кути цієї кімнати</strong><br>внутрішні '+data.inner+' · зовнішні '+data.outer+' · разом '+data.total+' шт<br><small>'+data.total+' × '+rate+' грн</small></span><b>'+money4367(data.total*rate)+'</b>';
+}
+function syncSummaryTotal4367(box){
+  if(!box)return;
+  const total=box.querySelector('.room-summary-total4343 b');
+  const values=[...box.querySelectorAll('.room-summary-lines4343 > .room-summary-line4343 > b')];
+  if(!total||!values.length)return;
+  const sum=values.reduce((acc,node)=>{
+    const value=Number(String(node.textContent||'').replace(/\s/g,'').replace(',','.').replace(/[^\d.-]/g,''))||0;
+    return acc+value;
+  },0);
+  const next=money4367(sum);
+  if(total.textContent!==next)total.textContent=next;
 }
 function patchSummaries4367(){
   syncCorners4367();
-  ensureCornerBreakdown4367(document.getElementById('roomFinance4343'));
-  ensureCornerBreakdown4367(document.getElementById('plannerRoomFinance4350'));
+  const objectBox=document.getElementById('roomFinance4343');
+  const plannerBox=document.getElementById('plannerRoomFinance4350');
+  ensureCornerBreakdown4367(objectBox);
+  ensureCornerBreakdown4367(plannerBox);
+  syncSummaryTotal4367(objectBox);
+  syncSummaryTotal4367(plannerBox);
   document.title='Potolok AI PRO — Pixel '+VERSION4367;
 }
 function queue4367(delay=0){
@@ -24472,6 +24557,10 @@ function qty4401(value){return num4401(value).toLocaleString('uk-UA',{maximumFra
 function copy4401(value){try{return JSON.parse(JSON.stringify(value))}catch(_){return value}}
 
 function roomRows4401(room){return Array.isArray(room?.rows)?room.rows:[]}
+function cornerCount4401(room){let count=num4401(room?.outerCorners)+num4401(room?.innerCorners);if(!(count>0))count=num4401(room?.corners);return Math.max(0,count)}
+function cornerRate4401(){try{const list=(typeof EXTRA_ITEMS!=='undefined'&&Array.isArray(EXTRA_ITEMS))?EXTRA_ITEMS:[];return Math.max(0,num4401(list.find(x=>x?.id==='corners')?.price)||70)}catch(_){return 70}}
+function cornerTotal4401(room){return cornerCount4401(room)*cornerRate4401()}
+function ceilingRows4401(room){const rows=roomRows4401(room).slice(),count=cornerCount4401(room),rate=cornerRate4401(),has=rows.some(row=>String(row?.id||'').toLowerCase()==='corners'||/кут/i.test(String(row?.name||row?.title||'')));if(count>0&&!has)rows.push({id:'corners-r154',name:'Кути полотна',qty:count,unit:'шт',price:rate,sum:count*rate});return rows}
 function finishing4401(room){
   const items=Array.isArray(room?.finishingWorks?.items)?room.finishingWorks.items:[];
   return items.filter(item=>item && item.enabled!==false && (clean4401(item.name||item.title)||num4401(item.quantity)||num4401(item.price)));
@@ -24497,8 +24586,8 @@ function lineSum4401(item,qtyKey='quantity'){
 }
 function ceiling4401(room){
   const fixed=num4401(room?.calculated)||num4401(room?.total);
-  if(fixed)return fixed;
-  return roomRows4401(room).reduce((s,row)=>s+lineSum4401(row,'qty'),0);
+  const base=fixed||roomRows4401(room).reduce((s,row)=>s+lineSum4401(row,'qty'),0);
+  return base+cornerTotal4401(room);
 }
 function finishingTotal4401(room){return finishing4401(room).reduce((s,item)=>s+num4401(item?.quantity)*num4401(item?.price),0)}
 function additionalTotal4401(room){return additional4401(room).reduce((s,item)=>s+num4401(item?.quantity)*num4401(item?.price),0)}
@@ -24522,7 +24611,7 @@ function buildEstimateHtml4401(source){
   const rooms=Array.isArray(object.rooms)?object.rooms:[];
   const mats=materials4401(object);
   const roomHtml=rooms.map((room,index)=>{
-    const rows=roomRows4401(room);
+    const rows=ceilingRows4401(room);
     const finish=finishing4401(room);
     const extra=additional4401(room);
     const ceiling=ceiling4401(room), finishingTotal=finishingTotal4401(room), extraTotal=additionalTotal4401(room);
@@ -24568,7 +24657,7 @@ function buildEstimateText4401(source){
   rooms.forEach((room,index)=>{
     const ceiling=ceiling4401(room),finish=finishingTotal4401(room),extra=additionalTotal4401(room),roomTotal=ceiling+finish+extra;total+=roomTotal;
     lines.push((clean4401(room?.name||room?.roomName)||('Кімната '+(index+1)))+': '+money4401(roomTotal));
-    roomRows4401(room).forEach(row=>lines.push('  • '+clean4401(row?.name||row?.title||'Позиція')+': '+qty4401(row?.qty)+(clean4401(row?.unit)?' '+clean4401(row.unit):'')+' × '+money4401(row?.price)+' = '+money4401(lineSum4401(row,'qty'))));
+    ceilingRows4401(room).forEach(row=>lines.push('  • '+clean4401(row?.name||row?.title||'Позиція')+': '+qty4401(row?.qty)+(clean4401(row?.unit)?' '+clean4401(row.unit):'')+' × '+money4401(row?.price)+' = '+money4401(lineSum4401(row,'qty'))));
     finishing4401(room).forEach(item=>lines.push('  • '+clean4401(item?.name||item?.title||'Оздоблення')+': '+qty4401(item?.quantity)+(clean4401(item?.unit)?' '+clean4401(item.unit):'')+' × '+money4401(item?.price)+' = '+money4401(num4401(item?.quantity)*num4401(item?.price))));
     additional4401(room).forEach(item=>lines.push('  • '+clean4401(item?.name||item?.title||'Додаткова робота')+': '+qty4401(item?.quantity)+(clean4401(item?.unit)?' '+clean4401(item.unit):'')+' × '+money4401(item?.price)+' = '+money4401(num4401(item?.quantity)*num4401(item?.price))));
     lines.push('');
@@ -24737,6 +24826,10 @@ function safe4402(value){return (clean4402(value)||'object').replace(/[^a-zA-Z0-
 function qty4402(value){return num4402(value).toLocaleString('uk-UA',{maximumFractionDigits:2})}
 function copy4402(value){try{return JSON.parse(JSON.stringify(value))}catch(_){return value}}
 function roomRows4402(room){return Array.isArray(room?.rows)?room.rows:[]}
+function cornerCount4402(room){let count=num4402(room?.outerCorners)+num4402(room?.innerCorners);if(!(count>0))count=num4402(room?.corners);return Math.max(0,count)}
+function cornerRate4402(){try{const list=(typeof EXTRA_ITEMS!=='undefined'&&Array.isArray(EXTRA_ITEMS))?EXTRA_ITEMS:[];return Math.max(0,num4402(list.find(x=>x?.id==='corners')?.price)||70)}catch(_){return 70}}
+function cornerTotal4402(room){return cornerCount4402(room)*cornerRate4402()}
+function ceilingRows4402(room){const rows=roomRows4402(room).slice(),count=cornerCount4402(room),rate=cornerRate4402(),has=rows.some(row=>String(row?.id||'').toLowerCase()==='corners'||/кут/i.test(String(row?.name||row?.title||'')));if(count>0&&!has)rows.push({id:'corners-r154',name:'Кути полотна',qty:count,unit:'шт',price:rate,sum:count*rate});return rows}
 function finishing4402(room){const items=Array.isArray(room?.finishingWorks?.items)?room.finishingWorks.items:[];return items.filter(item=>item&&item.enabled!==false&&(clean4402(item.name||item.title)||num4402(item.quantity)||num4402(item.price)))}
 function additional4402(room){if(Array.isArray(room?.additionalWorks4349))return room.additionalWorks4349;if(Array.isArray(room?.additionalWorks))return room.additionalWorks;return []}
 function materials4402(object){
@@ -24746,7 +24839,7 @@ function materials4402(object){
   return [];
 }
 function lineSum4402(item,qtyKey='quantity'){const explicit=num4402(item?.sum);if(explicit)return explicit;return num4402(item?.[qtyKey])*num4402(item?.price)}
-function ceiling4402(room){const fixed=num4402(room?.calculated)||num4402(room?.total);if(fixed)return fixed;return roomRows4402(room).reduce((s,row)=>s+lineSum4402(row,'qty'),0)}
+function ceiling4402(room){const fixed=num4402(room?.calculated)||num4402(room?.total);const base=fixed||roomRows4402(room).reduce((s,row)=>s+lineSum4402(row,'qty'),0);return base+cornerTotal4402(room)}
 function finishingTotal4402(room){return finishing4402(room).reduce((s,item)=>s+num4402(item?.quantity)*num4402(item?.price),0)}
 function additionalTotal4402(room){return additional4402(room).reduce((s,item)=>s+num4402(item?.quantity)*num4402(item?.price),0)}
 function materialsTotal4402(object){return materials4402(object).reduce((s,item)=>s+num4402(item?.quantity)*num4402(item?.price),0)}
@@ -24881,7 +24974,7 @@ function buildEstimateHtml4402(source,options,meta={}){
   const object=copy4402(source||{}),rooms=Array.isArray(object.rooms)?object.rooms:[],mats=materials4402(object),t=totals4402(object);
   const includedRooms=[];
   const roomHtml=rooms.map((room,index)=>{
-    const rows=exportItems4473(roomRows4402(room),'ceiling'),finish=exportItems4473(finishing4402(room),'work'),extra=exportItems4473(additional4402(room),'work'),c=ceiling4402(room),f=finish.reduce((s,item)=>s+num4402(item?.quantity)*num4402(item?.price),0),a=extra.reduce((s,item)=>s+num4402(item?.quantity)*num4402(item?.price),0);
+    const rows=exportItems4473(ceilingRows4402(room),'ceiling'),finish=exportItems4473(finishing4402(room),'work'),extra=exportItems4473(additional4402(room),'work'),c=ceiling4402(room),f=finish.reduce((s,item)=>s+num4402(item?.quantity)*num4402(item?.price),0),a=extra.reduce((s,item)=>s+num4402(item?.quantity)*num4402(item?.price),0);
     const total=(options.ceiling?c:0)+(options.finishing?f:0)+(options.additional?a:0);
     const hasContent=(options.ceiling&&(c||rows.length))||(options.finishing&&(f||finish.length))||(options.additional&&(a||extra.length));
     if(!hasContent)return '';
@@ -24934,7 +25027,7 @@ font:700 14px/1.3 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
 function buildEstimateText4402(source,options,meta={}){
   const object=copy4402(source||{}),rooms=Array.isArray(object.rooms)?object.rooms:[],t=totals4402(object),lines=['Кошторис Potolok.in.ua'];
   const number=clean4402(object.objectNumber||object.object_number||'');if(number)lines.push('Об’єкт: '+number);lines.push('Клієнт: '+(clean4402(object.clientName)||'—'),'Телефон: '+(clean4402(object.clientPhone)||'—'),'Адреса: '+(clean4402(object.address)||'—'),'');
-  rooms.forEach((room,index)=>{const c=ceiling4402(room),f=finishingTotal4402(room),a=additionalTotal4402(room),roomTotal=(options.ceiling?c:0)+(options.finishing?f:0)+(options.additional?a:0),has=(options.ceiling&&(c||roomRows4402(room).length))||(options.finishing&&(f||finishing4402(room).length))||(options.additional&&(a||additional4402(room).length));if(!has)return;lines.push((clean4402(room?.name||room?.roomName)||('Кімната '+(index+1)))+': '+money4402(roomTotal));if(options.ceiling)exportItems4473(roomRows4402(room),'ceiling').forEach(row=>lines.push('  • '+clean4402(row?.name||row?.title||'Позиція')+': '+qty4402(row?.qty)+(clean4402(row?.unit)?' '+clean4402(row.unit):'')+' × '+money4402(row?.price)+' = '+money4402(lineSum4402(row,'qty'))));if(options.finishing)exportItems4473(finishing4402(room),'work').forEach(item=>lines.push('  • '+clean4402(item?.name||item?.title||'Оздоблення')+': '+qty4402(item?.quantity)+(clean4402(item?.unit)?' '+clean4402(item.unit):'')+' × '+money4402(item?.price)+' = '+money4402(num4402(item?.quantity)*num4402(item?.price))));if(options.additional)exportItems4473(additional4402(room),'work').forEach(item=>lines.push('  • '+clean4402(item?.name||item?.title||'Додаткова робота')+': '+qty4402(item?.quantity)+(clean4402(item?.unit)?' '+clean4402(item.unit):'')+' × '+money4402(item?.price)+' = '+money4402(num4402(item?.quantity)*num4402(item?.price))));lines.push('')});
+  rooms.forEach((room,index)=>{const c=ceiling4402(room),f=finishingTotal4402(room),a=additionalTotal4402(room),roomTotal=(options.ceiling?c:0)+(options.finishing?f:0)+(options.additional?a:0),has=(options.ceiling&&(c||roomRows4402(room).length))||(options.finishing&&(f||finishing4402(room).length))||(options.additional&&(a||additional4402(room).length));if(!has)return;lines.push((clean4402(room?.name||room?.roomName)||('Кімната '+(index+1)))+': '+money4402(roomTotal));if(options.ceiling)exportItems4473(ceilingRows4402(room),'ceiling').forEach(row=>lines.push('  • '+clean4402(row?.name||row?.title||'Позиція')+': '+qty4402(row?.qty)+(clean4402(row?.unit)?' '+clean4402(row.unit):'')+' × '+money4402(row?.price)+' = '+money4402(lineSum4402(row,'qty'))));if(options.finishing)exportItems4473(finishing4402(room),'work').forEach(item=>lines.push('  • '+clean4402(item?.name||item?.title||'Оздоблення')+': '+qty4402(item?.quantity)+(clean4402(item?.unit)?' '+clean4402(item.unit):'')+' × '+money4402(item?.price)+' = '+money4402(num4402(item?.quantity)*num4402(item?.price))));if(options.additional)exportItems4473(additional4402(room),'work').forEach(item=>lines.push('  • '+clean4402(item?.name||item?.title||'Додаткова робота')+': '+qty4402(item?.quantity)+(clean4402(item?.unit)?' '+clean4402(item.unit):'')+' × '+money4402(item?.price)+' = '+money4402(num4402(item?.quantity)*num4402(item?.price))));lines.push('')});
   if(options.materials){const mats=materials4402(object);if(mats.length){lines.push('Матеріали всього об’єкта:');mats.forEach(item=>lines.push('  • '+clean4402(item?.name||'Матеріал')+': '+qty4402(item?.quantity)+(clean4402(item?.unit)?' '+clean4402(item.unit):'')+' × '+money4402(item?.price)+' = '+money4402(num4402(item?.quantity)*num4402(item?.price))));lines.push('')}}
   if(options.ceiling)lines.push('Натяжні стелі: '+money4402(t.ceiling));if(options.finishing)lines.push('Оздоблення: '+money4402(t.finishing));if(options.additional)lines.push('Додаткові роботи: '+money4402(t.additional));if(options.materials)lines.push('Матеріали об’єкта: '+money4402(t.materials));const total=selectedTotal4402(object,options),advance=Math.min(Math.max(0,num4402(meta?.advance)),Math.max(0,total)),balance=Math.max(0,total-advance),estimateDate=normalizeEstimateDate4474(meta?.date);lines.push('РАЗОМ: '+money4402(total),'Аванс: '+money4402(advance),'Залишок: '+money4402(balance),'Дата кошторису: '+estimateDate,'','Potolok.in.ua · 097 454 67 13');return lines.join('\n');
 }
@@ -29795,7 +29888,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
     if(document.getElementById('pixel4486BuildBadge')) return;
     var el=document.createElement('div');
     el.id='pixel4486BuildBadge';
-    el.textContent='BUILD 44.90A-R12 · BASE R9 · SEPARATE POSITIONS';
+    el.textContent='BUILD 44.90A-R15.4 · STABLE · ROOT ROOM PERSIST';
     var header=document.querySelector('.header,header,.site-header,.topbar');
     if(header)header.insertAdjacentElement('afterend',el);else document.body.prepend(el);
     try{
@@ -30047,6 +30140,203 @@ function boot(){labels();decorate();loadNbu();try{document.documentElement.datas
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(boot,500),{once:true});else setTimeout(boot,500);setTimeout(boot,1800);
 })();
 </script>
+
+<!-- PIXEL 44.90A-R15.4 TEST3 | FROM CLEAN R15.3 | CORNERS ALL TOTALS + WORK STAGES -->
+<style id="pixel4490aR154RebuiltStagesStyles">
+#finStagesR154{margin:12px 0 14px;border:1px solid #bfdbfe;background:linear-gradient(180deg,#f8fbff,#fff);border-radius:15px;padding:12px}
+.r154-stage-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:10px}.r154-stage-head h3{font-size:14px;margin:0}.r154-stage-head p{font-size:8.5px;line-height:1.4;color:#64748b;margin:4px 0 0}.r154-add-stage{min-height:38px;border:0;border-radius:10px;background:#075bff;color:#fff;padding:8px 11px;font-size:9px;font-weight:950;white-space:nowrap}
+.r154-stage-list{display:grid;gap:9px}.r154-stage{border:1px solid #dbe3ef;background:#fff;border-radius:13px;overflow:hidden}.r154-stage[open]{box-shadow:0 7px 18px rgba(15,23,42,.06)}.r154-stage summary{list-style:none;display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;padding:11px;cursor:pointer}.r154-stage summary::-webkit-details-marker{display:none}.r154-stage-title b{display:block;font-size:11px}.r154-stage-title span{display:block;font-size:8px;color:#64748b;margin-top:3px}.r154-stage-sum{font-size:13px;font-weight:950;color:#075bff;white-space:nowrap}.r154-stage.locked .r154-stage-sum{color:#15803d}
+.r154-stage-body{padding:0 11px 11px;border-top:1px solid #eef2f7}.r154-stage-meta{display:grid;grid-template-columns:150px 1fr;gap:8px;padding:10px 0}.r154-stage-meta label{font-size:8px;font-weight:900;color:#475569}.r154-stage-meta input,.r154-stage-meta textarea{display:block;width:100%;margin-top:4px;border:1px solid #dbe3ef;border-radius:9px;background:#f8fafc;padding:8px;font-size:9px;color:#0f172a}.r154-stage-meta textarea{min-height:62px;resize:vertical}
+.r154-stage-items{display:grid;gap:6px}.r154-stage-item{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;border:1px solid #e5e7eb;background:#f8fafc;border-radius:9px;padding:8px}.r154-stage-item b{display:block;font-size:9px}.r154-stage-item span{display:block;font-size:7.5px;color:#64748b;margin-top:2px}.r154-stage-item strong{font-size:9px;color:#0f172a;white-space:nowrap}.r154-stage-item select{grid-column:1/-1;width:100%;min-height:42px;border:1px solid #93c5fd;border-radius:9px;padding:8px;background:#fff;font-size:9px;font-weight:850;color:#334155}.r154-stage-empty{padding:9px;border:1px dashed #cbd5e1;border-radius:9px;color:#64748b;font-size:8.5px;text-align:center}
+.r154-stage-actions{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:9px}.r154-stage-actions button{min-height:38px;border:1px solid #dbe3ef;border-radius:9px;background:#fff;font-size:8.5px;font-weight:950;color:#334155}.r154-stage-actions .lock{background:#16a34a;color:#fff;border-color:#16a34a}.r154-stage-actions .share{background:#071428;color:#fff;border-color:#071428}.r154-stage.locked .r154-stage-meta input,.r154-stage.locked .r154-stage-meta textarea{opacity:.72;pointer-events:none}.r154-stage-total{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:10px;padding:10px 11px;border-radius:11px;background:#071428;color:#fff}.r154-stage-total span{font-size:9px;color:#bfdbfe}.r154-stage-total b{font-size:18px}
+@media(max-width:520px){.r154-stage-head{flex-direction:column}.r154-add-stage{width:100%}.r154-stage-meta{grid-template-columns:1fr}.r154-stage-actions{grid-template-columns:1fr}.r154-stage summary{grid-template-columns:1fr}.r154-stage-sum{text-align:left}}
+</style>
+<script id="pixel4490aR154RebuiltStagesScript">
+(function(){
+'use strict';
+if(window.__pixelR154RebuiltStages)return;window.__pixelR154RebuiltStages=true;
+const N=v=>{const n=Number(String(v??'').replace(/\s/g,'').replace(',','.').replace(/[^\d.-]/g,''));return Number.isFinite(n)?n:0};
+const M=v=>Math.round(Math.max(0,N(v))).toLocaleString('uk-UA')+' грн';
+const E=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const clone=v=>{try{return JSON.parse(JSON.stringify(v))}catch(_){return v}};
+let renderTimer=0,pendingRender=false;
+function rooms(){try{return Array.isArray(projectRooms)?projectRooms:[]}catch(_){return []}}
+function activeId(){try{return String(activeRoomId??'')}catch(_){return ''}}
+function room(){const a=rooms(),id=activeId();return a.find(r=>String(r?.id||'')===id)||a[0]||null}
+function finishing(r){return Array.isArray(r?.finishingWorks?.items)?r.finishingWorks.items:[]}
+function additional(r){return Array.isArray(r?.additionalWorks4349)?r.additionalWorks4349:[]}
+function stageId(){return 'stage_'+Date.now()+'_'+Math.random().toString(36).slice(2,7)}
+function today(){return new Date().toISOString().slice(0,10)}
+
+/* R15.4 stages: room-scoped persistence. The room id stays stable
+   through draft reload, history/admin opening and room switching. */
+function storageKey(r){return 'potolok:r154:work-stages:v2:'+String(r?.id||'no-room')}
+function workKey(x,i,kind){
+  const id=String(x?.id||'').trim();
+  if(id)return kind+':id:'+id;
+  return kind+':'+String(x?.name||'')+'|'+String(x?.unit||'')+'|'+String(i);
+}
+function persist(r){
+  if(!r)return;
+  try{
+    const fin={};finishing(r).forEach((x,i)=>{if(x?.r154StageId)fin[workKey(x,i,'fin')]=String(x.r154StageId)});
+    const add={};additional(r).forEach((x,i)=>{if(x?.r154StageId)add[workKey(x,i,'add')]=String(x.r154StageId)});
+    const payload={version:2,roomId:String(r.id||''),stages:clone(Array.isArray(r.workStagesR154)?r.workStagesR154:[]),fin,add,updatedAt:new Date().toISOString()};
+    localStorage.setItem(storageKey(r),JSON.stringify(payload));
+  }catch(e){console.warn('R15.4 stage storage write',e)}
+}
+function hydrate(r){
+  if(!r||r.__r154StageHydrated)return;
+  r.__r154StageHydrated=true;
+  try{
+    const payload=JSON.parse(localStorage.getItem(storageKey(r))||'null');
+    if(!payload||typeof payload!=='object')return;
+    if((!Array.isArray(r.workStagesR154)||!r.workStagesR154.length)&&Array.isArray(payload.stages)&&payload.stages.length){
+      r.workStagesR154=clone(payload.stages);
+    }
+    const fin=payload.fin&&typeof payload.fin==='object'?payload.fin:{};
+    finishing(r).forEach((x,i)=>{if(x&&!x.r154StageId){const sid=fin[workKey(x,i,'fin')];if(sid)x.r154StageId=sid}});
+    const add=payload.add&&typeof payload.add==='object'?payload.add:{};
+    additional(r).forEach((x,i)=>{if(x&&!x.r154StageId){const sid=add[workKey(x,i,'add')];if(sid)x.r154StageId=sid}});
+  }catch(e){console.warn('R15.4 stage storage read',e)}
+}
+function stageStore(r,create=true){
+  if(!r)return[];
+  hydrate(r);
+  if(!Array.isArray(r.workStagesR154)&&create)r.workStagesR154=[];
+  const list=Array.isArray(r.workStagesR154)?r.workStagesR154:[];
+  if(create&&!list.length)list.push({id:stageId(),number:1,date:document.getElementById('measureDate')?.value||today(),comment:'',locked:false,createdAt:new Date().toISOString()});
+  list.forEach((s,i)=>{if(!s.id)s.id=stageId();s.number=i+1;if(typeof s.locked!=='boolean')s.locked=false});
+  return list;
+}
+function latestOpen(r){const a=stageStore(r,true);let s=[...a].reverse().find(x=>!x.locked);if(!s){s={id:stageId(),number:a.length+1,date:today(),comment:'',locked:false,createdAt:new Date().toISOString()};a.push(s)}return s}
+function autoAssign(r){
+  if(!r)return false;let changed=false;const s=latestOpen(r);
+  finishing(r).forEach(x=>{if(x?.enabled&&!x.r154StageId){x.r154StageId=s.id;changed=true}});
+  additional(r).forEach(x=>{if(x&&!x.r154StageId){x.r154StageId=s.id;changed=true}});
+  return changed;
+}
+function save(){
+  const r=room();persist(r);
+  try{if(typeof window.autosave==='function')window.autosave()}catch(e){console.warn('R15.4 stage autosave',e)}
+}
+function liveEntries(r,sid){
+  const out=[];
+  finishing(r).forEach((x,i)=>{if(x?.enabled&&x.r154StageId===sid)out.push({kind:'fin',index:i,name:x.name||'Оздоблення',qty:N(x.quantity),unit:x.unit||'',price:N(x.price),sum:N(x.quantity)*N(x.price)})});
+  additional(r).forEach((x,i)=>{if(x&&x.r154StageId===sid)out.push({kind:'add',index:i,name:x.name||'Додаткова робота',qty:N(x.quantity),unit:x.unit||'',price:N(x.price),sum:N(x.quantity)*N(x.price)})});
+  return out;
+}
+function entries(r,s){return s.locked&&s.snapshot?.items?s.snapshot.items:liveEntries(r,s.id)}
+function sumEntries(a){return a.reduce((sum,x)=>sum+N(x.sum),0)}
+function stageSum(r,s){return s.locked&&s.snapshot?N(s.snapshot.total):sumEntries(liveEntries(r,s.id))}
+function options(r,current){return stageStore(r,true).map(s=>`<option value="${E(s.id)}" ${s.id===current?'selected':''} ${s.locked&&s.id!==current?'disabled':''}>Етап ${s.number}${s.locked?' · зафіксовано':''}</option>`).join('')}
+function itemHtml(r,s,x){const select=s.locked?'':`<select aria-label="Етап для ${E(x.name)}" onchange="setWorkStageR154('${x.kind}',${x.index},this.value)">${options(r,s.id)}</select>`;return `<div class="r154-stage-item"><div><b>${E(x.name)}</b><span>${N(x.qty).toLocaleString('uk-UA',{maximumFractionDigits:2})} ${E(x.unit)} × ${M(x.price)}</span></div><strong>${M(x.sum)}</strong>${select}</div>`}
+function cardHtml(r,s){
+  const its=entries(r,s),sum=stageSum(r,s),date=s.date||'',comment=s.comment||'';
+  const action=s.locked?`<button type="button" onclick="toggleStageLockR154('${s.id}')">✏️ Редагувати етап</button>`:`<button type="button" class="lock" onclick="toggleStageLockR154('${s.id}')">🔒 Зафіксувати етап</button>`;
+  return `<details class="r154-stage ${s.locked?'locked':''}" open><summary><div class="r154-stage-title"><b>Етап ${s.number} · Виконані роботи ${s.locked?'✅':''}</b><span>${date?E(date):'дата не вказана'} · ${its.length} поз.</span></div><div class="r154-stage-sum">${M(sum)}</div></summary><div class="r154-stage-body"><div class="r154-stage-meta"><label>Дата етапу<input type="date" value="${E(date)}" ${s.locked?'disabled':''} onchange="setStageMetaR154('${s.id}','date',this.value)"></label><label>Коментар етапу<textarea ${s.locked?'disabled':''} placeholder="Що виконано на цьому етапі…" oninput="setStageMetaR154('${s.id}','comment',this.value)">${E(comment)}</textarea></label></div><div class="r154-stage-items">${its.length?its.map(x=>itemHtml(r,s,x)).join(''):'<div class="r154-stage-empty">До цього етапу ще не прив’язано виконаних робіт.</div>'}</div><div class="r154-stage-actions">${action}<button type="button" class="share" onclick="shareStageR154('${s.id}')">📤 Надіслати етап</button></div></div></details>`;
+}
+function ensureHost(){const list=document.getElementById('fin78List');if(!list)return null;let box=document.getElementById('finStagesR154');if(!box){box=document.createElement('section');box.id='finStagesR154';list.insertAdjacentElement('beforebegin',box)}return box}
+function render(force=false){
+  const box=ensureHost();if(!box)return;
+  if(!force&&document.activeElement?.closest?.('#finStagesR154')){pendingRender=true;return}
+  pendingRender=false;const r=room();if(!r){box.innerHTML='<div class="r154-stage-empty">Оберіть кімнату для роботи з етапами.</div>';return}
+  hydrate(r);
+  const changed=autoAssign(r);const ss=stageStore(r,true),grand=ss.reduce((a,s)=>a+stageSum(r,s),0);
+  box.innerHTML=`<div class="r154-stage-head"><div><h3>📑 Етапи виконаних робіт</h3><p>Розподіляйте демонтаж, шпаклівку, шпалери та інші роботи по фактичних етапах. Зафіксований етап зберігає свій склад і суму.</p></div><button class="r154-add-stage" type="button" onclick="addWorkStageR154()">＋ Новий етап робіт</button></div><div class="r154-stage-list">${ss.map(s=>cardHtml(r,s)).join('')}</div><div class="r154-stage-total"><span>Загальна сума всіх етапів цієї кімнати</span><b>${M(grand)}</b></div>`;
+  if(changed)save();
+}
+function schedule(ms=80,force=false){clearTimeout(renderTimer);renderTimer=setTimeout(()=>render(force),ms)}
+window.addWorkStageR154=function(){const r=room();if(!r)return;const a=stageStore(r,true);a.push({id:stageId(),number:a.length+1,date:today(),comment:'',locked:false,createdAt:new Date().toISOString()});save();render(true)};
+window.setStageMetaR154=function(id,key,value){const r=room(),s=stageStore(r,true).find(x=>x.id===id);if(!s||s.locked)return;if(key==='date')s.date=String(value||'');if(key==='comment')s.comment=String(value||'');s.updatedAt=new Date().toISOString();save()};
+window.setWorkStageR154=function(kind,index,target){const r=room();if(!r)return;const arr=kind==='add'?additional(r):finishing(r),x=arr[index];if(!x)return;const stages=stageStore(r,true),from=stages.find(s=>s.id===x.r154StageId),to=stages.find(s=>s.id===target);if(from?.locked||to?.locked){alert('Зафіксований етап спочатку потрібно перевести в режим редагування.');return}x.r154StageId=target;save();setTimeout(()=>render(true),30)};
+window.toggleStageLockR154=function(id){const r=room(),s=stageStore(r,true).find(x=>x.id===id);if(!s)return;if(!s.locked){const its=liveEntries(r,s.id);s.snapshot={items:clone(its),total:sumEntries(its),lockedAt:new Date().toISOString()};s.locked=true}else{s.locked=false}s.updatedAt=new Date().toISOString();save();render(true)};
+window.shareStageR154=async function(id){const r=room(),s=stageStore(r,true).find(x=>x.id===id);if(!r||!s)return;const its=entries(r,s),total=stageSum(r,s);const lines=[`Potolok.in.ua · ${r.name||'Кімната'}`,`Етап ${s.number} · Виконані роботи`,s.date?`Дата: ${s.date}`:'',s.comment?`Коментар: ${s.comment}`:'','',...its.map((x,i)=>`${i+1}. ${x.name} — ${N(x.qty).toLocaleString('uk-UA',{maximumFractionDigits:2})} ${x.unit} × ${M(x.price)} = ${M(x.sum)}`),'',`РАЗОМ ЕТАП: ${M(total)}`].filter(Boolean);const t=lines.join('\n');try{if(navigator.share){await navigator.share({title:`Етап ${s.number} · ${r.name||'Кімната'}`,text:t});return}await navigator.clipboard.writeText(t);alert('Етап скопійовано в буфер обміну.')}catch(e){if(e?.name!=='AbortError')alert('Не вдалося надіслати етап: '+(e?.message||e))}};
+
+/* Preserve stage metadata through the app's room-capture chain as a second layer. */
+const baseCapture=window.captureCurrentRoom;
+if(typeof baseCapture==='function'&&!baseCapture.__r154Stages){
+  function wrappedCapture(){
+    const before=room();hydrate(before);const stages=clone(before?.workStagesR154||[]);
+    const finIds=finishing(before).map(x=>x?.r154StageId||'');const addIds=additional(before).map(x=>x?.r154StageId||'');
+    persist(before);
+    const out=baseCapture.apply(this,arguments);
+    if(out){out.workStagesR154=stages;finishing(out).forEach((x,i)=>{if(finIds[i])x.r154StageId=finIds[i]});additional(out).forEach((x,i)=>{if(addIds[i])x.r154StageId=addIds[i]})}
+    return out;
+  }
+  wrappedCapture.__r154Stages=true;window.captureCurrentRoom=wrappedCapture;
+}
+const baseFinRender=window.renderFinishing78;if(typeof baseFinRender==='function'&&!baseFinRender.__r154Stages){function wrappedFinRender(){const out=baseFinRender.apply(this,arguments);schedule(60,false);return out}wrappedFinRender.__r154Stages=true;window.renderFinishing78=wrappedFinRender}
+const baseFinChange=window.fin78Change;if(typeof baseFinChange==='function'&&!baseFinChange.__r154Stages){function wrappedFinChange(){const out=baseFinChange.apply(this,arguments);schedule(180,false);return out}wrappedFinChange.__r154Stages=true;window.fin78Change=wrappedFinChange}
+const baseAddFin=window.addCustomFinishing78;if(typeof baseAddFin==='function'&&!baseAddFin.__r154Stages){function wrappedAddFin(){const out=baseAddFin.apply(this,arguments);schedule(100,true);return out}wrappedAddFin.__r154Stages=true;window.addCustomFinishing78=wrappedAddFin}
+const baseRemoveFin=window.removeFinishing78;if(typeof baseRemoveFin==='function'&&!baseRemoveFin.__r154Stages){function wrappedRemoveFin(){const out=baseRemoveFin.apply(this,arguments);schedule(80,true);return out}wrappedRemoveFin.__r154Stages=true;window.removeFinishing78=wrappedRemoveFin}
+
+document.addEventListener('click',e=>{if(e.target?.closest?.('#roomList,[data-room-switch4350],#addRoomWork4349,#addRoomDrill4349,#addRoomWall4349,#addRoomFloor4349,[data-room-work-delete4349]'))schedule(140,false)},true);
+document.addEventListener('input',e=>{if(e.target?.closest?.('[data-room-work4349]'))schedule(320,false)},true);
+document.addEventListener('change',e=>{if(e.target?.closest?.('[data-room-work4349]'))schedule(120,false)},true);
+document.addEventListener('focusout',e=>{if(e.target?.closest?.('#finStagesR154')&&pendingRender)setTimeout(()=>render(false),80)},true);
+window.addEventListener('beforeunload',()=>persist(room()));
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')persist(room())});
+
+function markR154(){const b=document.getElementById('pixel4486BuildBadge');if(b)b.textContent='BUILD 44.90A-R15.4 · STABLE · ROOT ROOM PERSIST';try{document.documentElement.dataset.pixelVersion='44.90A-R15.4';document.documentElement.dataset.pixelBuild='44.90A-r15-4-stable-root-room-persist';document.title='Potolok AI PRO — Pixel 44.90A-R15.4 STABLE'}catch(_){}}
+function boot(){render(true);markR154()}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(boot,280),{once:true});else setTimeout(boot,280);
+window.addEventListener('pageshow',()=>setTimeout(()=>{render(false);markR154()},140));
+[900,2200,4500].forEach(ms=>setTimeout(markR154,ms));
+})();
+</script>
+
+
+<!-- PIXEL 44.90A-R15.4 STABLE | ROOT ROOM STATE PRESERVATION + FINAL REHYDRATE | promoted from TEST11 -->
+<script id="pixel4490aR154Test11RootRoomPersistence">
+(function(){
+'use strict';
+if(window.__pixel4490aR154Test11RootRoomPersistence)return;
+window.__pixel4490aR154Test11RootRoomPersistence=true;
+
+function activeR154T11(){
+  try{
+    const rooms=Array.isArray(projectRooms)?projectRooms:[];
+    return rooms.find(r=>String(r?.id)===String(activeRoomId))||null;
+  }catch(_){return null}
+}
+function finalRehydrateR154T11(){
+  const room=activeR154T11();if(!room||typeof window.restoreRoom!=='function')return;
+  try{
+    const prev=typeof roomSyncLock!=='undefined'?roomSyncLock:false;
+    try{roomSyncLock=true}catch(_){}
+    window.restoreRoom(room);
+    try{roomSyncLock=prev}catch(_){}
+  }catch(e){
+    try{roomSyncLock=false}catch(_){}
+    console.warn('R15.4 TEST11 final room rehydrate',e);
+  }
+  requestAnimationFrame(()=>{
+    try{if(typeof renderPlanner==='function')renderPlanner()}catch(_){}
+    try{if(typeof recalc==='function')recalc()}catch(_){}
+    try{if(typeof updateSummary==='function')updateSummary()}catch(_){}
+    try{if(typeof renderRooms==='function')renderRooms()}catch(_){}
+  });
+}
+function markR154T11(){
+  const b=document.getElementById('pixel4486BuildBadge');
+  if(b)b.textContent='BUILD 44.90A-R15.4 · STABLE · ROOT ROOM PERSIST';
+  try{
+    document.documentElement.dataset.pixelVersion='44.90A-R15.4';
+    document.documentElement.dataset.pixelBuild='44.90A-r15-4-stable-root-room-persist';
+    document.title='Potolok AI PRO — Pixel 44.90A-R15.4 STABLE';
+  }catch(_){}
+}
+function bootR154T11(){finalRehydrateR154T11();markR154T11()}
+if(document.readyState==='loading'){
+  document.addEventListener('DOMContentLoaded',()=>setTimeout(bootR154T11,90),{once:true});
+}else setTimeout(bootR154T11,90);
+window.addEventListener('pageshow',()=>setTimeout(()=>{finalRehydrateR154T11();markR154T11()},120),{passive:true});
+[350,900,1800,3200,5200,7200].forEach(ms=>setTimeout(markR154T11,ms));
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)setTimeout(markR154T11,120)});
+})();
+</script>
+
 </body></html>
 
 <!-- 44.41: surgical NW export fix based strictly on 44.40; selected insert is included in final NW order; no planner/canvas quantity logic changed. -->
@@ -31684,7 +31974,7 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape'&&isOpenR14())window.
 document.addEventListener('click',()=>setTimeout(()=>{if(isOpenR14())terminologyR14()},45),true);
 function markR14(){
   const badge=document.getElementById('pixel4486BuildBadge');
-  if(badge)badge.textContent='BUILD 44.90A-R14 · BASE R13 · FULLSCREEN NW CATALOG';
+  if(badge)badge.textContent='BUILD 44.90A-R15.4 · STABLE · ROOT ROOM PERSIST';
   try{document.documentElement.dataset.pixelVersion='44.90A-R14';document.documentElement.dataset.pixelBuild='44.90A-r14-fullscreen-nw-catalog';document.title='Potolok AI PRO — Pixel 44.90A-R14'}catch(_){}
 }
 function bootR14(){watchR14();markR14();setTimeout(markR14,700);setTimeout(markR14,1800)}
@@ -31765,7 +32055,7 @@ function sync(){
 }
 const mo=new MutationObserver(()=>setTimeout(sync,20));
 function mark(){
-  const b=document.getElementById('pixel4486BuildBadge');if(b)b.textContent='BUILD 44.90A-R14.1 · BASE R14 · LARGE CATALOG AREA';
+  const b=document.getElementById('pixel4486BuildBadge');if(b)b.textContent='BUILD 44.90A-R15.4 · STABLE · ROOT ROOM PERSIST';
   try{document.documentElement.dataset.pixelVersion='44.90A-R14.1';document.documentElement.dataset.pixelBuild='44.90A-r14-1-large-catalog-area';document.title='Potolok AI PRO — Pixel 44.90A-R14.1'}catch(_){}
 }
 function boot(){
@@ -31835,7 +32125,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 if(window.__pixel4490aR142Installed)return;window.__pixel4490aR142Installed=true;
 function mark(){
   const b=document.getElementById('pixel4486BuildBadge');
-  if(b)b.textContent='BUILD 44.90A-R14.2 · BASE R14.1 · TALL SELECTED ITEMS';
+  if(b)b.textContent='BUILD 44.90A-R15.4 · STABLE · ROOT ROOM PERSIST';
   try{
     document.documentElement.dataset.pixelVersion='44.90A-R14.2';
     document.documentElement.dataset.pixelBuild='44.90A-r14-2-tall-selected-items';
@@ -31920,7 +32210,7 @@ if(typeof openPrev==='function')window.openNWCatalog4413=function(){
 };
 function mark(){
   const b=document.getElementById('pixel4486BuildBadge');
-  if(b)b.textContent='BUILD 44.90A-R14.3 · BASE R14.2 · SWIPE SCROLL CATALOG';
+  if(b)b.textContent='BUILD 44.90A-R15.4 · STABLE · ROOT ROOM PERSIST';
   try{
     document.documentElement.dataset.pixelVersion='44.90A-R14.3';
     document.documentElement.dataset.pixelBuild='44.90A-r14-3-swipe-scroll-catalog';
@@ -32000,7 +32290,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 if(window.__pixel4490aR144Installed)return;window.__pixel4490aR144Installed=true;
 function mark(){
   const b=document.getElementById('pixel4486BuildBadge');
-  if(b)b.textContent='BUILD 44.90A-R14.4 · BASE R14.3 · COMPACT SELECTED PANEL';
+  if(b)b.textContent='BUILD 44.90A-R15.4 · STABLE · ROOT ROOM PERSIST';
   try{
     document.documentElement.dataset.pixelVersion='44.90A-R14.4';
     document.documentElement.dataset.pixelBuild='44.90A-r14-4-compact-selected-panel';
@@ -32101,7 +32391,7 @@ if(typeof openPrev==='function')window.openNWCatalog4413=function(){
 };
 function mark(){
   const b=document.getElementById('pixel4486BuildBadge');
-  if(b)b.textContent='BUILD 44.90A-R14.5 · BASE R14.4 · STICKY CATALOG CONTROLS';
+  if(b)b.textContent='BUILD 44.90A-R15.4 · STABLE · ROOT ROOM PERSIST';
   try{
     document.documentElement.dataset.pixelVersion='44.90A-R14.5';
     document.documentElement.dataset.pixelBuild='44.90A-r14-5-sticky-catalog-controls';
@@ -32175,7 +32465,7 @@ document.addEventListener('click',e=>{
 },true);
 function mark(){
   const b=document.getElementById('pixel4486BuildBadge');
-  if(b)b.textContent='BUILD 44.90A-R14.6 · BASE R14.5 · TOTAL SYNC FIXED';
+  if(b)b.textContent='BUILD 44.90A-R15.4 · STABLE · ROOT ROOM PERSIST';
   try{document.documentElement.dataset.pixelVersion='44.90A-R14.6';document.documentElement.dataset.pixelBuild='44.90A-r14-6-total-sync-fixed';document.title='Potolok AI PRO — Pixel 44.90A-R14.6'}catch(_){}
 }
 function boot(){repaint();mark();setTimeout(repaint,600);setTimeout(repaint,1600);setTimeout(mark,700);setTimeout(mark,1800)}
@@ -32367,8 +32657,8 @@ window.shareNoPlan4463=async function(){
 
 function mark(){
   const b=document.getElementById('pixel4486BuildBadge');
-  if(b)b.textContent='BUILD 44.90A-R15.3 · STABLE · OPTIONAL PRICES';
-  try{document.documentElement.dataset.pixelVersion='44.90A-R15.3';document.documentElement.dataset.pixelBuild='44.90A-r15-3-optional-prices';document.title='Potolok AI PRO — Pixel 44.90A-R15.3 STABLE'}catch(_){}
+  if(b)b.textContent='BUILD 44.90A-R15.4 · STABLE · ROOT ROOM PERSIST';
+  try{document.documentElement.dataset.pixelVersion='44.90A-R15.4';document.documentElement.dataset.pixelBuild='44.90A-r15-4-stable-root-room-persist';document.title='Potolok AI PRO — Pixel 44.90A-R15.4 STABLE'}catch(_){}
 }
 function boot(){healVisibleOrder();mark()}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(boot,250),{once:true});else setTimeout(boot,250);
@@ -32418,11 +32708,11 @@ function syncR151(delay=0){
 }
 function markR151(){
   const b=document.getElementById('pixel4486BuildBadge');
-  if(b)b.textContent='BUILD 44.90A-R15.3 · STABLE · OPTIONAL PRICES';
+  if(b)b.textContent='BUILD 44.90A-R15.4 · STABLE · ROOT ROOM PERSIST';
   try{
-    document.documentElement.dataset.pixelVersion='44.90A-R15.3';
-    document.documentElement.dataset.pixelBuild='44.90A-r15-3-optional-prices';
-    document.title='Potolok AI PRO — Pixel 44.90A-R15.3 STABLE';
+    document.documentElement.dataset.pixelVersion='44.90A-R15.4';
+    document.documentElement.dataset.pixelBuild='44.90A-r15-4-stable-root-room-persist';
+    document.title='Potolok AI PRO — Pixel 44.90A-R15.4 STABLE';
   }catch(_){}
 }
 /* Hydrate before old total painters get a chance to show a stale zero. */
@@ -32546,7 +32836,7 @@ window.shareNoPlan4463=async function(){
     const u=URL.createObjectURL(blob),link=document.createElement('a');link.href=u;link.download=file.name;document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(u),2500);if(st)st.textContent=withPrices?'✅ Картку з цінами збережено у PNG.':'✅ Картку без цін збережено у PNG.';
   }catch(e){console.error('R15.3 export',e);if(st)st.textContent='❌ '+(e?.message||'Помилка формування картки.');alert('Не вдалося сформувати картку: '+(e?.message||'невідома помилка'))}
 };
-function markR153(){const b=document.getElementById('pixel4486BuildBadge');if(b)b.textContent='BUILD 44.90A-R15.3 · STABLE · OPTIONAL PRICES';try{document.documentElement.dataset.pixelVersion='44.90A-R15.3';document.documentElement.dataset.pixelBuild='44.90A-r15-3-optional-prices';document.title='Potolok AI PRO — Pixel 44.90A-R15.3 STABLE'}catch(_){}}
+function markR153(){const b=document.getElementById('pixel4486BuildBadge');if(b)b.textContent='BUILD 44.90A-R15.4 · STABLE · ROOT ROOM PERSIST';try{document.documentElement.dataset.pixelVersion='44.90A-R15.4';document.documentElement.dataset.pixelBuild='44.90A-r15-4-stable-root-room-persist';document.title='Potolok AI PRO — Pixel 44.90A-R15.4 STABLE'}catch(_){}}
 function bootR153(){injectToggleR153();updateToggleR153();markR153()}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(bootR153,250),{once:true});else setTimeout(bootR153,250);
 [700,1500,3000,5000].forEach(ms=>setTimeout(bootR153,ms));
