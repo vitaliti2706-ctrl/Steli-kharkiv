@@ -15292,8 +15292,8 @@ if(typeof prevSetRate==='function'){
 function bootR8(){
   updateR8();
   try{
-    document.documentElement.dataset.pixelVersion='44.90A-R15.7';
-    document.documentElement.dataset.pixelBuild='44.90A-r15-7-test2-stage-payments';
+    document.documentElement.dataset.pixelVersion='44.90A-R15.8';
+    document.documentElement.dataset.pixelBuild='44.90A-r15-8-test2-stage-report-send-menu';
   }catch(_){}
 }
 if(document.readyState==='loading'){
@@ -15308,11 +15308,11 @@ setTimeout(bootR8,1300);
 (function(){
   function fix(){
     var el=document.getElementById('pixel4486BuildBadge');
-    if(el) el.textContent='BUILD 44.90A-R15.7 · TEST 2 · STAGE PAYMENTS';
+    if(el) el.textContent='BUILD 44.90A-R15.8 · TEST 2 · STAGE REPORT SEND MENU';
     try{
-      document.documentElement.dataset.pixelVersion='44.90A-R15.7';
-      document.documentElement.dataset.pixelBuild='44.90A-r15-7-test2-stage-payments';
-      document.title='Potolok AI PRO — Pixel 44.90A-R15.7 TEST 2';
+      document.documentElement.dataset.pixelVersion='44.90A-R15.8';
+      document.documentElement.dataset.pixelBuild='44.90A-r15-8-test2-stage-report-send-menu';
+      document.title='Potolok AI PRO — Pixel 44.90A-R15.8 TEST 2';
     }catch(_){}
   }
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',()=>setTimeout(fix,0),{once:true});
@@ -16181,6 +16181,165 @@ window.closeEstimateShare4345=function(){document.getElementById('shareEstimateM
 window.downloadEstimate4345=function(){downloadPayload4345();statusShare4345('Файл завантажено.','ok')};
 window.copyEstimate4345=async function(){if(!sharePayload4345)return;try{await navigator.clipboard.writeText(sharePayload4345.text);statusShare4345('Текст кошторису скопійовано.','ok')}catch(_){prompt('Скопіюйте кошторис:',sharePayload4345.text)}};
 window.nativeShareEstimate4345=async function(button){if(!sharePayload4345)return;const old=button?.innerHTML;try{if(button){button.disabled=true;button.innerHTML='<span>⏳</span><div><b>Готуємо файл…</b></div>'}const file=new File([sharePayload4345.blob],sharePayload4345.filename,{type:'text/html;charset=utf-8'});if(navigator.share&&(!navigator.canShare||navigator.canShare({files:[file]}))){await navigator.share({title:'Кошторис Potolok.in.ua',files:[file]});window.closeEstimateShare4345()}else{downloadPayload4345();statusShare4345('Пряма відправка недоступна — файл завантажено.','ok')}}catch(error){if(error?.name!=='AbortError'){downloadPayload4345();statusShare4345('Файл завантажено. Прикріпіть його у потрібному месенджері.','ok')}}finally{if(button){button.disabled=false;button.innerHTML=old}}};
+
+/* R15.8 — client estimate universal export: PNG first, PDF backup, text fallback */
+function rrR158(ctx,x,y,w,h,r,fill,stroke){
+  r=Math.max(0,Math.min(r,Math.min(w,h)/2));
+  ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();
+  if(fill){ctx.fillStyle=fill;ctx.fill()}if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=1.5;ctx.stroke()}
+}
+function wrapR158(ctx,value,maxWidth){
+  const src=String(value??'').replace(/\s+/g,' ').trim();if(!src)return[''];
+  const words=src.split(' '),lines=[];let line='';
+  const pushLong=word=>{let part='';for(const ch of word){const test=part+ch;if(part&&ctx.measureText(test).width>maxWidth){lines.push(part);part=ch}else part=test}return part};
+  for(const word of words){
+    const test=line?line+' '+word:word;
+    if(ctx.measureText(test).width<=maxWidth){line=test;continue}
+    if(line){lines.push(line);line=''}
+    if(ctx.measureText(word).width>maxWidth)line=pushLong(word);else line=word;
+  }
+  if(line)lines.push(line);return lines.length?lines:[''];
+}
+function blobFromCanvasR158(canvas,type='image/png',quality=.94){
+  return new Promise((resolve,reject)=>canvas.toBlob(b=>b?resolve(b):reject(new Error('Не вдалося сформувати файл зображення')),type,quality));
+}
+function downloadBlobR158(blob,name){
+  const u=URL.createObjectURL(blob),a=document.createElement('a');a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),4000);
+}
+function estimateCanvasPagesR158(payload){
+  const object=payload?.object||{},options=payload?.options||{},meta=payload?.meta||{},rooms=Array.isArray(object.rooms)?object.rooms:[],W=1080,H=1520,P=58,B=105;
+  const pages=[];let canvas,ctx,y=0,pageNo=0;
+  const ink='#0f172a',muted='#64748b',blue='#075bff',green='#15803d',orange='#b45309',bg='#f4f7fb',line='#dbe3ef',dark='#071428';
+  function page(cont=false){
+    canvas=document.createElement('canvas');canvas.width=W;canvas.height=H;ctx=canvas.getContext('2d');ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);pages.push(canvas);pageNo++;
+    y=48;
+    if(cont){
+      rrR158(ctx,P,y,W-P*2,78,18,'#fff',line);
+      ctx.font='900 30px Arial';ctx.fillStyle=ink;ctx.fillText('Potolok',P+24,y+48);const w=ctx.measureText('Potolok').width;ctx.fillStyle=blue;ctx.fillText('.in.ua',P+24+w,y+48);
+      ctx.font='800 18px Arial';ctx.fillStyle=muted;ctx.textAlign='right';ctx.fillText('Кошторис · продовження',W-P-24,y+47);ctx.textAlign='left';y+=100;
+    }
+  }
+  function footer(){
+    ctx.font='700 16px Arial';ctx.fillStyle=muted;ctx.fillText('Potolok.in.ua · 097 454 67 13',P,H-38);
+    ctx.textAlign='right';ctx.fillText('стор. '+pageNo,W-P,H-38);ctx.textAlign='left';
+  }
+  function need(h){if(y+h>H-B){footer();page(true)}}
+  function textLines(value,x,maxW,font,color,lineH){
+    ctx.font=font;ctx.fillStyle=color;const lines=wrapR158(ctx,value,maxW);lines.forEach((l,i)=>ctx.fillText(l,x,y+i*lineH));return lines.length*lineH;
+  }
+  function titleBar(title,subtotal){
+    need(78);rrR158(ctx,P,y,W-P*2,66,16,'#eff6ff','#bfdbfe');
+    ctx.font='900 25px Arial';ctx.fillStyle=blue;ctx.fillText(title,P+22,y+42);
+    if(subtotal){ctx.textAlign='right';ctx.fillText(subtotal,W-P-22,y+42);ctx.textAlign='left'}y+=80;
+  }
+  function itemRow(name,qty,unit,price,sum){
+    ctx.font='900 22px Arial';const lines=wrapR158(ctx,name,610),h=Math.max(80,30+lines.length*26);
+    need(h+10);rrR158(ctx,P,y,W-P*2,h,15,'#fff',line);
+    ctx.font='900 22px Arial';ctx.fillStyle=ink;lines.forEach((l,i)=>ctx.fillText(l,P+22,y+31+i*26));
+    ctx.font='700 17px Arial';ctx.fillStyle=muted;const detail=`${qty4402(qty)}${unit?' '+clean4402(unit):''} × ${money4402(price)}`;ctx.fillText(detail,P+22,y+h-18);
+    ctx.font='900 23px Arial';ctx.fillStyle=blue;ctx.textAlign='right';ctx.fillText(money4402(sum),W-P-22,y+h/2+8);ctx.textAlign='left';y+=h+10;
+  }
+  function section(title,items,mode,forcedSum=0){
+    if(!items.length&&forcedSum<=0)return;
+    let subtotal=forcedSum;
+    if(items.length)subtotal=items.reduce((s,item)=>{const q=mode==='ceiling'?num4402(item?.qty):num4402(item?.quantity),sum=mode==='ceiling'?lineSum4402(item,'qty'):q*num4402(item?.price);return s+sum},0);
+    titleBar(title,money4402(subtotal));
+    if(!items.length){itemRow('Деталізація не збережена',1,'',forcedSum,forcedSum);return}
+    items.forEach(item=>{const name=clean4402(item?.name||item?.title||item?.label||'Позиція'),q=mode==='ceiling'?num4402(item?.qty):num4402(item?.quantity),unit=clean4402(item?.unit||''),price=num4402(item?.price),sum=mode==='ceiling'?lineSum4402(item,'qty'):q*price;itemRow(name,q,unit,price,sum)});
+  }
+  page(false);
+  rrR158(ctx,P,y,W-P*2,145,22,'#fff',line);
+  ctx.font='900 42px Arial';ctx.fillStyle=ink;ctx.fillText('Potolok',P+25,y+55);let bw=ctx.measureText('Potolok').width;ctx.fillStyle=blue;ctx.fillText('.in.ua',P+25+bw,y+55);
+  ctx.font='900 31px Arial';ctx.fillStyle=ink;ctx.fillText('КОШТОРИС',P+25,y+106);
+  ctx.textAlign='right';ctx.font='800 19px Arial';ctx.fillStyle=muted;ctx.fillText(normalizeEstimateDate4474(meta?.date),W-P-25,y+55);ctx.textAlign='left';y+=165;
+
+  const objectNumber=clean4402(object.objectNumber||object.object_number||object.cloudObjectNumber||''),client=clean4402(object.clientName||'—'),phone=clean4402(object.clientPhone||'—'),address=clean4402(object.address||'—');
+  ctx.font='800 18px Arial';const addrLines=wrapR158(ctx,address,W-P*2-50),infoH=170+Math.max(0,addrLines.length-1)*22;
+  need(infoH);rrR158(ctx,P,y,W-P*2,infoH,18,'#fff',line);
+  let iy=y+32;
+  function info(label,value){ctx.font='800 16px Arial';ctx.fillStyle=muted;ctx.fillText(label,P+24,iy);ctx.font='900 22px Arial';ctx.fillStyle=ink;const ls=wrapR158(ctx,value,W-P*2-230);ls.forEach((l,i)=>ctx.fillText(l,P+210,iy+i*24));iy+=Math.max(34,ls.length*24+8)}
+  if(objectNumber)info('Об’єкт',objectNumber);info('Клієнт',client);info('Телефон',phone);info('Адреса',address);y+=infoH+18;
+
+  rooms.forEach((room,index)=>{
+    const crow=exportItems4473(ceilingRows4402(room),'ceiling'),fin=exportItems4473(finishing4402(room),'work'),add=exportItems4473(additional4402(room),'work');
+    const c=ceiling4402(room),f=fin.reduce((s,i)=>s+num4402(i?.quantity)*num4402(i?.price),0),a=add.reduce((s,i)=>s+num4402(i?.quantity)*num4402(i?.price),0);
+    const total=(options.ceiling?c:0)+(options.finishing?f:0)+(options.additional?a:0);
+    const has=(options.ceiling&&(c||crow.length))||(options.finishing&&(f||fin.length))||(options.additional&&(a||add.length));if(!has)return;
+    need(118);rrR158(ctx,P,y,W-P*2,104,19,'#fff',line);
+    ctx.font='900 29px Arial';ctx.fillStyle=ink;ctx.fillText(clean4402(room?.name||room?.roomName||('Кімната '+(index+1))),P+24,y+40);
+    ctx.font='700 17px Arial';ctx.fillStyle=muted;ctx.fillText(`Площа: ${num4402(room?.area||room?.metrics?.area).toFixed(2)} м²  ·  Периметр: ${num4402(room?.perimeter||room?.metrics?.perimeter).toFixed(2)} м/пог.`,P+24,y+75);
+    ctx.font='900 29px Arial';ctx.fillStyle=blue;ctx.textAlign='right';ctx.fillText(money4402(total),W-P-24,y+58);ctx.textAlign='left';y+=122;
+    if(options.ceiling)section('Натяжні стелі',crow,'ceiling',c);
+    if(options.finishing)section('Оздоблення',fin,'work',f);
+    if(options.additional)section('Додаткові роботи',add,'work',a);
+  });
+
+  if(options.materials){
+    const mats=exportItems4473(materials4402(object),'work'),mt=mats.reduce((s,i)=>s+num4402(i?.quantity)*num4402(i?.price),0);
+    if(mats.length)section('Матеріали всього об’єкта',mats,'work',mt);
+  }
+
+  const total=selectedTotal4402(object,options),advance=Math.min(Math.max(0,num4402(meta?.advance)),Math.max(0,total)),balance=Math.max(0,total-advance),comment=clean4402(meta?.comment||'');
+  ctx.font='800 18px Arial';const commentLines=comment?wrapR158(ctx,comment,W-P*2-48):[],sumH=comment?285+commentLines.length*23:250;
+  need(sumH);rrR158(ctx,P,y,W-P*2,sumH,22,dark,null);
+  ctx.font='800 18px Arial';ctx.fillStyle='#bfdbfe';ctx.fillText('ПІДСУМОК КОШТОРИСУ',P+26,y+35);
+  ctx.font='900 30px Arial';ctx.fillStyle='#fff';ctx.fillText('Разом',P+26,y+78);ctx.textAlign='right';ctx.fillText(money4402(total),W-P-26,y+78);ctx.textAlign='left';
+  ctx.font='900 23px Arial';ctx.fillStyle='#86efac';ctx.fillText('Аванс',P+26,y+120);ctx.textAlign='right';ctx.fillText(money4402(advance),W-P-26,y+120);ctx.textAlign='left';
+  ctx.fillStyle='#fdba74';ctx.fillText('Залишок',P+26,y+162);ctx.textAlign='right';ctx.fillText(money4402(balance),W-P-26,y+162);ctx.textAlign='left';
+  if(comment){ctx.font='800 16px Arial';ctx.fillStyle='#94a3b8';ctx.fillText('КОМЕНТАР',P+26,y+205);ctx.font='700 18px Arial';ctx.fillStyle='#fff';commentLines.forEach((l,i)=>ctx.fillText(l,P+26,y+236+i*23))}
+  y+=sumH+18;
+  footer();
+  return pages;
+}
+async function estimatePngFilesR158(payload){
+  const pages=estimateCanvasPagesR158(payload),base=String(payload?.filename||'Koshtorys-Potolok.html').replace(/\.html$/i,'');
+  const files=[];for(let i=0;i<pages.length;i++){const blob=await blobFromCanvasR158(pages[i],'image/png');files.push(new File([blob],`${base}${pages.length>1?`-${i+1}`:''}.png`,{type:'image/png'}))}return files;
+}
+function asciiBytesR158(s){return new TextEncoder().encode(s)}
+async function pdfBlobR158(canvases){
+  const jpg=[];for(const c of canvases)jpg.push(await blobFromCanvasR158(c,'image/jpeg',.93));
+  const n=jpg.length,objCount=2+n*3,offsets=new Array(objCount+1).fill(0),parts=[];let pos=0;
+  const addText=s=>{const b=asciiBytesR158(s);parts.push(b);pos+=b.byteLength},addBlob=b=>{parts.push(b);pos+=b.size};
+  addText('%PDF-1.4\n%\xE2\xE3\xCF\xD3\n');
+  function start(id){offsets[id]=pos;addText(`${id} 0 obj\n`)}function end(){addText('endobj\n')}
+  start(1);addText('<< /Type /Catalog /Pages 2 0 R >>\n');end();
+  const kids=[];for(let i=0;i<n;i++)kids.push(`${3+i*3} 0 R`);
+  start(2);addText(`<< /Type /Pages /Kids [${kids.join(' ')}] /Count ${n} >>\n`);end();
+  for(let i=0;i<n;i++){
+    const pageId=3+i*3,contentId=pageId+1,imageId=pageId+2,im=`Im${i+1}`,c=canvases[i],b=jpg[i];
+    start(pageId);addText(`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595.28 841.89] /Resources << /XObject << /${im} ${imageId} 0 R >> >> /Contents ${contentId} 0 R >>\n`);end();
+    const stream=`q\n595.28 0 0 841.89 0 0 cm\n/${im} Do\nQ\n`,sb=asciiBytesR158(stream);
+    start(contentId);addText(`<< /Length ${sb.byteLength} >>\nstream\n`);parts.push(sb);pos+=sb.byteLength;addText('endstream\n');end();
+    start(imageId);addText(`<< /Type /XObject /Subtype /Image /Width ${c.width} /Height ${c.height} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${b.size} >>\nstream\n`);addBlob(b);addText('\nendstream\n');end();
+  }
+  const xref=pos;addText(`xref\n0 ${objCount+1}\n0000000000 65535 f \n`);
+  for(let i=1;i<=objCount;i++)addText(String(offsets[i]).padStart(10,'0')+' 00000 n \n');
+  addText(`trailer\n<< /Size ${objCount+1} /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF`);
+  return new Blob(parts,{type:'application/pdf'});
+}
+async function shareFilesOrDownloadR158(files,title,statusOk){
+  const can=!!navigator.share&&(!navigator.canShare||navigator.canShare({files}));
+  if(can){await navigator.share({title,files});return true}
+  files.forEach(f=>downloadBlobR158(f,f.name));setStatus4402(statusOk,'ok');return false;
+}
+window.shareSelectedEstimateImageR158=async function(button){
+  const old=button?.innerHTML;try{
+    const p=prepareSelected4402();if(button){button.disabled=true;button.innerHTML='<span>⏳</span><div><strong>Формуємо зображення…</strong><small>Готуємо універсальний кошторис</small></div>'}
+    const files=await estimatePngFilesR158(p),shared=await shareFilesOrDownloadR158(files,'Кошторис Potolok.in.ua','Зображення кошторису збережено на телефон. Його можна прикріпити в Telegram / Viber / WhatsApp.');
+    if(shared)window.closeEstimate4402();
+  }catch(error){if(error?.name!=='AbortError')setStatus4402(error?.message||'Не вдалося сформувати зображення кошторису.','err')}
+  finally{if(button){button.disabled=false;button.innerHTML=old}}
+};
+window.shareSelectedEstimatePdfR158=async function(button){
+  const old=button?.innerHTML;try{
+    const p=prepareSelected4402();if(button){button.disabled=true;button.innerHTML='<span>⏳</span><div><strong>Формуємо PDF…</strong><small>Готуємо документ для надсилання</small></div>'}
+    const pages=estimateCanvasPagesR158(p),blob=await pdfBlobR158(pages),name=String(p.filename||'Koshtorys-Potolok.html').replace(/\.html$/i,'.pdf'),file=new File([blob],name,{type:'application/pdf'});
+    const shared=await shareFilesOrDownloadR158([file],'Кошторис Potolok.in.ua','PDF кошторису збережено на телефон. Його можна прикріпити до повідомлення.');
+    if(shared)window.closeEstimate4402();
+  }catch(error){if(error?.name!=='AbortError')setStatus4402(error?.message||'Не вдалося сформувати PDF кошторису.','err')}
+  finally{if(button){button.disabled=false;button.innerHTML=old}}
+};
+
 window.shareEstimateFile4338=function(){
   try{loadMaterials4345(false);const object=estimateObject4345(),html=buildEstimateHtml4345(object),filename='Koshtorys-Potolok-'+safeFile4345(object.clientName||object.address||object.id)+'.html';sharePayload4345={object,html,filename,blob:new Blob([html],{type:'text/html;charset=utf-8'}),text:estimateText4345(object)};ensureShareModal4345().classList.add('open')}catch(error){alert('Не вдалося підготувати кошторис: '+(error?.message||error))}
 };
@@ -25043,7 +25202,7 @@ function refreshChoice4402(){
 }
 function ensureModal4402(){
   let modal=document.getElementById('estimateChoiceModal4402');if(modal)return modal;
-  modal=document.createElement('div');modal.id='estimateChoiceModal4402';modal.innerHTML=`<div class="choice-sheet4402" role="dialog" aria-modal="true"><div class="choice-head4402"><div><h3>📄 Що включити в кошторис?</h3><p>За замовчуванням формується кошторис <b>поточної кімнати</b>. Для всього об’єкта перемкніть режим нижче.</p></div><button type="button" class="choice-close4402" onclick="closeEstimate4402()">×</button></div><div class="choice-scope4473"><div class="choice-scope-title4473">ЩО ВІДПРАВЛЯЄМО</div><div class="choice-scope-grid4473"><button id="choiceScopeRoom4473" class="choice-scope-btn4473 active" type="button" onclick="setEstimateScope4473('room')">🚪 Поточна кімната</button><button id="choiceScopeObject4473" class="choice-scope-btn4473" type="button" onclick="setEstimateScope4473('object')">🏠 Весь об’єкт</button></div><div id="choiceScopeCurrent4477" class="choice-scope-current4477">Поточна: <b>Кімната</b></div><div id="choiceRoomList4488" class="choice-room-list4488" aria-label="Вибір кімнати для кошторису"></div><div id="choiceScopeNote4473" class="choice-scope-note4473">Суми нижче рахуються тільки для вибраної кімнати.</div></div><div class="choice-presets4402"><button id="choicePresetCeiling4402" class="choice-preset4402 active" type="button" onclick="estimatePreset4402('ceiling')">🏠 Стеля поточної кімнати</button><button id="choicePresetAll4402" class="choice-preset4402" type="button" onclick="estimatePreset4402('all')">📋 Кошторис поточної кімнати</button></div><div class="choice-label4402">Розділи кошторису</div><div class="choice-list4402"><label class="choice-item4402"><input id="choiceCeiling4402" type="checkbox" checked onchange="refreshEstimateChoice4402()"><span><strong>🏠 Натяжні стелі</strong><small>Полотно, профіль, освітлення та елементи стелі</small></span><b id="choiceCeilingValue4402">0 грн</b></label><label class="choice-item4402"><input id="choiceFinishing4402" type="checkbox" onchange="refreshEstimateChoice4402()"><span><strong>🧱 Оздоблення</strong><small>Оздоблювальні роботи по кімнатах</small></span><b id="choiceFinishingValue4402">0 грн</b></label><label class="choice-item4402"><input id="choiceAdditional4402" type="checkbox" onchange="refreshEstimateChoice4402()"><span><strong>🔧 Додаткові роботи</strong><small>Демонтаж, свердління, захист та інші роботи</small></span><b id="choiceAdditionalValue4402">0 грн</b></label><label class="choice-item4402"><input id="choiceMaterials4402" type="checkbox" onchange="refreshEstimateChoice4402()"><span><strong>📦 Матеріали об’єкта</strong><small>Загальний список шпаклівки, ґрунту, плівки та інших матеріалів</small></span><b id="choiceMaterialsValue4402">0 грн</b></label></div><div class="choice-total4402"><span>Буде відправлено на суму</span><b id="choiceTotal4402">0 грн</b></div><div class="choice-payment-grid4472"><label class="choice-payment-field4472"><span>Аванс, грн</span><input id="choiceAdvance4472" type="number" inputmode="decimal" min="0" step="1" value="0"></label><label class="choice-payment-field4472"><span>Дата кошторису</span><input id="choiceEstimateDate4472" type="text" inputmode="numeric" autocomplete="off" placeholder="дд.мм.рррр" maxlength="10"></label><label class="choice-comment-field4482"><span>Коментар</span><textarea id="choiceEstimateComment4482" rows="3" placeholder="Наприклад: роботи у 2 етапи, матеріали окремо..."></textarea></label><div class="choice-payment-note4472">Дата підставляється автоматично. Коментар буде видимий у кошторисі клієнта.</div></div><div class="choice-actions4402"><button class="choice-action4402 primary" type="button" onclick="shareSelectedEstimate4402(this)"><span>📎</span><div><strong>Надіслати вибраний кошторис файлом</strong><small>У файл потраплять тільки відмічені розділи</small></div></button><button class="choice-action4402" type="button" onclick="downloadSelectedEstimate4402(this)"><span>⬇️</span><div><strong>Завантажити вибраний кошторис</strong><small>Зберегти HTML-файл на телефон</small></div></button><button class="choice-action4402" type="button" onclick="shareSelectedEstimateText4402(this)"><span>💬</span><div><strong>Надіслати текстом</strong><small>Теж тільки обрані розділи</small></div></button></div><div id="choiceStatus4402" class="choice-status4402"></div></div>`;
+  modal=document.createElement('div');modal.id='estimateChoiceModal4402';modal.innerHTML=`<div class="choice-sheet4402" role="dialog" aria-modal="true"><div class="choice-head4402"><div><h3>📄 Що включити в кошторис?</h3><p>За замовчуванням формується кошторис <b>поточної кімнати</b>. Для всього об’єкта перемкніть режим нижче.</p></div><button type="button" class="choice-close4402" onclick="closeEstimate4402()">×</button></div><div class="choice-scope4473"><div class="choice-scope-title4473">ЩО ВІДПРАВЛЯЄМО</div><div class="choice-scope-grid4473"><button id="choiceScopeRoom4473" class="choice-scope-btn4473 active" type="button" onclick="setEstimateScope4473('room')">🚪 Поточна кімната</button><button id="choiceScopeObject4473" class="choice-scope-btn4473" type="button" onclick="setEstimateScope4473('object')">🏠 Весь об’єкт</button></div><div id="choiceScopeCurrent4477" class="choice-scope-current4477">Поточна: <b>Кімната</b></div><div id="choiceRoomList4488" class="choice-room-list4488" aria-label="Вибір кімнати для кошторису"></div><div id="choiceScopeNote4473" class="choice-scope-note4473">Суми нижче рахуються тільки для вибраної кімнати.</div></div><div class="choice-presets4402"><button id="choicePresetCeiling4402" class="choice-preset4402 active" type="button" onclick="estimatePreset4402('ceiling')">🏠 Стеля поточної кімнати</button><button id="choicePresetAll4402" class="choice-preset4402" type="button" onclick="estimatePreset4402('all')">📋 Кошторис поточної кімнати</button></div><div class="choice-label4402">Розділи кошторису</div><div class="choice-list4402"><label class="choice-item4402"><input id="choiceCeiling4402" type="checkbox" checked onchange="refreshEstimateChoice4402()"><span><strong>🏠 Натяжні стелі</strong><small>Полотно, профіль, освітлення та елементи стелі</small></span><b id="choiceCeilingValue4402">0 грн</b></label><label class="choice-item4402"><input id="choiceFinishing4402" type="checkbox" onchange="refreshEstimateChoice4402()"><span><strong>🧱 Оздоблення</strong><small>Оздоблювальні роботи по кімнатах</small></span><b id="choiceFinishingValue4402">0 грн</b></label><label class="choice-item4402"><input id="choiceAdditional4402" type="checkbox" onchange="refreshEstimateChoice4402()"><span><strong>🔧 Додаткові роботи</strong><small>Демонтаж, свердління, захист та інші роботи</small></span><b id="choiceAdditionalValue4402">0 грн</b></label><label class="choice-item4402"><input id="choiceMaterials4402" type="checkbox" onchange="refreshEstimateChoice4402()"><span><strong>📦 Матеріали об’єкта</strong><small>Загальний список шпаклівки, ґрунту, плівки та інших матеріалів</small></span><b id="choiceMaterialsValue4402">0 грн</b></label></div><div class="choice-total4402"><span>Буде відправлено на суму</span><b id="choiceTotal4402">0 грн</b></div><div class="choice-payment-grid4472"><label class="choice-payment-field4472"><span>Аванс, грн</span><input id="choiceAdvance4472" type="number" inputmode="decimal" min="0" step="1" value="0"></label><label class="choice-payment-field4472"><span>Дата кошторису</span><input id="choiceEstimateDate4472" type="text" inputmode="numeric" autocomplete="off" placeholder="дд.мм.рррр" maxlength="10"></label><label class="choice-comment-field4482"><span>Коментар</span><textarea id="choiceEstimateComment4482" rows="3" placeholder="Наприклад: роботи у 2 етапи, матеріали окремо..."></textarea></label><div class="choice-payment-note4472">Дата підставляється автоматично. Коментар буде видимий у кошторисі клієнта.</div></div><div class="choice-actions4402"><button class="choice-action4402 primary" type="button" onclick="shareSelectedEstimateImageR158(this)"><span>🖼️</span><div><strong>Надіслати кошторис зображенням</strong><small>Основний варіант · відкривається прямо в Telegram / Viber / WhatsApp</small></div></button><button class="choice-action4402" type="button" onclick="shareSelectedEstimatePdfR158(this)"><span>📄</span><div><strong>Надіслати кошторис PDF</strong><small>Універсальний документ для перегляду, друку та збереження</small></div></button><button class="choice-action4402" type="button" onclick="shareSelectedEstimateText4402(this)"><span>💬</span><div><strong>Надіслати текстом</strong><small>Резервний варіант, якщо файли не відкриваються</small></div></button></div><div id="choiceStatus4402" class="choice-status4402"></div></div>`;
   modal.addEventListener('click',event=>{if(event.target===modal)window.closeEstimate4402()});document.body.appendChild(modal);return modal;
 }
 window.refreshEstimateChoice4402=refreshChoice4402;
@@ -29907,7 +30066,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
     if(document.getElementById('pixel4486BuildBadge')) return;
     var el=document.createElement('div');
     el.id='pixel4486BuildBadge';
-    el.textContent='BUILD 44.90A-R15.7 · TEST 2 · STAGE PAYMENTS';
+    el.textContent='BUILD 44.90A-R15.8 · TEST 2 · STAGE REPORT SEND MENU';
     var header=document.querySelector('.header,header,.site-header,.topbar');
     if(header)header.insertAdjacentElement('afterend',el);else document.body.prepend(el);
     try{
@@ -30160,6 +30319,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 })();
 </script>
 
+<!-- PIXEL 44.90A-R15.8 TEST2 | STAGE REPORT SEND MENU: PNG + PDF + TEXT + ALL LOCKED STAGES -->
 <!-- PIXEL 44.90A-R15.4 TEST3 | FROM CLEAN R15.3 | CORNERS ALL TOTALS + WORK STAGES -->
 <style id="pixel4490aR154RebuiltStagesStyles">
 #finStagesR154{margin:14px 0 18px;padding:14px;border:1px solid #cfe0f7;border-radius:18px;background:linear-gradient(180deg,#f8fbff 0%,#ffffff 100%)}
@@ -30168,7 +30328,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 .r154-stage-list{display:grid;gap:9px}.r154-stage{border:1px solid #dbe3ef;background:#fff;border-radius:14px;overflow:hidden}.r154-stage[open]{box-shadow:0 8px 20px rgba(15,23,42,.07);border-color:#bcd2f4}.r154-stage.locked{border-color:#ccebd6}.r154-stage summary{list-style:none;display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:10px;align-items:center;padding:12px;cursor:pointer}.r154-stage summary::-webkit-details-marker{display:none}.r154-stage-title b{display:block;font-size:11px;color:#0f172a}.r154-stage-title span{display:block;font-size:8px;color:#64748b;margin-top:3px}.r154-stage-badge{display:inline-flex!important;width:max-content;margin-top:5px!important;padding:3px 7px;border-radius:999px;background:#fff7ed;color:#b45309!important;font-size:7px!important;font-weight:950}.r154-stage.locked .r154-stage-badge{background:#ecfdf3;color:#15803d!important}.r154-stage-sum{font-size:13px;font-weight:950;color:#075bff;white-space:nowrap}.r154-stage.locked .r154-stage-sum{color:#15803d}.r154-stage-chevron{font-size:12px;color:#64748b;transition:transform .18s ease}.r154-stage[open] .r154-stage-chevron{transform:rotate(180deg)}
 .r154-stage-body{padding:0 12px 12px;border-top:1px solid #eef2f7}.r154-stage-meta{display:grid;grid-template-columns:155px 1fr;gap:9px;padding:11px 0}.r154-stage-meta label{font-size:8px;font-weight:900;color:#475569}.r154-stage-meta input,.r154-stage-meta textarea{display:block;width:100%;box-sizing:border-box;margin-top:4px;border:1px solid #dbe3ef;border-radius:10px;background:#f8fafc;padding:9px;font-size:9px;color:#0f172a}.r154-stage-meta textarea{min-height:64px;resize:vertical}
 .r154-selected-title{display:flex;justify-content:space-between;gap:8px;align-items:center;margin:2px 0 7px;font-size:8.5px;font-weight:950;color:#334155}.r154-stage-items{display:grid;gap:6px}.r154-stage-item{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:8px;align-items:center;border:1px solid #e5e7eb;background:#f8fafc;border-radius:10px;padding:9px}.r154-stage-item b{display:block;font-size:9px}.r154-stage-item span{display:block;font-size:7.5px;color:#64748b;margin-top:2px}.r154-stage-item strong{font-size:9px;color:#0f172a;white-space:nowrap}.r154-stage-item .r157-remove{width:28px;height:28px;border:1px solid #fecaca;border-radius:8px;background:#fff;color:#dc2626;font-size:12px;font-weight:950;padding:0}.r154-stage-empty{padding:10px;border:1px dashed #cbd5e1;border-radius:10px;color:#64748b;font-size:8.5px;text-align:center;background:#f8fafc}
-.r157-picker{margin-top:9px;border:1px solid #bfdbfe;border-radius:11px;background:#f8fbff;overflow:hidden}.r157-picker>summary{display:flex!important;grid-template-columns:none!important;justify-content:space-between;gap:10px;padding:10px!important;color:#075bff;font-size:8.5px;font-weight:950}.r157-picker-body{display:grid;gap:6px;padding:0 9px 9px}.r157-pick-row{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:8px;align-items:center;padding:8px;border:1px solid #e5e7eb;border-radius:9px;background:#fff}.r157-pick-row input{width:19px;height:19px;accent-color:#075bff}.r157-pick-row b{display:block;font-size:8.5px}.r157-pick-row small{display:block;margin-top:2px;font-size:7.2px;color:#64748b}.r157-pick-row strong{font-size:8.5px;white-space:nowrap}.r157-pick-row.moved{border-color:#fde68a;background:#fffdf4}.r157-other-stage{color:#b45309!important;font-weight:850}
+.r157-picker{margin-top:9px;border:1px solid #bfdbfe;border-radius:11px;background:#f8fbff;overflow:hidden}.r157-picker>summary{display:flex!important;grid-template-columns:none!important;justify-content:space-between;gap:10px;padding:10px!important;color:#075bff;font-size:8.5px;font-weight:950}.r157-picker-body{display:grid;gap:6px;padding:0 9px 9px}.r157-select-all{display:flex;align-items:center;gap:8px;padding:9px;border:1px solid #93c5fd;border-radius:10px;background:#eff6ff;color:#075bff;font-size:8.7px;font-weight:950}.r157-select-all input{width:20px;height:20px;accent-color:#075bff;flex:0 0 auto}.r157-select-all span{display:flex;justify-content:space-between;align-items:center;gap:8px;width:100%}.r157-select-all small{font-size:7.2px;color:#64748b;font-weight:850}.r157-pick-row{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:8px;align-items:center;padding:8px;border:1px solid #e5e7eb;border-radius:9px;background:#fff}.r157-pick-row input{width:19px;height:19px;accent-color:#075bff}.r157-pick-row b{display:block;font-size:8.5px}.r157-pick-row small{display:block;margin-top:2px;font-size:7.2px;color:#64748b}.r157-pick-row strong{font-size:8.5px;white-space:nowrap}.r157-pick-row.moved{border-color:#fde68a;background:#fffdf4}.r157-other-stage{color:#b45309!important;font-weight:850}
 
 .r157-payment{margin-top:10px;padding:11px;border:1px solid #dbeafe;border-radius:12px;background:linear-gradient(180deg,#f8fbff 0%,#eff6ff 100%)}
 .r157-payment-title{display:flex;justify-content:space-between;gap:8px;align-items:center;margin-bottom:8px}.r157-payment-title b{font-size:9px;color:#0f172a}.r157-payment-title span{font-size:7.5px;color:#64748b}
@@ -30177,7 +30337,36 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 .r157-payment-chip{display:block;margin-top:4px;font-size:7.2px!important;font-weight:900;color:#15803d!important}.r157-payment-note{margin-top:7px;font-size:7.2px;line-height:1.4;color:#64748b}
 
 .r154-stage-actions{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:10px}.r154-stage-actions button{min-height:40px;border:1px solid #dbe3ef;border-radius:10px;background:#fff;font-size:8.5px;font-weight:950;color:#334155}.r154-stage-actions .lock{background:#16a34a;color:#fff;border-color:#16a34a}.r154-stage-actions .share{background:#071428;color:#fff;border-color:#071428}.r154-stage.locked .r154-stage-meta input,.r154-stage.locked .r154-stage-meta textarea{opacity:.72;pointer-events:none}
-.r157-room-total{display:grid;grid-template-columns:1fr auto;gap:7px 12px;align-items:center;margin-top:12px;padding:12px;border-radius:13px;background:#071428;color:#fff}.r157-room-total .label{font-size:8.5px;color:#bfdbfe}.r157-room-total .money{font-size:18px;font-weight:950;text-align:right}.r157-room-total .sub{font-size:7.7px;color:#94a3b8;line-height:1.4}.r157-room-total .status{font-size:9px;font-weight:950;text-align:right}.r157-room-actions{grid-column:1/-1;display:grid;grid-template-columns:1fr;gap:7px;margin-top:4px}.r157-room-actions button{min-height:42px;border:0;border-radius:10px;font-size:9px;font-weight:950}.r157-room-actions .finish{background:#16a34a;color:#fff}.r157-room-actions .reopen{background:#fff;color:#075bff}.r157-room-actions button:disabled{opacity:.4}.r157-unassigned{grid-column:1/-1;margin-top:2px;padding:8px 9px;border-radius:9px;background:#fff7ed;color:#9a3412;font-size:7.7px;font-weight:850}
+.r157-room-total{display:grid;grid-template-columns:1fr auto;gap:7px 12px;align-items:center;margin-top:12px;padding:12px;border-radius:13px;background:#071428;color:#fff}.r157-room-total .label{font-size:8.5px;color:#bfdbfe}.r157-room-total .money{font-size:18px;font-weight:950;text-align:right}.r157-room-total .sub{font-size:7.7px;color:#94a3b8;line-height:1.4}.r157-room-total .status{font-size:9px;font-weight:950;text-align:right}.r157-room-actions{grid-column:1/-1;display:grid;grid-template-columns:1fr;gap:7px;margin-top:4px}.r157-room-actions button{min-height:42px;border:0;border-radius:10px;font-size:9px;font-weight:950}.r157-room-actions .finish{background:#16a34a;color:#fff}.r157-room-actions .reopen{background:#fff;color:#075bff}
+.r158-stage-share-modal{position:fixed;inset:0;z-index:22000;display:none;align-items:flex-end;justify-content:center;padding:14px;background:rgba(7,20,40,.66)}
+.r158-stage-share-modal.open{display:flex}
+.r158-stage-share-sheet{width:min(620px,100%);max-height:92vh;overflow:auto;background:#fff;border-radius:22px;padding:16px;box-shadow:0 30px 90px rgba(0,0,0,.36)}
+.r158-stage-share-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:12px}
+.r158-stage-share-head h3{font-size:18px;line-height:1.2;margin:0;color:#0f172a}
+.r158-stage-share-head p{font-size:9px;line-height:1.45;color:#64748b;margin:5px 0 0}
+.r158-stage-share-close{width:40px;height:40px;flex:0 0 40px;border:1px solid #e5e7eb;background:#fff;border-radius:11px;font-size:21px}
+.r158-stage-share-summary{border:1px solid #bfdbfe;background:#eff6ff;border-radius:14px;padding:12px;margin-bottom:12px}
+.r158-stage-share-target{font-size:10px;font-weight:950;color:#075bff}
+.r158-stage-share-room{font-size:9px;color:#475569;margin-top:4px}
+.r158-stage-share-metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:10px}
+.r158-stage-share-metric{background:#fff;border:1px solid #dbe3ef;border-radius:10px;padding:9px}
+.r158-stage-share-metric span{display:block;font-size:7.5px;color:#64748b;font-weight:850}
+.r158-stage-share-metric b{display:block;margin-top:4px;font-size:11px;color:#0f172a}
+.r158-stage-share-metric.paid b{color:#15803d}.r158-stage-share-metric.balance b{color:#b45309}
+.r158-stage-share-actions{display:grid;gap:9px}
+.r158-stage-share-action{display:grid;grid-template-columns:42px minmax(0,1fr);gap:10px;align-items:center;width:100%;text-align:left;border:1px solid #dbe3ef;background:#fff;border-radius:13px;padding:11px;color:#0f172a}
+.r158-stage-share-action.primary{background:#075bff;color:#fff;border-color:#075bff}
+.r158-stage-share-action>span{font-size:23px;text-align:center}
+.r158-stage-share-action strong{display:block;font-size:10.5px}
+.r158-stage-share-action small{display:block;font-size:8px;line-height:1.4;color:#64748b;margin-top:3px}
+.r158-stage-share-action.primary small{color:#dbeafe}
+.r158-stage-share-status{display:none;margin-top:10px;padding:10px;border-radius:10px;font-size:8.5px;font-weight:850;line-height:1.45}
+.r158-stage-share-status.show{display:block}.r158-stage-share-status.ok{background:#ecfdf5;color:#047857;border:1px solid #a7f3d0}.r158-stage-share-status.err{background:#fff1f2;color:#b91c1c;border:1px solid #fecdd3}
+.r157-room-actions .share-all-r158{background:#075bff;color:#fff}
+@media(min-width:760px){.r158-stage-share-modal{align-items:center}}
+@media(max-width:520px){.r158-stage-share-metrics{grid-template-columns:1fr}.r158-stage-share-sheet{padding:14px}}
+
+.r157-room-actions button:disabled{opacity:.4}.r157-unassigned{grid-column:1/-1;margin-top:2px;padding:8px 9px;border-radius:9px;background:#fff7ed;color:#9a3412;font-size:7.7px;font-weight:850}
 @media(max-width:520px){#finStagesR154{padding:11px}.r154-stage-head{grid-template-columns:1fr}.r154-add-stage{width:100%}.r154-stage-meta{grid-template-columns:1fr}.r154-stage-actions{grid-template-columns:1fr}.r154-stage summary{grid-template-columns:minmax(0,1fr) auto}.r154-stage-chevron{display:none}.r154-stage-sum{text-align:right}.r157-room-total{grid-template-columns:1fr auto}.r157-pick-row{grid-template-columns:auto minmax(0,1fr)}.r157-pick-row strong{grid-column:2}.r157-payment-grid{grid-template-columns:1fr}.r157-payment-field.wide{grid-column:auto}.r157-payment-totals{grid-template-columns:1fr}}
 </style>
 <script id="pixel4490aR154RebuiltStagesScript">
@@ -30218,20 +30407,183 @@ function allLiveWorks(r){const out=[];finishing(r).forEach((x,i)=>{if(x?.enabled
 function stageById(r,id){return stageStore(r,true).find(s=>String(s.id)===String(id))||null}
 function unlockedPickerWorks(r,s){const stages=stageStore(r,true),lockedIds=new Set(stages.filter(x=>x.locked).map(x=>String(x.id)));return allLiveWorks(r).filter(x=>!lockedIds.has(x.sid)||x.sid===String(s.id))}
 function selectedItemHtml(s,x){const remove=s.locked?'':`<button type="button" class="r157-remove" aria-label="Прибрати з етапу" onclick="removeWorkFromStageR157('${x.kind}',${x.index},'${E(s.id)}')">×</button>`;return `<div class="r154-stage-item"><div><b>${E(x.name)}</b><span>${N(x.qty).toLocaleString('uk-UA',{maximumFractionDigits:2})} ${E(x.unit)} × ${M(x.price)}</span></div><strong>${M(x.sum)}</strong>${remove}</div>`}
-function pickerHtml(r,s){if(s.locked)return'';const works=unlockedPickerWorks(r,s),stages=stageStore(r,true),openMap=new Map(stages.filter(x=>!x.locked).map(x=>[String(x.id),x.number]));const rows=works.map(x=>{const checked=x.sid===String(s.id),other=x.sid&&!checked?openMap.get(x.sid):null;return `<label class="r157-pick-row ${other?'moved':''}"><input type="checkbox" ${checked?'checked':''} onchange="toggleStageWorkR157('${x.kind}',${x.index},'${E(s.id)}',this.checked)"><span><b>${E(x.name)}</b><small>${N(x.qty).toLocaleString('uk-UA',{maximumFractionDigits:2})} ${E(x.unit)} × ${M(x.price)}${other?` · <span class="r157-other-stage">зараз у Етапі ${other}</span>`:''}</small></span><strong>${M(x.sum)}</strong></label>`}).join('');const open=entries(r,s).length===0?' open':'';return `<details class="r157-picker"${open}><summary><span>☑ Обрати / змінити роботи етапу</span><span>${works.length} доступно</span></summary><div class="r157-picker-body">${rows||'<div class="r154-stage-empty">Немає доступних робіт для розподілу.</div>'}</div></details>`}
-function cardHtml(r,s){const its=entries(r,s),sum=stageSum(r,s),date=s.date||'',comment=s.comment||'',rid=String(r?.id||''),isOpen=openStageByRoom.get(rid)===String(s.id),advance=stageAdvance(s),prepay=stagePrepayment(s),paid=stagePaid(s),balance=stageBalance(r,s),prepayNote=String(s.prepaymentNoteR157||'');const action=s.locked?`<button type="button" onclick="toggleStageLockR154('${E(s.id)}')">✏️ Редагувати етап</button>`:`<button type="button" class="lock" onclick="toggleStageLockR154('${E(s.id)}')">🔒 Зафіксувати етап</button>`;const paymentChip=paid>0?`<span class="r157-payment-chip">💳 Внесено ${M(paid)} · залишок ${M(balance)}</span>`:'';return `<details class="r154-stage ${s.locked?'locked':''}" data-r154-stage="${E(s.id)}" ${isOpen?'open':''}><summary><div class="r154-stage-title"><b>Етап ${s.number} · ${s.locked?'Виконані роботи':'В роботі'}</b><span>${date?E(displayDate(date)):'дата не вказана'} · ${its.length} робіт</span><span class="r154-stage-badge">${s.locked?'✅ Зафіксовано':'🟡 Не зафіксовано'}</span>${paymentChip}</div><div class="r154-stage-sum">${M(sum)}</div><div class="r154-stage-chevron">⌄</div></summary><div class="r154-stage-body"><div class="r154-stage-meta"><label>Дата етапу<input type="date" value="${E(date)}" ${s.locked?'disabled':''} onchange="setStageMetaR154('${E(s.id)}','date',this.value)"></label><label>Коментар етапу<textarea ${s.locked?'disabled':''} placeholder="Що виконано на цьому етапі…" oninput="setStageMetaR154('${E(s.id)}','comment',this.value)">${E(comment)}</textarea></label></div><div class="r154-selected-title"><span>Роботи цього етапу</span><span>${its.length} поз.</span></div><div class="r154-stage-items">${its.length?its.map(x=>selectedItemHtml(s,x)).join(''):'<div class="r154-stage-empty">У цьому етапі ще немає вибраних робіт.</div>'}</div>${pickerHtml(r,s)}<div class="r157-payment"><div class="r157-payment-title"><b>💳 Оплата по етапу</b><span>зберігається разом з кімнатою</span></div><div class="r157-payment-grid"><label class="r157-payment-field"><span>Аванс, грн</span><input type="number" inputmode="decimal" min="0" step="1" value="${advance||''}" placeholder="0" onchange="setStagePaymentR157('${E(s.id)}','advance',this.value)"></label><label class="r157-payment-field"><span>Передоплата, грн</span><input type="number" inputmode="decimal" min="0" step="1" value="${prepay||''}" placeholder="0" onchange="setStagePaymentR157('${E(s.id)}','prepayment',this.value)"></label><label class="r157-payment-field wide"><span>За що передоплата</span><input type="text" value="${E(prepayNote)}" placeholder="Напр.: матеріали, натяжні стелі, фарба…" onchange="setStagePaymentR157('${E(s.id)}','prepaymentNote',this.value)"></label></div><div class="r157-payment-totals"><div class="r157-payment-stat"><span>Сума етапу</span><b>${M(sum)}</b></div><div class="r157-payment-stat paid"><span>Внесено</span><b>${M(paid)}</b></div><div class="r157-payment-stat balance"><span>Залишок</span><b>${M(balance)}</b></div></div><div class="r157-payment-note">Аванс і передоплата зберігаються окремо. Для передоплати можна вручну вказати призначення — наприклад «за Натяжні стелі».</div></div><div class="r154-stage-actions">${action}<button type="button" class="share" onclick="shareStageR154('${E(s.id)}')">📤 Надіслати етап</button></div></div></details>`}
-function roomSummaryHtml(r,ss){const locked=ss.filter(s=>s.locked),open=ss.filter(s=>!s.locked),lockedTotal=locked.reduce((a,s)=>a+stageSum(r,s),0),openTotal=open.reduce((a,s)=>a+stageSum(r,s),0),lockedPaid=locked.reduce((a,s)=>a+stagePaid(s),0),lockedBalance=Math.max(0,lockedTotal-lockedPaid),unassigned=allLiveWorks(r).filter(x=>!x.sid).length,closed=!!r.workRoomClosedR157;const status=closed?'✅ Кімната завершена':'🟡 Кімната в роботі';const warning=unassigned?`<div class="r157-unassigned">⚠️ ${unassigned} активних робіт ще не включено до жодного етапу.</div>`:'';const payline=lockedPaid>0?`<div class="sub">💳 Внесено по зафіксованих етапах: ${M(lockedPaid)} · залишок: ${M(lockedBalance)}</div><div></div>`:'';const btn=closed?`<button class="reopen" type="button" onclick="toggleRoomDoneR157(false)">↩ Відновити роботу по кімнаті</button>`:`<button class="finish" type="button" onclick="toggleRoomDoneR157(true)" ${open.length?'disabled':''}>✅ Завершити кімнату</button>`;return `<div class="r157-room-total"><div><div class="label">Зафіксовано по кімнаті</div><div class="sub">Етапів: ${ss.length} · зафіксовано: ${locked.length}${open.length?` · у роботі: ${open.length}`:''}</div></div><div><div class="money">${M(lockedTotal)}</div><div class="status">${status}</div></div>${payline}${openTotal?`<div class="sub">Поточні незакриті етапи: ${M(openTotal)}</div><div></div>`:''}${warning}<div class="r157-room-actions">${btn}</div></div>`}
+function pickerHtml(r,s){if(s.locked)return'';const works=unlockedPickerWorks(r,s),stages=stageStore(r,true),openMap=new Map(stages.filter(x=>!x.locked).map(x=>[String(x.id),x.number]));const selectedCount=works.filter(x=>x.sid===String(s.id)).length,allChecked=works.length>0&&selectedCount===works.length;const master=works.length?`<label class="r157-select-all"><input type="checkbox" ${allChecked?'checked':''} onchange="toggleAllStageWorksR157('${E(s.id)}',this.checked)"><span><b>Вибрати всі роботи</b><small>${selectedCount} з ${works.length} вибрано</small></span></label>`:'';const rows=works.map(x=>{const checked=x.sid===String(s.id),other=x.sid&&!checked?openMap.get(x.sid):null;return `<label class="r157-pick-row ${other?'moved':''}"><input type="checkbox" ${checked?'checked':''} onchange="toggleStageWorkR157('${x.kind}',${x.index},'${E(s.id)}',this.checked)"><span><b>${E(x.name)}</b><small>${N(x.qty).toLocaleString('uk-UA',{maximumFractionDigits:2})} ${E(x.unit)} × ${M(x.price)}${other?` · <span class="r157-other-stage">зараз у Етапі ${other}</span>`:''}</small></span><strong>${M(x.sum)}</strong></label>`}).join('');const open=entries(r,s).length===0?' open':'';return `<details class="r157-picker"${open}><summary><span>☑ Обрати / змінити роботи етапу</span><span>${works.length} доступно</span></summary><div class="r157-picker-body">${master}${rows||'<div class="r154-stage-empty">Немає доступних робіт для розподілу.</div>'}</div></details>`}
+function cardHtml(r,s){const its=entries(r,s),sum=stageSum(r,s),date=s.date||'',comment=s.comment||'',rid=String(r?.id||''),isOpen=openStageByRoom.get(rid)===String(s.id),advance=stageAdvance(s),prepay=stagePrepayment(s),paid=stagePaid(s),balance=stageBalance(r,s),prepayNote=String(s.prepaymentNoteR157||''),ord=`${s.number}-й`,gen=`${s.number}-го`;const action=s.locked?`<button type="button" onclick="toggleStageLockR154('${E(s.id)}')">✏️ Редагувати ${ord} етап робіт</button>`:`<button type="button" class="lock" onclick="toggleStageLockR154('${E(s.id)}')">🔒 Зафіксувати ${ord} етап робіт</button>`;const paymentChip=paid>0?`<span class="r157-payment-chip">💳 Внесено ${M(paid)} · залишок ${M(balance)}</span>`:'';return `<details class="r154-stage ${s.locked?'locked':''}" data-r154-stage="${E(s.id)}" ${isOpen?'open':''}><summary><div class="r154-stage-title"><b>${ord} етап · ${s.locked?'Виконані роботи':'В роботі'}</b><span>${date?E(displayDate(date)):'дата не вказана'} · ${its.length} робіт</span><span class="r154-stage-badge">${s.locked?'✅ Зафіксовано':'🟡 Не зафіксовано'}</span>${paymentChip}</div><div class="r154-stage-sum">${M(sum)}</div><div class="r154-stage-chevron">⌄</div></summary><div class="r154-stage-body"><div class="r154-stage-meta"><label>Дата ${gen} етапу виконаних робіт<input type="date" value="${E(date)}" ${s.locked?'disabled':''} onchange="setStageMetaR154('${E(s.id)}','date',this.value)"></label><label>Коментар до ${gen} етапу виконаних робіт<textarea ${s.locked?'disabled':''} placeholder="Що виконано під час цього етапу робіт…" oninput="setStageMetaR154('${E(s.id)}','comment',this.value)">${E(comment)}</textarea></label></div><div class="r154-selected-title"><span>Роботи ${gen} етапу</span><span>${its.length} поз.</span></div><div class="r154-stage-items">${its.length?its.map(x=>selectedItemHtml(s,x)).join(''):'<div class="r154-stage-empty">До цього етапу ще не додано роботи.</div>'}</div>${pickerHtml(r,s)}<div class="r157-payment"><div class="r157-payment-title"><b>💳 Розрахунок за ${ord} етап виконаних робіт</b><span>зберігається разом з кімнатою</span></div><div class="r157-payment-grid"><label class="r157-payment-field"><span>Аванс, грн</span><input type="number" inputmode="decimal" min="0" step="1" value="${advance||''}" placeholder="0" onchange="setStagePaymentR157('${E(s.id)}','advance',this.value)"></label><label class="r157-payment-field"><span>Передоплата, грн</span><input type="number" inputmode="decimal" min="0" step="1" value="${prepay||''}" placeholder="0" onchange="setStagePaymentR157('${E(s.id)}','prepayment',this.value)"></label><label class="r157-payment-field wide"><span>За що передоплата</span><input type="text" value="${E(prepayNote)}" placeholder="Напр.: матеріали, натяжні стелі, фарба…" onchange="setStagePaymentR157('${E(s.id)}','prepaymentNote',this.value)"></label></div><div class="r157-payment-totals"><div class="r157-payment-stat"><span>Сума ${gen} етапу</span><b>${M(sum)}</b></div><div class="r157-payment-stat paid"><span>Внесено</span><b>${M(paid)}</b></div><div class="r157-payment-stat balance"><span>Залишок</span><b>${M(balance)}</b></div></div><div class="r157-payment-note">Аванс і передоплата зберігаються окремо. Для передоплати можна вручну вказати призначення — наприклад «за Натяжні стелі».</div></div><div class="r154-stage-actions">${action}<button type="button" class="share" onclick="shareStageR154('${E(s.id)}')">📤 Надіслати звіт за ${ord} етап</button></div></div></details>`}
+function roomSummaryHtml(r,ss){const locked=ss.filter(s=>s.locked),open=ss.filter(s=>!s.locked),lockedTotal=locked.reduce((a,s)=>a+stageSum(r,s),0),openTotal=open.reduce((a,s)=>a+stageSum(r,s),0),lockedPaid=locked.reduce((a,s)=>a+stagePaid(s),0),lockedBalance=Math.max(0,lockedTotal-lockedPaid),unassigned=allLiveWorks(r).filter(x=>!x.sid).length,closed=!!r.workRoomClosedR157;const status=closed?'✅ Кімната завершена':'🟡 Кімната в роботі';const warning=unassigned?`<div class="r157-unassigned">⚠️ ${unassigned} активних робіт ще не включено до жодного етапу.</div>`:'';const payline=lockedPaid>0?`<div class="sub">💳 Внесено по зафіксованих етапах: ${M(lockedPaid)} · залишок: ${M(lockedBalance)}</div><div></div>`:'';const allShare=locked.length?`<button class="share-all-r158" type="button" onclick="shareAllLockedStagesR158()">📤 Надіслати всі зафіксовані етапи</button>`:'';const btn=closed?`<button class="reopen" type="button" onclick="toggleRoomDoneR157(false)">↩ Відновити роботу по кімнаті</button>`:`<button class="finish" type="button" onclick="toggleRoomDoneR157(true)" ${open.length?'disabled':''}>✅ Завершити кімнату</button>`;return `<div class="r157-room-total"><div><div class="label">Зафіксовано по кімнаті</div><div class="sub">Етапів: ${ss.length} · зафіксовано: ${locked.length}${open.length?` · у роботі: ${open.length}`:''}</div></div><div><div class="money">${M(lockedTotal)}</div><div class="status">${status}</div></div>${payline}${openTotal?`<div class="sub">Поточні незакриті етапи: ${M(openTotal)}</div><div></div>`:''}${warning}<div class="r157-room-actions">${allShare}${btn}</div></div>`}
 function ensureHost(){const list=document.getElementById('fin78List');if(!list)return null;let box=document.getElementById('finStagesR154');if(!box){box=document.createElement('section');box.id='finStagesR154';list.insertAdjacentElement('beforebegin',box)}return box}
-function render(force=false){const box=ensureHost();if(!box)return;if(!force&&document.activeElement?.closest?.('#finStagesR154')){pendingRender=true;return}pendingRender=false;const r=room();if(!r){box.innerHTML='<div class="r154-stage-empty">Оберіть кімнату для роботи з етапами.</div>';return}hydrate(r);const ss=stageStore(r,true),closed=!!r.workRoomClosedR157;box.innerHTML=`<div class="r154-stage-head"><div><div class="r154-room-chip">🏠 ${E(roomLabel(r))}</div><h3>📑 Етапи робіт · <span>${E(roomLabel(r))}</span></h3><p>Кожна кімната має власну історію етапів. Зафіксований етап зберігає склад і суму; нові роботи можна розподіляти в наступний етап.</p></div><button class="r154-add-stage" type="button" onclick="addWorkStageR154()" ${closed?'disabled':''}>＋ Новий етап</button></div><div class="r154-stage-list">${ss.map(s=>cardHtml(r,s)).join('')}</div>${roomSummaryHtml(r,ss)}`}
+function render(force=false){const box=ensureHost();if(!box)return;if(!force&&document.activeElement?.closest?.('#finStagesR154')){pendingRender=true;return}pendingRender=false;const r=room();if(!r){box.innerHTML='<div class="r154-stage-empty">Оберіть кімнату для роботи з етапами.</div>';return}hydrate(r);const ss=stageStore(r,true),closed=!!r.workRoomClosedR157;box.innerHTML=`<div class="r154-stage-head"><div><div class="r154-room-chip">🏠 ${E(roomLabel(r))}</div><h3>📑 Етапи виконаних робіт · <span>${E(roomLabel(r))}</span></h3><p>Кожна кімната має власну історію етапів. Зафіксований етап зберігає склад і суму; нові роботи можна розподіляти в наступний етап.</p></div><button class="r154-add-stage" type="button" onclick="addWorkStageR154()" ${closed?'disabled':''}>＋ Додати наступний етап робіт</button></div><div class="r154-stage-list">${ss.map(s=>cardHtml(r,s)).join('')}</div>${roomSummaryHtml(r,ss)}`}
 function schedule(ms=80,force=false){clearTimeout(renderTimer);renderTimer=setTimeout(()=>render(force),ms)}
 window.addWorkStageR154=function(){const r=room();if(!r)return;hydrate(r);if(r.workRoomClosedR157){alert('Кімната завершена. Спочатку відновіть роботу по кімнаті.');return}const a=stageStore(r,true),s={id:stageId(),number:a.length+1,date:today(),comment:'',locked:false,advanceR157:0,prepaymentR157:0,prepaymentNoteR157:'',createdAt:new Date().toISOString()};a.push(s);openStageByRoom.set(String(r.id||''),String(s.id));save();render(true)};
 window.setStageMetaR154=function(id,key,value){const r=room(),s=stageStore(r,true).find(x=>x.id===id);if(!s||s.locked)return;if(key==='date')s.date=String(value||'');if(key==='comment')s.comment=String(value||'');s.updatedAt=new Date().toISOString();save()};
 window.setStagePaymentR157=function(id,key,value){const r=room(),s=stageById(r,id);if(!r||!s)return;if(key==='advance')s.advanceR157=Math.max(0,N(value));else if(key==='prepayment')s.prepaymentR157=Math.max(0,N(value));else if(key==='prepaymentNote')s.prepaymentNoteR157=String(value||'');else return;s.paymentUpdatedAtR157=new Date().toISOString();openStageByRoom.set(String(r.id||''),String(s.id));save();render(true)};
-window.toggleStageWorkR157=function(kind,index,target,checked){const r=room();if(!r)return;const arr=kind==='add'?additional(r):finishing(r),x=arr[index],to=stageById(r,target);if(!x||!to||to.locked)return;const from=stageById(r,x.r154StageId);if(from?.locked&&String(from.id)!==String(target)){alert('Ця робота вже входить у зафіксований етап. Спочатку відкрийте той етап для редагування.');render(true);return}if(checked)x.r154StageId=target;else if(String(x.r154StageId||'')===String(target))x.r154StageId='';openStageByRoom.set(String(r.id||''),String(target));save();setTimeout(()=>render(true),20)};
+window.toggleAllStageWorksR157=function(target,checked){const r=room(),to=stageById(r,target);if(!r||!to||to.locked)return;const works=unlockedPickerWorks(r,to);if(checked){const moved=works.filter(x=>x.sid&&x.sid!==String(target));if(moved.length&&!confirm(`Є ${moved.length} робіт в іншому незакритому етапі. Перенести їх у Етап ${to.number}?`)){render(true);return}works.forEach(x=>{const arr=x.kind==='add'?additional(r):finishing(r),item=arr[x.index];if(item)item.r154StageId=target})}else{works.forEach(x=>{if(x.sid===String(target)){const arr=x.kind==='add'?additional(r):finishing(r),item=arr[x.index];if(item)item.r154StageId=''}})}openStageByRoom.set(String(r.id||''),String(target));save();setTimeout(()=>{render(true);try{window.renderFinishing78?.()}catch(_){}},25)};
+window.toggleStageWorkR157=function(kind,index,target,checked){const r=room();if(!r)return;const arr=kind==='add'?additional(r):finishing(r),x=arr[index],to=stageById(r,target);if(!x||!to||to.locked)return;const from=stageById(r,x.r154StageId);if(from?.locked&&String(from.id)!==String(target)){alert('Ця робота вже входить у зафіксований етап. Спочатку відкрийте той етап для редагування.');render(true);return}if(checked)x.r154StageId=target;else if(String(x.r154StageId||'')===String(target))x.r154StageId='';openStageByRoom.set(String(r.id||''),String(target));save();setTimeout(()=>{render(true);try{window.renderFinishing78?.()}catch(_){}},20)};
 window.removeWorkFromStageR157=function(kind,index,target){window.toggleStageWorkR157(kind,index,target,false)};
-window.toggleStageLockR154=function(id){const r=room(),s=stageById(r,id);if(!s)return;if(!s.locked){const its=liveEntries(r,s.id);if(!its.length){alert('Спочатку виберіть роботи, які входять до цього етапу.');return}s.snapshot={items:clone(its),total:sumEntries(its),lockedAt:new Date().toISOString()};s.locked=true;openStageByRoom.delete(String(r.id||''))}else{if(!confirm('Відкрити цей зафіксований етап для редагування? Після змін його потрібно буде зафіксувати повторно.'))return;s.locked=false;r.workRoomClosedR157=false;r.workRoomClosedAtR157='';openStageByRoom.set(String(r.id||''),String(s.id))}s.updatedAt=new Date().toISOString();save();render(true)};
+window.toggleStageLockR154=function(id){const r=room(),s=stageById(r,id);if(!s)return;if(!s.locked){const its=liveEntries(r,s.id);if(!its.length){alert('Спочатку виберіть роботи, які входять до цього етапу.');return}s.snapshot={items:clone(its),total:sumEntries(its),lockedAt:new Date().toISOString()};s.locked=true;openStageByRoom.delete(String(r.id||''))}else{if(!confirm('Відкрити цей зафіксований етап для редагування? Після змін його потрібно буде зафіксувати повторно.'))return;s.locked=false;r.workRoomClosedR157=false;r.workRoomClosedAtR157='';openStageByRoom.set(String(r.id||''),String(s.id))}s.updatedAt=new Date().toISOString();save();render(true);setTimeout(()=>{try{window.renderFinishing78?.()}catch(_){}},25)};
 window.toggleRoomDoneR157=function(done){const r=room();if(!r)return;const ss=stageStore(r,true);if(done){const open=ss.filter(s=>!s.locked);if(open.length){alert('Спочатку зафіксуйте всі етапи цієї кімнати.');return}const unassigned=allLiveWorks(r).filter(x=>!x.sid);if(unassigned.length&&!confirm(`Є ${unassigned.length} активних робіт, які не включені до етапів. Все одно завершити кімнату?`))return;r.workRoomClosedR157=true;r.workRoomClosedAtR157=new Date().toISOString()}else{r.workRoomClosedR157=false;r.workRoomClosedAtR157=''}save();render(true)};
-window.shareStageR154=async function(id){const r=room(),s=stageById(r,id);if(!r||!s)return;const its=entries(r,s),total=stageSum(r,s),advance=stageAdvance(s),prepay=stagePrepayment(s),paid=stagePaid(s),balance=stageBalance(r,s),purpose=String(s.prepaymentNoteR157||'').trim();const paymentLines=[];if(advance>0)paymentLines.push(`АВАНС: ${M(advance)}`);if(prepay>0)paymentLines.push(`ПЕРЕДОПЛАТА${purpose?` (${purpose})`:''}: ${M(prepay)}`);if(paid>0)paymentLines.push(`ВНЕСЕНО: ${M(paid)}`,`ЗАЛИШОК ПО ЕТАПУ: ${M(balance)}`);const lines=[`Potolok.in.ua · ${roomLabel(r)}`,`Етап ${s.number} · Виконані роботи`,s.date?`Дата: ${displayDate(s.date)}`:'',s.comment?`Коментар: ${s.comment}`:'','',...its.map((x,i)=>`${i+1}. ${x.name} — ${N(x.qty).toLocaleString('uk-UA',{maximumFractionDigits:2})} ${x.unit} × ${M(x.price)} = ${M(x.sum)}`),'',`РАЗОМ ЕТАП: ${M(total)}`,...(paymentLines.length?['',...paymentLines]:[])].filter(Boolean);const t=lines.join('\n');try{if(navigator.share){await navigator.share({title:`Етап ${s.number} · ${roomLabel(r)}`,text:t});return}await navigator.clipboard.writeText(t);alert('Етап скопійовано в буфер обміну.')}catch(e){if(e?.name!=='AbortError')alert('Не вдалося надіслати етап: '+(e?.message||e))}};
+function roundRectR157T4(ctx,x,y,w,h,r,fill,stroke){ctx.beginPath();ctx.roundRect(x,y,w,h,r);if(fill){ctx.fillStyle=fill;ctx.fill()}if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=2;ctx.stroke()}}
+function canvasLinesR157T4(ctx,text,maxWidth){const words=String(text||'').replace(/\s+/g,' ').trim().split(' ').filter(Boolean),lines=[];let line='';for(const word of words){const test=line?line+' '+word:word;if(ctx.measureText(test).width<=maxWidth||!line)line=test;else{lines.push(line);line=word}}if(line)lines.push(line);return lines.length?lines:['']}
+function drawTextR157T4(ctx,text,x,y,maxWidth,lineHeight,maxLines=99){const lines=canvasLinesR157T4(ctx,text,maxWidth).slice(0,maxLines);lines.forEach((line,i)=>ctx.fillText(line,x,y+i*lineHeight));return y+lines.length*lineHeight}
+function safeNameR157T4(v){return String(v||'stage').trim().replace(/[^a-zA-Z0-9а-яА-ЯіІїЇєЄґҐ_-]+/g,'-').replace(/-+/g,'-').replace(/^-|-$/g,'')||'stage'}
+async function stagePngR157T4(r,s){const its=entries(r,s),total=stageSum(r,s),advance=stageAdvance(s),prepay=stagePrepayment(s),paid=stagePaid(s),balance=stageBalance(r,s),purpose=String(s.prepaymentNoteR157||'').trim(),roomName=roomLabel(r),area=N(r?.area),perimeter=N(r?.perimeter);const W=1080,P=62,contentW=W-P*2,rowW=contentW;let scratch=document.createElement('canvas').getContext('2d');scratch.font='800 30px Arial';let itemHeights=its.map(x=>{const nameLines=canvasLinesR157T4(scratch,x.name,rowW-250).length;return Math.max(102,58+Math.min(3,nameLines)*34)});scratch.font='700 25px Arial';const commentLines=s.comment?Math.min(5,canvasLinesR157T4(scratch,s.comment,contentW-44).length):0;const purposeLines=purpose?Math.min(4,canvasLinesR157T4(scratch,purpose,contentW-300).length):0;let H=500+commentLines*34+itemHeights.reduce((a,b)=>a+b+14,0)+330+purposeLines*30;if(H<1280)H=1280;const canvas=document.createElement('canvas');canvas.width=W;canvas.height=H;const ctx=canvas.getContext('2d');ctx.fillStyle='#f4f7fb';ctx.fillRect(0,0,W,H);let y=54;
+roundRectR157T4(ctx,P,y,contentW,152,28,'#ffffff','#dbe3ef');ctx.fillStyle='#0f172a';ctx.font='950 42px Arial';ctx.fillText('Potolok',P+34,y+56);ctx.fillStyle='#075bff';ctx.fillText('.in.ua',P+188,y+56);ctx.fillStyle='#64748b';ctx.font='700 22px Arial';ctx.fillText('Етап виконаних робіт',P+34,y+98);ctx.fillStyle='#075bff';ctx.font='900 24px Arial';ctx.textAlign='right';ctx.fillText(`Етап ${s.number}`,W-P-34,y+58);ctx.fillStyle='#15803d';ctx.font='800 20px Arial';ctx.fillText(s.locked?'ЗАФІКСОВАНО':'В РОБОТІ',W-P-34,y+99);ctx.textAlign='left';y+=176;
+roundRectR157T4(ctx,P,y,contentW,172,24,'#ffffff','#dbe3ef');ctx.fillStyle='#0f172a';ctx.font='950 38px Arial';drawTextR157T4(ctx,roomName,P+30,y+52,contentW-330,42,2);ctx.fillStyle='#64748b';ctx.font='700 22px Arial';ctx.fillText(`Площа: ${area.toFixed(2)} м²   ·   Периметр: ${perimeter.toFixed(2)} м/пог.`,P+30,y+128);ctx.fillStyle='#075bff';ctx.font='950 38px Arial';ctx.textAlign='right';ctx.fillText(M(total),W-P-30,y+70);ctx.fillStyle='#64748b';ctx.font='700 19px Arial';ctx.fillText(s.date?displayDate(s.date):'дата не вказана',W-P-30,y+110);ctx.textAlign='left';y+=196;
+if(s.comment){const boxH=64+commentLines*34;roundRectR157T4(ctx,P,y,contentW,boxH,20,'#eff6ff','#bfdbfe');ctx.fillStyle='#075bff';ctx.font='900 20px Arial';ctx.fillText('КОМЕНТАР ЕТАПУ',P+24,y+34);ctx.fillStyle='#334155';ctx.font='700 25px Arial';drawTextR157T4(ctx,s.comment,P+24,y+70,contentW-48,34,5);y+=boxH+22}
+ctx.fillStyle='#0f172a';ctx.font='950 28px Arial';ctx.fillText(`Виконані роботи · ${its.length}`,P,y+28);y+=54;
+its.forEach((x,i)=>{const h=itemHeights[i];roundRectR157T4(ctx,P,y,rowW,h,20,'#ffffff','#e5e7eb');ctx.fillStyle='#075bff';ctx.font='950 22px Arial';ctx.fillText(String(i+1).padStart(2,'0'),P+24,y+38);ctx.fillStyle='#0f172a';ctx.font='900 28px Arial';const nameY=drawTextR157T4(ctx,x.name,P+76,y+38,rowW-340,34,3);ctx.fillStyle='#64748b';ctx.font='700 21px Arial';ctx.fillText(`${N(x.qty).toLocaleString('uk-UA',{maximumFractionDigits:2})} ${x.unit||''} × ${M(x.price)}`,P+76,Math.min(y+h-24,nameY+12));ctx.fillStyle='#075bff';ctx.font='950 28px Arial';ctx.textAlign='right';ctx.fillText(M(x.sum),W-P-24,y+48);ctx.textAlign='left';y+=h+14});
+y+=10;const payH=paid>0||advance>0||prepay>0?300+purposeLines*30:220;roundRectR157T4(ctx,P,y,contentW,payH,24,'#071428',null);ctx.fillStyle='#bfdbfe';ctx.font='900 20px Arial';ctx.fillText(`РОЗРАХУНОК ЗА ${s.number}-Й ЕТАП ВИКОНАНИХ РОБІТ`,P+30,y+38);ctx.fillStyle='#ffffff';ctx.font='950 34px Arial';ctx.fillText(`Сума ${s.number}-го етапу`,P+30,y+88);ctx.textAlign='right';ctx.fillText(M(total),W-P-30,y+88);ctx.textAlign='left';ctx.fillStyle='#86efac';ctx.font='900 27px Arial';ctx.fillText('Внесено',P+30,y+138);ctx.textAlign='right';ctx.fillText(M(paid),W-P-30,y+138);ctx.textAlign='left';ctx.fillStyle='#fdba74';ctx.fillText('Залишок',P+30,y+184);ctx.textAlign='right';ctx.fillText(M(balance),W-P-30,y+184);ctx.textAlign='left';let py=y+228;if(advance>0){ctx.fillStyle='#e2e8f0';ctx.font='700 21px Arial';ctx.fillText(`Аванс: ${M(advance)}`,P+30,py);py+=32}if(prepay>0){ctx.fillStyle='#e2e8f0';ctx.font='700 21px Arial';ctx.fillText(`Передоплата: ${M(prepay)}`,P+30,py);py+=32;if(purpose){ctx.fillStyle='#93c5fd';ctx.font='700 20px Arial';ctx.fillText('За що:',P+30,py);ctx.fillStyle='#e2e8f0';drawTextR157T4(ctx,purpose,P+112,py,contentW-150,30,4)}}y+=payH+26;
+ctx.fillStyle='#64748b';ctx.font='700 18px Arial';ctx.fillText(`Potolok.in.ua · сформовано ${new Date().toLocaleString('uk-UA')}`,P,H-38);return await new Promise((resolve,reject)=>canvas.toBlob(blob=>blob?resolve(blob):reject(new Error('Не вдалося створити PNG етапу.')),'image/png',0.96))}
+
+let stageShareTargetR158={mode:'stage',stageId:'',roomId:''};
+
+function stageShareStatusR158(message,type='ok'){
+  const el=document.getElementById('stageShareStatusR158');if(!el)return;
+  el.textContent=message||'';el.className=`r158-stage-share-status ${message?'show':''} ${type}`;
+}
+function stageShareModalR158(){
+  let modal=document.getElementById('stageShareModalR158');if(modal)return modal;
+  modal=document.createElement('div');modal.id='stageShareModalR158';modal.className='r158-stage-share-modal';
+  modal.innerHTML=`<div class="r158-stage-share-sheet" role="dialog" aria-modal="true">
+    <div class="r158-stage-share-head"><div><h3>📤 Надіслати звіт</h3><p>Оберіть формат. Зображення — основний варіант, PDF — для збереження/друку, текст — резервний.</p></div><button class="r158-stage-share-close" type="button" onclick="closeStageShareR158()">×</button></div>
+    <div class="r158-stage-share-summary">
+      <div id="stageShareTargetLabelR158" class="r158-stage-share-target">Звіт</div>
+      <div id="stageShareRoomLabelR158" class="r158-stage-share-room">Кімната</div>
+      <div class="r158-stage-share-metrics">
+        <div class="r158-stage-share-metric"><span>Сума звіту</span><b id="stageShareTotalR158">0 грн</b></div>
+        <div class="r158-stage-share-metric paid"><span>Внесено</span><b id="stageSharePaidR158">0 грн</b></div>
+        <div class="r158-stage-share-metric balance"><span>Залишок</span><b id="stageShareBalanceR158">0 грн</b></div>
+      </div>
+    </div>
+    <div class="r158-stage-share-actions">
+      <button class="r158-stage-share-action primary" type="button" onclick="sendStageReportImageR158(this)"><span>🖼️</span><div><strong>Надіслати звіт зображенням</strong><small>Відкривається прямо в Telegram / Viber / WhatsApp</small></div></button>
+      <button class="r158-stage-share-action" type="button" onclick="sendStageReportPdfR158(this)"><span>📄</span><div><strong>Надіслати звіт PDF</strong><small>Документ для перегляду, друку та збереження</small></div></button>
+      <button class="r158-stage-share-action" type="button" onclick="sendStageReportTextR158(this)"><span>💬</span><div><strong>Надіслати текстом</strong><small>Резервний варіант, якщо файли не відкриваються</small></div></button>
+    </div>
+    <div id="stageShareStatusR158" class="r158-stage-share-status"></div>
+  </div>`;
+  modal.addEventListener('click',e=>{if(e.target===modal)window.closeStageShareR158()});
+  document.body.appendChild(modal);return modal;
+}
+function selectedStageReportR158(){
+  const roomsList=rooms(),r=roomsList.find(x=>String(x?.id||'')===String(stageShareTargetR158.roomId||''))||room();
+  if(!r)return null;
+  const all=stageStore(r,true);
+  const stages=stageShareTargetR158.mode==='all'?all.filter(s=>s.locked):all.filter(s=>String(s.id)===String(stageShareTargetR158.stageId));
+  if(!stages.length)return null;
+  return {r,stages};
+}
+window.closeStageShareR158=function(){
+  document.getElementById('stageShareModalR158')?.classList.remove('open');
+  stageShareStatusR158('');
+};
+function openStageShareR158(mode,id=''){
+  const r=room();if(!r)return;
+  const all=stageStore(r,true),stages=mode==='all'?all.filter(s=>s.locked):all.filter(s=>String(s.id)===String(id));
+  if(!stages.length){alert(mode==='all'?'У цій кімнаті ще немає зафіксованих етапів.':'Етап не знайдено.');return}
+  stageShareTargetR158={mode,stageId:id||'',roomId:String(r.id||'')};
+  const total=stages.reduce((a,s)=>a+stageSum(r,s),0),paid=stages.reduce((a,s)=>a+stagePaid(s),0),balance=Math.max(0,total-paid);
+  const modal=stageShareModalR158();
+  const target=document.getElementById('stageShareTargetLabelR158'),roomEl=document.getElementById('stageShareRoomLabelR158');
+  if(target)target.textContent=mode==='all'?`Усі зафіксовані етапи · ${stages.length}`:`${stages[0].number}-й етап виконаних робіт`;
+  if(roomEl)roomEl.textContent=roomLabel(r);
+  const a=document.getElementById('stageShareTotalR158'),b=document.getElementById('stageSharePaidR158'),c=document.getElementById('stageShareBalanceR158');
+  if(a)a.textContent=M(total);if(b)b.textContent=M(paid);if(c)c.textContent=M(balance);
+  stageShareStatusR158('');modal.classList.add('open');
+}
+window.shareStageR154=function(id){openStageShareR158('stage',id)};
+window.shareAllLockedStagesR158=function(){openStageShareR158('all')};
+
+function stageTextR158(r,stages){
+  const total=stages.reduce((a,s)=>a+stageSum(r,s),0),paid=stages.reduce((a,s)=>a+stagePaid(s),0),balance=Math.max(0,total-paid);
+  const lines=[`Potolok.in.ua · ${roomLabel(r)}`,stages.length>1?`Усі зафіксовані етапи виконаних робіт · ${stages.length}`:`${stages[0].number}-й етап виконаних робіт`,''];
+  stages.forEach((s,si)=>{
+    const its=entries(r,s),advance=stageAdvance(s),prepay=stagePrepayment(s),purpose=String(s.prepaymentNoteR157||'').trim();
+    if(stages.length>1)lines.push(`${s.number}-й етап · ${s.date?displayDate(s.date):'дата не вказана'}`);
+    else lines.push(`Дата: ${s.date?displayDate(s.date):'не вказана'}`);
+    if(s.comment)lines.push(`Коментар: ${s.comment}`);
+    its.forEach((x,i)=>lines.push(`${i+1}. ${x.name} — ${N(x.qty).toLocaleString('uk-UA',{maximumFractionDigits:2})} ${x.unit||''} × ${M(x.price)} = ${M(x.sum)}`));
+    lines.push(`Сума ${s.number}-го етапу: ${M(stageSum(r,s))}`);
+    if(advance>0)lines.push(`Аванс: ${M(advance)}`);
+    if(prepay>0)lines.push(`Передоплата: ${M(prepay)}`);
+    if(purpose)lines.push(`За що передоплата: ${purpose}`);
+    if(stagePaid(s)>0)lines.push(`Внесено: ${M(stagePaid(s))}`,`Залишок: ${M(stageBalance(r,s))}`);
+    if(si<stages.length-1)lines.push('');
+  });
+  if(stages.length>1)lines.push('',`РАЗОМ ВИКОНАНО: ${M(total)}`,`ВНЕСЕНО: ${M(paid)}`,`ЗАЛИШОК: ${M(balance)}`);
+  return lines.join('\n');
+}
+function downloadStageFileR158(file){
+  const u=URL.createObjectURL(file),a=document.createElement('a');a.href=u;a.download=file.name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),3500);
+}
+async function stagePngFilesR158(r,stages){
+  const files=[];
+  for(const s of stages){
+    const blob=await stagePngR157T4(r,s);
+    files.push(new File([blob],`Potolok_${safeNameR157T4(roomLabel(r))}_Etap-${s.number}.png`,{type:'image/png'}));
+  }
+  return files;
+}
+async function canvasFromBlobR158(blob){
+  if('createImageBitmap' in window){
+    const bmp=await createImageBitmap(blob),c=document.createElement('canvas');c.width=bmp.width;c.height=bmp.height;c.getContext('2d').drawImage(bmp,0,0);try{bmp.close()}catch(_){}return c;
+  }
+  return await new Promise((resolve,reject)=>{const u=URL.createObjectURL(blob),img=new Image();img.onload=()=>{const c=document.createElement('canvas');c.width=img.naturalWidth||img.width;c.height=img.naturalHeight||img.height;c.getContext('2d').drawImage(img,0,0);URL.revokeObjectURL(u);resolve(c)};img.onerror=()=>{URL.revokeObjectURL(u);reject(new Error('Не вдалося підготувати сторінку PDF.'))};img.src=u});
+}
+async function stagePdfBlobR158(canvases){
+  const jpg=[];for(const c of canvases)jpg.push(await new Promise((resolve,reject)=>c.toBlob(b=>b?resolve(b):reject(new Error('Не вдалося сформувати PDF.')),'image/jpeg',.93)));
+  const n=jpg.length,objCount=2+n*3,offsets=new Array(objCount+1).fill(0),parts=[];let pos=0;
+  const enc=s=>new TextEncoder().encode(s),addText=s=>{const b=enc(s);parts.push(b);pos+=b.byteLength},addBlob=b=>{parts.push(b);pos+=b.size};
+  addText('%PDF-1.4\n%\xE2\xE3\xCF\xD3\n');
+  function start(id){offsets[id]=pos;addText(`${id} 0 obj\n`)}function end(){addText('endobj\n')}
+  start(1);addText('<< /Type /Catalog /Pages 2 0 R >>\n');end();
+  const kids=[];for(let i=0;i<n;i++)kids.push(`${3+i*3} 0 R`);
+  start(2);addText(`<< /Type /Pages /Kids [${kids.join(' ')}] /Count ${n} >>\n`);end();
+  for(let i=0;i<n;i++){
+    const pageId=3+i*3,contentId=pageId+1,imageId=pageId+2,im=`Im${i+1}`,c=canvases[i],b=jpg[i],PW=595.28,PH=841.89,margin=22,scale=Math.min((PW-margin*2)/c.width,(PH-margin*2)/c.height),dw=c.width*scale,dh=c.height*scale,x=(PW-dw)/2,y=(PH-dh)/2;
+    start(pageId);addText(`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${PW} ${PH}] /Resources << /XObject << /${im} ${imageId} 0 R >> >> /Contents ${contentId} 0 R >>\n`);end();
+    const stream=`q\n${dw.toFixed(2)} 0 0 ${dh.toFixed(2)} ${x.toFixed(2)} ${y.toFixed(2)} cm\n/${im} Do\nQ\n`,sb=enc(stream);
+    start(contentId);addText(`<< /Length ${sb.byteLength} >>\nstream\n`);parts.push(sb);pos+=sb.byteLength;addText('endstream\n');end();
+    start(imageId);addText(`<< /Type /XObject /Subtype /Image /Width ${c.width} /Height ${c.height} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${b.size} >>\nstream\n`);addBlob(b);addText('\nendstream\n');end();
+  }
+  const xref=pos;addText(`xref\n0 ${objCount+1}\n0000000000 65535 f \n`);for(let i=1;i<=objCount;i++)addText(String(offsets[i]).padStart(10,'0')+' 00000 n \n');
+  addText(`trailer\n<< /Size ${objCount+1} /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF`);
+  return new Blob(parts,{type:'application/pdf'});
+}
+async function shareStageFilesR158(files,title,fallback){
+  const can=!!navigator.share&&(!navigator.canShare||navigator.canShare({files}));
+  if(can){await navigator.share({title,files});return true}
+  files.forEach(downloadStageFileR158);stageShareStatusR158(fallback,'ok');return false;
+}
+window.sendStageReportImageR158=async function(button){
+  const old=button?.innerHTML;try{
+    const data=selectedStageReportR158();if(!data)return;
+    if(button){button.disabled=true;button.innerHTML='<span>⏳</span><div><strong>Формуємо зображення…</strong><small>Готуємо звіт для надсилання</small></div>'}
+    const files=await stagePngFilesR158(data.r,data.stages),shared=await shareStageFilesR158(files,`Звіт виконаних робіт · ${roomLabel(data.r)}`,'Зображення звіту збережено на телефон. Їх можна прикріпити в месенджер.');
+    if(shared)window.closeStageShareR158();
+  }catch(e){if(e?.name!=='AbortError')stageShareStatusR158(e?.message||'Не вдалося сформувати зображення звіту.','err')}
+  finally{if(button){button.disabled=false;button.innerHTML=old}}
+};
+window.sendStageReportPdfR158=async function(button){
+  const old=button?.innerHTML;try{
+    const data=selectedStageReportR158();if(!data)return;
+    if(button){button.disabled=true;button.innerHTML='<span>⏳</span><div><strong>Формуємо PDF…</strong><small>Готуємо документ для надсилання</small></div>'}
+    const png=await stagePngFilesR158(data.r,data.stages),canvases=[];for(const f of png)canvases.push(await canvasFromBlobR158(f));
+    const blob=await stagePdfBlobR158(canvases),name=data.stages.length>1?`Potolok_${safeNameR157T4(roomLabel(data.r))}_Vsi-etapy.pdf`:`Potolok_${safeNameR157T4(roomLabel(data.r))}_Etap-${data.stages[0].number}.pdf`,file=new File([blob],name,{type:'application/pdf'});
+    const shared=await shareStageFilesR158([file],`Звіт виконаних робіт · ${roomLabel(data.r)}`,'PDF звіту збережено на телефон. Його можна прикріпити в месенджер.');
+    if(shared)window.closeStageShareR158();
+  }catch(e){if(e?.name!=='AbortError')stageShareStatusR158(e?.message||'Не вдалося сформувати PDF звіту.','err')}
+  finally{if(button){button.disabled=false;button.innerHTML=old}}
+};
+window.sendStageReportTextR158=async function(button){
+  const old=button?.innerHTML;try{
+    const data=selectedStageReportR158();if(!data)return;const value=stageTextR158(data.r,data.stages);
+    if(button){button.disabled=true;button.innerHTML='<span>⏳</span><div><strong>Відкриваємо меню…</strong><small>Готуємо текст звіту</small></div>'}
+    if(navigator.share){await navigator.share({title:`Звіт виконаних робіт · ${roomLabel(data.r)}`,text:value});window.closeStageShareR158();return}
+    await navigator.clipboard.writeText(value);stageShareStatusR158('Текст звіту скопійовано в буфер обміну.','ok');
+  }catch(e){if(e?.name!=='AbortError'){try{const data=selectedStageReportR158();if(data){await navigator.clipboard.writeText(stageTextR158(data.r,data.stages));stageShareStatusR158('Текст звіту скопійовано в буфер обміну.','ok')}}catch(_){stageShareStatusR158(e?.message||'Не вдалося підготувати текст звіту.','err')}}}
+  finally{if(button){button.disabled=false;button.innerHTML=old}}
+};
+
 const baseCapture=window.captureCurrentRoom;if(typeof baseCapture==='function'&&!baseCapture.__r154Stages){function wrappedCapture(){const before=room();hydrate(before);const stages=clone(before?.workStagesR154||[]),closed=!!before?.workRoomClosedR157,closedAt=String(before?.workRoomClosedAtR157||'');const finIds=finishing(before).map(x=>x?.r154StageId||''),addIds=additional(before).map(x=>x?.r154StageId||'');persist(before);const out=baseCapture.apply(this,arguments);if(out){out.workStagesR154=stages;out.workRoomClosedR157=closed;out.workRoomClosedAtR157=closedAt;finishing(out).forEach((x,i)=>{if(finIds[i])x.r154StageId=finIds[i]});additional(out).forEach((x,i)=>{if(addIds[i])x.r154StageId=addIds[i]})}return out}wrappedCapture.__r154Stages=true;window.captureCurrentRoom=wrappedCapture}
 const baseFinRender=window.renderFinishing78;if(typeof baseFinRender==='function'&&!baseFinRender.__r154Stages){function wrappedFinRender(){const out=baseFinRender.apply(this,arguments);schedule(60,false);return out}wrappedFinRender.__r154Stages=true;window.renderFinishing78=wrappedFinRender}
 const baseFinChange=window.fin78Change;if(typeof baseFinChange==='function'&&!baseFinChange.__r154Stages){function wrappedFinChange(){const out=baseFinChange.apply(this,arguments);schedule(180,false);return out}wrappedFinChange.__r154Stages=true;window.fin78Change=wrappedFinChange}
@@ -30243,7 +30595,7 @@ document.addEventListener('change',e=>{if(e.target?.closest?.('[data-room-work43
 document.addEventListener('toggle',e=>{const d=e.target?.closest?.('details.r154-stage[data-r154-stage]');if(!d)return;const r=room();if(!r)return;const key=String(r.id||''),sid=String(d.dataset.r154Stage||'');if(d.open)openStageByRoom.set(key,sid);else if(openStageByRoom.get(key)===sid)openStageByRoom.delete(key)},true);
 document.addEventListener('focusout',e=>{if(e.target?.closest?.('#finStagesR154')&&pendingRender)setTimeout(()=>render(false),80)},true);
 window.addEventListener('beforeunload',()=>persist(room()));document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')persist(room())});
-function markR154(){const b=document.getElementById('pixel4486BuildBadge');if(b)b.textContent='BUILD 44.90A-R15.7 · TEST 2 · STAGE PAYMENTS';try{document.documentElement.dataset.pixelVersion='44.90A-R15.7';document.documentElement.dataset.pixelBuild='44.90A-r15-7-test2-stage-payments';document.title='Potolok AI PRO — Pixel 44.90A-R15.7 TEST 2'}catch(_){}}
+function markR154(){const b=document.getElementById('pixel4486BuildBadge');if(b)b.textContent='BUILD 44.90A-R15.8 · TEST 2 · STAGE REPORT SEND MENU';try{document.documentElement.dataset.pixelVersion='44.90A-R15.8';document.documentElement.dataset.pixelBuild='44.90A-r15-8-test2-stage-report-send-menu';document.title='Potolok AI PRO — Pixel 44.90A-R15.8 TEST 2'}catch(_){}}
 function boot(){render(true);markR154()}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(boot,280),{once:true});else setTimeout(boot,280);window.addEventListener('pageshow',()=>setTimeout(()=>{render(false);markR154()},140));[900,2200,4500].forEach(ms=>setTimeout(markR154,ms));
 })();
 </script>
@@ -30282,11 +30634,11 @@ function finalRehydrateR154T11(){
 }
 function markR154T11(){
   const b=document.getElementById('pixel4486BuildBadge');
-  if(b)b.textContent='BUILD 44.90A-R15.7 · TEST 2 · STAGE PAYMENTS';
+  if(b)b.textContent='BUILD 44.90A-R15.8 · TEST 2 · STAGE REPORT SEND MENU';
   try{
-    document.documentElement.dataset.pixelVersion='44.90A-R15.7';
-    document.documentElement.dataset.pixelBuild='44.90A-r15-7-test2-stage-payments';
-    document.title='Potolok AI PRO — Pixel 44.90A-R15.7 TEST 2';
+    document.documentElement.dataset.pixelVersion='44.90A-R15.8';
+    document.documentElement.dataset.pixelBuild='44.90A-r15-8-test2-stage-report-send-menu';
+    document.title='Potolok AI PRO — Pixel 44.90A-R15.8 TEST 2';
   }catch(_){}
 }
 function bootR154T11(){finalRehydrateR154T11();markR154T11()}
@@ -30341,6 +30693,35 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden)setTimeout
   inset:0!important;
 }
 </style>
+
+
+
+<!-- PIXEL 44.90A-R15.8 TEST1 | GROUP GENERAL FINISHING LIST BY STAGES -->
+<style id="pixel4490aR157T4GroupedWorksStyles">
+.r157t4-group{border:1px solid #dbe3ef;border-radius:14px;background:#fff;overflow:hidden}.r157t4-group>summary{list-style:none;display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px 13px;cursor:pointer;background:#f8fafc}.r157t4-group>summary::-webkit-details-marker{display:none}.r157t4-group.locked{border-color:#bbf7d0}.r157t4-group.locked>summary{background:#f0fdf4}.r157t4-group.openstage{border-color:#bfdbfe}.r157t4-group.openstage>summary{background:#eff6ff}.r157t4-group.current{border-color:#fde68a}.r157t4-group.current>summary{background:#fffbeb}.r157t4-group.catalog>summary{background:#f8fafc}.r157t4-group-title b{display:block;font-size:11px;color:#0f172a}.r157t4-group-title span{display:block;margin-top:3px;font-size:8px;color:#64748b}.r157t4-group-sum{font-size:11px;font-weight:950;color:#075bff;white-space:nowrap;text-align:right}.r157t4-group-body{display:grid;gap:9px;padding:10px}.r157t4-group.locked .fin78-card{background:#fbfffc;border-color:#dcfce7}.r157t4-group.locked .fin78-card input:disabled,.r157t4-group.locked .fin78-card select:disabled,.r157t4-group.locked .fin78-card button:disabled{opacity:.68;cursor:not-allowed}.r157t4-locked-note{margin:0 10px 10px;padding:8px 10px;border:1px solid #bbf7d0;border-radius:9px;background:#f0fdf4;color:#15803d;font-size:8px;font-weight:850}.r157t4-empty{padding:12px;text-align:center;color:#64748b;font-size:9px}
+@media(max-width:520px){.r157t4-group>summary{align-items:flex-start}.r157t4-group-sum{font-size:10px}}
+</style>
+<script id="pixel4490aR157T4GroupedWorksScript">
+(function(){
+'use strict';
+if(window.__pixelR157T4GroupedWorks)return;window.__pixelR157T4GroupedWorks=true;
+const n=v=>{const x=Number(String(v??0).replace(',','.'));return Number.isFinite(x)?x:0};
+const money=v=>Math.round(Math.max(0,n(v))).toLocaleString('uk-UA')+' грн';
+function room(){try{return Array.isArray(projectRooms)?projectRooms.find(r=>String(r?.id||'')===String(activeRoomId||''))||null:null}catch(_){return null}}
+function ddate(v){const m=String(v||'').match(/^(\d{4})-(\d{2})-(\d{2})$/);return m?`${m[3]}.${m[2]}.${m[1]}`:String(v||'')}
+function groupBox(kind,title,meta,sum,open){const d=document.createElement('details');d.className='r157t4-group '+kind;if(open)d.open=true;d.innerHTML=`<summary><div class="r157t4-group-title"><b>${title}</b><span>${meta}</span></div><div class="r157t4-group-sum">${sum||''}</div></summary><div class="r157t4-group-body"></div>`;return d}
+window.groupStageWorksR157T4=function(){const list=document.getElementById('fin78List'),r=room();if(!list||!r||list.dataset.r157t4Grouped==='1')return;const cards=[...list.children].filter(el=>el.classList?.contains('fin78-card'));if(!cards.length)return;const items=Array.isArray(r?.finishingWorks?.items)?r.finishingWorks.items:[],stages=Array.isArray(r?.workStagesR154)?r.workStagesR154:[],stageMap=new Map(stages.map(s=>[String(s.id||''),s]));const buckets=new Map(stages.map(s=>[String(s.id||''),[]])),active=[],catalog=[],orphan=[];cards.forEach(card=>{const i=Number(card.dataset.fin78),item=items[i];if(!item)return;const sid=String(item.r154StageId||'');if(sid&&buckets.has(sid))buckets.get(sid).push({card,item});else if(sid)orphan.push({card,item});else if(item.enabled)active.push({card,item});else catalog.push({card,item})});const frag=document.createDocumentFragment();stages.forEach((s,idx)=>{const rows=buckets.get(String(s.id||''))||[];if(!rows.length)return;const sum=rows.reduce((a,x)=>a+(x.item.enabled?n(x.item.quantity)*n(x.item.price):0),0),locked=!!s.locked;const box=groupBox(locked?'locked':'openstage',`${locked?'✅':'🟡'} ${s.number||idx+1}-й етап · ${locked?'Виконані роботи':'В роботі'}`,`${ddate(s.date)||'без дати'} · ${rows.length} робіт`,money(sum),!locked);const body=box.querySelector('.r157t4-group-body');rows.forEach(({card})=>{if(locked)card.querySelectorAll('input,select,button').forEach(el=>el.disabled=true);body.appendChild(card)});if(locked){const note=document.createElement('div');note.className='r157t4-locked-note';note.textContent='🔒 Роботи зафіксовані в історії етапу. Для змін спочатку відкрийте етап у блоці «Етапи виконаних робіт».';box.appendChild(note)}frag.appendChild(box)});if(orphan.length){const sum=orphan.reduce((a,x)=>a+(x.item.enabled?n(x.item.quantity)*n(x.item.price):0),0),box=groupBox('current','⚠️ Роботи з невідомим етапом',`${orphan.length} робіт`,money(sum),true),body=box.querySelector('.r157t4-group-body');orphan.forEach(x=>body.appendChild(x.card));frag.appendChild(box)}if(active.length){const sum=active.reduce((a,x)=>a+n(x.item.quantity)*n(x.item.price),0),box=groupBox('current','🟡 Поточні / не розподілені роботи',`${active.length} активних робіт · доступні для наступного етапу`,money(sum),true),body=box.querySelector('.r157t4-group-body');active.forEach(x=>body.appendChild(x.card));frag.appendChild(box)}if(catalog.length){const box=groupBox('catalog','📋 Інші роботи каталогу',`${catalog.length} не вибрано`,'',false),body=box.querySelector('.r157t4-group-body');catalog.forEach(x=>body.appendChild(x.card));frag.appendChild(box)}list.innerHTML='';list.appendChild(frag);list.dataset.r157t4Grouped='1'};
+const base=window.renderFinishing78;if(typeof base==='function'&&!base.__r157t4Grouped){function wrapped(){const list=document.getElementById('fin78List');if(list)delete list.dataset.r157t4Grouped;const out=base.apply(this,arguments);setTimeout(()=>window.groupStageWorksR157T4?.(),0);return out}wrapped.__r157t4Grouped=true;window.renderFinishing78=wrapped}
+document.addEventListener('change',e=>{if(e.target?.matches?.('#fin78List .fin78-card input[type="checkbox"]'))setTimeout(()=>{try{window.renderFinishing78?.()}catch(_){}},50)},true);
+function boot(){const list=document.getElementById('fin78List');if(list)delete list.dataset.r157t4Grouped;try{window.renderFinishing78?.()}catch(_){setTimeout(()=>window.groupStageWorksR157T4?.(),80)}}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(boot,420),{once:true});else setTimeout(boot,420);window.addEventListener('pageshow',()=>setTimeout(boot,180));
+})();
+</script>
+
+
+<script id="pixel4490aR157T4FinalBuildMarker">
+(function(){function mark(){const b=document.getElementById('pixel4486BuildBadge');if(b)b.textContent='BUILD 44.90A-R15.8 · TEST 2 · STAGE REPORT SEND MENU';try{document.documentElement.dataset.pixelVersion='44.90A-R15.8';document.documentElement.dataset.pixelBuild='44.90A-r15-8-test2-stage-report-send-menu';document.title='Potolok AI PRO — Pixel 44.90A-R15.8 TEST 2'}catch(_){}}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(mark,0),{once:true});else setTimeout(mark,0);window.addEventListener('pageshow',()=>setTimeout(mark,100));[300,800,1500,3000,6000,9000].forEach(ms=>setTimeout(mark,ms));document.addEventListener('visibilitychange',()=>{if(!document.hidden)setTimeout(mark,80)});})();
+</script>
 
 </body></html>
 
@@ -31979,7 +32360,7 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape'&&isOpenR14())window.
 document.addEventListener('click',()=>setTimeout(()=>{if(isOpenR14())terminologyR14()},45),true);
 function markR14(){
   const badge=document.getElementById('pixel4486BuildBadge');
-  if(badge)badge.textContent='BUILD 44.90A-R15.7 · TEST 2 · STAGE PAYMENTS';
+  if(badge)badge.textContent='BUILD 44.90A-R15.8 · TEST 2 · STAGE REPORT SEND MENU';
   try{document.documentElement.dataset.pixelVersion='44.90A-R14';document.documentElement.dataset.pixelBuild='44.90A-r14-fullscreen-nw-catalog';document.title='Potolok AI PRO — Pixel 44.90A-R14'}catch(_){}
 }
 function bootR14(){watchR14();markR14();setTimeout(markR14,700);setTimeout(markR14,1800)}
@@ -32060,7 +32441,7 @@ function sync(){
 }
 const mo=new MutationObserver(()=>setTimeout(sync,20));
 function mark(){
-  const b=document.getElementById('pixel4486BuildBadge');if(b)b.textContent='BUILD 44.90A-R15.7 · TEST 2 · STAGE PAYMENTS';
+  const b=document.getElementById('pixel4486BuildBadge');if(b)b.textContent='BUILD 44.90A-R15.8 · TEST 2 · STAGE REPORT SEND MENU';
   try{document.documentElement.dataset.pixelVersion='44.90A-R14.1';document.documentElement.dataset.pixelBuild='44.90A-r14-1-large-catalog-area';document.title='Potolok AI PRO — Pixel 44.90A-R14.1'}catch(_){}
 }
 function boot(){
@@ -32130,7 +32511,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 if(window.__pixel4490aR142Installed)return;window.__pixel4490aR142Installed=true;
 function mark(){
   const b=document.getElementById('pixel4486BuildBadge');
-  if(b)b.textContent='BUILD 44.90A-R15.7 · TEST 2 · STAGE PAYMENTS';
+  if(b)b.textContent='BUILD 44.90A-R15.8 · TEST 2 · STAGE REPORT SEND MENU';
   try{
     document.documentElement.dataset.pixelVersion='44.90A-R14.2';
     document.documentElement.dataset.pixelBuild='44.90A-r14-2-tall-selected-items';
@@ -32215,7 +32596,7 @@ if(typeof openPrev==='function')window.openNWCatalog4413=function(){
 };
 function mark(){
   const b=document.getElementById('pixel4486BuildBadge');
-  if(b)b.textContent='BUILD 44.90A-R15.7 · TEST 2 · STAGE PAYMENTS';
+  if(b)b.textContent='BUILD 44.90A-R15.8 · TEST 2 · STAGE REPORT SEND MENU';
   try{
     document.documentElement.dataset.pixelVersion='44.90A-R14.3';
     document.documentElement.dataset.pixelBuild='44.90A-r14-3-swipe-scroll-catalog';
@@ -32295,7 +32676,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 if(window.__pixel4490aR144Installed)return;window.__pixel4490aR144Installed=true;
 function mark(){
   const b=document.getElementById('pixel4486BuildBadge');
-  if(b)b.textContent='BUILD 44.90A-R15.7 · TEST 2 · STAGE PAYMENTS';
+  if(b)b.textContent='BUILD 44.90A-R15.8 · TEST 2 · STAGE REPORT SEND MENU';
   try{
     document.documentElement.dataset.pixelVersion='44.90A-R14.4';
     document.documentElement.dataset.pixelBuild='44.90A-r14-4-compact-selected-panel';
@@ -32396,7 +32777,7 @@ if(typeof openPrev==='function')window.openNWCatalog4413=function(){
 };
 function mark(){
   const b=document.getElementById('pixel4486BuildBadge');
-  if(b)b.textContent='BUILD 44.90A-R15.7 · TEST 2 · STAGE PAYMENTS';
+  if(b)b.textContent='BUILD 44.90A-R15.8 · TEST 2 · STAGE REPORT SEND MENU';
   try{
     document.documentElement.dataset.pixelVersion='44.90A-R14.5';
     document.documentElement.dataset.pixelBuild='44.90A-r14-5-sticky-catalog-controls';
@@ -32470,7 +32851,7 @@ document.addEventListener('click',e=>{
 },true);
 function mark(){
   const b=document.getElementById('pixel4486BuildBadge');
-  if(b)b.textContent='BUILD 44.90A-R15.7 · TEST 2 · STAGE PAYMENTS';
+  if(b)b.textContent='BUILD 44.90A-R15.8 · TEST 2 · STAGE REPORT SEND MENU';
   try{document.documentElement.dataset.pixelVersion='44.90A-R14.6';document.documentElement.dataset.pixelBuild='44.90A-r14-6-total-sync-fixed';document.title='Potolok AI PRO — Pixel 44.90A-R14.6'}catch(_){}
 }
 function boot(){repaint();mark();setTimeout(repaint,600);setTimeout(repaint,1600);setTimeout(mark,700);setTimeout(mark,1800)}
@@ -32662,8 +33043,8 @@ window.shareNoPlan4463=async function(){
 
 function mark(){
   const b=document.getElementById('pixel4486BuildBadge');
-  if(b)b.textContent='BUILD 44.90A-R15.7 · TEST 2 · STAGE PAYMENTS';
-  try{document.documentElement.dataset.pixelVersion='44.90A-R15.7';document.documentElement.dataset.pixelBuild='44.90A-r15-7-test2-stage-payments';document.title='Potolok AI PRO — Pixel 44.90A-R15.7 TEST 2'}catch(_){}
+  if(b)b.textContent='BUILD 44.90A-R15.8 · TEST 2 · STAGE REPORT SEND MENU';
+  try{document.documentElement.dataset.pixelVersion='44.90A-R15.8';document.documentElement.dataset.pixelBuild='44.90A-r15-8-test2-stage-report-send-menu';document.title='Potolok AI PRO — Pixel 44.90A-R15.8 TEST 2'}catch(_){}
 }
 function boot(){healVisibleOrder();mark()}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(boot,250),{once:true});else setTimeout(boot,250);
@@ -32713,11 +33094,11 @@ function syncR151(delay=0){
 }
 function markR151(){
   const b=document.getElementById('pixel4486BuildBadge');
-  if(b)b.textContent='BUILD 44.90A-R15.7 · TEST 2 · STAGE PAYMENTS';
+  if(b)b.textContent='BUILD 44.90A-R15.8 · TEST 2 · STAGE REPORT SEND MENU';
   try{
-    document.documentElement.dataset.pixelVersion='44.90A-R15.7';
-    document.documentElement.dataset.pixelBuild='44.90A-r15-7-test2-stage-payments';
-    document.title='Potolok AI PRO — Pixel 44.90A-R15.7 TEST 2';
+    document.documentElement.dataset.pixelVersion='44.90A-R15.8';
+    document.documentElement.dataset.pixelBuild='44.90A-r15-8-test2-stage-report-send-menu';
+    document.title='Potolok AI PRO — Pixel 44.90A-R15.8 TEST 2';
   }catch(_){}
 }
 /* Hydrate before old total painters get a chance to show a stale zero. */
@@ -32841,7 +33222,7 @@ window.shareNoPlan4463=async function(){
     const u=URL.createObjectURL(blob),link=document.createElement('a');link.href=u;link.download=file.name;document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(u),2500);if(st)st.textContent=withPrices?'✅ Картку з цінами збережено у PNG.':'✅ Картку без цін збережено у PNG.';
   }catch(e){console.error('R15.3 export',e);if(st)st.textContent='❌ '+(e?.message||'Помилка формування картки.');alert('Не вдалося сформувати картку: '+(e?.message||'невідома помилка'))}
 };
-function markR153(){const b=document.getElementById('pixel4486BuildBadge');if(b)b.textContent='BUILD 44.90A-R15.7 · TEST 2 · STAGE PAYMENTS';try{document.documentElement.dataset.pixelVersion='44.90A-R15.7';document.documentElement.dataset.pixelBuild='44.90A-r15-7-test2-stage-payments';document.title='Potolok AI PRO — Pixel 44.90A-R15.7 TEST 2'}catch(_){}}
+function markR153(){const b=document.getElementById('pixel4486BuildBadge');if(b)b.textContent='BUILD 44.90A-R15.8 · TEST 2 · STAGE REPORT SEND MENU';try{document.documentElement.dataset.pixelVersion='44.90A-R15.8';document.documentElement.dataset.pixelBuild='44.90A-r15-8-test2-stage-report-send-menu';document.title='Potolok AI PRO — Pixel 44.90A-R15.8 TEST 2'}catch(_){}}
 function bootR153(){injectToggleR153();updateToggleR153();markR153()}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(bootR153,250),{once:true});else setTimeout(bootR153,250);
 [700,1500,3000,5000].forEach(ms=>setTimeout(bootR153,ms));
@@ -32850,7 +33231,7 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden)setTimeout
 })();
 </script>
 
-<!-- PIXEL 44.90A-R15.7 TEST2 | ROOM-SCOPED WORK STAGES + PAYMENTS | base: R15.7 TEST1 -->
+<!-- PIXEL 44.90A-R15.8 TEST1 | SELECT ALL + GROUPED STAGE LIST + PNG STAGE EXPORT | base: current live R15.7 TEST2 -->
 <script id="pixel4490aR157FinalMarker">
-(function(){function mark(){const b=document.getElementById('pixel4486BuildBadge');if(b)b.textContent='BUILD 44.90A-R15.7 · TEST 2 · STAGE PAYMENTS';try{document.documentElement.dataset.pixelVersion='44.90A-R15.7';document.documentElement.dataset.pixelBuild='44.90A-r15-7-test2-stage-payments';document.title='Potolok AI PRO — Pixel 44.90A-R15.7 TEST 2'}catch(_){}}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(mark,120),{once:true});else setTimeout(mark,120);window.addEventListener('pageshow',()=>setTimeout(mark,150));[500,1200,2500,5000,8000].forEach(ms=>setTimeout(mark,ms));document.addEventListener('visibilitychange',()=>{if(!document.hidden)setTimeout(mark,100)});})();
+(function(){function mark(){const b=document.getElementById('pixel4486BuildBadge');if(b)b.textContent='BUILD 44.90A-R15.8 · TEST 2 · STAGE REPORT SEND MENU';try{document.documentElement.dataset.pixelVersion='44.90A-R15.8';document.documentElement.dataset.pixelBuild='44.90A-r15-8-test2-stage-report-send-menu';document.title='Potolok AI PRO — Pixel 44.90A-R15.8 TEST 2'}catch(_){}}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(mark,120),{once:true});else setTimeout(mark,120);window.addEventListener('pageshow',()=>setTimeout(mark,150));[500,1200,2500,5000,8000].forEach(ms=>setTimeout(mark,ms));document.addEventListener('visibilitychange',()=>{if(!document.hidden)setTimeout(mark,100)});})();
 </script>
