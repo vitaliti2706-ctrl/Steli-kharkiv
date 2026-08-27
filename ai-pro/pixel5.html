@@ -15292,8 +15292,8 @@ if(typeof prevSetRate==='function'){
 function bootR8(){
   updateR8();
   try{
-    document.documentElement.dataset.pixelVersion='44.90A-R15.5';
-    document.documentElement.dataset.pixelBuild='44.90A-r15-5-test1-clean-insert-summary';
+    document.documentElement.dataset.pixelVersion='44.90A-R15.6';
+    document.documentElement.dataset.pixelBuild='44.90A-r15-6-test2-nw-all-positions-add';
   }catch(_){}
 }
 if(document.readyState==='loading'){
@@ -15308,11 +15308,11 @@ setTimeout(bootR8,1300);
 (function(){
   function fix(){
     var el=document.getElementById('pixel4486BuildBadge');
-    if(el) el.textContent='BUILD 44.90A-R15.5 · TEST 1 · CLEAN INSERT SUMMARY';
+    if(el) el.textContent='BUILD 44.90A-R15.6 · TEST 2 · NW ALL POSITIONS ADD';
     try{
-      document.documentElement.dataset.pixelVersion='44.90A-R15.5';
-      document.documentElement.dataset.pixelBuild='44.90A-r15-5-test1-clean-insert-summary';
-      document.title='Potolok AI PRO — Pixel 44.90A-R15.5 TEST 1';
+      document.documentElement.dataset.pixelVersion='44.90A-R15.6';
+      document.documentElement.dataset.pixelBuild='44.90A-r15-6-test2-nw-all-positions-add';
+      document.title='Potolok AI PRO — Pixel 44.90A-R15.6 TEST 2';
     }catch(_){}
   }
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',()=>setTimeout(fix,0),{once:true});
@@ -26378,7 +26378,26 @@ function generic(p){
     window.closeNWCatalog4413?.()
   }
 }
-const old=window.openNWAdd4413;window.openNWAdd4413=id=>{const p=window.NW4415?.getItem?.(id);if(!p)return old?.(id);const forceExtra=!!window.__forceExtraNW4417;window.__forceExtraNW4417=false;const t=window.__target4415,s=forceExtra?null:(t?.slot&&t.cat===p.category?t.slot:core[p.category]);return s?coreModal(s,p):generic(p)};
+function mainCoreProductR156T2(p){
+  const cat=String(p?.category||''),title=String(p?.title||'').trim();
+  if(cat==='Профілі')return /^(профіл|профиль)/i.test(title);
+  if(cat==='Карнизи')return /карниз|гардин/i.test(title)&&!/^(торцева|торцевая|заглуш|бігун|бегун|кут|угол|гвинт|винт|кронштейн|пульт|ремінь|ремень|гачк|крюч|блокад)/i.test(title);
+  if(cat==='Вставки')return true;
+  return false;
+}
+const old=window.openNWAdd4413;
+window.openNWAdd4413=id=>{
+  const p=window.NW4415?.getItem?.(id);
+  if(!p)return old?.(id);
+  const forceExtra=!!window.__forceExtraNW4417;
+  window.__forceExtraNW4417=false;
+  const t=window.__target4415;
+  const canCore=mainCoreProductR156T2(p);
+  const targetSlot=canCore&&t?.slot&&t.cat===p.category?t.slot:null;
+  const fallbackSlot=canCore?core[p.category]:null;
+  const s=forceExtra?null:(targetSlot||fallbackSlot);
+  return s?coreModal(s,p):generic(p);
+};
 function film(){
   const films=window.NW4415?.films?.()||[],area=N(plan().area);
   let h=document.getElementById('film4415');
@@ -28032,7 +28051,7 @@ try{
 </script>
 
 <style id="globalNWMiniHost4418AStyles">
-#nwMiniHost4413 > .nw-mini-modal4413{z-index:5000!important}
+#nwMiniHost4413 > .nw-mini-modal4413{z-index:12050!important}
 </style>
 
 
@@ -29888,7 +29907,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
     if(document.getElementById('pixel4486BuildBadge')) return;
     var el=document.createElement('div');
     el.id='pixel4486BuildBadge';
-    el.textContent='BUILD 44.90A-R15.5 · TEST 1 · CLEAN INSERT SUMMARY';
+    el.textContent='BUILD 44.90A-R15.6 · TEST 2 · NW ALL POSITIONS ADD';
     var header=document.querySelector('.header,header,.site-header,.topbar');
     if(header)header.insertAdjacentElement('afterend',el);else document.body.prepend(el);
     try{
@@ -30278,7 +30297,7 @@ document.addEventListener('focusout',e=>{if(e.target?.closest?.('#finStagesR154'
 window.addEventListener('beforeunload',()=>persist(room()));
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')persist(room())});
 
-function markR154(){const b=document.getElementById('pixel4486BuildBadge');if(b)b.textContent='BUILD 44.90A-R15.5 · TEST 1 · CLEAN INSERT SUMMARY';try{document.documentElement.dataset.pixelVersion='44.90A-R15.5';document.documentElement.dataset.pixelBuild='44.90A-r15-5-test1-clean-insert-summary';document.title='Potolok AI PRO — Pixel 44.90A-R15.5 TEST 1'}catch(_){}}
+function markR154(){const b=document.getElementById('pixel4486BuildBadge');if(b)b.textContent='BUILD 44.90A-R15.6 · TEST 2 · NW ALL POSITIONS ADD';try{document.documentElement.dataset.pixelVersion='44.90A-R15.6';document.documentElement.dataset.pixelBuild='44.90A-r15-6-test2-nw-all-positions-add';document.title='Potolok AI PRO — Pixel 44.90A-R15.6 TEST 2'}catch(_){}}
 function boot(){render(true);markR154()}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(boot,280),{once:true});else setTimeout(boot,280);
 window.addEventListener('pageshow',()=>setTimeout(()=>{render(false);markR154()},140));
@@ -30320,11 +30339,11 @@ function finalRehydrateR154T11(){
 }
 function markR154T11(){
   const b=document.getElementById('pixel4486BuildBadge');
-  if(b)b.textContent='BUILD 44.90A-R15.5 · TEST 1 · CLEAN INSERT SUMMARY';
+  if(b)b.textContent='BUILD 44.90A-R15.6 · TEST 2 · NW ALL POSITIONS ADD';
   try{
-    document.documentElement.dataset.pixelVersion='44.90A-R15.5';
-    document.documentElement.dataset.pixelBuild='44.90A-r15-5-test1-clean-insert-summary';
-    document.title='Potolok AI PRO — Pixel 44.90A-R15.5 TEST 1';
+    document.documentElement.dataset.pixelVersion='44.90A-R15.6';
+    document.documentElement.dataset.pixelBuild='44.90A-r15-6-test2-nw-all-positions-add';
+    document.title='Potolok AI PRO — Pixel 44.90A-R15.6 TEST 2';
   }catch(_){}
 }
 function bootR154T11(){finalRehydrateR154T11();markR154T11()}
@@ -30343,6 +30362,40 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden)setTimeout
 #roomFinance4343 .insert-length4372,
 #plannerRoomFinance4350 .insert-length4372{
   display:none!important;
+}
+</style>
+
+
+<!-- PIXEL 44.90A-R15.6 TEST1 | NW ADD MODAL ABOVE FULLSCREEN CATALOG | base: R15.5 TEST1 -->
+<style id="pixel4490aR156NWAddModalLayerFix">
+#nwMiniHost4413 > .nw-mini-modal4413{
+  position:fixed!important;
+  inset:0!important;
+  z-index:12050!important;
+  pointer-events:auto!important;
+}
+#nwMiniHost4413 > .nw-mini-modal4413 > .nw-mini-sheet4413{
+  position:relative!important;
+  z-index:1!important;
+}
+</style>
+
+
+<!-- PIXEL 44.90A-R15.6 TEST2 | NW ALL POSITIONS ADD PATHS | base: R15.6 TEST1 -->
+<style id="pixel4490aR156T2AllNWOverlayLayers">
+.nw-mini-modal4413{
+  z-index:12050!important;
+  pointer-events:auto!important;
+}
+#nwMiniHost4413,
+#film4415{
+  position:relative;
+  z-index:12050!important;
+}
+#nwMiniHost4413 > .nw-mini-modal4413,
+#film4415 > .nw-mini-modal4413{
+  position:fixed!important;
+  inset:0!important;
 }
 </style>
 
@@ -31983,7 +32036,7 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape'&&isOpenR14())window.
 document.addEventListener('click',()=>setTimeout(()=>{if(isOpenR14())terminologyR14()},45),true);
 function markR14(){
   const badge=document.getElementById('pixel4486BuildBadge');
-  if(badge)badge.textContent='BUILD 44.90A-R15.5 · TEST 1 · CLEAN INSERT SUMMARY';
+  if(badge)badge.textContent='BUILD 44.90A-R15.6 · TEST 2 · NW ALL POSITIONS ADD';
   try{document.documentElement.dataset.pixelVersion='44.90A-R14';document.documentElement.dataset.pixelBuild='44.90A-r14-fullscreen-nw-catalog';document.title='Potolok AI PRO — Pixel 44.90A-R14'}catch(_){}
 }
 function bootR14(){watchR14();markR14();setTimeout(markR14,700);setTimeout(markR14,1800)}
@@ -32064,7 +32117,7 @@ function sync(){
 }
 const mo=new MutationObserver(()=>setTimeout(sync,20));
 function mark(){
-  const b=document.getElementById('pixel4486BuildBadge');if(b)b.textContent='BUILD 44.90A-R15.5 · TEST 1 · CLEAN INSERT SUMMARY';
+  const b=document.getElementById('pixel4486BuildBadge');if(b)b.textContent='BUILD 44.90A-R15.6 · TEST 2 · NW ALL POSITIONS ADD';
   try{document.documentElement.dataset.pixelVersion='44.90A-R14.1';document.documentElement.dataset.pixelBuild='44.90A-r14-1-large-catalog-area';document.title='Potolok AI PRO — Pixel 44.90A-R14.1'}catch(_){}
 }
 function boot(){
@@ -32134,7 +32187,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 if(window.__pixel4490aR142Installed)return;window.__pixel4490aR142Installed=true;
 function mark(){
   const b=document.getElementById('pixel4486BuildBadge');
-  if(b)b.textContent='BUILD 44.90A-R15.5 · TEST 1 · CLEAN INSERT SUMMARY';
+  if(b)b.textContent='BUILD 44.90A-R15.6 · TEST 2 · NW ALL POSITIONS ADD';
   try{
     document.documentElement.dataset.pixelVersion='44.90A-R14.2';
     document.documentElement.dataset.pixelBuild='44.90A-r14-2-tall-selected-items';
@@ -32219,7 +32272,7 @@ if(typeof openPrev==='function')window.openNWCatalog4413=function(){
 };
 function mark(){
   const b=document.getElementById('pixel4486BuildBadge');
-  if(b)b.textContent='BUILD 44.90A-R15.5 · TEST 1 · CLEAN INSERT SUMMARY';
+  if(b)b.textContent='BUILD 44.90A-R15.6 · TEST 2 · NW ALL POSITIONS ADD';
   try{
     document.documentElement.dataset.pixelVersion='44.90A-R14.3';
     document.documentElement.dataset.pixelBuild='44.90A-r14-3-swipe-scroll-catalog';
@@ -32299,7 +32352,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 if(window.__pixel4490aR144Installed)return;window.__pixel4490aR144Installed=true;
 function mark(){
   const b=document.getElementById('pixel4486BuildBadge');
-  if(b)b.textContent='BUILD 44.90A-R15.5 · TEST 1 · CLEAN INSERT SUMMARY';
+  if(b)b.textContent='BUILD 44.90A-R15.6 · TEST 2 · NW ALL POSITIONS ADD';
   try{
     document.documentElement.dataset.pixelVersion='44.90A-R14.4';
     document.documentElement.dataset.pixelBuild='44.90A-r14-4-compact-selected-panel';
@@ -32400,7 +32453,7 @@ if(typeof openPrev==='function')window.openNWCatalog4413=function(){
 };
 function mark(){
   const b=document.getElementById('pixel4486BuildBadge');
-  if(b)b.textContent='BUILD 44.90A-R15.5 · TEST 1 · CLEAN INSERT SUMMARY';
+  if(b)b.textContent='BUILD 44.90A-R15.6 · TEST 2 · NW ALL POSITIONS ADD';
   try{
     document.documentElement.dataset.pixelVersion='44.90A-R14.5';
     document.documentElement.dataset.pixelBuild='44.90A-r14-5-sticky-catalog-controls';
@@ -32474,7 +32527,7 @@ document.addEventListener('click',e=>{
 },true);
 function mark(){
   const b=document.getElementById('pixel4486BuildBadge');
-  if(b)b.textContent='BUILD 44.90A-R15.5 · TEST 1 · CLEAN INSERT SUMMARY';
+  if(b)b.textContent='BUILD 44.90A-R15.6 · TEST 2 · NW ALL POSITIONS ADD';
   try{document.documentElement.dataset.pixelVersion='44.90A-R14.6';document.documentElement.dataset.pixelBuild='44.90A-r14-6-total-sync-fixed';document.title='Potolok AI PRO — Pixel 44.90A-R14.6'}catch(_){}
 }
 function boot(){repaint();mark();setTimeout(repaint,600);setTimeout(repaint,1600);setTimeout(mark,700);setTimeout(mark,1800)}
@@ -32666,8 +32719,8 @@ window.shareNoPlan4463=async function(){
 
 function mark(){
   const b=document.getElementById('pixel4486BuildBadge');
-  if(b)b.textContent='BUILD 44.90A-R15.5 · TEST 1 · CLEAN INSERT SUMMARY';
-  try{document.documentElement.dataset.pixelVersion='44.90A-R15.5';document.documentElement.dataset.pixelBuild='44.90A-r15-5-test1-clean-insert-summary';document.title='Potolok AI PRO — Pixel 44.90A-R15.5 TEST 1'}catch(_){}
+  if(b)b.textContent='BUILD 44.90A-R15.6 · TEST 2 · NW ALL POSITIONS ADD';
+  try{document.documentElement.dataset.pixelVersion='44.90A-R15.6';document.documentElement.dataset.pixelBuild='44.90A-r15-6-test2-nw-all-positions-add';document.title='Potolok AI PRO — Pixel 44.90A-R15.6 TEST 2'}catch(_){}
 }
 function boot(){healVisibleOrder();mark()}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(boot,250),{once:true});else setTimeout(boot,250);
@@ -32717,11 +32770,11 @@ function syncR151(delay=0){
 }
 function markR151(){
   const b=document.getElementById('pixel4486BuildBadge');
-  if(b)b.textContent='BUILD 44.90A-R15.5 · TEST 1 · CLEAN INSERT SUMMARY';
+  if(b)b.textContent='BUILD 44.90A-R15.6 · TEST 2 · NW ALL POSITIONS ADD';
   try{
-    document.documentElement.dataset.pixelVersion='44.90A-R15.5';
-    document.documentElement.dataset.pixelBuild='44.90A-r15-5-test1-clean-insert-summary';
-    document.title='Potolok AI PRO — Pixel 44.90A-R15.5 TEST 1';
+    document.documentElement.dataset.pixelVersion='44.90A-R15.6';
+    document.documentElement.dataset.pixelBuild='44.90A-r15-6-test2-nw-all-positions-add';
+    document.title='Potolok AI PRO — Pixel 44.90A-R15.6 TEST 2';
   }catch(_){}
 }
 /* Hydrate before old total painters get a chance to show a stale zero. */
@@ -32845,7 +32898,7 @@ window.shareNoPlan4463=async function(){
     const u=URL.createObjectURL(blob),link=document.createElement('a');link.href=u;link.download=file.name;document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(u),2500);if(st)st.textContent=withPrices?'✅ Картку з цінами збережено у PNG.':'✅ Картку без цін збережено у PNG.';
   }catch(e){console.error('R15.3 export',e);if(st)st.textContent='❌ '+(e?.message||'Помилка формування картки.');alert('Не вдалося сформувати картку: '+(e?.message||'невідома помилка'))}
 };
-function markR153(){const b=document.getElementById('pixel4486BuildBadge');if(b)b.textContent='BUILD 44.90A-R15.5 · TEST 1 · CLEAN INSERT SUMMARY';try{document.documentElement.dataset.pixelVersion='44.90A-R15.5';document.documentElement.dataset.pixelBuild='44.90A-r15-5-test1-clean-insert-summary';document.title='Potolok AI PRO — Pixel 44.90A-R15.5 TEST 1'}catch(_){}}
+function markR153(){const b=document.getElementById('pixel4486BuildBadge');if(b)b.textContent='BUILD 44.90A-R15.6 · TEST 2 · NW ALL POSITIONS ADD';try{document.documentElement.dataset.pixelVersion='44.90A-R15.6';document.documentElement.dataset.pixelBuild='44.90A-r15-6-test2-nw-all-positions-add';document.title='Potolok AI PRO — Pixel 44.90A-R15.6 TEST 2'}catch(_){}}
 function bootR153(){injectToggleR153();updateToggleR153();markR153()}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(bootR153,250),{once:true});else setTimeout(bootR153,250);
 [700,1500,3000,5000].forEach(ms=>setTimeout(bootR153,ms));
