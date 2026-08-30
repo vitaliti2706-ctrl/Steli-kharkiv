@@ -24332,8 +24332,13 @@ function migrate98(fw){
   fw.openings.forEach(function(o,index){
     if(!o||typeof o!=='object')return;
     if(!['window','door','balcony'].includes(o.type))o.type=o.type==='door'?'door':'window';
+    if(o.name){
+      o.name=String(o.name)
+        .replace(/\s+\d+$/,'')
+        .replace(/^(Двері|Вікно|Балконний блок)\s+\d+$/,'$1');
+    }
     if(!o.id)o.id=uid98('opening');
-    if(!o.name)o.name=(o.type==='door'?'Двері ':o.type==='balcony'?'Балконний блок ':'Вікно ')+(index+1);
+    if(!o.name)o.name=(o.type==='door'?'Двері':o.type==='balcony'?'Балконний блок':'Вікно');
     if(o.applied===undefined)o.applied=(Number(o.width)||0)>0&&(Number(o.height)||0)>0;
     if(o.type==='balcony'){
       if(o.draftWindowWidth===undefined)o.draftWindowWidth=Number(o.windowWidth)||0;
@@ -24428,7 +24433,7 @@ function openingCard98(o,index){
   }
   const area=openingDraftArea98(o),slopes=draftSlopes98(o);
   return '<article class="fin98-card '+(o.applied?'applied ':'')+(o.dirty?'dirty':'')+'" data-fin98-opening="'+index+'">'+
-    '<div class="fin98-card-top"><div class="fin98-card-title"><b>'+openingTitle98(o.type)+' '+(index+1)+'</b><span>Площа віднімається зі стін тільки після «Застосувати»</span></div>'+status98(o)+'</div>'+
+    '<div class="fin98-card-top"><div class="fin98-card-title"><b>'+openingTitle98(o.type)+'</b><span>Площа віднімається зі стін тільки після «Застосувати»</span></div>'+status98(o)+'</div>'+
     '<div class="fin98-grid"><label class="fin98-field full"><span>Назва</span><input type="text" autocomplete="off" data-fin98-key="name" value="'+e98(o.name||'')+'"></label>'+fields+
       '<label class="fin98-field"><span>Розрахунок відкосів</span><select data-fin98-key="slopeMode"><option value="auto" '+(o.slopeMode!=='manual'?'selected':'')+'>Автоматично</option><option value="manual" '+(o.slopeMode==='manual'?'selected':'')+'>Додати вручну</option></select></label>'+field98('Відкоси вручну, м.п.','draftManualSlopes',o.draftManualSlopes,'0',false)+
     '</div>'+
