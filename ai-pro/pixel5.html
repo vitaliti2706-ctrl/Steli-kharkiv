@@ -690,6 +690,14 @@ th:nth-child(2),th:nth-child(3),th:nth-child(4),td:nth-child(2),td:nth-child(3),
  .fin81-opening-title{grid-column:1/-1}
 }
 </style>
+
+<style id="centerFix44">
+/* 44.90A center alignment only — no logic changes */
+.wrap{width:100%;max-width:1180px;margin-left:auto!important;margin-right:auto!important;}
+@media(max-width:759px){
+  .wrap{max-width:100%;padding-left:14px;padding-right:14px;}
+}
+</style>
 </head>
 <body>
 <header class="header"><div class="wrap nav"><a class="logo" href="../index.html">Potolok<span>.in.ua</span></a><div class="menu"><a href="../index.html">Головна</a><a href="../gallery.html">Наші роботи</a><a href="#app">Pixel 5</a></div><a class="phone" href="tel:+380974546713">097 454 67 13</a><a class="tg-top" href="https://t.me/Potolok_in_ua">Фото в TG</a></div></header>
@@ -33370,3 +33378,13 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden)setTimeout
 <script id="pixel4490aR157FinalMarker">
 (function(){function mark(){const b=document.getElementById('pixel4486BuildBadge');if(b)b.textContent='BUILD 44.90A-R15.8 · STABLE · UNIVERSAL EXPORT';try{document.documentElement.dataset.pixelVersion='44.90A-R15.8';document.documentElement.dataset.pixelBuild='44.90A-r15-8-stable-universal-export';document.title='Potolok AI PRO — Pixel 44.90A-R15.8 STABLE'}catch(_){}}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(mark,120),{once:true});else setTimeout(mark,120);window.addEventListener('pageshow',()=>setTimeout(mark,150));[500,1200,2500,5000,8000].forEach(ms=>setTimeout(mark,ms));document.addEventListener('visibilitychange',()=>{if(!document.hidden)setTimeout(mark,100)});})();
 </script>
+
+
+<!-- PIXEL 44.90A CENTER FIX 2 | mobile visual shift only -->
+<style id="pixel4490aCenterFix2">
+@media (max-width: 768px){
+  .wrap{
+    transform: translateX(-7px);
+  }
+}
+</style>
