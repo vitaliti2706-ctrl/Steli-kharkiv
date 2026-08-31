@@ -30424,15 +30424,45 @@ window.removeStageR154=function(id){
  const list=stageStore(r,true);
  const idx=list.findIndex(s=>String(s.id)===String(id));
  if(idx<0)return;
- if(!confirm('Видалити цей етап робіт?'))return;
- const sid=String(list[idx].id);
- // відв’язуємо роботи від видаленого етапу
- finishing(r).forEach(x=>{if(String(x?.r154StageId||'')===sid)x.r154StageId='';});
- additional(r).forEach(x=>{if(String(x?.r154StageId||'')===sid)x.r154StageId='';});
+ const stage=list[idx];
+ const sid=String(stage.id);
+ const stageWorks=[
+   ...finishing(r).filter(x=>String(x?.r154StageId||'')===sid),
+   ...additional(r).filter(x=>String(x?.r154StageId||'')===sid)
+ ];
+ const count=stageWorks.length;
+ const sum=stageWorks.reduce((a,x)=>a+N(x.quantity)*N(x.price),0);
+
+ const ok=confirm(
+   count
+   ? `Видалити ${stage.number}-й етап разом з роботами?\n\nРобіт: ${count}\nСума: ${M(sum)}\n\nУсі роботи цього етапу будуть видалені.`
+   : `Видалити ${stage.number}-й порожній етап?`
+ );
+ if(!ok)return;
+
+ // При видаленні етапу видаляємо також прив'язані до нього роботи,
+ // щоб вони не залишались у "Роботи з невідомим етапом".
+ finishing(r).forEach((x,i)=>{
+   if(String(x?.r154StageId||'')===sid){
+     if(x?.custom){
+       finishing(r).splice(i,1);
+     }else{
+       x.enabled=false;
+       x.r154StageId='';
+     }
+   }
+ });
+ additional(r).forEach((x,i)=>{
+   if(String(x?.r154StageId||'')===sid){
+     additional(r).splice(i,1);
+   }
+ });
+
  list.splice(idx,1);
  list.forEach((s,i)=>s.number=i+1);
  save();
  render(true);
+ try{window.renderFinishing78?.()}catch(_){}
 };
 function cardHtml(r,s){const its=entries(r,s),sum=stageSum(r,s),date=s.date||'',comment=s.comment||'',rid=String(r?.id||''),isOpen=openStageByRoom.get(rid)===String(s.id),advance=stageAdvance(s),prepay=stagePrepayment(s),paid=stagePaid(s),balance=stageBalance(r,s),prepayNote=String(s.prepaymentNoteR157||''),ord=`${s.number}-й`,gen=`${s.number}-го`;const action=s.locked?`<button type="button" onclick="toggleStageLockR154('${E(s.id)}')">✏️ Редагувати ${ord} етап робіт</button>`:`<button type="button" class="lock" onclick="toggleStageLockR154('${E(s.id)}')">🔒 Зафіксувати ${ord} етап робіт</button>`;const paymentChip=paid>0?`<span class="r157-payment-chip">💳 Внесено ${M(paid)} · залишок ${M(balance)}</span>`:'';return `<details class="r154-stage ${s.locked?'locked':''}" data-r154-stage="${E(s.id)}" ${isOpen?'open':''}><summary><div class="r154-stage-title"><b>${ord} етап · ${s.locked?'Виконані роботи':'В роботі'}</b><span>${date?E(displayDate(date)):'дата не вказана'} · ${its.length} робіт</span><span class="r154-stage-badge">${s.locked?'✅ Зафіксовано':'🟡 Не зафіксовано'}</span>${paymentChip}</div><div class="r154-stage-sum">${M(sum)}</div><div class="r154-stage-chevron">⌄</div></summary><div class="r154-stage-body"><div class="r154-stage-meta"><label>Дата ${gen} етапу виконаних робіт<input type="date" value="${E(date)}" ${s.locked?'disabled':''} onchange="setStageMetaR154('${E(s.id)}','date',this.value)"></label><label>Коментар до ${gen} етапу виконаних робіт<textarea ${s.locked?'disabled':''} placeholder="Що виконано під час цього етапу робіт…" oninput="setStageMetaR154('${E(s.id)}','comment',this.value)">${E(comment)}</textarea></label></div><div class="r154-selected-title"><span>Роботи ${gen} етапу</span><span>${its.length} поз.</span></div><div class="r154-stage-items">${its.length?its.map(x=>selectedItemHtml(s,x)).join(''):'<div class="r154-stage-empty">До цього етапу ще не додано роботи.</div>'}</div>${pickerHtml(r,s)}<div class="r157-payment"><div class="r157-payment-title"><b>💳 Розрахунок за ${ord} етап виконаних робіт</b><span>зберігається разом з кімнатою</span></div><div class="r157-payment-grid"><label class="r157-payment-field"><span>Аванс, грн</span><input type="number" inputmode="decimal" min="0" step="1" value="${advance||''}" placeholder="0" onchange="setStagePaymentR157('${E(s.id)}','advance',this.value)"></label><label class="r157-payment-field"><span>Передоплата, грн</span><input type="number" inputmode="decimal" min="0" step="1" value="${prepay||''}" placeholder="0" onchange="setStagePaymentR157('${E(s.id)}','prepayment',this.value)"></label><label class="r157-payment-field wide"><span>За що передоплата</span><input type="text" value="${E(prepayNote)}" placeholder="Напр.: матеріали, натяжні стелі, фарба…" onchange="setStagePaymentR157('${E(s.id)}','prepaymentNote',this.value)"></label></div><div class="r157-payment-totals"><div class="r157-payment-stat"><span>Сума ${gen} етапу</span><b>${M(sum)}</b></div><div class="r157-payment-stat paid"><span>Внесено</span><b>${M(paid)}</b></div><div class="r157-payment-stat balance"><span>Залишок</span><b>${M(balance)}</b></div></div><div class="r157-payment-note">Аванс і передоплата зберігаються окремо. Для передоплати можна вручну вказати призначення — наприклад «за Натяжні стелі».</div></div><div class="r154-stage-actions">${action}<button type="button" class="share" onclick="shareStageR154('${E(s.id)}')">📤 Надіслати звіт за ${ord} етап</button><button type="button" class="danger" onclick="removeStageR154('${E(s.id)}')">🗑 Видалити ${ord} етап</button></div></div></details>`}
 function roomSummaryHtml(r,ss){const locked=ss.filter(s=>s.locked),open=ss.filter(s=>!s.locked),lockedTotal=locked.reduce((a,s)=>a+stageSum(r,s),0),openTotal=open.reduce((a,s)=>a+stageSum(r,s),0),lockedPaid=locked.reduce((a,s)=>a+stagePaid(s),0),lockedBalance=Math.max(0,lockedTotal-lockedPaid),unassigned=allLiveWorks(r).filter(x=>!x.sid).length,closed=!!r.workRoomClosedR157;const status=closed?'✅ Кімната завершена':'🟡 Кімната в роботі';const warning=unassigned?`<div class="r157-unassigned">⚠️ ${unassigned} активних робіт ще не включено до жодного етапу.</div>`:'';const payline=lockedPaid>0?`<div class="sub">💳 Внесено по зафіксованих етапах: ${M(lockedPaid)} · залишок: ${M(lockedBalance)}</div><div></div>`:'';const allShare=locked.length?`<button class="share-all-r158" type="button" onclick="shareAllLockedStagesR158()">📤 Надіслати всі зафіксовані етапи</button>`:'';const btn=closed?`<button class="reopen" type="button" onclick="toggleRoomDoneR157(false)">↩ Відновити роботу по кімнаті</button>`:`<button class="finish" type="button" onclick="toggleRoomDoneR157(true)" ${open.length?'disabled':''}>✅ Завершити кімнату</button>`;return `<div class="r157-room-total"><div><div class="label">Зафіксовано по кімнаті</div><div class="sub">Етапів: ${ss.length} · зафіксовано: ${locked.length}${open.length?` · у роботі: ${open.length}`:''}</div></div><div><div class="money">${M(lockedTotal)}</div><div class="status">${status}</div></div>${payline}${openTotal?`<div class="sub">Поточні незакриті етапи: ${M(openTotal)}</div><div></div>`:''}${warning}<div class="r157-room-actions">${allShare}${btn}</div></div>`}
@@ -30446,7 +30476,11 @@ window.toggleAllStageWorksR157=function(target,checked){const r=room(),to=stageB
 window.toggleStageWorkR157=function(kind,index,target,checked){const r=room();if(!r)return;const arr=kind==='add'?additional(r):finishing(r),x=arr[index],to=stageById(r,target);if(!x||!to||to.locked)return;const from=stageById(r,x.r154StageId);if(from?.locked&&String(from.id)!==String(target)){alert('Ця робота вже входить у зафіксований етап. Спочатку відкрийте той етап для редагування.');render(true);return}if(checked)x.r154StageId=target;else if(String(x.r154StageId||'')===String(target))x.r154StageId='';openStageByRoom.set(String(r.id||''),String(target));save();setTimeout(()=>{render(true);try{window.renderFinishing78?.()}catch(_){}},20)};
 window.removeWorkFromStageR157=function(kind,index,target){window.toggleStageWorkR157(kind,index,target,false)};
 window.toggleStageLockR154=function(id){const r=room(),s=stageById(r,id);if(!s)return;if(!s.locked){const its=liveEntries(r,s.id);if(!its.length){alert('Спочатку виберіть роботи, які входять до цього етапу.');return}s.snapshot={items:clone(its),total:sumEntries(its),lockedAt:new Date().toISOString()};s.locked=true;openStageByRoom.delete(String(r.id||''))}else{if(!confirm('Відкрити цей зафіксований етап для редагування? Після змін його потрібно буде зафіксувати повторно.'))return;s.locked=false;r.workRoomClosedR157=false;r.workRoomClosedAtR157='';openStageByRoom.set(String(r.id||''),String(s.id))}s.updatedAt=new Date().toISOString();save();render(true);setTimeout(()=>{try{window.renderFinishing78?.()}catch(_){}},25)};
-window.toggleRoomDoneR157=function(done){const r=room();if(!r)return;const ss=stageStore(r,true);if(done){const open=ss.filter(s=>!s.locked);if(open.length){alert('Спочатку зафіксуйте всі етапи цієї кімнати.');return}const unassigned=allLiveWorks(r).filter(x=>!x.sid);if(unassigned.length&&!confirm(`Є ${unassigned.length} активних робіт, які не включені до етапів. Все одно завершити кімнату?`))return;r.workRoomClosedR157=true;r.workRoomClosedAtR157=new Date().toISOString()}else{r.workRoomClosedR157=false;r.workRoomClosedAtR157=''}save();render(true)};
+window.toggleRoomDoneR157=function(done){const r=room();if(!r)return;const ss=stageStore(r,true);if(done){const open=ss.filter(s=>!s.locked);if(open.length){alert('Спочатку зафіксуйте всі етапи цієї кімнати.');return}const unassigned=allLiveWorks(r).filter(x=>!x.sid);if(unassigned.length&&!confirm(`Є ${unassigned.length} активних робіт, які не включені до етапів. Все одно завершити кімнату?`))return;r.workRoomClosedR157=true;r.workRoomClosedAtR157=new Date().toISOString()}else{r.workRoomClosedR157=false;r.workRoomClosedAtR157=''}
+// FIX 44.90A: перед закриттям кімнати примусово фіксуємо повний стан кімнати.
+// Це захищає суму, додаткові елементи та оздоблення від втрати після відновлення.
+try{if(typeof window.captureCurrentRoom==='function'){const saved=window.captureCurrentRoom();if(saved){saved.workRoomClosedR157=!!r.workRoomClosedR157;saved.workRoomClosedAtR157=r.workRoomClosedAtR157||'';const idx=projectRooms.findIndex(x=>String(x.id)===String(saved.id));if(idx>=0)projectRooms[idx]=saved;else projectRooms.push(saved)}}}catch(_){ }
+save();render(true)};
 function roundRectR157T4(ctx,x,y,w,h,r,fill,stroke){ctx.beginPath();ctx.roundRect(x,y,w,h,r);if(fill){ctx.fillStyle=fill;ctx.fill()}if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=2;ctx.stroke()}}
 function canvasLinesR157T4(ctx,text,maxWidth){const words=String(text||'').replace(/\s+/g,' ').trim().split(' ').filter(Boolean),lines=[];let line='';for(const word of words){const test=line?line+' '+word:word;if(ctx.measureText(test).width<=maxWidth||!line)line=test;else{lines.push(line);line=word}}if(line)lines.push(line);return lines.length?lines:['']}
 function drawTextR157T4(ctx,text,x,y,maxWidth,lineHeight,maxLines=99){const lines=canvasLinesR157T4(ctx,text,maxWidth).slice(0,maxLines);lines.forEach((line,i)=>ctx.fillText(line,x,y+i*lineHeight));return y+lines.length*lineHeight}
@@ -30778,6 +30812,51 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 <script id="pixel4490aR157T4FinalBuildMarker">
 (function(){function mark(){const b=document.getElementById('pixel4486BuildBadge');if(b)b.textContent='BUILD 44.90A-R15.8 · STABLE · UNIVERSAL EXPORT';try{document.documentElement.dataset.pixelVersion='44.90A-R15.8';document.documentElement.dataset.pixelBuild='44.90A-r15-8-stable-universal-export';document.title='Potolok AI PRO — Pixel 44.90A-R15.8 STABLE'}catch(_){}}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(mark,0),{once:true});else setTimeout(mark,0);window.addEventListener('pageshow',()=>setTimeout(mark,100));[300,800,1500,3000,6000,9000].forEach(ms=>setTimeout(mark,ms));document.addEventListener('visibilitychange',()=>{if(!document.hidden)setTimeout(mark,80)});})();
 </script>
+
+
+<style id="pixel4490a-final-mobile-fix">
+/* FIX: mobile viewport overflow without touching application logic */
+html,body{max-width:100%;overflow-x:hidden!important}
+.wrap,.panel,.app,.page-section,section,div{max-width:100%;}
+input,select,textarea,button{max-width:100%;}
+.grid,.room-card,.stage-card,.r154-stage-head,.r157-room-total{min-width:0;}
+@media(max-width:520px){
+  .wrap{padding-left:10px!important;padding-right:10px!important}
+  .tabs-main{width:100%;overflow-x:auto}
+  .room-base-grid,.field-grid,.client-info-grid56{min-width:0}
+  .r154-stage-head{grid-template-columns:minmax(0,1fr)!important}
+}
+</style>
+
+<style id="pixelCenterFix4490A">
+/* 44.90A mobile centering — no logic changes */
+html, body {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+.wrap,
+.app,
+.panel,
+.page-section.active {
+  max-width: 100%;
+}
+@media(max-width:520px){
+  .wrap {
+    width: 100%;
+    margin-left: auto!important;
+    margin-right: auto!important;
+    padding-left: 12px!important;
+    padding-right: 12px!important;
+  }
+  .app {
+    width: 100%;
+  }
+  .panel {
+    width: 100%;
+  }
+}
+</style>
 
 </body></html>
 
