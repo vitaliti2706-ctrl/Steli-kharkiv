@@ -1,4 +1,4 @@
-<!-- PIXEL 44.90A-R15.9-H7: export card spacing polish | base: H6 CORNER DEDUP FROM H5 -->
+<!-- PIXEL 44.90A-R15.9-H8: object-center corner de-duplication | base: H7 EXPORT CARD SPACING FROM H6 -->
 <!-- PIXEL 44.90A: CLEAN ADMIN ONLY | stable base 44.90; object/room/insert logic untouched -->
 <!-- PIXEL 44.90: restore 'Весь об’єкт' quick button in room summary | base 44.89 -->
 <!-- PIXEL 44.89: root fix — saved perimeter insert survives render/restore | base 44.88 -->
@@ -13836,9 +13836,22 @@ function worksTotal4325(){syncAutoWorkQuantities4328();return objectWorks4325.re
 window.__objectWorksTotal4328=worksTotal4325;
 function refreshLegacyTotals4328(){try{let calculated=0;const rs=rooms4325();rs.forEach(r=>{calculated+=String(r?.id)===String(typeof activeRoomId!=='undefined'?activeRoomId:'')&&typeof currentCalculatedTotal==='function'?(Number(currentCalculatedTotal())||0):(Number(r?.calculated)||0)});if(!rs.length&&typeof currentCalculatedTotal==='function')calculated=Number(currentCalculatedTotal())||0;const base=typeof priceWithObjectRule==='function'?(Number(priceWithObjectRule(calculated))||0):calculated;const works=worksTotal4325();const total=base+works;const objectBox=document.getElementById('objectPriceTotal');if(objectBox)objectBox.textContent=money4325(total);const worksBox=document.getElementById('grandWorks4328');if(worksBox)worksBox.textContent=money4325(works);const totalBox=document.getElementById('grandTotal4319');if(totalBox)totalBox.textContent=money4325(total)}catch(e){console.warn('43(28) legacy totals',e)}}
 function cornerCost4325(r){let count=(Number(r?.outerCorners)||0)+(Number(r?.innerCorners)||0);if(!(count>0))count=Number(r?.corners)||0;return Math.max(0,count)*70}
-function objectTotals4325(){const rs=rooms4325();const ceiling=rs.reduce((s,r)=>s+(Number(r.calculated)||Number(r.total)||0)+cornerCost4325(r),0);const finishing=rs.reduce((s,r)=>s+roomFinishing4325(r),0);const materials=rs.reduce((s,r)=>s+roomMaterials4325(r),0);const works=worksTotal4325();return{rooms:rs.length,area:rs.reduce((s,r)=>s+(Number(r.area)||0),0),perimeter:rs.reduce((s,r)=>s+(Number(r.perimeter)||0),0),ceiling,finishing,materials,works,grand:ceiling+finishing+materials+works}}
+function lineSum4325(row){const explicit=Number(row?.sum)||0;return explicit||(Number(row?.qty)||0)*(Number(row?.price)||0)}
+function roomCeiling4325(r){
+ const rows=Array.isArray(r?.rows)?r.rows:[],fixed=(Number(r?.calculated)||Number(r?.total)||0),corner=cornerCost4325(r);
+ const rowSum=rows.reduce((s,row)=>s+lineSum4325(row),0);
+ const hasCorner=rows.some(row=>String(row?.id||'').toLowerCase()==='corners'||/кут/i.test(String(row?.name||row?.title||'')));
+ /* H8: the saved room total may already contain corners. Match H6/H7 export de-duplication. */
+ if(fixed>0){
+   if(corner<=0||hasCorner)return fixed;
+   const expectedWithout=rowSum,expectedWith=rowSum+corner;
+   return Math.abs(fixed-expectedWith)<=Math.abs(fixed-expectedWithout)?fixed:fixed+corner;
+ }
+ return rowSum+(hasCorner?0:corner);
+}
+function objectTotals4325(){const rs=rooms4325();const ceiling=rs.reduce((s,r)=>s+roomCeiling4325(r),0);const finishing=rs.reduce((s,r)=>s+roomFinishing4325(r),0);const materials=rs.reduce((s,r)=>s+roomMaterials4325(r),0);const works=worksTotal4325();return{rooms:rs.length,area:rs.reduce((s,r)=>s+(Number(r.area)||0),0),perimeter:rs.reduce((s,r)=>s+(Number(r.perimeter)||0),0),ceiling,finishing,materials,works,grand:ceiling+finishing+materials+works}}
 function allElements4325(){const out=[];rooms4325().forEach(room=>{const objs=Array.isArray(room?.planner?.objects)?room.planner.objects:[];objs.forEach((o,index)=>{const m=TYPE4325[o.type]||{icon:'•',name:o.label||o.type||'Елемент',unit:'шт',price:0};const qty=m.linear?Math.max(0,Number(o.length)||0):1;out.push({kind:'object',room,roomId:room.id,index,type:o.type,icon:m.icon,name:m.name,unit:m.unit,qty,price:Number(m.price)||0,sum:qty*(Number(m.price)||0)})});const binds=Array.isArray(room?.perimeterBindings)?room.perimeterBindings:[];const segs=Array.isArray(room?.planner?.segments)?room.planner.segments:[];binds.forEach((types,side)=>{(Array.isArray(types)?types:[]).forEach((type,typeIndex)=>{const m=BIND4325[type]||{icon:'━',name:type,price:0};const qty=Math.max(0,Number(segs[side])||0);out.push({kind:'binding',room,roomId:room.id,side,typeIndex,type,icon:m.icon,name:m.name,unit:'м.п.',qty,price:Number(m.price)||0,sum:qty*(Number(m.price)||0)})})})});return out}
-function renderAll4325(){const p=document.getElementById('objectCenterPanel4325');if(!p)return;const t=objectTotals4325();p.innerHTML=`<div class="object-center-head4325"><div><h4>Весь об’єкт</h4><p>Окремо по кімнатах, роботах, матеріалах і загальному підсумку.</p></div></div><div class="object-summary-grid4325"><div class="object-summary-card4325"><span>Кімнат</span><b>${t.rooms}</b></div><div class="object-summary-card4325"><span>Загальна площа</span><b>${t.area.toFixed(2)} м²</b></div><div class="object-summary-card4325"><span>Загальний периметр</span><b>${t.perimeter.toFixed(2)} м/пог.</b></div><div class="object-summary-card4325"><span>Натяжні стелі</span><b>${money4325(t.ceiling)}</b></div><div class="object-summary-card4325"><span>Оздоблення</span><b>${money4325(t.finishing)}</b></div><div class="object-summary-card4325"><span>Матеріали</span><b>${money4325(t.materials)}</b></div><div class="object-summary-card4325"><span>Додаткові роботи</span><b>${money4325(t.works)}</b></div><div class="object-summary-card4325 grand"><span>Разом весь об’єкт</span><b>${money4325(t.grand)}</b></div></div>${rooms4325().map(r=>`<div class="object-room-row4325"><div><b>${esc4325(r.name||'Кімната')}</b><span>${Number(r.area||0).toFixed(2)} м² · ${Number(r.perimeter||0).toFixed(2)} м/пог. · оздоблення ${money4325(roomFinishing4325(r))}</span></div><div class="object-row-price4325"><b>${money4325((Number(r.calculated)||Number(r.total)||0)+cornerCost4325(r)+roomFinishing4325(r)+roomMaterials4325(r))}</b><span>разом кімната</span></div></div>`).join('')}`}
+function renderAll4325(){const p=document.getElementById('objectCenterPanel4325');if(!p)return;const t=objectTotals4325();p.innerHTML=`<div class="object-center-head4325"><div><h4>Весь об’єкт</h4><p>Окремо по кімнатах, роботах, матеріалах і загальному підсумку.</p></div></div><div class="object-summary-grid4325"><div class="object-summary-card4325"><span>Кімнат</span><b>${t.rooms}</b></div><div class="object-summary-card4325"><span>Загальна площа</span><b>${t.area.toFixed(2)} м²</b></div><div class="object-summary-card4325"><span>Загальний периметр</span><b>${t.perimeter.toFixed(2)} м/пог.</b></div><div class="object-summary-card4325"><span>Натяжні стелі</span><b>${money4325(t.ceiling)}</b></div><div class="object-summary-card4325"><span>Оздоблення</span><b>${money4325(t.finishing)}</b></div><div class="object-summary-card4325"><span>Матеріали</span><b>${money4325(t.materials)}</b></div><div class="object-summary-card4325"><span>Додаткові роботи</span><b>${money4325(t.works)}</b></div><div class="object-summary-card4325 grand"><span>Разом весь об’єкт</span><b>${money4325(t.grand)}</b></div></div>${rooms4325().map(r=>`<div class="object-room-row4325"><div><b>${esc4325(r.name||'Кімната')}</b><span>${Number(r.area||0).toFixed(2)} м² · ${Number(r.perimeter||0).toFixed(2)} м/пог. · оздоблення ${money4325(roomFinishing4325(r))}</span></div><div class="object-row-price4325"><b>${money4325(roomCeiling4325(r)+roomFinishing4325(r)+roomMaterials4325(r))}</b><span>разом кімната</span></div></div>`).join('')}`}
 function renderElements4325(){const p=document.getElementById('objectCenterPanel4325');if(!p)return;const rows=allElements4325();const sum=rows.reduce((s,x)=>s+x.sum,0);p.innerHTML=`<div class="object-center-head4325"><div><h4>Додаткові елементи всього об’єкта</h4><p>Кожен елемент прив’язаний до кімнати та плану. Видалення тут одразу видаляє його з креслення.</p></div><b>${money4325(sum)}</b></div>${rows.length?rows.map((x,i)=>`<div class="object-element-row4325"><div class="object-element-icon4325">${x.icon}</div><div><b>${esc4325(x.name)}</b><span>${esc4325(x.room?.name||'Кімната')} · ${x.kind==='binding'?'стіна '+(x.side+1):'елемент '+(x.index+1)} · ${x.qty.toFixed(x.unit==='шт'?0:2)} ${x.unit}</span></div><div class="object-row-price4325"><b>${x.price?money4325(x.sum):'інформаційно'}</b><span>${x.price?money4325(x.price)+' / '+x.unit:'без тарифу'}</span></div><button class="object-delete4325" type="button" data-object-element-delete4325="${i}" aria-label="Видалити">🗑</button></div>`).join(''):'<div class="object-empty4325">У кімнатах ще немає додаткових елементів або прив’язок.</div>'}`;p.querySelectorAll('[data-object-element-delete4325]').forEach(b=>b.addEventListener('click',()=>deleteObjectElement4325(rows[Number(b.dataset.objectElementDelete4325)])))}
 function renderWorks4325(){
  const p=document.getElementById('objectCenterPanel4325');
@@ -15303,8 +15316,8 @@ if(typeof prevSetRate==='function'){
 function bootR8(){
   updateR8();
   try{
-    document.documentElement.dataset.pixelVersion='44.90A-R15.9-H7';
-    document.documentElement.dataset.pixelBuild='44.90A-r15-9-h7-export-card-spacing-from-h6';
+    document.documentElement.dataset.pixelVersion='44.90A-R15.9-H8';
+    document.documentElement.dataset.pixelBuild='44.90A-r15-9-h8-object-center-corner-dedup-from-h7';
   }catch(_){}
 }
 if(document.readyState==='loading'){
@@ -15319,11 +15332,11 @@ setTimeout(bootR8,1300);
 (function(){
   function fix(){
     var el=document.getElementById('pixel4486BuildBadge');
-    if(el) el.textContent='BUILD 44.90A-R15.9-H7 · EXPORT CARD SPACING · FROM H6';
+    if(el) el.textContent='BUILD 44.90A-R15.9-H8 · OBJECT CENTER CORNER DEDUP · FROM H7';
     try{
-      document.documentElement.dataset.pixelVersion='44.90A-R15.9-H7';
-      document.documentElement.dataset.pixelBuild='44.90A-r15-9-h7-export-card-spacing-from-h6';
-      document.title='Potolok AI PRO — Pixel 44.90A-R15.9 H7';
+      document.documentElement.dataset.pixelVersion='44.90A-R15.9-H8';
+      document.documentElement.dataset.pixelBuild='44.90A-r15-9-h8-object-center-corner-dedup-from-h7';
+      document.title='Potolok AI PRO — Pixel 44.90A-R15.9 H8';
     }catch(_){}
   }
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',()=>setTimeout(fix,0),{once:true});
@@ -30145,7 +30158,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
     if(document.getElementById('pixel4486BuildBadge')) return;
     var el=document.createElement('div');
     el.id='pixel4486BuildBadge';
-    el.textContent='BUILD 44.90A-R15.9-H7 · EXPORT CARD SPACING · FROM H6';
+    el.textContent='BUILD 44.90A-R15.9-H8 · OBJECT CENTER CORNER DEDUP · FROM H7';
     var header=document.querySelector('.header,header,.site-header,.topbar');
     if(header)header.insertAdjacentElement('afterend',el);else document.body.prepend(el);
     try{
@@ -30753,7 +30766,7 @@ document.addEventListener('change',e=>{if(e.target?.closest?.('[data-room-work43
 document.addEventListener('toggle',e=>{const d=e.target?.closest?.('details.r154-stage[data-r154-stage]');if(!d)return;const r=room();if(!r)return;const key=String(r.id||''),sid=String(d.dataset.r154Stage||'');if(d.open)openStageByRoom.set(key,sid);else if(openStageByRoom.get(key)===sid)openStageByRoom.delete(key)},true);
 document.addEventListener('focusout',e=>{if(e.target?.closest?.('#finStagesR154')&&pendingRender)setTimeout(()=>render(false),80)},true);
 window.addEventListener('beforeunload',()=>persist(room()));document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')persist(room())});
-function markR154(){const b=document.getElementById('pixel4486BuildBadge');if(b)b.textContent='BUILD 44.90A-R15.9-H7 · EXPORT CARD SPACING · FROM H6';try{document.documentElement.dataset.pixelVersion='44.90A-R15.9-H7';document.documentElement.dataset.pixelBuild='44.90A-r15-9-h7-export-card-spacing-from-h6';document.title='Potolok AI PRO — Pixel 44.90A-R15.9 H7'}catch(_){}}
+function markR154(){const b=document.getElementById('pixel4486BuildBadge');if(b)b.textContent='BUILD 44.90A-R15.9-H8 · OBJECT CENTER CORNER DEDUP · FROM H7';try{document.documentElement.dataset.pixelVersion='44.90A-R15.9-H8';document.documentElement.dataset.pixelBuild='44.90A-r15-9-h8-object-center-corner-dedup-from-h7';document.title='Potolok AI PRO — Pixel 44.90A-R15.9 H8'}catch(_){}}
 function boot(){render(true);markR154()}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(boot,280),{once:true});else setTimeout(boot,280);window.addEventListener('pageshow',()=>setTimeout(()=>{render(false);markR154()},140));[900,2200,4500].forEach(ms=>setTimeout(markR154,ms));
 })();
 </script>
@@ -30792,11 +30805,11 @@ function finalRehydrateR154T11(){
 }
 function markR154T11(){
   const b=document.getElementById('pixel4486BuildBadge');
-  if(b)b.textContent='BUILD 44.90A-R15.9-H7 · EXPORT CARD SPACING · FROM H6';
+  if(b)b.textContent='BUILD 44.90A-R15.9-H8 · OBJECT CENTER CORNER DEDUP · FROM H7';
   try{
-    document.documentElement.dataset.pixelVersion='44.90A-R15.9-H7';
-    document.documentElement.dataset.pixelBuild='44.90A-r15-9-h7-export-card-spacing-from-h6';
-    document.title='Potolok AI PRO — Pixel 44.90A-R15.9 H7';
+    document.documentElement.dataset.pixelVersion='44.90A-R15.9-H8';
+    document.documentElement.dataset.pixelBuild='44.90A-r15-9-h8-object-center-corner-dedup-from-h7';
+    document.title='Potolok AI PRO — Pixel 44.90A-R15.9 H8';
   }catch(_){}
 }
 function bootR154T11(){finalRehydrateR154T11();markR154T11()}
@@ -30878,7 +30891,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 
 
 <script id="pixel4490aR157T4FinalBuildMarker">
-(function(){function mark(){const b=document.getElementById('pixel4486BuildBadge');if(b)b.textContent='BUILD 44.90A-R15.9-H7 · EXPORT CARD SPACING · FROM H6';try{document.documentElement.dataset.pixelVersion='44.90A-R15.9-H7';document.documentElement.dataset.pixelBuild='44.90A-r15-9-h7-export-card-spacing-from-h6';document.title='Potolok AI PRO — Pixel 44.90A-R15.9 H7'}catch(_){}}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(mark,0),{once:true});else setTimeout(mark,0);window.addEventListener('pageshow',()=>setTimeout(mark,100));[300,800,1500,3000,6000,9000].forEach(ms=>setTimeout(mark,ms));document.addEventListener('visibilitychange',()=>{if(!document.hidden)setTimeout(mark,80)});})();
+(function(){function mark(){const b=document.getElementById('pixel4486BuildBadge');if(b)b.textContent='BUILD 44.90A-R15.9-H8 · OBJECT CENTER CORNER DEDUP · FROM H7';try{document.documentElement.dataset.pixelVersion='44.90A-R15.9-H8';document.documentElement.dataset.pixelBuild='44.90A-r15-9-h8-object-center-corner-dedup-from-h7';document.title='Potolok AI PRO — Pixel 44.90A-R15.9 H8'}catch(_){}}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(mark,0),{once:true});else setTimeout(mark,0);window.addEventListener('pageshow',()=>setTimeout(mark,100));[300,800,1500,3000,6000,9000].forEach(ms=>setTimeout(mark,ms));document.addEventListener('visibilitychange',()=>{if(!document.hidden)setTimeout(mark,80)});})();
 </script>
 
 
@@ -32563,7 +32576,7 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape'&&isOpenR14())window.
 document.addEventListener('click',()=>setTimeout(()=>{if(isOpenR14())terminologyR14()},45),true);
 function markR14(){
   const badge=document.getElementById('pixel4486BuildBadge');
-  if(badge)badge.textContent='BUILD 44.90A-R15.9-H7 · EXPORT CARD SPACING · FROM H6';
+  if(badge)badge.textContent='BUILD 44.90A-R15.9-H8 · OBJECT CENTER CORNER DEDUP · FROM H7';
   try{document.documentElement.dataset.pixelVersion='44.90A-R14';document.documentElement.dataset.pixelBuild='44.90A-r14-fullscreen-nw-catalog';document.title='Potolok AI PRO — Pixel 44.90A-R14'}catch(_){}
 }
 function bootR14(){watchR14();markR14();setTimeout(markR14,700);setTimeout(markR14,1800)}
@@ -32644,7 +32657,7 @@ function sync(){
 }
 const mo=new MutationObserver(()=>setTimeout(sync,20));
 function mark(){
-  const b=document.getElementById('pixel4486BuildBadge');if(b)b.textContent='BUILD 44.90A-R15.9-H7 · EXPORT CARD SPACING · FROM H6';
+  const b=document.getElementById('pixel4486BuildBadge');if(b)b.textContent='BUILD 44.90A-R15.9-H8 · OBJECT CENTER CORNER DEDUP · FROM H7';
   try{document.documentElement.dataset.pixelVersion='44.90A-R14.1';document.documentElement.dataset.pixelBuild='44.90A-r14-1-large-catalog-area';document.title='Potolok AI PRO — Pixel 44.90A-R14.1'}catch(_){}
 }
 function boot(){
@@ -32714,7 +32727,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 if(window.__pixel4490aR142Installed)return;window.__pixel4490aR142Installed=true;
 function mark(){
   const b=document.getElementById('pixel4486BuildBadge');
-  if(b)b.textContent='BUILD 44.90A-R15.9-H7 · EXPORT CARD SPACING · FROM H6';
+  if(b)b.textContent='BUILD 44.90A-R15.9-H8 · OBJECT CENTER CORNER DEDUP · FROM H7';
   try{
     document.documentElement.dataset.pixelVersion='44.90A-R14.2';
     document.documentElement.dataset.pixelBuild='44.90A-r14-2-tall-selected-items';
@@ -32799,7 +32812,7 @@ if(typeof openPrev==='function')window.openNWCatalog4413=function(){
 };
 function mark(){
   const b=document.getElementById('pixel4486BuildBadge');
-  if(b)b.textContent='BUILD 44.90A-R15.9-H7 · EXPORT CARD SPACING · FROM H6';
+  if(b)b.textContent='BUILD 44.90A-R15.9-H8 · OBJECT CENTER CORNER DEDUP · FROM H7';
   try{
     document.documentElement.dataset.pixelVersion='44.90A-R14.3';
     document.documentElement.dataset.pixelBuild='44.90A-r14-3-swipe-scroll-catalog';
@@ -32879,7 +32892,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 if(window.__pixel4490aR144Installed)return;window.__pixel4490aR144Installed=true;
 function mark(){
   const b=document.getElementById('pixel4486BuildBadge');
-  if(b)b.textContent='BUILD 44.90A-R15.9-H7 · EXPORT CARD SPACING · FROM H6';
+  if(b)b.textContent='BUILD 44.90A-R15.9-H8 · OBJECT CENTER CORNER DEDUP · FROM H7';
   try{
     document.documentElement.dataset.pixelVersion='44.90A-R14.4';
     document.documentElement.dataset.pixelBuild='44.90A-r14-4-compact-selected-panel';
@@ -32980,7 +32993,7 @@ if(typeof openPrev==='function')window.openNWCatalog4413=function(){
 };
 function mark(){
   const b=document.getElementById('pixel4486BuildBadge');
-  if(b)b.textContent='BUILD 44.90A-R15.9-H7 · EXPORT CARD SPACING · FROM H6';
+  if(b)b.textContent='BUILD 44.90A-R15.9-H8 · OBJECT CENTER CORNER DEDUP · FROM H7';
   try{
     document.documentElement.dataset.pixelVersion='44.90A-R14.5';
     document.documentElement.dataset.pixelBuild='44.90A-r14-5-sticky-catalog-controls';
@@ -33054,7 +33067,7 @@ document.addEventListener('click',e=>{
 },true);
 function mark(){
   const b=document.getElementById('pixel4486BuildBadge');
-  if(b)b.textContent='BUILD 44.90A-R15.9-H7 · EXPORT CARD SPACING · FROM H6';
+  if(b)b.textContent='BUILD 44.90A-R15.9-H8 · OBJECT CENTER CORNER DEDUP · FROM H7';
   try{document.documentElement.dataset.pixelVersion='44.90A-R14.6';document.documentElement.dataset.pixelBuild='44.90A-r14-6-total-sync-fixed';document.title='Potolok AI PRO — Pixel 44.90A-R14.6'}catch(_){}
 }
 function boot(){repaint();mark();setTimeout(repaint,600);setTimeout(repaint,1600);setTimeout(mark,700);setTimeout(mark,1800)}
@@ -33246,8 +33259,8 @@ window.shareNoPlan4463=async function(){
 
 function mark(){
   const b=document.getElementById('pixel4486BuildBadge');
-  if(b)b.textContent='BUILD 44.90A-R15.9-H7 · EXPORT CARD SPACING · FROM H6';
-  try{document.documentElement.dataset.pixelVersion='44.90A-R15.9-H7';document.documentElement.dataset.pixelBuild='44.90A-r15-9-h7-export-card-spacing-from-h6';document.title='Potolok AI PRO — Pixel 44.90A-R15.9 H7'}catch(_){}
+  if(b)b.textContent='BUILD 44.90A-R15.9-H8 · OBJECT CENTER CORNER DEDUP · FROM H7';
+  try{document.documentElement.dataset.pixelVersion='44.90A-R15.9-H8';document.documentElement.dataset.pixelBuild='44.90A-r15-9-h8-object-center-corner-dedup-from-h7';document.title='Potolok AI PRO — Pixel 44.90A-R15.9 H8'}catch(_){}
 }
 function boot(){healVisibleOrder();mark()}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(boot,250),{once:true});else setTimeout(boot,250);
@@ -33297,11 +33310,11 @@ function syncR151(delay=0){
 }
 function markR151(){
   const b=document.getElementById('pixel4486BuildBadge');
-  if(b)b.textContent='BUILD 44.90A-R15.9-H7 · EXPORT CARD SPACING · FROM H6';
+  if(b)b.textContent='BUILD 44.90A-R15.9-H8 · OBJECT CENTER CORNER DEDUP · FROM H7';
   try{
-    document.documentElement.dataset.pixelVersion='44.90A-R15.9-H7';
-    document.documentElement.dataset.pixelBuild='44.90A-r15-9-h7-export-card-spacing-from-h6';
-    document.title='Potolok AI PRO — Pixel 44.90A-R15.9 H7';
+    document.documentElement.dataset.pixelVersion='44.90A-R15.9-H8';
+    document.documentElement.dataset.pixelBuild='44.90A-r15-9-h8-object-center-corner-dedup-from-h7';
+    document.title='Potolok AI PRO — Pixel 44.90A-R15.9 H8';
   }catch(_){}
 }
 /* Hydrate before old total painters get a chance to show a stale zero. */
@@ -33425,7 +33438,7 @@ window.shareNoPlan4463=async function(){
     const u=URL.createObjectURL(blob),link=document.createElement('a');link.href=u;link.download=file.name;document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(u),2500);if(st)st.textContent=withPrices?'✅ Картку з цінами збережено у PNG.':'✅ Картку без цін збережено у PNG.';
   }catch(e){console.error('R15.3 export',e);if(st)st.textContent='❌ '+(e?.message||'Помилка формування картки.');alert('Не вдалося сформувати картку: '+(e?.message||'невідома помилка'))}
 };
-function markR153(){const b=document.getElementById('pixel4486BuildBadge');if(b)b.textContent='BUILD 44.90A-R15.9-H7 · EXPORT CARD SPACING · FROM H6';try{document.documentElement.dataset.pixelVersion='44.90A-R15.9-H7';document.documentElement.dataset.pixelBuild='44.90A-r15-9-h7-export-card-spacing-from-h6';document.title='Potolok AI PRO — Pixel 44.90A-R15.9 H7'}catch(_){}}
+function markR153(){const b=document.getElementById('pixel4486BuildBadge');if(b)b.textContent='BUILD 44.90A-R15.9-H8 · OBJECT CENTER CORNER DEDUP · FROM H7';try{document.documentElement.dataset.pixelVersion='44.90A-R15.9-H8';document.documentElement.dataset.pixelBuild='44.90A-r15-9-h8-object-center-corner-dedup-from-h7';document.title='Potolok AI PRO — Pixel 44.90A-R15.9 H8'}catch(_){}}
 function bootR153(){injectToggleR153();updateToggleR153();markR153()}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(bootR153,250),{once:true});else setTimeout(bootR153,250);
 [700,1500,3000,5000].forEach(ms=>setTimeout(bootR153,ms));
@@ -33436,7 +33449,7 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden)setTimeout
 
 <!-- PIXEL 44.90A-R15.8 TEST1 | SELECT ALL + GROUPED STAGE LIST + PNG STAGE EXPORT | base: current live R15.7 TEST2 -->
 <script id="pixel4490aR157FinalMarker">
-(function(){function mark(){const b=document.getElementById('pixel4486BuildBadge');if(b)b.textContent='BUILD 44.90A-R15.9-H7 · EXPORT CARD SPACING · FROM H6';try{document.documentElement.dataset.pixelVersion='44.90A-R15.9-H7';document.documentElement.dataset.pixelBuild='44.90A-r15-9-h7-export-card-spacing-from-h6';document.title='Potolok AI PRO — Pixel 44.90A-R15.9 H7'}catch(_){}}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(mark,120),{once:true});else setTimeout(mark,120);window.addEventListener('pageshow',()=>setTimeout(mark,150));[500,1200,2500,5000,8000].forEach(ms=>setTimeout(mark,ms));document.addEventListener('visibilitychange',()=>{if(!document.hidden)setTimeout(mark,100)});})();
+(function(){function mark(){const b=document.getElementById('pixel4486BuildBadge');if(b)b.textContent='BUILD 44.90A-R15.9-H8 · OBJECT CENTER CORNER DEDUP · FROM H7';try{document.documentElement.dataset.pixelVersion='44.90A-R15.9-H8';document.documentElement.dataset.pixelBuild='44.90A-r15-9-h8-object-center-corner-dedup-from-h7';document.title='Potolok AI PRO — Pixel 44.90A-R15.9 H8'}catch(_){}}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(mark,120),{once:true});else setTimeout(mark,120);window.addEventListener('pageshow',()=>setTimeout(mark,150));[500,1200,2500,5000,8000].forEach(ms=>setTimeout(mark,ms));document.addEventListener('visibilitychange',()=>{if(!document.hidden)setTimeout(mark,100)});})();
 </script>
 
 
@@ -33603,7 +33616,7 @@ if(typeof baseSaveR159==='function'&&!baseSaveR159.__r159ReturnWrapped){
   }
   saveR159.__r159ReturnWrapped=true;window.saveProductionOrder4408=saveR159;
 }
-function markR159(){const b=document.getElementById('pixel4486BuildBadge');if(b)b.textContent='BUILD 44.90A-R15.9-H7 · EXPORT CARD SPACING · FROM H6';try{document.documentElement.dataset.pixelVersion='44.90A-R15.9-H7';document.documentElement.dataset.pixelBuild='44.90A-r15-9-h7-export-card-spacing-from-h6';document.title='Potolok AI PRO — Pixel 44.90A-R15.9 H7'}catch(_){}}
+function markR159(){const b=document.getElementById('pixel4486BuildBadge');if(b)b.textContent='BUILD 44.90A-R15.9-H8 · OBJECT CENTER CORNER DEDUP · FROM H7';try{document.documentElement.dataset.pixelVersion='44.90A-R15.9-H8';document.documentElement.dataset.pixelBuild='44.90A-r15-9-h8-object-center-corner-dedup-from-h7';document.title='Potolok AI PRO — Pixel 44.90A-R15.9 H8'}catch(_){}}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(markR159,80),{once:true});else setTimeout(markR159,80);
 window.addEventListener('pageshow',()=>setTimeout(markR159,120));[250,700,1500,3000,6000,9000].forEach(ms=>setTimeout(markR159,ms));document.addEventListener('visibilitychange',()=>{if(!document.hidden)setTimeout(markR159,100)});
 })();
