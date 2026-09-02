@@ -1,4 +1,4 @@
-<!-- PIXEL 44.90A-R15.9-H2: object totals include corners + single PNG share + neutral estimate selector | base: R15.9 TEST1 -->
+<!-- PIXEL 44.90A-R15.9-H7: export card spacing polish | base: H6 CORNER DEDUP FROM H5 -->
 <!-- PIXEL 44.90A: CLEAN ADMIN ONLY | stable base 44.90; object/room/insert logic untouched -->
 <!-- PIXEL 44.90: restore 'Весь об’єкт' quick button in room summary | base 44.89 -->
 <!-- PIXEL 44.89: root fix — saved perimeter insert survives render/restore | base 44.88 -->
@@ -15303,8 +15303,8 @@ if(typeof prevSetRate==='function'){
 function bootR8(){
   updateR8();
   try{
-    document.documentElement.dataset.pixelVersion='44.90A-R15.9';
-    document.documentElement.dataset.pixelBuild='44.90A-r15-9-test1-return-current-order';
+    document.documentElement.dataset.pixelVersion='44.90A-R15.9-H7';
+    document.documentElement.dataset.pixelBuild='44.90A-r15-9-h7-export-card-spacing-from-h6';
   }catch(_){}
 }
 if(document.readyState==='loading'){
@@ -15319,11 +15319,11 @@ setTimeout(bootR8,1300);
 (function(){
   function fix(){
     var el=document.getElementById('pixel4486BuildBadge');
-    if(el) el.textContent='BUILD 44.90A-R15.9 · TEST 1 · RETURN CURRENT ORDER';
+    if(el) el.textContent='BUILD 44.90A-R15.9-H7 · EXPORT CARD SPACING · FROM H6';
     try{
-      document.documentElement.dataset.pixelVersion='44.90A-R15.9';
-      document.documentElement.dataset.pixelBuild='44.90A-r15-9-test1-return-current-order';
-      document.title='Potolok AI PRO — Pixel 44.90A-R15.9 TEST 1';
+      document.documentElement.dataset.pixelVersion='44.90A-R15.9-H7';
+      document.documentElement.dataset.pixelBuild='44.90A-r15-9-h7-export-card-spacing-from-h6';
+      document.title='Potolok AI PRO — Pixel 44.90A-R15.9 H7';
     }catch(_){}
   }
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',()=>setTimeout(fix,0),{once:true});
@@ -16218,6 +16218,9 @@ function downloadBlobR158(blob,name){
   const u=URL.createObjectURL(blob),a=document.createElement('a');a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),4000);
 }
 function estimateCanvasPagesR158(payload){
+  const bridge=window.__pixelEstimateBridge4402;
+  if(!bridge)throw new Error('Модуль кошторису ще не готовий');
+  const {normalizeEstimateDate4474,qty4402,clean4402,money4402,num4402,lineSum4402,exportItems4473,ceilingRows4402,finishing4402,additional4402,ceiling4402,materials4402,selectedTotal4402}=bridge;
   const object=payload?.object||{},options=payload?.options||{},meta=payload?.meta||{},rooms=Array.isArray(object.rooms)?object.rooms:[],W=1080,H=1520,P=58,B=105;
   const pages=[];let canvas,ctx,y=0,pageNo=0;
   const ink='#0f172a',muted='#64748b',blue='#075bff',green='#15803d',orange='#b45309',bg='#f4f7fb',line='#dbe3ef',dark='#071428';
@@ -16244,10 +16247,12 @@ function estimateCanvasPagesR158(payload){
     if(subtotal){ctx.textAlign='right';ctx.fillText(subtotal,W-P-22,y+42);ctx.textAlign='left'}y+=80;
   }
   function itemRow(name,qty,unit,price,sum){
-    ctx.font='900 22px Arial';const lines=wrapR158(ctx,name,610),h=Math.max(80,30+lines.length*26);
+    ctx.font='900 22px Arial';
+    const lines=wrapR158(ctx,name,610),lineH=26,nameTop=31,detailGap=10,bottomPad=18;
+    const nameHeight=lines.length*lineH,detailY=y+nameTop+nameHeight+detailGap,h=Math.max(88,(detailY-y)+bottomPad);
     need(h+10);rrR158(ctx,P,y,W-P*2,h,15,'#fff',line);
-    ctx.font='900 22px Arial';ctx.fillStyle=ink;lines.forEach((l,i)=>ctx.fillText(l,P+22,y+31+i*26));
-    ctx.font='700 17px Arial';ctx.fillStyle=muted;const detail=`${qty4402(qty)}${unit?' '+clean4402(unit):''} × ${money4402(price)}`;ctx.fillText(detail,P+22,y+h-18);
+    ctx.font='900 22px Arial';ctx.fillStyle=ink;lines.forEach((l,i)=>ctx.fillText(l,P+22,y+nameTop+i*lineH));
+    ctx.font='700 17px Arial';ctx.fillStyle=muted;const detail=`${qty4402(qty)}${unit?' '+clean4402(unit):''} × ${money4402(price)}`;ctx.fillText(detail,P+22,detailY);
     ctx.font='900 23px Arial';ctx.fillStyle=blue;ctx.textAlign='right';ctx.fillText(money4402(sum),W-P-22,y+h/2+8);ctx.textAlign='left';y+=h+10;
   }
   function section(title,items,mode,forcedSum=0){
@@ -16352,25 +16357,29 @@ async function pdfBlobR158(canvases){
   return new Blob(parts,{type:'application/pdf'});
 }
 async function shareFilesOrDownloadR158(files,title,statusOk){
+  const bridge=window.__pixelEstimateBridge4402;
+  if(!bridge)throw new Error('Модуль кошторису ще не готовий');
   const can=!!navigator.share&&(!navigator.canShare||navigator.canShare({files}));
   if(can){await navigator.share({title,files});return true}
-  files.forEach(f=>downloadBlobR158(f,f.name));setStatus4402(statusOk,'ok');return false;
+  files.forEach(f=>downloadBlobR158(f,f.name));bridge.setStatus4402(statusOk,'ok');return false;
 }
 window.shareSelectedEstimateImageR158=async function(button){
   const old=button?.innerHTML;try{
-    const p=prepareSelected4402();if(button){button.disabled=true;button.innerHTML='<span>⏳</span><div><strong>Формуємо зображення…</strong><small>Готуємо універсальний кошторис</small></div>'}
+    const bridge=window.__pixelEstimateBridge4402;if(!bridge)throw new Error('Модуль кошторису ще не готовий');
+    const p=bridge.prepareSelected4402();if(button){button.disabled=true;button.innerHTML='<span>⏳</span><div><strong>Формуємо зображення…</strong><small>Готуємо універсальний кошторис</small></div>'}
     const files=await estimatePngFilesR158(p),shared=await shareFilesOrDownloadR158(files,'Кошторис Potolok.in.ua','Зображення кошторису збережено на телефон. Його можна прикріпити в Telegram / Viber / WhatsApp.');
     if(shared)window.closeEstimate4402();
-  }catch(error){if(error?.name!=='AbortError')setStatus4402(error?.message||'Не вдалося сформувати зображення кошторису.','err')}
+  }catch(error){if(error?.name!=='AbortError'){const bridge=window.__pixelEstimateBridge4402;if(bridge)bridge.setStatus4402(error?.message||'Не вдалося сформувати зображення кошторису.','err');else alert(error?.message||'Не вдалося сформувати зображення кошторису.')}}
   finally{if(button){button.disabled=false;button.innerHTML=old}}
 };
 window.shareSelectedEstimatePdfR158=async function(button){
   const old=button?.innerHTML;try{
-    const p=prepareSelected4402();if(button){button.disabled=true;button.innerHTML='<span>⏳</span><div><strong>Формуємо PDF…</strong><small>Готуємо документ для надсилання</small></div>'}
+    const bridge=window.__pixelEstimateBridge4402;if(!bridge)throw new Error('Модуль кошторису ще не готовий');
+    const p=bridge.prepareSelected4402();if(button){button.disabled=true;button.innerHTML='<span>⏳</span><div><strong>Формуємо PDF…</strong><small>Готуємо документ для надсилання</small></div>'}
     const pages=estimateCanvasPagesR158(p),blob=await pdfBlobR158(pages),name=String(p.filename||'Koshtorys-Potolok.html').replace(/\.html$/i,'.pdf'),file=new File([blob],name,{type:'application/pdf'});
     const shared=await shareFilesOrDownloadR158([file],'Кошторис Potolok.in.ua','PDF кошторису збережено на телефон. Його можна прикріпити до повідомлення.');
     if(shared)window.closeEstimate4402();
-  }catch(error){if(error?.name!=='AbortError')setStatus4402(error?.message||'Не вдалося сформувати PDF кошторису.','err')}
+  }catch(error){if(error?.name!=='AbortError'){const bridge=window.__pixelEstimateBridge4402;if(bridge)bridge.setStatus4402(error?.message||'Не вдалося сформувати PDF кошторису.','err');else alert(error?.message||'Не вдалося сформувати PDF кошторису.')}}
   finally{if(button){button.disabled=false;button.innerHTML=old}}
 };
 
@@ -25052,7 +25061,18 @@ function materials4402(object){
   return [];
 }
 function lineSum4402(item,qtyKey='quantity'){const explicit=num4402(item?.sum);if(explicit)return explicit;return num4402(item?.[qtyKey])*num4402(item?.price)}
-function ceiling4402(room){const fixed=num4402(room?.calculated)||num4402(room?.total);const base=fixed||roomRows4402(room).reduce((s,row)=>s+lineSum4402(row,'qty'),0);return base+cornerTotal4402(room)}
+function ceiling4402(room){
+  const rows=roomRows4402(room),fixed=num4402(room?.calculated)||num4402(room?.total),corner=cornerTotal4402(room);
+  const rowSum=rows.reduce((s,row)=>s+lineSum4402(row,'qty'),0);
+  const hasCorner=rows.some(row=>String(row?.id||'').toLowerCase()==='corners'||/кут/i.test(String(row?.name||row?.title||'')));
+  /* H6: room.calculated/room.total can already contain the corner charge. Do not add it twice. */
+  if(fixed>0){
+    if(corner<=0||hasCorner)return fixed;
+    const expectedWithout=rowSum,expectedWith=rowSum+corner;
+    return Math.abs(fixed-expectedWith)<=Math.abs(fixed-expectedWithout)?fixed:fixed+corner;
+  }
+  return rowSum+(hasCorner?0:corner);
+}
 function finishingTotal4402(room){return finishing4402(room).reduce((s,item)=>s+num4402(item?.quantity)*num4402(item?.price),0)}
 function additionalTotal4402(room){return additional4402(room).reduce((s,item)=>s+num4402(item?.quantity)*num4402(item?.price),0)}
 function materialsTotal4402(object){return materials4402(object).reduce((s,item)=>s+num4402(item?.quantity)*num4402(item?.price),0)}
@@ -25276,6 +25296,11 @@ window.shareEstimateFile4401=window.shareEstimateFile4338;
 async function adminRow4402(id){let rows=Array.isArray(window.serviceRows60)?window.serviceRows60:[],row=rows.find(item=>String(item?.id)===String(id));if(row)return row;const token=sessionStorage.getItem('potolok_service_token')||'';if(!token)throw new Error('Спочатку увійдіть як адміністратор');const response=await fetch('/api/objects',{method:'POST',headers:{'Content-Type':'application/json','X-Service-Token':token},body:JSON.stringify({action:'serviceList'})});const data=await response.json().catch(()=>({}));if(!response.ok)throw new Error(data.error||('API '+response.status));rows=Array.isArray(data.objects)?data.objects:[];window.serviceRows60=rows;row=rows.find(item=>String(item?.id)===String(id));if(!row)throw new Error('Об’єкт не знайдено в історії');return row}
 window.shareAdminEstimate4401=async function(id,button){const old=button?.innerHTML;try{if(button){button.disabled=true;button.textContent='⏳ Кошторис…'}const row=await adminRow4402(id),base=row?.object_data&&typeof row.object_data==='object'?copy4402(row.object_data):{};base.objectNumber=row?.object_number||base.objectNumber||'';base.cloudId=row?.id||base.cloudId||'';openChoice4402(base)}catch(error){alert('Не вдалося відкрити кошторис з історії: '+(error?.message||error))}finally{if(button){button.disabled=false;button.innerHTML=old}}};
 
+window.__pixelEstimateBridge4402={
+  normalizeEstimateDate4474,qty4402,clean4402,money4402,num4402,lineSum4402,
+  exportItems4473,ceilingRows4402,finishing4402,additional4402,ceiling4402,
+  materials4402,selectedTotal4402,prepareSelected4402,setStatus4402
+};
 document.documentElement.dataset.pixelVersion=VERSION4402;try{document.title='Potolok AI PRO — Pixel '+VERSION4402}catch(_){ }
 })();
 </script>
@@ -30120,7 +30145,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
     if(document.getElementById('pixel4486BuildBadge')) return;
     var el=document.createElement('div');
     el.id='pixel4486BuildBadge';
-    el.textContent='BUILD 44.90A-R15.9 · TEST 1 · RETURN CURRENT ORDER';
+    el.textContent='BUILD 44.90A-R15.9-H7 · EXPORT CARD SPACING · FROM H6';
     var header=document.querySelector('.header,header,.site-header,.topbar');
     if(header)header.insertAdjacentElement('afterend',el);else document.body.prepend(el);
     try{
@@ -30728,7 +30753,7 @@ document.addEventListener('change',e=>{if(e.target?.closest?.('[data-room-work43
 document.addEventListener('toggle',e=>{const d=e.target?.closest?.('details.r154-stage[data-r154-stage]');if(!d)return;const r=room();if(!r)return;const key=String(r.id||''),sid=String(d.dataset.r154Stage||'');if(d.open)openStageByRoom.set(key,sid);else if(openStageByRoom.get(key)===sid)openStageByRoom.delete(key)},true);
 document.addEventListener('focusout',e=>{if(e.target?.closest?.('#finStagesR154')&&pendingRender)setTimeout(()=>render(false),80)},true);
 window.addEventListener('beforeunload',()=>persist(room()));document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')persist(room())});
-function markR154(){const b=document.getElementById('pixel4486BuildBadge');if(b)b.textContent='BUILD 44.90A-R15.9 · TEST 1 · RETURN CURRENT ORDER';try{document.documentElement.dataset.pixelVersion='44.90A-R15.9';document.documentElement.dataset.pixelBuild='44.90A-r15-9-test1-return-current-order';document.title='Potolok AI PRO — Pixel 44.90A-R15.9 TEST 1'}catch(_){}}
+function markR154(){const b=document.getElementById('pixel4486BuildBadge');if(b)b.textContent='BUILD 44.90A-R15.9-H7 · EXPORT CARD SPACING · FROM H6';try{document.documentElement.dataset.pixelVersion='44.90A-R15.9-H7';document.documentElement.dataset.pixelBuild='44.90A-r15-9-h7-export-card-spacing-from-h6';document.title='Potolok AI PRO — Pixel 44.90A-R15.9 H7'}catch(_){}}
 function boot(){render(true);markR154()}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(boot,280),{once:true});else setTimeout(boot,280);window.addEventListener('pageshow',()=>setTimeout(()=>{render(false);markR154()},140));[900,2200,4500].forEach(ms=>setTimeout(markR154,ms));
 })();
 </script>
@@ -30767,11 +30792,11 @@ function finalRehydrateR154T11(){
 }
 function markR154T11(){
   const b=document.getElementById('pixel4486BuildBadge');
-  if(b)b.textContent='BUILD 44.90A-R15.9 · TEST 1 · RETURN CURRENT ORDER';
+  if(b)b.textContent='BUILD 44.90A-R15.9-H7 · EXPORT CARD SPACING · FROM H6';
   try{
-    document.documentElement.dataset.pixelVersion='44.90A-R15.9';
-    document.documentElement.dataset.pixelBuild='44.90A-r15-9-test1-return-current-order';
-    document.title='Potolok AI PRO — Pixel 44.90A-R15.9 TEST 1';
+    document.documentElement.dataset.pixelVersion='44.90A-R15.9-H7';
+    document.documentElement.dataset.pixelBuild='44.90A-r15-9-h7-export-card-spacing-from-h6';
+    document.title='Potolok AI PRO — Pixel 44.90A-R15.9 H7';
   }catch(_){}
 }
 function bootR154T11(){finalRehydrateR154T11();markR154T11()}
@@ -30853,7 +30878,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 
 
 <script id="pixel4490aR157T4FinalBuildMarker">
-(function(){function mark(){const b=document.getElementById('pixel4486BuildBadge');if(b)b.textContent='BUILD 44.90A-R15.9 · TEST 1 · RETURN CURRENT ORDER';try{document.documentElement.dataset.pixelVersion='44.90A-R15.9';document.documentElement.dataset.pixelBuild='44.90A-r15-9-test1-return-current-order';document.title='Potolok AI PRO — Pixel 44.90A-R15.9 TEST 1'}catch(_){}}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(mark,0),{once:true});else setTimeout(mark,0);window.addEventListener('pageshow',()=>setTimeout(mark,100));[300,800,1500,3000,6000,9000].forEach(ms=>setTimeout(mark,ms));document.addEventListener('visibilitychange',()=>{if(!document.hidden)setTimeout(mark,80)});})();
+(function(){function mark(){const b=document.getElementById('pixel4486BuildBadge');if(b)b.textContent='BUILD 44.90A-R15.9-H7 · EXPORT CARD SPACING · FROM H6';try{document.documentElement.dataset.pixelVersion='44.90A-R15.9-H7';document.documentElement.dataset.pixelBuild='44.90A-r15-9-h7-export-card-spacing-from-h6';document.title='Potolok AI PRO — Pixel 44.90A-R15.9 H7'}catch(_){}}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(mark,0),{once:true});else setTimeout(mark,0);window.addEventListener('pageshow',()=>setTimeout(mark,100));[300,800,1500,3000,6000,9000].forEach(ms=>setTimeout(mark,ms));document.addEventListener('visibilitychange',()=>{if(!document.hidden)setTimeout(mark,80)});})();
 </script>
 
 
@@ -32538,7 +32563,7 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape'&&isOpenR14())window.
 document.addEventListener('click',()=>setTimeout(()=>{if(isOpenR14())terminologyR14()},45),true);
 function markR14(){
   const badge=document.getElementById('pixel4486BuildBadge');
-  if(badge)badge.textContent='BUILD 44.90A-R15.9 · TEST 1 · RETURN CURRENT ORDER';
+  if(badge)badge.textContent='BUILD 44.90A-R15.9-H7 · EXPORT CARD SPACING · FROM H6';
   try{document.documentElement.dataset.pixelVersion='44.90A-R14';document.documentElement.dataset.pixelBuild='44.90A-r14-fullscreen-nw-catalog';document.title='Potolok AI PRO — Pixel 44.90A-R14'}catch(_){}
 }
 function bootR14(){watchR14();markR14();setTimeout(markR14,700);setTimeout(markR14,1800)}
@@ -32619,7 +32644,7 @@ function sync(){
 }
 const mo=new MutationObserver(()=>setTimeout(sync,20));
 function mark(){
-  const b=document.getElementById('pixel4486BuildBadge');if(b)b.textContent='BUILD 44.90A-R15.9 · TEST 1 · RETURN CURRENT ORDER';
+  const b=document.getElementById('pixel4486BuildBadge');if(b)b.textContent='BUILD 44.90A-R15.9-H7 · EXPORT CARD SPACING · FROM H6';
   try{document.documentElement.dataset.pixelVersion='44.90A-R14.1';document.documentElement.dataset.pixelBuild='44.90A-r14-1-large-catalog-area';document.title='Potolok AI PRO — Pixel 44.90A-R14.1'}catch(_){}
 }
 function boot(){
@@ -32689,7 +32714,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 if(window.__pixel4490aR142Installed)return;window.__pixel4490aR142Installed=true;
 function mark(){
   const b=document.getElementById('pixel4486BuildBadge');
-  if(b)b.textContent='BUILD 44.90A-R15.9 · TEST 1 · RETURN CURRENT ORDER';
+  if(b)b.textContent='BUILD 44.90A-R15.9-H7 · EXPORT CARD SPACING · FROM H6';
   try{
     document.documentElement.dataset.pixelVersion='44.90A-R14.2';
     document.documentElement.dataset.pixelBuild='44.90A-r14-2-tall-selected-items';
@@ -32774,7 +32799,7 @@ if(typeof openPrev==='function')window.openNWCatalog4413=function(){
 };
 function mark(){
   const b=document.getElementById('pixel4486BuildBadge');
-  if(b)b.textContent='BUILD 44.90A-R15.9 · TEST 1 · RETURN CURRENT ORDER';
+  if(b)b.textContent='BUILD 44.90A-R15.9-H7 · EXPORT CARD SPACING · FROM H6';
   try{
     document.documentElement.dataset.pixelVersion='44.90A-R14.3';
     document.documentElement.dataset.pixelBuild='44.90A-r14-3-swipe-scroll-catalog';
@@ -32854,7 +32879,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 if(window.__pixel4490aR144Installed)return;window.__pixel4490aR144Installed=true;
 function mark(){
   const b=document.getElementById('pixel4486BuildBadge');
-  if(b)b.textContent='BUILD 44.90A-R15.9 · TEST 1 · RETURN CURRENT ORDER';
+  if(b)b.textContent='BUILD 44.90A-R15.9-H7 · EXPORT CARD SPACING · FROM H6';
   try{
     document.documentElement.dataset.pixelVersion='44.90A-R14.4';
     document.documentElement.dataset.pixelBuild='44.90A-r14-4-compact-selected-panel';
@@ -32955,7 +32980,7 @@ if(typeof openPrev==='function')window.openNWCatalog4413=function(){
 };
 function mark(){
   const b=document.getElementById('pixel4486BuildBadge');
-  if(b)b.textContent='BUILD 44.90A-R15.9 · TEST 1 · RETURN CURRENT ORDER';
+  if(b)b.textContent='BUILD 44.90A-R15.9-H7 · EXPORT CARD SPACING · FROM H6';
   try{
     document.documentElement.dataset.pixelVersion='44.90A-R14.5';
     document.documentElement.dataset.pixelBuild='44.90A-r14-5-sticky-catalog-controls';
@@ -33029,7 +33054,7 @@ document.addEventListener('click',e=>{
 },true);
 function mark(){
   const b=document.getElementById('pixel4486BuildBadge');
-  if(b)b.textContent='BUILD 44.90A-R15.9 · TEST 1 · RETURN CURRENT ORDER';
+  if(b)b.textContent='BUILD 44.90A-R15.9-H7 · EXPORT CARD SPACING · FROM H6';
   try{document.documentElement.dataset.pixelVersion='44.90A-R14.6';document.documentElement.dataset.pixelBuild='44.90A-r14-6-total-sync-fixed';document.title='Potolok AI PRO — Pixel 44.90A-R14.6'}catch(_){}
 }
 function boot(){repaint();mark();setTimeout(repaint,600);setTimeout(repaint,1600);setTimeout(mark,700);setTimeout(mark,1800)}
@@ -33221,8 +33246,8 @@ window.shareNoPlan4463=async function(){
 
 function mark(){
   const b=document.getElementById('pixel4486BuildBadge');
-  if(b)b.textContent='BUILD 44.90A-R15.9 · TEST 1 · RETURN CURRENT ORDER';
-  try{document.documentElement.dataset.pixelVersion='44.90A-R15.9';document.documentElement.dataset.pixelBuild='44.90A-r15-9-test1-return-current-order';document.title='Potolok AI PRO — Pixel 44.90A-R15.9 TEST 1'}catch(_){}
+  if(b)b.textContent='BUILD 44.90A-R15.9-H7 · EXPORT CARD SPACING · FROM H6';
+  try{document.documentElement.dataset.pixelVersion='44.90A-R15.9-H7';document.documentElement.dataset.pixelBuild='44.90A-r15-9-h7-export-card-spacing-from-h6';document.title='Potolok AI PRO — Pixel 44.90A-R15.9 H7'}catch(_){}
 }
 function boot(){healVisibleOrder();mark()}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(boot,250),{once:true});else setTimeout(boot,250);
@@ -33272,11 +33297,11 @@ function syncR151(delay=0){
 }
 function markR151(){
   const b=document.getElementById('pixel4486BuildBadge');
-  if(b)b.textContent='BUILD 44.90A-R15.9 · TEST 1 · RETURN CURRENT ORDER';
+  if(b)b.textContent='BUILD 44.90A-R15.9-H7 · EXPORT CARD SPACING · FROM H6';
   try{
-    document.documentElement.dataset.pixelVersion='44.90A-R15.9';
-    document.documentElement.dataset.pixelBuild='44.90A-r15-9-test1-return-current-order';
-    document.title='Potolok AI PRO — Pixel 44.90A-R15.9 TEST 1';
+    document.documentElement.dataset.pixelVersion='44.90A-R15.9-H7';
+    document.documentElement.dataset.pixelBuild='44.90A-r15-9-h7-export-card-spacing-from-h6';
+    document.title='Potolok AI PRO — Pixel 44.90A-R15.9 H7';
   }catch(_){}
 }
 /* Hydrate before old total painters get a chance to show a stale zero. */
@@ -33400,7 +33425,7 @@ window.shareNoPlan4463=async function(){
     const u=URL.createObjectURL(blob),link=document.createElement('a');link.href=u;link.download=file.name;document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(u),2500);if(st)st.textContent=withPrices?'✅ Картку з цінами збережено у PNG.':'✅ Картку без цін збережено у PNG.';
   }catch(e){console.error('R15.3 export',e);if(st)st.textContent='❌ '+(e?.message||'Помилка формування картки.');alert('Не вдалося сформувати картку: '+(e?.message||'невідома помилка'))}
 };
-function markR153(){const b=document.getElementById('pixel4486BuildBadge');if(b)b.textContent='BUILD 44.90A-R15.9 · TEST 1 · RETURN CURRENT ORDER';try{document.documentElement.dataset.pixelVersion='44.90A-R15.9';document.documentElement.dataset.pixelBuild='44.90A-r15-9-test1-return-current-order';document.title='Potolok AI PRO — Pixel 44.90A-R15.9 TEST 1'}catch(_){}}
+function markR153(){const b=document.getElementById('pixel4486BuildBadge');if(b)b.textContent='BUILD 44.90A-R15.9-H7 · EXPORT CARD SPACING · FROM H6';try{document.documentElement.dataset.pixelVersion='44.90A-R15.9-H7';document.documentElement.dataset.pixelBuild='44.90A-r15-9-h7-export-card-spacing-from-h6';document.title='Potolok AI PRO — Pixel 44.90A-R15.9 H7'}catch(_){}}
 function bootR153(){injectToggleR153();updateToggleR153();markR153()}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(bootR153,250),{once:true});else setTimeout(bootR153,250);
 [700,1500,3000,5000].forEach(ms=>setTimeout(bootR153,ms));
@@ -33411,7 +33436,7 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden)setTimeout
 
 <!-- PIXEL 44.90A-R15.8 TEST1 | SELECT ALL + GROUPED STAGE LIST + PNG STAGE EXPORT | base: current live R15.7 TEST2 -->
 <script id="pixel4490aR157FinalMarker">
-(function(){function mark(){const b=document.getElementById('pixel4486BuildBadge');if(b)b.textContent='BUILD 44.90A-R15.9 · TEST 1 · RETURN CURRENT ORDER';try{document.documentElement.dataset.pixelVersion='44.90A-R15.9';document.documentElement.dataset.pixelBuild='44.90A-r15-9-test1-return-current-order';document.title='Potolok AI PRO — Pixel 44.90A-R15.9 TEST 1'}catch(_){}}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(mark,120),{once:true});else setTimeout(mark,120);window.addEventListener('pageshow',()=>setTimeout(mark,150));[500,1200,2500,5000,8000].forEach(ms=>setTimeout(mark,ms));document.addEventListener('visibilitychange',()=>{if(!document.hidden)setTimeout(mark,100)});})();
+(function(){function mark(){const b=document.getElementById('pixel4486BuildBadge');if(b)b.textContent='BUILD 44.90A-R15.9-H7 · EXPORT CARD SPACING · FROM H6';try{document.documentElement.dataset.pixelVersion='44.90A-R15.9-H7';document.documentElement.dataset.pixelBuild='44.90A-r15-9-h7-export-card-spacing-from-h6';document.title='Potolok AI PRO — Pixel 44.90A-R15.9 H7'}catch(_){}}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(mark,120),{once:true});else setTimeout(mark,120);window.addEventListener('pageshow',()=>setTimeout(mark,150));[500,1200,2500,5000,8000].forEach(ms=>setTimeout(mark,ms));document.addEventListener('visibilitychange',()=>{if(!document.hidden)setTimeout(mark,100)});})();
 </script>
 
 
@@ -33578,7 +33603,7 @@ if(typeof baseSaveR159==='function'&&!baseSaveR159.__r159ReturnWrapped){
   }
   saveR159.__r159ReturnWrapped=true;window.saveProductionOrder4408=saveR159;
 }
-function markR159(){const b=document.getElementById('pixel4486BuildBadge');if(b)b.textContent='BUILD 44.90A-R15.9-H2 · TOTAL + PNG + NEUTRAL SEND';try{document.documentElement.dataset.pixelVersion='44.90A-R15.9-H2';document.documentElement.dataset.pixelBuild='44.90A-r15-9-h2-total-png-neutral-send';document.title='Potolok AI PRO — Pixel 44.90A-R15.9 H2'}catch(_){}}
+function markR159(){const b=document.getElementById('pixel4486BuildBadge');if(b)b.textContent='BUILD 44.90A-R15.9-H7 · EXPORT CARD SPACING · FROM H6';try{document.documentElement.dataset.pixelVersion='44.90A-R15.9-H7';document.documentElement.dataset.pixelBuild='44.90A-r15-9-h7-export-card-spacing-from-h6';document.title='Potolok AI PRO — Pixel 44.90A-R15.9 H7'}catch(_){}}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(markR159,80),{once:true});else setTimeout(markR159,80);
 window.addEventListener('pageshow',()=>setTimeout(markR159,120));[250,700,1500,3000,6000,9000].forEach(ms=>setTimeout(markR159,ms));document.addEventListener('visibilitychange',()=>{if(!document.hidden)setTimeout(markR159,100)});
 })();
