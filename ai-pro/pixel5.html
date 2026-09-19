@@ -3982,6 +3982,9 @@ loadMarkupFromRoom();drawMarkupCanvas();renderHistory();
     plannerDragScale56=realPer>0?screenPer/realPer:80;
     plannerDragged56=true;
   },true);
+  // SAFE RESTART 06: while a point is moving, update only geometry state/metrics.
+  // Do NOT rebuild the wall-input DOM on every pointermove: that was one of the
+  // main sources of mobile planner jank and competing render/save chains.
   planner?.addEventListener('pointermove',()=>{
     if(!plannerDragged56||dragIndex<0||!plannerDragScale56)return;
     segmentLengths=roomPoints.map((p,i)=>{
@@ -3990,12 +3993,19 @@ loadMarkupFromRoom();drawMarkupCanvas();renderHistory();
     });
     roomTemplate='custom';customPointTotal=roomPoints.length;
     if(document.getElementById('customPointCount'))customPointCount.value=roomPoints.length;
-    renderSegmentInputs();
     const m=polygonMetrics();
     if(document.getElementById('plannerArea'))plannerArea.textContent=(m.approx?'≈ ':'')+m.area.toFixed(2)+' м²';
     if(document.getElementById('plannerPerimeter'))plannerPerimeter.textContent=m.perimeter.toFixed(2)+' м';
   });
-  ['pointerup','pointercancel'].forEach(ev=>planner?.addEventListener(ev,()=>{if(plannerDragged56){plannerDragged56=false;plannerDragScale56=0;renderPlanner();syncActiveRoomFromUI(false);autosave()}},true));
+  ['pointerup','pointercancel'].forEach(ev=>planner?.addEventListener(ev,()=>{
+    if(!plannerDragged56)return;
+    plannerDragged56=false;
+    plannerDragScale56=0;
+    // One final UI rebuild after the gesture. The original planner pointerup
+    // handler remains the single autosave path, avoiding duplicate save/sync.
+    renderSegmentInputs();
+    renderPlanner();
+  },true));
 
   // ---------- AI result: switch between clean visualization and saved markup ----------
   const resultWrap=document.getElementById('resultImageWrap');
@@ -25783,6 +25793,12 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 .free-draw-zoom4408{position:absolute;right:18px;top:122px;z-index:9;width:170px;padding:7px 9px;border:1px solid #bfdbfe;border-radius:11px;background:rgba(255,255,255,.96);box-shadow:0 6px 18px rgba(15,23,42,.10);pointer-events:auto}.free-draw-zoom4408 span{display:flex;justify-content:space-between;gap:7px;font-size:8px;font-weight:950;color:#334155}.free-draw-zoom4408 input{width:100%;margin-top:5px;accent-color:#075bff}.free-draw-sheet4405{overflow:auto}.free-draw-stage4405{flex:0 0 auto;height:min(55vh,510px)}.free-draw-footer4405{position:sticky;bottom:0;z-index:30}
 @media(max-width:520px){.free-draw-sheet4405{height:96vh;border-radius:16px}.free-draw-actions4405{grid-template-columns:repeat(3,1fr)}.free-draw-actions4405 .apply4405{grid-column:span 2}.free-draw-launch4405{grid-template-columns:1fr}.free-draw-launch4405 button{width:100%}.free-draw-help4405{max-width:50%;font-size:7.5px}.free-draw-live4407{right:14px;top:14px;min-width:128px;padding:8px 9px}.free-draw-live4407 .live-value4407{font-size:22px}.free-draw-scale4407{right:15px;top:86px}.free-draw-zoom4408{right:14px;top:112px;width:148px}.free-draw-stage4405{height:54vh;min-height:390px}}
 </style>
+<style id="safeRestart15PointModeStyles">
+.sr15-modebar{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:6px;padding:8px 12px;background:#fff;border-bottom:1px solid #e5e7eb}.sr15-modebar button{min-height:38px;border:1px solid #bfdbfe;border-radius:10px;background:#fff;color:#1e40af;font-size:8px;font-weight:950;padding:6px 3px}.sr15-modebar button.active{background:#075bff;color:#fff;border-color:#075bff}.sr15-modebar button:disabled{opacity:.4}.sr15-modebar button:nth-child(4){color:#dc2626;border-color:#fecaca}.sr15-modebar button:nth-child(5){color:#7c3aed;border-color:#ddd6fe}
+@media(max-width:520px){.sr15-modebar{grid-template-columns:repeat(3,1fr)}.sr15-modebar button{font-size:8.5px}}
+
+#sr16PlanLockBtn.active{background:#16a34a!important;color:#fff!important;border-color:#16a34a!important}
+</style>
 <script id="fingerWallDrawing4405Script">
 (function(){
 'use strict';
@@ -25800,14 +25816,67 @@ let manualSegments4408=[];
 let drawZoom4408=1;
 let zoomCenter4408=[400,300];
 let drawingSource4408='new';
+/* SAFE RESTART 15 — point(auto) editor + corner radii. */
+let sr15PointMode=false,sr15PlanLocked=false,sr15SelectedPoint=-1,sr15SelectedWall=-1,sr15CornerRadii=[];
+/* V7D1 — isolated measuring diagonals. Presentation/measurement only: never mutates contour geometry. */
+let srD1Diagonals=[],srD1RadiusFans=[],srD1PickFirst=-1;
+function srD1ResetPick(){srD1PickFirst=-1}
+function srD1PointName(i){return pointName4405(i)}
+function srD1PairExists(a,b){return srD1Diagonals.some(d=>(d.a===a&&d.b===b)||(d.a===b&&d.b===a))}
+function srD1CornerGeom(i){
+  const n=drawPoints4405.length,rM=sr15Radius(i);if(!(rM>0)||n<3||(!drawClosed4405&&(i===0||i===n-1)))return null;
+  const v=drawPoints4405[i],p=drawPoints4405[(i-1+n)%n],q=drawPoints4405[(i+1)%n],ax=p[0]-v[0],ay=p[1]-v[1],bx=q[0]-v[0],by=q[1]-v[1];
+  const la=Math.hypot(ax,ay),lb=Math.hypot(bx,by);if(la<1||lb<1)return null;const ua=[ax/la,ay/la],ub=[bx/lb,by/lb];
+  const dot=Math.max(-.999999,Math.min(.999999,ua[0]*ub[0]+ua[1]*ub[1])),theta=Math.acos(dot),tanHalf=Math.tan(theta/2);if(theta<.02||Math.PI-theta<.02||tanHalf<1e-6)return null;
+  let tangent=(rM*PX_PER_METER4407)/tanHalf;tangent=Math.min(tangent,la*.45,lb*.45);const r=tangent*tanHalf;if(r<.5)return null;
+  const tin=[v[0]+ua[0]*tangent,v[1]+ua[1]*tangent],tout=[v[0]+ub[0]*tangent,v[1]+ub[1]*tangent];
+  const mx=(tin[0]+tout[0])/2,my=(tin[1]+tout[1])/2,dx=tout[0]-tin[0],dy=tout[1]-tin[1],ch=Math.hypot(dx,dy);if(ch<.5)return null;
+  const h=Math.sqrt(Math.max(0,r*r-ch*ch/4)),nx=-dy/ch,ny=dx/ch,c1=[mx+nx*h,my+ny*h],c2=[mx-nx*h,my-ny*h];
+  /* D4: use the SAME sweep as the visible V7 radius. The old helper chose the
+     centre nearest the vertex, which can select the mirror arc on concave corners. */
+  const din=[-ua[0],-ua[1]],dout=ub,cross=din[0]*dout[1]-din[1]*dout[0],sweep=cross>0?1:0;
+  function arcFor(center){let a0=Math.atan2(tin[1]-center[1],tin[0]-center[0]),a1=Math.atan2(tout[1]-center[1],tout[0]-center[0]),delta=a1-a0;while(delta<=-Math.PI)delta+=Math.PI*2;while(delta>Math.PI)delta-=Math.PI*2;return{center,a0,delta}}
+  const ac1=arcFor(c1),ac2=arcFor(c2),want=ac=>sweep?ac.delta>=0:ac.delta<=0,ac=want(ac1)?ac1:ac2;
+  return {tin,tout,center:ac.center,r,a0:ac.a0,delta:ac.delta,rM,sweep};
+}
+function srD1RadiusSamples(c){
+  /* D4: true 10 cm stations along the arc: 0, 10, 20 ... cm plus the final
+     tangent point only for the remaining tail. Do not redistribute the step. */
+  const pxPerM=c.r/Math.max(.001,c.rM),arcM=Math.abs(c.delta)*c.r/pxPerM,out=[],step=.10;
+  const dir=c.delta>=0?1:-1,anglePerM=pxPerM/c.r;
+  for(let s=0;s<arcM-1e-6;s+=step){const a=c.a0+dir*s*anglePerM;out.push([c.center[0]+Math.cos(a)*c.r,c.center[1]+Math.sin(a)*c.r])}
+  const ae=c.a0+c.delta,end=[c.center[0]+Math.cos(ae)*c.r,c.center[1]+Math.sin(ae)*c.r];
+  if(!out.length||Math.hypot(out[out.length-1][0]-end[0],out[out.length-1][1]-end[1])>1)out.push(end);
+  return out;
+}
+function srD1Render(svg){
+  const n=drawPoints4405.length;if(n<2)return;
+  srD1Diagonals=srD1Diagonals.filter(d=>d.a<n&&d.b<n&&d.a!==d.b);
+  srD1RadiusFans=srD1RadiusFans.filter(f=>f.anchor<n&&f.corner<n&&f.anchor!==f.corner&&sr15Radius(f.corner)>0);
+  const deleteMode=window.sr31EditorTool==='delete-diagonal';
+  const addLine=(a,b,label,kind,remove)=>{const l=createSvg4405('line',{x1:a[0],y1:a[1],x2:b[0],y2:b[1]});l.setAttribute('stroke',kind==='radius'?'#7c3aed':'#e11d48');l.setAttribute('stroke-width',kind==='radius'?'2':'3');l.setAttribute('stroke-dasharray',kind==='radius'?'5 5':'8 5');l.setAttribute('opacity',kind==='radius'?'.72':'.9');l.style.pointerEvents=deleteMode?'stroke':'none';if(deleteMode){l.setAttribute('stroke-width',kind==='radius'?'8':'10');l.addEventListener('pointerup',e=>{e.preventDefault();e.stopPropagation();remove&&remove()})}svg.appendChild(l);if(label){const t=createSvg4405('text',{x:(a[0]+b[0])/2,y:(a[1]+b[1])/2-7,'text-anchor':'middle',class:'free-wall-index4405'});t.textContent=label;t.setAttribute('fill',kind==='radius'?'#7c3aed':'#be123c');t.setAttribute('font-size',kind==='radius'?'9':'11');t.style.pointerEvents='none';svg.appendChild(t)}};
+  srD1Diagonals.forEach((d,idx)=>{const a=drawPoints4405[d.a],b=drawPoints4405[d.b];addLine(a,b,srD1PointName(d.a)+'–'+srD1PointName(d.b)+'  '+meters4407(a,b).toFixed(2)+' м','single',()=>{srD1Diagonals.splice(idx,1);renderDraw4405();status4405('🗑 Діагональ видалено.')})});
+  srD1RadiusFans.forEach((f,fi)=>{const c=srD1CornerGeom(f.corner);if(!c)return;const a=drawPoints4405[f.anchor],samples=srD1RadiusSamples(c);samples.forEach((p,k)=>{const show=k===0||k===samples.length-1||k%2===0;addLine(a,p,show?meters4407(a,p).toFixed(2)+' м':'','radius',()=>{srD1RadiusFans.splice(fi,1);renderDraw4405();status4405('🗑 Набір діагоналей радіуса видалено.')})})});
+}
+
+function sr15Radius(i){return Math.max(0,Number(sr15CornerRadii?.[i])||0)}
+function sr15NearestWall(p){let bi=-1,bd=Infinity,bq=null;const n=drawPoints4405.length,ec=drawClosed4405?n:Math.max(0,n-1);for(let i=0;i<ec;i++){const a=drawPoints4405[i],b=drawPoints4405[(i+1)%n],vx=b[0]-a[0],vy=b[1]-a[1],l2=vx*vx+vy*vy||1,t=Math.max(0,Math.min(1,((p[0]-a[0])*vx+(p[1]-a[1])*vy)/l2)),q=[a[0]+t*vx,a[1]+t*vy],d=dist4405(p,q);if(d<bd){bd=d;bi=i;bq=q}}return{index:bi,distance:bd,point:bq}}
+function sr15SyncToolbar(){const b=document.getElementById('sr15PointModeBtn');if(b)b.classList.toggle('active',sr15PointMode);const lock=document.getElementById('sr16PlanLockBtn');if(lock){lock.classList.toggle('active',sr15PlanLocked);lock.textContent=sr15PlanLocked?'✏️ Продовжити':'🔒 Зафіксувати план'}const r=document.getElementById('sr15RadiusBtn');if(r)r.disabled=sr15PlanLocked||sr15SelectedPoint<0;const del=document.getElementById('sr15DeleteBtn');if(del)del.disabled=sr15PlanLocked||(sr15SelectedPoint<0&&sr15SelectedWall<0)}
+/* SAFE RESTART 12 — after each wall the canvas enters navigation mode.
+   Empty-space drag pans; pinch zooms; drawing resumes only from the last point. */
+let sr12NavPointer=null,sr12NavLast=null,sr12DrawArmed=true;
+const sr12Pointers=new Map();let sr12PinchDist=0,sr12PinchZoom=1;
 
 const clone4405=v=>{try{return JSON.parse(JSON.stringify(v))}catch(_){return[]}};
 const n4405=v=>Number(String(v??'').replace(',','.'))||0;
 const pointName4405=i=>{try{return typeof pointName==='function'?pointName(i):String.fromCharCode(65+i)}catch(_){return String.fromCharCode(65+i)}};
 function status4405(msg){const el=document.getElementById('freeDrawStatus4405');if(el)el.textContent=msg}
 function svg4405(){return document.getElementById('freeDrawSvg4405')}
-function coord4405(e){const svg=svg4405(),pt=svg.createSVGPoint();pt.x=e.clientX;pt.y=e.clientY;const p=pt.matrixTransform(svg.getScreenCTM().inverse());const vb=svg.viewBox?.baseVal||{x:0,y:0,width:800,height:600};return[Math.max(vb.x+8,Math.min(vb.x+vb.width-8,p.x)),Math.max(vb.y+8,Math.min(vb.y+vb.height-8,p.y))]}
+function coord4405(e){const svg=svg4405(),pt=svg.createSVGPoint();pt.x=e.clientX;pt.y=e.clientY;const p=pt.matrixTransform(svg.getScreenCTM().inverse());return[p.x,p.y]}
 function dist4405(a,b){return Math.hypot((b?.[0]||0)-(a?.[0]||0),(b?.[1]||0)-(a?.[1]||0))}
+function sr12ScreenToWorldDelta(dx,dy){const svg=svg4405(),r=svg?.getBoundingClientRect(),vb=svg?.viewBox?.baseVal;if(!r?.width||!r?.height||!vb)return[0,0];return[dx*vb.width/r.width,dy*vb.height/r.height]}
+function sr12SetZoom(z,clientX,clientY){const svg=svg4405();if(!svg)return;const before=coord4405({clientX,clientY});drawZoom4408=Math.max(.30,Math.min(5,z));setViewBox4408();const after=coord4405({clientX,clientY});zoomCenter4408=[(zoomCenter4408?.[0]||400)+(before[0]-after[0]),(zoomCenter4408?.[1]||300)+(before[1]-after[1])];setViewBox4408();const range=document.getElementById('freeDrawZoomRange4408');if(range)range.value=String(Math.round(drawZoom4408*100))}
+function sr12NavStatus(){try{const last=drawPoints4405.length?pointName4405(drawPoints4405.length-1):'A';status4405('✋ Навігація: рухайте лист одним пальцем, двома — масштаб. Щоб продовжити стіну, торкніться точки '+last+' і тягніть.')}catch(_){}}
 const PX_PER_METER4407=80;
 function meters4407(a,b){return dist4405(a,b)/PX_PER_METER4407}
 function meterText4407(a,b){return meters4407(a,b).toFixed(2)+' м'}
@@ -25815,11 +25884,25 @@ function segmentMeters4408(i,a,b){const manual=Number(manualSegments4408[i]);ret
 function segmentText4408(i,a,b){return segmentMeters4408(i,a,b).toFixed(2)+' м'}
 function setViewBox4408(){
   const svg=svg4405();if(!svg)return;
-  const z=Math.max(.7,Math.min(1.8,Number(drawZoom4408)||1)),w=800/z,h=600/z;
+  const z=Math.max(.30,Math.min(5,Number(drawZoom4408)||1)),w=800/z,h=600/z;
   const focus=Array.isArray(zoomCenter4408)?zoomCenter4408:[400,300];
-  const x=Math.max(0,Math.min(800-w,(focus?.[0]||400)-w/2)),y=Math.max(0,Math.min(600-h,(focus?.[1]||300)-h/2));
+  const x=(Number(focus?.[0])||400)-w/2,y=(Number(focus?.[1])||300)-h/2;
   svg.setAttribute('viewBox',[x,y,w,h].join(' '));
   const label=document.getElementById('freeDrawZoomValue4408');if(label)label.textContent=Math.round(z*100)+'%';
+}
+function autoPanFingerSR11(e){
+  const svg=svg4405();if(!svg)return false;const r=svg.getBoundingClientRect();if(!r.width||!r.height)return false;
+  const edge=Math.max(42,Math.min(78,Math.min(r.width,r.height)*.16));let dx=0,dy=0;
+  if(e.clientX<r.left+edge)dx=-(1-(e.clientX-r.left)/edge);else if(e.clientX>r.right-edge)dx=(1-(r.right-e.clientX)/edge);
+  if(e.clientY<r.top+edge)dy=-(1-(e.clientY-r.top)/edge);else if(e.clientY>r.bottom-edge)dy=(1-(r.bottom-e.clientY)/edge);
+  if(!dx&&!dy)return false;
+  const vb=svg.viewBox.baseVal,step=Math.max(8,Math.min(34,Math.max(vb.width,vb.height)*.025));
+  zoomCenter4408=[(Number(zoomCenter4408?.[0])||400)+dx*step,(Number(zoomCenter4408?.[1])||300)+dy*step];setViewBox4408();return true;
+}
+function fitFingerViewSR11(extraPoint){
+  const pts=drawPoints4405.slice();if(extraPoint)pts.push(extraPoint);if(!pts.length){drawZoom4408=1;zoomCenter4408=[400,300];setViewBox4408();return}
+  const xs=pts.map(p=>p[0]),ys=pts.map(p=>p[1]),minX=Math.min(...xs),maxX=Math.max(...xs),minY=Math.min(...ys),maxY=Math.max(...ys),bw=Math.max(40,maxX-minX),bh=Math.max(40,maxY-minY);
+  zoomCenter4408=[(minX+maxX)/2,(minY+maxY)/2];drawZoom4408=Math.max(.30,Math.min(1,Math.min(640/bw,440/bh)));setViewBox4408();
 }
 function orthogonalize4408(points,closed=true){
   const pts=(points||[]).map(p=>[Number(p?.[0])||0,Number(p?.[1])||0]),n=pts.length;if(n<2)return pts;
@@ -25834,57 +25917,148 @@ function orthogonalize4408(points,closed=true){
 }
 function wallLabelPos4407(a,b,offset=15){const dx=b[0]-a[0],dy=b[1]-a[1],d=Math.hypot(dx,dy)||1,nx=-dy/d,ny=dx/d;return{x:(a[0]+b[0])/2+nx*offset,y:(a[1]+b[1])/2+ny*offset}}
 function liveBox4407(){return document.getElementById('freeDrawLive4407')}
-function updateLive4407(a=null,b=null,done=false){const box=liveBox4407();if(!box)return;const wall=box.querySelector('.live-wall4407'),value=box.querySelector('.live-value4407'),hint=box.querySelector('.live-hint4407');box.classList.toggle('active4407',!!(a&&b&&!done));box.classList.toggle('done4407',!!done);if(a&&b){const i=Math.max(0,drawPoints4405.length-(done?2:1)),next=drawClosed4405?0:i+1;if(wall)wall.textContent='Стіна '+pointName4405(i)+' → '+pointName4405(next);if(value)value.textContent=meterText4407(a,b);if(hint)hint.textContent=done?'Розмір зафіксовано':'Тягніть до потрібного розміру'}else if(drawClosed4405&&drawPoints4405.length>=3){if(wall)wall.textContent='Контур замкнено';if(value)value.textContent=drawPoints4405.length+' стін';if(hint)hint.textContent='Можна застосовувати'}else{const i=Math.max(0,drawPoints4405.length-1);if(wall)wall.textContent=drawPoints4405.length?'Наступна '+pointName4405(i)+' → '+pointName4405(i+1):'Перша стіна A → B';if(value)value.textContent='0.00 м';if(hint)hint.textContent='Проведіть стіну пальцем'}}
+function updateLive4407(a=null,b=null,done=false){const box=liveBox4407();if(!box)return;const wall=box.querySelector('.live-wall4407'),value=box.querySelector('.live-value4407'),hint=box.querySelector('.live-hint4407');box.classList.toggle('active4407',!!(a&&b&&!done));box.classList.toggle('done4407',!!done);if(a&&b){const i=Math.max(0,drawPoints4405.length-(done?2:1)),next=drawClosed4405?0:i+1;if(wall)wall.textContent='Стіна '+pointName4405(i)+' → '+pointName4405(next);if(value)value.textContent=meterText4407(a,b);if(hint)hint.textContent=done?'Розмір зафіксовано':'Тягніть до потрібного розміру'}else if(drawClosed4405&&drawPoints4405.length>=3){if(wall)wall.textContent='Контур замкнено';if(value)value.textContent=drawPoints4405.length+' стін';if(hint)hint.textContent='Можна застосовувати'}else if(drawPoints4405.length>=2){const i=drawPoints4405.length-2,a=drawPoints4405[i],b=drawPoints4405[i+1];if(wall)wall.textContent='Стіна '+pointName4405(i)+' → '+pointName4405(i+1);if(value)value.textContent=meterText4407(a,b);if(hint)hint.textContent='Останній зафіксований розмір'}else{const i=Math.max(0,drawPoints4405.length-1);if(wall)wall.textContent=drawPoints4405.length?'Наступна '+pointName4405(i)+' → '+pointName4405(i+1):'Перша стіна A → B';if(value)value.textContent='0.00 м';if(hint)hint.textContent='Проведіть стіну пальцем'}}
 function snap4405(start,p){
   let out=p.slice();
   if(drawPoints4405.length>=3&&dist4405(p,drawPoints4405[0])<34)return drawPoints4405[0].slice();
   if(!snapOrthogonal4405)return out;
   const dx=p[0]-start[0],dy=p[1]-start[1],d=Math.hypot(dx,dy);if(d<1)return out;
-  const a=Math.atan2(dy,dx),step=Math.PI/2,nearest=Math.round(a/step)*step,diff=Math.abs(Math.atan2(Math.sin(a-nearest),Math.cos(a-nearest)));
-  if(diff<Math.PI/12)out=[start[0]+Math.cos(nearest)*d,start[1]+Math.sin(nearest)*d];
+  // SR14: when "Прямі кути" is ON, drawing is a true orthogonal mode.
+  // The finger may move freely, but the wall itself is locked to the dominant X/Y axis.
+  // Turn the mode OFF when a real diagonal is required.
+  if(Math.abs(dx)>=Math.abs(dy)) out=[start[0]+dx,start[1]];
+  else out=[start[0],start[1]+dy];
   return out;
 }
 function createSvg4405(tag,attrs={}){const el=document.createElementNS('http://www.w3.org/2000/svg',tag);Object.entries(attrs).forEach(([k,v])=>el.setAttribute(k,v));return el}
+function renderShortWalls4405(){
+  const box=document.getElementById('freeDrawShortWalls4405');if(!box)return;
+  const n=drawPoints4405.length,wallCount=drawClosed4405?n:Math.max(0,n-1),rows=[];
+  for(let i=0;i<wallCount;i++){
+    const a=drawPoints4405[i],b=drawPoints4405[(i+1)%n],m=segmentMeters4408(i,a,b);
+    if(m<=.50)rows.push({i,a,b,m});
+  }
+  if(!rows.length){box.innerHTML='';box.classList.remove('show4405');return}
+  box.classList.add('show4405');
+  box.innerHTML='<div class="short-head4405"><b>🔎 Короткі стіни ≤ 0,50 м</b><button type="button" onclick="resetShortWallFocus4405()">Весь план</button></div><div class="short-list4405">'+rows.map(r=>'<button type="button" onclick="focusShortWall4405('+r.i+')"><b>'+pointName4405(r.i)+'–'+pointName4405((r.i+1)%n)+'</b><span>'+r.m.toFixed(2)+' м</span><small>×5</small></button>').join('')+'</div>';
+}
+window.focusShortWall4405=function(i){
+  const n=drawPoints4405.length;if(!n||i<0||i>=n)return;const a=drawPoints4405[i],b=drawPoints4405[(i+1)%n];
+  zoomCenter4408=[(a[0]+b[0])/2,(a[1]+b[1])/2];drawZoom4408=5;
+  const range=document.getElementById('freeDrawZoomRange4408');if(range)range.value='500';renderDraw4405();status4405('🔎 '+pointName4405(i)+'–'+pointName4405((i+1)%n)+' збільшено ×5. Торкніться розміру на плані для точного вводу.');
+};
+window.resetShortWallFocus4405=function(){drawZoom4408=1;zoomCenter4408=[400,300];const range=document.getElementById('freeDrawZoomRange4408');if(range)range.value='100';renderDraw4405()};
 function renderDraw4405(){
   const svg=svg4405();if(!svg)return;svg.innerHTML='';
   if(drawPoints4405.length){
-    const pathPts=drawPoints4405.concat(drawClosed4405?[drawPoints4405[0]]:[]);
-    const line=createSvg4405('polyline',{points:pathPts.map(p=>p.join(',')).join(' '),class:'free-wall4405'});svg.appendChild(line);
+    /* V7 — real radius rendering. Keep canonical vertices/dimensions untouched;
+       only the visible wall path is trimmed and joined with true SVG circular arcs. */
+    function srV7Corner(i){
+      const n=drawPoints4405.length,rM=sr15Radius(i);
+      if(!(rM>0)||n<3||(!drawClosed4405&&(i===0||i===n-1)))return null;
+      const v=drawPoints4405[i],p=drawPoints4405[(i-1+n)%n],q=drawPoints4405[(i+1)%n];
+      const ax=p[0]-v[0],ay=p[1]-v[1],bx=q[0]-v[0],by=q[1]-v[1];
+      const la=Math.hypot(ax,ay),lb=Math.hypot(bx,by);if(la<1||lb<1)return null;
+      const ua=[ax/la,ay/la],ub=[bx/lb,by/lb];
+      const dot=Math.max(-.999999,Math.min(.999999,ua[0]*ub[0]+ua[1]*ub[1]));
+      const theta=Math.acos(dot),tanHalf=Math.tan(theta/2);if(theta<.02||Math.PI-theta<.02||tanHalf<1e-6)return null;
+      const wantedR=rM*PX_PER_METER4407;
+      let tangent=wantedR/tanHalf;
+      tangent=Math.min(tangent,la*.45,lb*.45);
+      const actualR=tangent*tanHalf;if(actualR<.5)return null;
+      const tin=[v[0]+ua[0]*tangent,v[1]+ua[1]*tangent],tout=[v[0]+ub[0]*tangent,v[1]+ub[1]*tangent];
+      const din=[-ua[0],-ua[1]],dout=ub,cross=din[0]*dout[1]-din[1]*dout[0];
+      return {tin,tout,r:actualR,sweep:cross>0?1:0};
+    }
+    const srV7Corners=drawPoints4405.map((_,i)=>srV7Corner(i));
+    let d='';
+    if(drawClosed4405){
+      const c0=srV7Corners[0],start=c0?c0.tout:drawPoints4405[0];d='M '+start[0]+' '+start[1];
+      for(let step=1;step<=drawPoints4405.length;step++){const i=step%drawPoints4405.length,c=srV7Corners[i],v=drawPoints4405[i];if(c){d+=' L '+c.tin[0]+' '+c.tin[1]+' A '+c.r+' '+c.r+' 0 0 '+c.sweep+' '+c.tout[0]+' '+c.tout[1]}else d+=' L '+v[0]+' '+v[1]}d+=' Z';
+    }else{
+      d='M '+drawPoints4405[0][0]+' '+drawPoints4405[0][1];
+      for(let i=1;i<drawPoints4405.length;i++){const c=srV7Corners[i],v=drawPoints4405[i];if(c){d+=' L '+c.tin[0]+' '+c.tin[1]+' A '+c.r+' '+c.r+' 0 0 '+c.sweep+' '+c.tout[0]+' '+c.tout[1]}else d+=' L '+v[0]+' '+v[1]}
+    }
+    const line=createSvg4405('path',{d:d,class:'free-wall4405',fill:'none'});svg.appendChild(line);
     drawPoints4405.forEach((p,i)=>{
-      const c=createSvg4405('circle',{cx:p[0],cy:p[1],r:10,class:'free-node4405'+(i===0?' free-node-start4405':'')});svg.appendChild(c);
+      const sel=i===sr15SelectedPoint;
+      const c=createSvg4405('circle',{cx:p[0],cy:p[1],r:sel?14:10,class:'free-node4405'+(i===0?' free-node-start4405':'')+((!drawClosed4405&&(i===0||i===drawPoints4405.length-1))?' sr22-endpoint4405':'')});c.dataset.sr30Point=String(i);c.style.pointerEvents='all';if(sel){c.setAttribute('stroke','#f97316');c.setAttribute('stroke-width','6')}svg.appendChild(c);
       const t=createSvg4405('text',{x:p[0]+13,y:p[1]-12,class:'free-label4405'});t.textContent=pointName4405(i);svg.appendChild(t);
+      const rv=sr15Radius(i);if(rv>0&&drawPoints4405.length>2&&(drawClosed4405||(i>0&&i<drawPoints4405.length-1))){const rt=createSvg4405('text',{x:p[0]+16,y:p[1]+24,class:'free-wall-index4405'});rt.textContent='R '+rv.toFixed(2)+' м';rt.setAttribute('fill','#7c3aed');svg.appendChild(rt)}
     });
     const wallCount=drawClosed4405?drawPoints4405.length:Math.max(0,drawPoints4405.length-1);
+    const sr32DimBoxes=[];
     for(let i=0;i<wallCount;i++){
-      const a=drawPoints4405[i],b=drawPoints4405[(i+1)%drawPoints4405.length],pos=wallLabelPos4407(a,b,15),t=createSvg4405('text',{x:pos.x,y:pos.y,'text-anchor':'middle',class:'free-wall-index4405'});
-      t.textContent=pointName4405(i)+'–'+pointName4405((i+1)%drawPoints4405.length)+'  '+segmentText4408(i,a,b);svg.appendChild(t)
+      const a=drawPoints4405[i],b=drawPoints4405[(i+1)%drawPoints4405.length];const hitLine=createSvg4405('line',{x1:a[0],y1:a[1],x2:b[0],y2:b[1]});hitLine.dataset.sr30Wall=String(i);hitLine.setAttribute('stroke','transparent');hitLine.setAttribute('stroke-width','34');hitLine.style.pointerEvents='stroke';svg.appendChild(hitLine);const shortWall4405=segmentMeters4408(i,a,b)<=.50;const pos=wallLabelPos4407(a,b,shortWall4405?19:15),t=createSvg4405('text',{x:pos.x,y:pos.y,'text-anchor':'middle',class:'free-wall-index4405','data-wall-index':i});
+      t.textContent=pointName4405(i)+'–'+pointName4405((i+1)%drawPoints4405.length)+'  '+segmentText4408(i,a,b);if(shortWall4405){t.setAttribute('font-size','11');t.setAttribute('font-weight','900')}svg.appendChild(t);
+      /* SR32: every wall keeps a visible dimension. Dense/short labels are pushed away instead of hidden. */
+      try{const dx=b[0]-a[0],dy=b[1]-a[1],dl=Math.hypot(dx,dy)||1,nx=-dy/dl,ny=dx/dl,mx=(a[0]+b[0])/2,my=(a[1]+b[1])/2;let sign=((pos.x-mx)*nx+(pos.y-my)*ny)>=0?1:-1;for(let k=0;k<10;k++){const bb=t.getBBox(),pad=3,hit=sr32DimBoxes.some(q=>!(bb.x+bb.width+pad<q.x||q.x+q.width+pad<bb.x||bb.y+bb.height+pad<q.y||q.y+q.height+pad<bb.y));if(!hit){sr32DimBoxes.push({x:bb.x,y:bb.y,width:bb.width,height:bb.height});break}const step=shortWall4405?10:8;t.setAttribute('x',Number(t.getAttribute('x'))+nx*sign*step);t.setAttribute('y',Number(t.getAttribute('y'))+ny*sign*step);if(k===4)sign*=-1;if(k===9){const z=t.getBBox();sr32DimBoxes.push({x:z.x,y:z.y,width:z.width,height:z.height})}}}catch(_){ }
     }
+    if(sr15SelectedWall>=0&&sr15SelectedWall<wallCount){const a=drawPoints4405[sr15SelectedWall],b=drawPoints4405[(sr15SelectedWall+1)%drawPoints4405.length],hl=createSvg4405('line',{x1:a[0],y1:a[1],x2:b[0],y2:b[1]});hl.setAttribute('stroke','#f97316');hl.setAttribute('stroke-width','11');hl.setAttribute('stroke-linecap','round');hl.setAttribute('opacity','.42');svg.insertBefore(hl,svg.firstChild)}
   }
+  srD1Render(svg);
+  sr15SyncToolbar();
   if(drawPointer4405!==null&&drawPreview4405&&drawPoints4405.length&&!drawClosed4405){
-    const a=drawPoints4405[drawPoints4405.length-1],b=drawPreview4405;
+    const fromStart=!!sr13DrawFromStart,a=fromStart?drawPoints4405[0]:drawPoints4405[drawPoints4405.length-1],b=drawPreview4405;
     svg.appendChild(createSvg4405('line',{x1:a[0],y1:a[1],x2:b[0],y2:b[1],class:'free-wall-preview4405'}));
-    const pos=wallLabelPos4407(a,b,18),t=createSvg4405('text',{x:pos.x,y:pos.y,'text-anchor':'middle',class:'free-wall-preview-length4407'});t.textContent=pointName4405(drawPoints4405.length-1)+'–'+pointName4405(drawPoints4405.length)+'  '+meterText4407(a,b);svg.appendChild(t);
+    const pos=wallLabelPos4407(a,b,18),t=createSvg4405('text',{x:pos.x,y:pos.y,'text-anchor':'middle',class:'free-wall-preview-length4407'});t.textContent=meterText4407(a,b);svg.appendChild(t);
+    sr20ShortDragBadge4405(a,b);
     updateLive4407(a,b,false);
-  }else if(drawClosed4405){updateLive4407(null,null,true)}else{updateLive4407()}
+  }else if(drawClosed4405){precisionBadge4405(false);updateLive4407(null,null,true)}else{precisionBadge4405(false);updateLive4407()}
   const walls=drawClosed4405?drawPoints4405.length:Math.max(0,drawPoints4405.length-1);
   status4405(drawClosed4405?'✅ Контур замкнений: '+walls+' стін. Перевірте розміри та сформуйте замовлення.':drawPoints4405.length?'Стіни: '+walls+'. Проведіть наступну стіну від точки '+pointName4405(drawPoints4405.length-1)+'.':'Торкніться поля і проведіть першу стіну пальцем.');
+  renderShortWalls4405();
   setViewBox4408();
   try{window.syncProductionOrder4408?.()}catch(_){ }
 }
 function fit4405(points){const xs=points.map(p=>p[0]),ys=points.map(p=>p[1]),minX=Math.min(...xs),maxX=Math.max(...xs),minY=Math.min(...ys),maxY=Math.max(...ys),bw=Math.max(1,maxX-minX),bh=Math.max(1,maxY-minY),s=Math.min(560/bw,400/bh),ox=120+(560-bw*s)/2,oy=90+(400-bh*s)/2;return points.map(([x,y])=>[ox+(x-minX)*s,oy+(y-minY)*s])}
 function approxSegments4405(points){return points.map((p,i)=>Math.max(.01,Math.round(segmentMeters4408(i,p,points[(i+1)%points.length])*100)/100))}
+function sr15InstallToolbar(){const stage=document.querySelector('#freeDrawModal4405 .free-draw-stage4405');if(!stage||document.getElementById('sr15ModeBar'))return;const bar=document.createElement('div');bar.id='sr15ModeBar';bar.className='sr15-modebar';bar.innerHTML='<button id="sr15PointModeBtn" type="button" onclick="togglePointAutoSR15()">● Рисування</button><button id="sr16PlanLockBtn" type="button" onclick="togglePlanLockSR16()">🔒 Зафіксувати план</button><button type="button" onclick="sr15CloseAuto()">🔗 Замкнути</button><button id="sr23EditBtn" type="button" onpointerup="sr31SetEditorTool(\'move\');return false">🛠 Редактор</button><button id="sr27DimsBtn" type="button" onclick="toggleInlineDimsSR30()">📏 Розміри стін</button>';const tools=document.createElement('div');tools.id='sr31EditorTools';tools.className='sr15-modebar sr31-editor-tools';tools.style.display='grid';tools.innerHTML='<button id="sr31MoveBtn" type="button" onpointerup="sr31SetEditorTool(\'move\');return false">↔ Рухати точку</button><button id="sr31AddBtn" type="button" onpointerup="sr31SetEditorTool(\'add\');return false">＋ Точка</button><button id="sr31DelPointBtn" type="button" onpointerup="sr31SetEditorTool(\'delete-point\');return false">🗑 Точка</button><button id="sr31DelWallBtn" type="button" onpointerup="sr31SetEditorTool(\'delete-wall\');return false">🗑 Стіна</button><button id="sr31RadiusBtn" type="button" onpointerup="sr31SetEditorTool(\'radius\');return false">◜ Радіус</button><button id="sr21UndoReturnBtn" type="button" onpointerup="sr21UndoReturn();return false" disabled>↶ Повернути зміну</button><button id="sr31DelRadiusBtn" type="button" onpointerup="sr31SetEditorTool(\'delete-radius\');return false">🗑 Радіус</button><button id="srD1DiagBtn" type="button" onpointerup="sr31SetEditorTool(\'diagonal\');return false">📏 Діагональ</button><button id="srD1RadiusDiagBtn" type="button" onpointerup="sr31SetEditorTool(\'radius-diagonals\');return false">📐 Діагоналі радіуса</button><button id="srD2DeleteDiagBtn" type="button" onpointerup="sr31SetEditorTool(\'delete-diagonal\');return false">🗑 Діагональ</button>';stage.parentNode.insertBefore(bar,stage);bar.insertAdjacentElement('afterend',tools);
+  sr15SyncToolbar()}
+window.__sr21UndoSnapshot=null;
+function sr21TakeUndoSnapshot(){window.__sr21UndoSnapshot={points:(drawPoints4405||[]).map(p=>Array.isArray(p)?p.slice():p),manual:Array.isArray(manualSegments4408)?manualSegments4408.slice():[],radii:Array.isArray(sr15CornerRadii)?sr15CornerRadii.slice():[],diagonals:Array.isArray(srD1Diagonals)?srD1Diagonals.map(d=>({...d})):[],radiusFans:Array.isArray(srD1RadiusFans)?srD1RadiusFans.map(f=>({...f})):[],closed:!!drawClosed4405};const b=document.getElementById('sr21UndoReturnBtn');if(b)b.disabled=false}
+window.sr21UndoReturn=function(){const st=window.__sr21UndoSnapshot;if(!st){status4405('↶ Немає зміни для повернення.');return}drawPoints4405.splice(0,drawPoints4405.length,...st.points.map(p=>Array.isArray(p)?p.slice():p));if(Array.isArray(manualSegments4408))manualSegments4408.splice(0,manualSegments4408.length,...st.manual);else manualSegments4408=st.manual.slice();if(Array.isArray(sr15CornerRadii))sr15CornerRadii.splice(0,sr15CornerRadii.length,...st.radii);else sr15CornerRadii=st.radii.slice();if(Array.isArray(srD1Diagonals))srD1Diagonals.splice(0,srD1Diagonals.length,...(st.diagonals||[]).map(d=>({...d})));if(Array.isArray(srD1RadiusFans))srD1RadiusFans.splice(0,srD1RadiusFans.length,...(st.radiusFans||[]).map(f=>({...f})));drawClosed4405=!!st.closed;drawPointer4405=null;drawPreview4405=null;editDrawPointer4405=null;editDrawPoint4405=-1;sr15SelectedPoint=-1;sr15SelectedWall=-1;window.__sr21UndoSnapshot=null;const b=document.getElementById('sr21UndoReturnBtn');if(b)b.disabled=true;renderDraw4405();status4405('↶ Точку/контур повернуто у попереднє положення.')};
+window.sr31EditorTool=null;
+window.sr31SyncEditorTools=function(){
+  const box=document.getElementById('sr31EditorTools');if(box)box.style.display='grid';
+  const ids={move:'sr31MoveBtn',add:'sr31AddBtn','delete-point':'sr31DelPointBtn','delete-wall':'sr31DelWallBtn',radius:'sr31RadiusBtn','delete-radius':'sr31DelRadiusBtn',diagonal:'srD1DiagBtn','radius-diagonals':'srD1RadiusDiagBtn','delete-diagonal':'srD2DeleteDiagBtn'};
+  Object.entries(ids).forEach(([k,id])=>document.getElementById(id)?.classList.toggle('active',window.sr31EditorTool===k));
+};
+window.sr31SetEditorTool=function(tool){
+  window.sr31EditorTool=tool;srD1ResetPick();sr23EditMode=true;sr15PointMode=false;sr15PlanLocked=false;sr15SelectedPoint=-1;sr15SelectedWall=-1;editDrawPoint4405=-1;editDrawPointer4405=null;
+  const b=document.getElementById('sr23EditBtn');if(b){b.classList.add('active');b.textContent='✅ Редактор'}
+  sr31SyncEditorTools();sr15SyncToolbar();renderDraw4405();
+  const msg={move:'↔ Торкніться будь-якої точки та перетягніть її.',add:'＋ Торкніться стіни — нова точка з’явиться саме в місці дотику.','delete-point':'🗑 Торкніться точки, яку треба видалити.','delete-wall':'🗑 Торкніться стіни, яку треба видалити.',radius:'◜ Торкніться кута, для якого треба задати радіус.','delete-radius':'🗑 Торкніться кута з радіусом — радіус буде прибрано.',diagonal:'📏 Торкніться першої точки діагоналі, потім другої.','radius-diagonals':'📐 Торкніться вихідної точки, потім кута з радіусом. Лінії підуть по дузі приблизно через 10 см.','delete-diagonal':'🗑 Торкніться пунктирної діагоналі. Для радіуса видалиться весь набір промірів.'};status4405(msg[tool]||'🛠 Редактор');
+};
+window.togglePlanEditSR23=function(){
+  sr23EditMode=!sr23EditMode;sr15PlanLocked=false;sr15PointMode=false;sr15SelectedPoint=-1;sr15SelectedWall=-1;editDrawPoint4405=-1;editDrawPointer4405=null;
+  const b=document.getElementById('sr23EditBtn');if(b){b.classList.toggle('active',sr23EditMode);b.textContent=sr23EditMode?'✅ Редактор':'🛠 Редактор'}
+  if(sr23EditMode&&!window.sr31EditorTool)window.sr31EditorTool=null;sr31SyncEditorTools();sr15SyncToolbar();renderDraw4405();
+  status4405(sr23EditMode?'🛠 Редактор відкрито. Оберіть дію нижче.':'Редактор вимкнено.');
+};
 function updateState4405(){const el=document.getElementById('freeDrawState4405'),btn=document.getElementById('freeDrawUnlock4405');if(el){el.classList.toggle('show',freeDrawRoom4405);el.textContent=freeDrawRoom4405?(contourUnlocked4405?'✋ Контур намальований пальцем. Точки зараз можна рухати.':'🔒 Контур намальований пальцем і зафіксований. Розміри можна вводити без зміни намальованої форми.') :''}if(btn){btn.textContent=contourUnlocked4405?'🔒 Зафіксувати точки':'✋ Рухати точки';btn.style.display=freeDrawRoom4405?'block':'none'}}
 function closeModal4405(){document.getElementById('freeDrawModal4405')?.classList.remove('open');drawPointer4405=null;drawPreview4405=null}
-window.openFingerDrawing4405=function(){drawPoints4405=[];manualSegments4408=[];drawZoom4408=1;zoomCenter4408=[400,300];drawingSource4408='new';drawClosed4405=false;drawPointer4405=null;drawPreview4405=null;document.getElementById('freeDrawModal4405')?.classList.add('open');setTimeout(()=>{setViewBox4408();renderDraw4405()},0)};
+window.openFingerDrawing4405=function(){drawPoints4405=[];manualSegments4408=[];sr15CornerRadii=[];srD1Diagonals=[];srD1RadiusFans=[];srD1ResetPick();sr15SelectedPoint=-1;sr15SelectedWall=-1;sr15PlanLocked=false;drawZoom4408=1;zoomCenter4408=[400,300];drawingSource4408='new';drawClosed4405=false;drawPointer4405=null;drawPreview4405=null;sr12DrawArmed=true;sr12NavPointer=null;sr12Pointers.clear();document.getElementById('freeDrawModal4405')?.classList.add('open');setTimeout(()=>{setViewBox4408();renderDraw4405()},0)};
 window.closeFingerDrawing4405=closeModal4405;
 window.undoFingerWall4405=function(){if(drawClosed4405){drawClosed4405=false}else if(drawPoints4405.length>1){drawPoints4405.pop();manualSegments4408=manualSegments4408.slice(0,Math.max(0,drawPoints4405.length-1))}else{drawPoints4405=[];manualSegments4408=[]}renderDraw4405()};
-window.clearFingerDrawing4405=function(){drawPoints4405=[];manualSegments4408=[];drawClosed4405=false;drawPointer4405=null;drawPreview4405=null;renderDraw4405()};
+window.clearFingerDrawing4405=function(){drawPoints4405=[];manualSegments4408=[];sr15CornerRadii=[];srD1Diagonals=[];srD1RadiusFans=[];srD1ResetPick();sr15SelectedPoint=-1;sr15SelectedWall=-1;sr15PlanLocked=false;drawClosed4405=false;drawPointer4405=null;drawPreview4405=null;renderDraw4405()};
 window.closeFingerContour4405=function(){if(drawPoints4405.length<3)return alert('Потрібно мінімум 3 точки.');drawClosed4405=true;drawPointer4405=null;drawPreview4405=null;renderDraw4405()};
-window.toggleFingerSnap4405=function(){snapOrthogonal4405=!snapOrthogonal4405;const b=document.getElementById('freeDrawSnap4405');if(b)b.textContent=snapOrthogonal4405?'🧲 Прямі кути: так':'🧲 Прямі кути: ні';status4405(snapOrthogonal4405?'Прив’язка допомагає малювати майже горизонтальні та вертикальні стіни рівно.':'Прив’язку вимкнено — стіни малюються під будь-яким кутом.')};
-window.setFingerZoom4408=function(value){drawZoom4408=Math.max(.7,Math.min(1.8,Number(value)/100||1));zoomCenter4408=drawPoints4405.length?clone4405(drawPoints4405[drawPoints4405.length-1]):[400,300];setViewBox4408();renderDraw4405()};
+
+window.togglePointAutoSR15=function(){window.sr31EditorTool=null;sr23EditMode=false;sr15PointMode=!sr15PointMode;sr15PlanLocked=false;sr15SelectedPoint=-1;sr15SelectedWall=-1;sr12DrawArmed=false;drawPointer4405=null;drawPreview4405=null;if(sr15PointMode){snapOrthogonal4405=true;const sb=document.getElementById('freeDrawSnap4405');if(sb)sb.textContent='📐 Режим 90°: так'}sr15SyncToolbar();renderDraw4405();status4405(sr15PointMode?'🔵 Режим точок · 90° увімкнено. Ставте кути. Коли треба рухати або масштабувати лист — натисніть «Зафіксувати план».':'✍ Вільний режим: тягніть стіну від крайньої точки.')};
+window.togglePlanLockSR16=function(){if(!sr15PointMode){status4405('Спочатку увімкніть режим «Точки».');return}sr15PlanLocked=!sr15PlanLocked;sr15SelectedPoint=-1;sr15SelectedWall=-1;drawPointer4405=null;drawPreview4405=null;sr12DrawArmed=false;sr12NavPointer=null;sr12NavLast=null;sr12Pointers.clear();sr15SyncToolbar();renderDraw4405();status4405(sr15PlanLocked?'🔒 План зафіксовано. Тепер одним пальцем рухайте лист, двома — збільшуйте/зменшуйте. Точки не додаються.':'✏️ Редагування знову активне. Масштаб і положення збережені; можна ставити, рухати та редагувати точки.')};
+window.sr15CloseAuto=function(){if(drawPoints4405.length<3)return alert('Потрібно мінімум 3 точки.');drawClosed4405=true;sr15SelectedPoint=-1;sr15SelectedWall=-1;renderDraw4405();status4405('✅ Контур автоматично замкнено. Тепер можна додавати/видаляти точки та задавати радіуси.')};
+window.sr15AddPoint=function(){if(sr15SelectedWall<0)return alert('Спочатку торкніться стіни, куди треба додати точку.');const i=sr15SelectedWall,a=drawPoints4405[i],b=drawPoints4405[(i+1)%drawPoints4405.length],p=[(a[0]+b[0])/2,(a[1]+b[1])/2];drawPoints4405.splice(i+1,0,p);sr15CornerRadii.splice(i+1,0,0);manualSegments4408=[];sr15SelectedPoint=i+1;sr15SelectedWall=-1;renderDraw4405();status4405('➕ Точку додано в обрану стіну. Перетягніть її у потрібне місце.')};
+window.sr15DeleteSelected=function(){const min=drawClosed4405?3:2;if(sr15SelectedPoint>=0){if(drawPoints4405.length<=min)return alert(drawClosed4405?'У замкненому контурі має залишитися мінімум 3 точки.':'Має залишитися мінімум 2 точки.');const k=sr15SelectedPoint;drawPoints4405.splice(k,1);sr15CornerRadii.splice(k,1);if(Array.isArray(manualSegments4408)&&manualSegments4408.length)manualSegments4408.splice(Math.max(0,Math.min(k,manualSegments4408.length-1)),1);sr15SelectedPoint=-1;sr15SelectedWall=-1;renderDraw4405();status4405('🗑 Точку видалено. Нумерацію оновлено.');return}if(sr15SelectedWall>=0){if(drawPoints4405.length<=min)return alert('Не можна видалити стіну: залишиться замало точок.');let k=sr15SelectedWall+1;if(drawClosed4405)k%=drawPoints4405.length;else k=Math.min(k,drawPoints4405.length-1);drawPoints4405.splice(k,1);sr15CornerRadii.splice(k,1);if(Array.isArray(manualSegments4408)&&manualSegments4408.length)manualSegments4408.splice(Math.min(sr15SelectedWall,manualSegments4408.length-1),1);sr15SelectedWall=-1;sr15SelectedPoint=-1;renderDraw4405();status4405('🗑 Стіну видалено. Контур перенумеровано.')}};
+window.sr15SetRadius=function(){if(sr15SelectedPoint<0)return alert('Спочатку торкніться кута.');const old=sr15Radius(sr15SelectedPoint),v=prompt('Радіус кута '+pointName4405(sr15SelectedPoint)+' у метрах (0 = без радіуса):',old?old.toFixed(2):'0.20');if(v===null)return;const n=Math.max(0,Math.round(n4405(v)*100)/100);sr15CornerRadii[sr15SelectedPoint]=n;renderDraw4405();status4405(n>0?'◜ Радіус '+pointName4405(sr15SelectedPoint)+' = '+n.toFixed(2)+' м. Радіус збережеться разом із контуром.':'Кут '+pointName4405(sr15SelectedPoint)+' знову прямий.')};
+window.toggleFingerSnap4405=function(){snapOrthogonal4405=!snapOrthogonal4405;const b=document.getElementById('freeDrawSnap4405');if(b)b.textContent=snapOrthogonal4405?'📐 Режим 90°: так':'↗ Діагоналі: так';status4405(snapOrthogonal4405?'📐 Режим 90°: стіна жорстко йде тільки горизонтально або вертикально. Для діагоналі вимкніть «Прямі кути».':'Довільний режим: можна малювати діагоналі під будь-яким кутом.')};
+window.setFingerZoom4408=function(value){drawZoom4408=Math.max(.7,Math.min(5,Number(value)/100||1));zoomCenter4408=drawPoints4405.length?clone4405(drawPoints4405[drawPoints4405.length-1]):[400,300];setViewBox4408();renderDraw4405()};
 window.straightenFingerWalls4408=function(){
   if(drawPoints4405.length<2)return alert('Спочатку намалюйте стіни.');
-  drawPoints4405=orthogonalize4408(drawPoints4405,drawClosed4405);renderDraw4405();status4405('📐 Стіни та перегородки контуру вирівняно по горизонталі/вертикалі (90°). Перевірте розміри.');
+  const src=drawPoints4405.map(p=>[p[0],p[1]]),out=src.map(p=>[p[0],p[1]]),n=out.length;
+  const dir=(a,b)=>Math.abs(b[0]-a[0])>=Math.abs(b[1]-a[1])?'h':'v';
+  for(let i=1;i<n;i++){const d=dir(src[i-1],src[i]);if(d==='h')out[i][1]=out[i-1][1];else out[i][0]=out[i-1][0]}
+  if(drawClosed4405&&n>=3){const prevDir=dir(src[n-2],src[n-1]),closeDir=dir(src[n-1],src[0]);if(prevDir!==closeDir){if(prevDir==='h'&&closeDir==='v'){out[n-1][1]=out[n-2][1];out[n-1][0]=out[0][0]}else if(prevDir==='v'&&closeDir==='h'){out[n-1][0]=out[n-2][0];out[n-1][1]=out[0][1]}}}
+  drawPoints4405.splice(0,drawPoints4405.length,...out);renderDraw4405();status4405('📐 90° застосовано без об’єднання точок: кількість і порядок вершин збережені.');
 };
 /* 44.09 — standard drawing transforms. Rotation changes only orientation, never measured lengths. */
 window.rotateFingerDrawing4409=function(){
@@ -25923,7 +26097,7 @@ window.applyFingerDrawing4405=function(){
   if(diagRows.length&&typeof window.clearDiagonals4404==='function'){window.clearDiagonals4404();if(document.querySelectorAll('#diagonalList4404 .diagonal-row4404').length)return alert('Новий контур не застосовано, бо старі діагоналі залишилися.');}
   try{if(Array.isArray(plannerObjects)&&plannerObjects.length&&!confirm('У кімнаті вже є елементи плану. Новий контур залишить їх на старих координатах. Продовжити?'))return}catch(_){ }
   try{if(typeof pushPlanner==='function')pushPlanner()}catch(_){ }
-  roomTemplate='custom';roomPoints=fit4405(drawPoints4405);roomPoints._real=null;segmentLengths=approxSegments4405(drawPoints4405);customPointTotal=roomPoints.length;
+  roomTemplate='custom';roomPoints=fit4405(drawPoints4405);roomPoints._real=null;segmentLengths=approxSegments4405(drawPoints4405);customPointTotal=roomPoints.length;try{const rr=(Array.isArray(window.projectRooms)?window.projectRooms:[]).find(r=>String(r?.id??'')===String(window.activeRoomId??''));if(rr){rr.planner=rr.planner||{};rr.planner.cornerRadiiSR15=sr15CornerRadii.slice();rr.preliminary=rr.preliminary||{};rr.preliminary.cornerRadiiSR15=sr15CornerRadii.slice()}}catch(_){}
   const cnt=document.getElementById('customPointCount');if(cnt)cnt.value=roomPoints.length;document.getElementById('customPointBox')?.classList.remove('hidden');
   try{if(typeof perimeterBindings!=='undefined'){if(drawingSource4408==='planner'&&Array.isArray(perimeterBindings)&&perimeterBindings.length===roomPoints.length)perimeterBindings=clone4405(perimeterBindings);else perimeterBindings=Array.from({length:roomPoints.length},()=>[])}}catch(_){ }
   freeDrawRoom4405=true;contourUnlocked4405=false;drawingSource4408='planner';
@@ -25944,8 +26118,258 @@ window.applyFingerDrawing4405=function(){
 function installUi4405(){
   if(document.getElementById('freeDrawLaunch4405'))return;
   const pointBlock=document.querySelector('#tab_planner .planner-points-block')?.previousElementSibling || document.querySelector('#tab_planner aside .block');if(pointBlock){const box=document.createElement('div');box.id='freeDrawLaunch4405';box.className='free-draw-launch4405';box.innerHTML='<button type="button" class="primary4405" onclick="openFingerDrawing4405()">✍ Новий контур пальцем</button><button type="button" onclick="openProductionFromPlanner4408()">📦 Замовлення з поточного плану</button><button id="freeDrawUnlock4405" type="button" onclick="toggleFreeDrawPoints4405()" style="display:none">✋ Рухати точки</button><div id="freeDrawState4405" class="free-draw-state4405" style="grid-column:1/-1"></div>';pointBlock.appendChild(box)}
-  if(!document.getElementById('freeDrawModal4405')){const modal=document.createElement('div');modal.id='freeDrawModal4405';modal.className='free-draw-modal4405';modal.innerHTML='<div class="free-draw-sheet4405"><div class="free-draw-head4405"><div><h3>✍ Рисовалка стін</h3><p>Проведіть стіну пальцем і відпустіть. Наступна стіна автоматично починається з попередньої точки. Так обведіть кімнату по колу.</p></div><button type="button" class="free-draw-close4405" onclick="closeFingerDrawing4405()">×</button></div><div class="free-draw-stage4405"><svg id="freeDrawSvg4405" viewBox="0 0 800 600"></svg><div class="free-draw-help4405">1. Проведіть стіну → відпустіть.<br>2. Намалюйте наступні стіни.<br>3. Замкніть контур.<br>4. Після цього введіть реальні розміри та діагоналі.</div><div id="freeDrawLive4407" class="free-draw-live4407"><div class="live-wall4407">Перша стіна A → B</div><div class="live-value4407">0.00 м</div><div class="live-hint4407">Проведіть стіну пальцем</div></div><div class="free-draw-scale4407">точність розміру · 0.01 м</div><label class="free-draw-zoom4408"><span>🔎 Масштаб <b id="freeDrawZoomValue4408">100%</b></span><input id="freeDrawZoomRange4408" type="range" min="70" max="180" step="5" value="100" oninput="setFingerZoom4408(this.value)"></label></div><div class="free-draw-footer4405"><div id="freeDrawStatus4405" class="free-draw-status4405"></div><div class="free-draw-actions4405"><button id="freeDrawSnap4405" type="button" onclick="toggleFingerSnap4405()">🧲 Прямі кути: так</button><button type="button" onclick="straightenFingerWalls4408()">📐 Вирівняти 90°</button><button type="button" onclick="undoFingerWall4405()">↩ Остання</button><button type="button" class="danger4405" onclick="clearFingerDrawing4405()">🧹 Очистити</button><button type="button" class="closecontour4405" onclick="closeFingerContour4405()">🔗 Замкнути контур</button><button type="button" class="apply4405" onclick="applyFingerDrawing4405()">✅ Прийняти контур</button></div></div></div>';document.body.appendChild(modal)}
-  const svg=svg4405();if(svg&&!svg.dataset.bound4405){svg.dataset.bound4405='1';svg.addEventListener('pointerdown',e=>{if(drawClosed4405)return;e.preventDefault();const p=coord4405(e);if(!drawPoints4405.length)drawPoints4405=[p];drawPointer4405=e.pointerId;try{svg.setPointerCapture(e.pointerId)}catch(_){ }drawPreview4405=snap4405(drawPoints4405[drawPoints4405.length-1],p);renderDraw4405()});svg.addEventListener('pointermove',e=>{if(drawPointer4405!==e.pointerId||drawClosed4405)return;e.preventDefault();drawPreview4405=snap4405(drawPoints4405[drawPoints4405.length-1],coord4405(e));renderDraw4405()});const end=e=>{if(drawPointer4405!==e.pointerId)return;e.preventDefault();const a=drawPoints4405[drawPoints4405.length-1],b=drawPreview4405||snap4405(a,coord4405(e));drawPointer4405=null;drawPreview4405=null;if(dist4405(a,b)<18){renderDraw4405();return}const closedNow=drawPoints4405.length>=3&&dist4405(b,drawPoints4405[0])<1;if(closedNow){drawClosed4405=true}else{drawPoints4405.push(b)}renderDraw4405();if(!closedNow)updateLive4407(a,b,true)};svg.addEventListener('pointerup',end);svg.addEventListener('pointercancel',()=>{drawPointer4405=null;drawPreview4405=null;renderDraw4405()})}
+  if(!document.getElementById('freeDrawModal4405')){const modal=document.createElement('div');modal.id='freeDrawModal4405';modal.className='free-draw-modal4405';modal.innerHTML='<div class="free-draw-sheet4405"><div class="free-draw-head4405"><div><h3>✍ Рисовалка стін</h3><p>Проведіть стіну пальцем і відпустіть. Наступна стіна автоматично починається з попередньої точки. Так обведіть кімнату по колу.</p></div><button type="button" class="free-draw-close4405" onclick="closeFingerDrawing4405()">×</button></div><div class="free-draw-stage4405"><svg id="freeDrawSvg4405" viewBox="0 0 800 600"></svg><div class="free-draw-help4405">1. Проведіть стіну → відпустіть.<br>2. Намалюйте наступні стіни.<br>3. Замкніть контур.<br>4. Після цього введіть реальні розміри та діагоналі.</div><div id="freeDrawLive4407" class="free-draw-live4407"><div class="live-wall4407">Перша стіна A → B</div><div class="live-value4407">0.00 м</div><div class="live-hint4407">Проведіть стіну пальцем</div></div><div class="free-draw-scale4407">точність розміру · 0.01 м</div><div id="freeDrawPrecision4405" class="free-draw-precision4405">🔎 Точний режим ×5 автоматично нижче 0.20 м</div><label class="free-draw-zoom4408"><span>🔎 Масштаб <b id="freeDrawZoomValue4408">100%</b></span><input id="freeDrawZoomRange4408" type="range" min="70" max="500" step="5" value="100" oninput="setFingerZoom4408(this.value)"></label><div id="freeDrawShortWalls4405" class="free-draw-shortwalls4405"></div></div><div class="free-draw-footer4405"><div id="freeDrawStatus4405" class="free-draw-status4405"></div><div class="free-draw-actions4405"><button id="freeDrawSnap4405" type="button" onclick="toggleFingerSnap4405()">📐 Режим 90°: так</button><button type="button" onclick="straightenFingerWalls4408()">📐 Вирівняти 90°</button><button type="button" onclick="undoFingerWall4405()">↩ Остання</button><button type="button" class="danger4405" onclick="clearFingerDrawing4405()">🧹 Очистити все</button><button type="button" class="closecontour4405" onclick="closeFingerContour4405()">🔗 Замкнути контур</button><button type="button" class="apply4405" onclick="applyFingerDrawing4405()">✅ Прийняти контур</button></div></div></div>';document.body.appendChild(modal)}
+  sr15InstallToolbar();
+  let preciseDrawActive4405=false,preciseDrawExceeded20=false,preciseRawAnchor4405=null,precisePreviewAnchor4405=null,editDrawPoint4405=-1,editDrawPointer4405=null;
+let sr23EditMode=false;
+function precisionBadge4405(active){
+  const el=document.getElementById('freeDrawPrecision4405');if(!el)return;
+  el.classList.toggle('active4405',!!active);
+  if(!active)el.textContent='';
+}
+function sr20Direction4405(a,b){
+  const dx=b[0]-a[0],dy=b[1]-a[1];
+  if(Math.abs(dx)>=Math.abs(dy))return dx>=0?'→':'←';
+  return dy>=0?'↓':'↑';
+}
+function sr20ShortDragBadge4405(a,b){
+  const el=document.getElementById('freeDrawPrecision4405');if(!el||!a||!b)return;
+  const m=meters4407(a,b);
+  // Short measuring is easier to read in centimetres; from 1 m switch back to metres.
+  const value=m<1?(Math.round(m*100)+' см'):(m.toFixed(2)+' м');
+  el.textContent=sr20Direction4405(a,b)+'  '+value;
+  el.classList.add('active4405');
+}
+function sr25LiveMeter(show,a,b){const stage=document.querySelector('#freeDrawModal4405 .free-draw-stage4405');if(!stage)return;let box=document.getElementById('sr25LiveMeter');if(!box){box=document.createElement('div');box.id='sr25LiveMeter';box.className='sr25-live-meter';stage.appendChild(box)}if(!show||!a||!b){box.classList.remove('show');box.textContent='';return}const dx=b[0]-a[0],dy=b[1]-a[1],m=meters4407(a,b);let arrow='→';if(Math.abs(dx)>=Math.abs(dy))arrow=dx>=0?'→':'←';else arrow=dy>=0?'↓':'↑';box.textContent=arrow+' '+(m<1?Math.round(m*100)+' см':m.toFixed(2)+' м');box.classList.add('show')}
+function nearestDrawPoint4405(p){let best=-1,d=Infinity;(drawPoints4405||[]).forEach((q,i)=>{const x=dist4405(p,q);if(x<d){d=x;best=i}});return{index:best,distance:d}}
+let sr13DrawFromStart=false;
+const svg=svg4405();if(svg&&!svg.dataset.bound4405){svg.dataset.bound4405='1';
+  /* SAFE RESTART 27 — edit selection is isolated from drawing.
+     Capture only while Edit mode is active. Drawing/endpoint extension from SR25 is untouched. */
+  /* SR31 — isolated editor layer. It intercepts the SVG only while Editor is ON.
+     Normal drawing/navigation below remains untouched. */
+  svg.addEventListener('pointerdown',e=>{
+    const tool=window.sr31EditorTool;if(!tool)return;
+    const p=coord4405(e),near=nearestDrawPoint4405(p),nw=sr15NearestWall(p);
+    const pointHit=Math.max(34,26/Math.max(.35,drawZoom4408)),wallHit=Math.max(26,20/Math.max(.35,drawZoom4408));
+    const directPoint=e.target?.dataset?.sr30Point,directWall=e.target?.dataset?.sr30Wall;
+    const pi=directPoint!==undefined?Number(directPoint):(near.index>=0&&near.distance<=pointHit?near.index:-1);
+    const wi=directWall!==undefined?Number(directWall):(nw.index>=0&&nw.distance<=wallHit?nw.index:-1);
+    e.preventDefault();e.stopPropagation();e.stopImmediatePropagation?.();
+    if(tool==='diagonal'){
+      if(pi<0){status4405('📏 Торкніться саме точки.');return}
+      if(srD1PickFirst<0){srD1PickFirst=pi;sr15SelectedPoint=pi;renderDraw4405();status4405('📏 '+srD1PointName(pi)+' вибрано. Торкніться другої точки.');return}
+      const a=srD1PickFirst,b=pi;srD1ResetPick();sr15SelectedPoint=-1;if(a===b){status4405('📏 Потрібні дві різні точки.');renderDraw4405();return}
+      const adjacent=Math.abs(a-b)===1||(drawClosed4405&&Math.abs(a-b)===drawPoints4405.length-1);if(adjacent){status4405('📏 Це стіна, а не діагональ. Оберіть не сусідню точку.');renderDraw4405();return}
+      if(srD1PairExists(a,b)){status4405('📏 Діагональ '+srD1PointName(a)+'–'+srD1PointName(b)+' вже є.');renderDraw4405();return}
+      srD1Diagonals.push({a,b});renderDraw4405();status4405('📏 Діагональ '+srD1PointName(a)+'–'+srD1PointName(b)+' додано: '+meters4407(drawPoints4405[a],drawPoints4405[b]).toFixed(2)+' м.');return;
+    }
+    if(tool==='radius-diagonals'){
+      // D10: empty canvas in radius-diagonal mode is navigation, not a dead editor hit.
+      // Point taps still select anchor/radius exactly as before. One finger pans; two pinch-zoom.
+      if(pi<0){
+        e.preventDefault();e.stopPropagation();sr12DrawArmed=false;drawPointer4405=null;drawPreview4405=null;
+        sr12Pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});sr12NavPointer=e.pointerId;sr12NavLast={x:e.clientX,y:e.clientY};
+        try{svg.setPointerCapture(e.pointerId)}catch(_){}
+        if(sr12Pointers.size>=2){const aa=[...sr12Pointers.values()].slice(0,2);sr12PinchDist=Math.hypot(aa[1].x-aa[0].x,aa[1].y-aa[0].y)||1;sr12PinchZoom=drawZoom4408}
+        status4405('📐 Діагоналі радіуса: торкніться точки для вибору; порожнє місце — рух плану, двома пальцями — масштаб.');return
+      }
+      if(srD1PickFirst<0){srD1PickFirst=pi;sr15SelectedPoint=pi;renderDraw4405();status4405('📐 Вихідна точка '+srD1PointName(pi)+' вибрана. Тепер торкніться кута з радіусом.');return}
+      const anchor=srD1PickFirst,corner=pi;srD1ResetPick();sr15SelectedPoint=-1;if(anchor===corner){status4405('📐 Кут радіуса має бути іншою точкою.');renderDraw4405();return}
+      if(!(sr15Radius(corner)>0)){status4405('📐 У точки '+srD1PointName(corner)+' не задано радіус.');renderDraw4405();return}
+      const old=srD1RadiusFans.findIndex(f=>f.anchor===anchor&&f.corner===corner);if(old>=0)srD1RadiusFans.splice(old,1);srD1RadiusFans.push({anchor,corner});renderDraw4405();status4405('📐 Діагоналі від '+srD1PointName(anchor)+' через радіус '+srD1PointName(corner)+' додано приблизно через 10 см по дузі.');return;
+    }
+    if(tool==='move'){
+      if(pi<0){status4405('↔ Торкніться саме точки.');return}
+      sr21TakeUndoSnapshot();sr15SelectedPoint=pi;sr15SelectedWall=-1;editDrawPoint4405=pi;editDrawPointer4405=e.pointerId;try{svg.setPointerCapture(e.pointerId)}catch(_){}renderDraw4405();status4405('↔ Точка '+pointName4405(pi)+': тягніть пальцем.');return;
+    }
+    if(tool==='add'){
+      if(wi<0){status4405('＋ Торкніться саме стіни.');return}
+      sr21TakeUndoSnapshot();srD1Diagonals=[];srD1RadiusFans=[];const insert=wi+1,pt=(nw.index===wi&&nw.point)?nw.point.slice():[(drawPoints4405[wi][0]+drawPoints4405[(wi+1)%drawPoints4405.length][0])/2,(drawPoints4405[wi][1]+drawPoints4405[(wi+1)%drawPoints4405.length][1])/2];
+      drawPoints4405.splice(insert,0,pt);sr15CornerRadii.splice(insert,0,0);
+      if(Array.isArray(manualSegments4408)&&manualSegments4408.length){const old=manualSegments4408[wi];manualSegments4408.splice(wi,1,null,null);if(Number.isFinite(Number(old))){manualSegments4408[wi]=meters4407(drawPoints4405[wi],pt);manualSegments4408[wi+1]=meters4407(pt,drawPoints4405[(insert+1)%drawPoints4405.length]);}}
+      sr15SelectedPoint=insert;sr15SelectedWall=-1;renderDraw4405();status4405('＋ Точку '+pointName4405(insert)+' додано.');return;
+    }
+    if(tool==='delete-point'){
+      if(pi<0){status4405('🗑 Торкніться точки для видалення.');return}
+      const min=drawClosed4405?3:2;if(drawPoints4405.length<=min){alert(drawClosed4405?'У замкненому контурі має залишитися мінімум 3 точки.':'Має залишитися мінімум 2 точки.');return}
+      sr21TakeUndoSnapshot();srD1Diagonals=[];srD1RadiusFans=[];drawPoints4405.splice(pi,1);sr15CornerRadii.splice(pi,1);manualSegments4408=[];sr15SelectedPoint=-1;sr15SelectedWall=-1;renderDraw4405();status4405('🗑 Точку видалено.');return;
+    }
+    if(tool==='delete-wall'){
+      if(wi<0){status4405('🗑 Торкніться стіни для видалення.');return}
+      const min=drawClosed4405?3:2;if(drawPoints4405.length<=min){alert('Не можна видалити стіну: залишиться замало точок.');return}
+      sr21TakeUndoSnapshot();srD1Diagonals=[];srD1RadiusFans=[];let k=wi+1;if(drawClosed4405)k%=drawPoints4405.length;else k=Math.min(k,drawPoints4405.length-1);
+      drawPoints4405.splice(k,1);sr15CornerRadii.splice(k,1);manualSegments4408=[];sr15SelectedPoint=-1;sr15SelectedWall=-1;renderDraw4405();status4405('🗑 Стіну видалено.');return;
+    }
+    if(tool==='delete-radius'){
+      if(pi<0){status4405('🗑 Торкніться саме кута з радіусом.');return}
+      if(!(sr15Radius(pi)>0)){status4405('🗑 У точки '+pointName4405(pi)+' радіуса немає.');return}
+      sr21TakeUndoSnapshot();
+      sr15CornerRadii[pi]=0;
+      if(Array.isArray(srD1RadiusFans)){
+        for(let i=srD1RadiusFans.length-1;i>=0;i--)if(Number(srD1RadiusFans[i]?.corner)===pi)srD1RadiusFans.splice(i,1);
+      }
+      srD1ResetPick();sr15SelectedPoint=-1;sr15SelectedWall=-1;
+      renderDraw4405();status4405('🗑 Радіус '+pointName4405(pi)+' видалено. «Повернути зміну» відновить його.');return;
+    }
+    if(tool==='radius'){
+      if(pi<0){status4405('◜ Торкніться кута для радіуса.');return}
+      /* V6 radius fix from clean V3: do NOT redraw/remove the touched SVG node
+         before opening the radius input. Android local-file browsers can lose
+         the pointer action when renderDraw4405() replaces the target here. */
+      sr15SelectedPoint=pi;sr15SelectedWall=-1;
+      const oldRadius=sr15Radius(pi);
+      const raw=prompt('Радіус кута '+pointName4405(pi)+' у метрах (0 = без радіуса):',oldRadius?oldRadius.toFixed(2):'0.20');
+      if(raw===null){status4405('◜ Радіус не змінено.');return}
+      const val=Math.max(0,Math.round(n4405(raw)*100)/100);
+      sr21TakeUndoSnapshot();
+      sr15CornerRadii[pi]=val;
+      renderDraw4405();
+      status4405(val>0?'◜ Радіус '+pointName4405(pi)+' = '+val.toFixed(2)+' м.':'Кут '+pointName4405(pi)+' без радіуса.');
+      return;
+    }
+  },true);
+  svg.addEventListener('pointerdown',e=>{
+    const p=coord4405(e);
+    if(sr23EditMode){e.preventDefault();e.stopPropagation();const near=nearestDrawPoint4405(p),hit=Math.max(34,26/Math.max(.35,drawZoom4408));if(near.index>=0&&near.distance<=hit){sr15SelectedPoint=near.index;sr15SelectedWall=-1;editDrawPoint4405=near.index;editDrawPointer4405=e.pointerId;try{svg.setPointerCapture(e.pointerId)}catch(_){}renderDraw4405();status4405('🔵 Точка '+pointName4405(near.index)+' вибрана. Можна тягнути або натиснути «Видалити».');return}const nw=sr15NearestWall(p);if(nw.index>=0&&nw.distance<=hit){sr15SelectedWall=nw.index;sr15SelectedPoint=-1;editDrawPoint4405=-1;editDrawPointer4405=null;renderDraw4405();status4405('🟠 Стіна '+pointName4405(nw.index)+'–'+pointName4405((nw.index+1)%drawPoints4405.length)+' вибрана.');return}sr15SelectedPoint=-1;sr15SelectedWall=-1;editDrawPoint4405=-1;editDrawPointer4405=null;renderDraw4405();return;}
+    if(sr15PointMode&&sr15PlanLocked){
+      e.preventDefault();e.stopPropagation();sr12DrawArmed=false;drawPointer4405=null;drawPreview4405=null;sr12Pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});sr12NavPointer=e.pointerId;sr12NavLast={x:e.clientX,y:e.clientY};try{svg.setPointerCapture(e.pointerId)}catch(_){}if(sr12Pointers.size>=2){const a=[...sr12Pointers.values()].slice(0,2);sr12PinchDist=Math.hypot(a[1].x-a[0].x,a[1].y-a[0].y)||1;sr12PinchZoom=drawZoom4408}status4405('🔒 Навігація: рухайте лист одним пальцем, двома — масштаб. Для точок натисніть «Продовжити».');return;
+    }
+    if(sr15PointMode){
+      e.preventDefault();e.stopPropagation();const near=nearestDrawPoint4405(p),hit=Math.max(30,24/Math.max(.35,drawZoom4408));
+      if(near.index>=0&&near.distance<=hit){
+        /* SAFE RESTART 19 — endpoint extension fix.
+         SR19: on an OPEN contour the two end points are continuation handles.
+           Dragging A/last must extend the contour; it must NOT move the endpoint
+           and leave its old position behind as a ghost/intermediate point. */
+        const isOpenEnd=!drawClosed4405&&(near.index===0||near.index===drawPoints4405.length-1);
+        if(isOpenEnd){
+          sr13DrawFromStart=(near.index===0&&drawPoints4405.length>1);
+          sr12DrawArmed=true;drawPointer4405=e.pointerId;
+          preciseDrawActive4405=false;preciseDrawExceeded20=false;preciseRawAnchor4405=null;precisePreviewAnchor4405=null;precisionBadge4405(false);
+          const anchor=sr13DrawFromStart?drawPoints4405[0]:drawPoints4405[drawPoints4405.length-1];
+          drawPreview4405=anchor.slice();sr25LiveMeter(true,anchor,anchor);sr15SelectedPoint=near.index;sr15SelectedWall=-1;
+          try{svg.setPointerCapture(e.pointerId)}catch(_){}renderDraw4405();status4405('✏️ Продовження від точки '+pointName4405(near.index)+': тягніть до нового кута.');return
+        }
+        sr15SelectedPoint=near.index;sr15SelectedWall=-1;if(sr23EditMode){editDrawPoint4405=near.index;editDrawPointer4405=e.pointerId;try{svg.setPointerCapture(e.pointerId)}catch(_){}}renderDraw4405();status4405(sr23EditMode?'✏️ Кут '+pointName4405(near.index)+': тягніть для зміни форми; задані розміри збережені.':'🔵 Точка '+pointName4405(near.index)+' вибрана. Для перетягування увімкніть «Редагування плану».');return}
+      const nw=sr15NearestWall(p);if(drawClosed4405&&nw.index>=0&&nw.distance<=hit){sr15SelectedWall=nw.index;sr15SelectedPoint=-1;renderDraw4405();status4405('🟠 Стіна '+pointName4405(nw.index)+'–'+pointName4405((nw.index+1)%drawPoints4405.length)+' вибрана. Можна додати точку або видалити стіну.');return}
+      if(!drawClosed4405){
+        let np=p.slice();
+        /* SR18: point mode is orthogonal by default. A tap defines the NEXT corner,
+           but a second tap farther along the same straight wall only extends that wall;
+           it must not leave a redundant intermediate point behind. */
+        if(snapOrthogonal4405&&drawPoints4405.length){np=snap4405(drawPoints4405[drawPoints4405.length-1],np)}
+        let extendedStraight=false;
+        if(snapOrthogonal4405&&drawPoints4405.length>=2){
+          const a=drawPoints4405[drawPoints4405.length-2],b=drawPoints4405[drawPoints4405.length-1];
+          const v1=[b[0]-a[0],b[1]-a[1]],v2=[np[0]-b[0],np[1]-b[1]];
+          const cross=Math.abs(v1[0]*v2[1]-v1[1]*v2[0]),dot=v1[0]*v2[0]+v1[1]*v2[1];
+          const tol=Math.max(0.5,(Math.hypot(v1[0],v1[1])+Math.hypot(v2[0],v2[1]))*0.002);
+          if(cross<=tol&&dot>0){
+            drawPoints4405[drawPoints4405.length-1]=np;extendedStraight=true;
+            sr15SelectedPoint=drawPoints4405.length-1;
+          }
+        }
+        if(!extendedStraight){drawPoints4405.push(np);sr15CornerRadii.push(0);sr15SelectedPoint=drawPoints4405.length-1}
+        manualSegments4408=[];sr15SelectedWall=-1;renderDraw4405();
+        status4405(extendedStraight?'↔ Пряму стіну продовжено без зайвої проміжної точки.':'🔵 Додано точку '+pointName4405(drawPoints4405.length-1)+'. Натискайте наступні кути або «Замкнути авто».');return}
+      sr15SelectedPoint=-1;sr15SelectedWall=-1;renderDraw4405();return;
+    }
+    if(drawClosed4405&&!sr23EditMode){e.preventDefault();sr12DrawArmed=false;sr12NavPointer=e.pointerId;sr12NavLast={x:e.clientX,y:e.clientY};sr12Pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});try{svg.setPointerCapture(e.pointerId)}catch(_){}sr12NavStatus();return;}
+    if(drawClosed4405){
+      const near=nearestDrawPoint4405(p);if(near.index<0||near.distance>28)return;
+      e.preventDefault();e.stopPropagation();editDrawPoint4405=near.index;editDrawPointer4405=e.pointerId;
+      try{svg.setPointerCapture(e.pointerId)}catch(_){ }precisionBadge4405(false);return;
+    }
+    e.preventDefault();
+    sr12Pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
+    /* First wall may start anywhere. After that, empty space is navigation only. */
+    if(!drawPoints4405.length){
+      drawPoints4405=[p];sr12DrawArmed=true;drawPointer4405=e.pointerId;
+      preciseDrawActive4405=false;preciseDrawExceeded20=false;preciseRawAnchor4405=null;precisePreviewAnchor4405=null;precisionBadge4405(false);
+      try{svg.setPointerCapture(e.pointerId)}catch(_){ }drawPreview4405=p;renderDraw4405();return;
+    }
+    const last=drawPoints4405[drawPoints4405.length-1],first=drawPoints4405[0],hitRadius=Math.max(28,22/Math.max(.35,drawZoom4408));
+    const nearLast=dist4405(p,last)<=hitRadius,nearFirst=dist4405(p,first)<=hitRadius;
+    if((nearLast||nearFirst)&&sr12Pointers.size===1){
+      /* Both open ends are drawable. Starting from A prepends a new point; starting from the last point appends one. */
+      sr13DrawFromStart=nearFirst&&!nearLast;
+      sr12DrawArmed=true;drawPointer4405=e.pointerId;
+      preciseDrawActive4405=false;preciseDrawExceeded20=false;preciseRawAnchor4405=null;precisePreviewAnchor4405=null;precisionBadge4405(false);
+      const anchor=sr13DrawFromStart?first:last;
+      try{svg.setPointerCapture(e.pointerId)}catch(_){ }drawPreview4405=anchor.slice();sr25LiveMeter(true,anchor,anchor);renderDraw4405();return;
+    }
+    /* Navigation: empty-space drag never creates a wall. */
+    sr12DrawArmed=false;drawPointer4405=null;drawPreview4405=null;sr12NavPointer=e.pointerId;sr12NavLast={x:e.clientX,y:e.clientY};
+    try{svg.setPointerCapture(e.pointerId)}catch(_){ }
+    if(sr12Pointers.size>=2){const a=[...sr12Pointers.values()].slice(0,2);sr12PinchDist=Math.hypot(a[1].x-a[0].x,a[1].y-a[0].y)||1;sr12PinchZoom=drawZoom4408}
+    sr12NavStatus();
+  });
+  svg.addEventListener('pointermove',e=>{
+    if(window.sr31EditorTool==='move'&&editDrawPointer4405===e.pointerId&&editDrawPoint4405>=0){
+      e.preventDefault();
+      /* D13: re-arm editor undo for EVERY new drag. Pointerdown normally captures it;
+         this fallback guarantees a fresh pre-move snapshot after a previous undo. */
+      if(!window.__sr21UndoSnapshot)sr21TakeUndoSnapshot();
+      const p=coord4405(e);drawPoints4405[editDrawPoint4405]=p;renderDraw4405();return;
+    }
+    if(sr12Pointers.has(e.pointerId))sr12Pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
+    if(!sr12DrawArmed&&sr12Pointers.size>=2){
+      e.preventDefault();const a=[...sr12Pointers.values()].slice(0,2),d=Math.hypot(a[1].x-a[0].x,a[1].y-a[0].y)||1;
+      if(!sr12PinchDist){sr12PinchDist=d;sr12PinchZoom=drawZoom4408}
+      const cx=(a[0].x+a[1].x)/2,cy=(a[0].y+a[1].y)/2;sr12SetZoom(sr12PinchZoom*(d/sr12PinchDist),cx,cy);renderDraw4405();sr12NavStatus();return;
+    }
+    if(!sr12DrawArmed&&sr12NavPointer===e.pointerId&&sr12NavLast){
+      e.preventDefault();const dx=e.clientX-sr12NavLast.x,dy=e.clientY-sr12NavLast.y,[wx,wy]=sr12ScreenToWorldDelta(dx,dy);zoomCenter4408=[(zoomCenter4408?.[0]||400)-wx,(zoomCenter4408?.[1]||300)-wy];sr12NavLast={x:e.clientX,y:e.clientY};setViewBox4408();renderDraw4405();sr12NavStatus();return;
+    }
+    if(drawPointer4405!==e.pointerId||drawClosed4405)return;e.preventDefault();
+    /* SR23: no auto-pan while extending a wall; the anchor must stay visually fixed. */
+    const start=sr13DrawFromStart?drawPoints4405[0]:drawPoints4405[drawPoints4405.length-1];let raw=snap4405(start,coord4405(e));if(sr13DrawFromStart){const q=coord4405(e),dx=q[0]-start[0],dy=q[1]-start[1];raw=Math.abs(dx)>=Math.abs(dy)?[q[0],start[1]]:[start[0],q[1]]}const rawMeters=meters4407(start,raw);
+    if(rawMeters>.20)preciseDrawExceeded20=true;
+    if(!preciseDrawActive4405&&preciseDrawExceeded20&&rawMeters<=.20){preciseDrawActive4405=true;preciseRawAnchor4405=raw.slice();precisePreviewAnchor4405=raw.slice();precisionBadge4405(true)}
+    if(preciseDrawActive4405&&preciseRawAnchor4405&&precisePreviewAnchor4405){
+      let fine=[precisePreviewAnchor4405[0]+(raw[0]-preciseRawAnchor4405[0])/5,precisePreviewAnchor4405[1]+(raw[1]-preciseRawAnchor4405[1])/5];
+      fine=snap4405(start,fine);drawPreview4405=fine;
+    }else drawPreview4405=raw;
+    sr25LiveMeter(true,start,drawPreview4405);
+    renderDraw4405()
+  });
+  const end=e=>{
+    sr12Pointers.delete(e.pointerId);
+    if(!sr12DrawArmed&&(sr12NavPointer===e.pointerId||sr12Pointers.size<2)){e.preventDefault();sr12NavPointer=null;sr12NavLast=null;sr12PinchDist=0;sr12PinchZoom=drawZoom4408;renderDraw4405();sr12NavStatus();return}
+    if(window.sr31EditorTool==='move'&&editDrawPointer4405===e.pointerId){e.preventDefault();editDrawPointer4405=null;editDrawPoint4405=-1;renderDraw4405();return}
+    if(drawPointer4405!==e.pointerId)return;e.preventDefault();sr25LiveMeter(false);const fromStart=!!sr13DrawFromStart,a=fromStart?drawPoints4405[0]:drawPoints4405[drawPoints4405.length-1],b=drawPreview4405||snap4405(a,coord4405(e));drawPointer4405=null;drawPreview4405=null;
+    preciseDrawActive4405=false;preciseDrawExceeded20=false;preciseRawAnchor4405=null;precisePreviewAnchor4405=null;precisionBadge4405(false);
+    if(dist4405(a,b)<0.5){sr12DrawArmed=false;sr13DrawFromStart=false;renderDraw4405();sr12NavStatus();return}
+    const opposite=fromStart?drawPoints4405[drawPoints4405.length-1]:drawPoints4405[0],closedNow=drawPoints4405.length>=3&&dist4405(b,opposite)<1;
+    sr21TakeUndoSnapshot();if(closedNow){drawClosed4405=true}else if(fromStart){drawPoints4405[0]=b;if(Array.isArray(manualSegments4408)&&manualSegments4408.length)manualSegments4408[0]=meters4407(b,drawPoints4405[1]);sr15SelectedPoint=0;sr15SelectedWall=-1}else{drawPoints4405.push(b);if(Array.isArray(sr15CornerRadii)&&sr15CornerRadii.length<drawPoints4405.length)sr15CornerRadii.push(0)}
+    sr12DrawArmed=false;sr13DrawFromStart=false;renderDraw4405();if(!closedNow){updateLive4407(a,b,true);sr12NavStatus()}
+  };
+  svg.addEventListener('pointerup',end);svg.addEventListener('pointercancel',e=>{sr25LiveMeter(false);sr12Pointers.delete(e.pointerId);sr12NavPointer=null;sr12NavLast=null;sr12PinchDist=0;drawPointer4405=null;drawPreview4405=null;editDrawPointer4405=null;editDrawPoint4405=-1;preciseDrawActive4405=false;sr12DrawArmed=false;sr13DrawFromStart=false;precisionBadge4405(false);renderDraw4405();if(drawPoints4405.length&&!drawClosed4405)sr12NavStatus()})
+}
+  // SAFE RESTART 30 — compact dimensions stay directly under the plan.
+  let sr30DimsOpen=false;
+  function sr30DimsHost(){const stage=document.querySelector('#freeDrawModal4405 .free-draw-stage4405');if(!stage)return null;let box=document.getElementById('sr30InlineDims');if(!box){box=document.createElement('div');box.id='sr30InlineDims';box.className='sr30-inline-dims';stage.insertAdjacentElement('afterend',box)}return box}
+  function renderInlineDimsSR30(){const box=sr30DimsHost();if(!box)return;if(!sr30DimsOpen){box.classList.remove('show');box.innerHTML='';return}const n=drawPoints4405.length,walls=drawClosed4405?n:Math.max(0,n-1);box.classList.add('show');box.innerHTML='<div class="sr30-dims-head"><b>📏 Розміри стін</b><span>редагування 0,01 м</span></div><div class="sr30-dims-grid">'+Array.from({length:walls},(_,i)=>{const j=(i+1)%n,v=segmentMeters4408(i,drawPoints4405[i],drawPoints4405[j]);return '<label><b>'+pointName4405(i)+'–'+pointName4405(j)+'</b><input data-sr30-dim="'+i+'" type="number" inputmode="decimal" min="0.01" step="0.01" value="'+v.toFixed(2)+'"><span>м</span></label>'}).join('')+'</div>';box.querySelectorAll('input[data-sr30-dim]').forEach(inp=>{inp.addEventListener('change',()=>{const i=Number(inp.dataset.sr30Dim),v=Math.max(.01,Math.round((Number(String(inp.value).replace(',','.'))||.01)*100)/100);manualSegments4408=Array.isArray(manualSegments4408)?manualSegments4408:[];manualSegments4408[i]=v;inp.value=v.toFixed(2);renderDraw4405()})})}
+  window.toggleInlineDimsSR30=function(){if(drawPoints4405.length<2)return alert('Спочатку намалюйте контур.');sr30DimsOpen=!sr30DimsOpen;renderInlineDimsSR30();setTimeout(()=>{if(sr30DimsOpen)document.getElementById('sr30InlineDims')?.scrollIntoView({behavior:'smooth',block:'nearest'})},30)};
+  // SR7 readable-plan bridge: read-only snapshot from the SAME lexical drawing state.
+  window.getCurrentFingerPlanSR7=function(){
+    // Always snapshot the CURRENT finger contour, whether open or already closed.
+    const pts=drawPoints4405.map(p=>[Number(p[0])||0,Number(p[1])||0]);
+    const closed=!!drawClosed4405;
+    const walls=closed?pts.length:Math.max(0,pts.length-1);
+    const dims=Array.from({length:walls},(_,i)=>{const j=(i+1)%pts.length;return Math.max(.01,Math.round(segmentMeters4408(i,drawPoints4405[i],drawPoints4405[j])*100)/100)});
+    const snap={points:pts,dimensions:dims,closed,radii:(sr15CornerRadii||[]).map(v=>Math.max(0,Number(v)||0)),diagonals:(srD1Diagonals||[]).map(d=>({a:Number(d.a),b:Number(d.b)})),radiusFans:(srD1RadiusFans||[]).map(f=>({anchor:Number(f.anchor),corner:Number(f.corner)}))};
+    // Cache only as a fallback for presentation code; drawing state remains authoritative.
+    window.__sr09CurrentFingerSnapshot=snap;
+    return snap;
+  };
+  window.refreshCurrentFingerSnapshotSR09=function(){try{return window.getCurrentFingerPlanSR7()}catch(_){return window.__sr09CurrentFingerSnapshot||null}};
+  const sr09BaseCloseFingerContour4405=window.closeFingerContour4405;
+  window.closeFingerContour4405=function(){const r=sr09BaseCloseFingerContour4405?.apply(this,arguments);window.refreshCurrentFingerSnapshotSR09?.();return r};
+  const sr09BaseCloseAutoSR15=window.sr15CloseAuto;
+  window.sr15CloseAuto=function(){const r=sr09BaseCloseAutoSR15?.apply(this,arguments);window.refreshCurrentFingerSnapshotSR09?.();return r};
+  const sr30BaseRender=renderDraw4405;renderDraw4405=function(){sr30BaseRender();if(sr30DimsOpen)renderInlineDimsSR30()};
   updateState4405();
 }
 
@@ -32277,6 +32701,252 @@ window.openFinanceAmountEditorH12=function(key,current){
 };
 })();
 </script>
+\n<style id="safeRestart07FingerPrecisionStyles">
+.free-draw-precision4405{position:absolute;right:18px;top:72px;z-index:6;padding:8px 11px;border-radius:999px;background:#eef2ff;border:1px solid #bfdbfe;color:#1e40af;font-size:11px;font-weight:900;box-shadow:0 4px 14px rgba(15,23,42,.08);pointer-events:none}
+.free-draw-precision4405.active4405{background:#fff7ed;border-color:#fb923c;color:#c2410c;transform:scale(1.04)}
+#freeDrawSvg4405 .free-wall-index4405{pointer-events:auto;cursor:pointer;paint-order:stroke;stroke:#fff;stroke-width:5px;stroke-linejoin:round}
+#freeDrawSvg4405 .free-node4405{cursor:grab;touch-action:none}
+#freeDrawSvg4405 .free-node4405:active{cursor:grabbing}
+@media(max-width:700px){.free-draw-precision4405{top:108px;right:10px;max-width:72%;white-space:normal;text-align:center}}
+</style>
+<script id="safeRestart07FingerPrecisionEditor">
+(function(){
+'use strict';
+if(window.__safeRestart07FingerPrecisionEditor)return;window.__safeRestart07FingerPrecisionEditor=true;
+function n(v){const x=Number(String(v??'').replace(',','.'));return Number.isFinite(x)?x:0}
+function wallName(i){try{return pointName4405(i)+'–'+pointName4405((i+1)%drawPoints4405.length)}catch(_){return 'Стіна '+(i+1)}}
+function editWall(i){
+  if(!Array.isArray(drawPoints4405)||drawPoints4405.length<2)return;
+  const a=drawPoints4405[i],b=drawPoints4405[(i+1)%drawPoints4405.length];
+  const current=Math.max(.01,Math.round((Number(segmentMeters4408(i,a,b))||.01)*100)/100);
+  const raw=window.prompt('Точна довжина '+wallName(i)+' (м)\nМінімум 0.01 м. Наприклад: 0.03',current.toFixed(2));
+  if(raw===null)return;const value=Math.max(.01,Math.round(n(raw)*100)/100);
+  manualSegments4408[i]=value;renderDraw4405();try{status4405('📏 '+wallName(i)+' = '+value.toFixed(2)+' м. Точний розмір зафіксовано.')}catch(_){ }
+}
+document.addEventListener('click',function(e){const label=e.target?.closest?.('#freeDrawSvg4405 .free-wall-index4405[data-wall-index]');if(!label)return;e.preventDefault();e.stopPropagation();editWall(Number(label.dataset.wallIndex)||0)},true);
+const baseOpen=window.openProductionFromPlanner4408;
+if(typeof baseOpen==='function')window.openProductionFromPlanner4408=function(){const out=baseOpen.apply(this,arguments);setTimeout(()=>{try{const st=document.getElementById('freeDrawStatus4405');if(st)st.textContent='✋ Редактор контуру: рухайте точки пальцем. Натисніть розмір стіни, щоб ввести точне значення до 0.01 м.'}catch(_){ }},20);return out};
+})();
+</script>\n
+<style id="safeRestart08ShortWallStyles">
+.free-draw-shortwalls4405{display:none;margin:10px 14px 2px;padding:10px;border:1px solid #bfdbfe;border-radius:14px;background:#f8fbff;position:relative;z-index:8}.free-draw-shortwalls4405.show4405{display:block}.short-head4405{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:11px;color:#0f172a}.short-head4405 button{border:1px solid #bfdbfe;background:#fff;color:#075bff;border-radius:9px;padding:7px 9px;font-weight:900}.short-list4405{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin-top:8px}.short-list4405 button{display:grid;grid-template-columns:1fr auto auto;align-items:center;gap:6px;border:1px solid #dbeafe;background:#fff;border-radius:10px;padding:9px;text-align:left;color:#0f172a}.short-list4405 b{font-size:10px}.short-list4405 span{font-size:11px;font-weight:950;color:#075bff}.short-list4405 small{font-size:8px;font-weight:950;color:#64748b}.planner90-h1208{width:100%;margin-top:8px;min-height:42px;border:1px solid #bfdbfe;border-radius:11px;background:#eff6ff;color:#075bff;font-weight:950}
+</style>
+<script id="safeRestart08GeneralPlanner90">
+(()=>{'use strict';
+function ortho08(points){const pts=(points||[]).map(p=>[Number(p?.[0])||0,Number(p?.[1])||0]),n=pts.length;if(n<2)return pts;const px=Array.from({length:n},(_,i)=>i),py=Array.from({length:n},(_,i)=>i);const find=(a,i)=>a[i]===i?i:(a[i]=find(a,a[i]));const unite=(a,i,j)=>{i=find(a,i);j=find(a,j);if(i!==j)a[j]=i};for(let i=0;i<n;i++){const j=(i+1)%n,dx=pts[j][0]-pts[i][0],dy=pts[j][1]-pts[i][1];if(Math.abs(dx)>=Math.abs(dy))unite(py,i,j);else unite(px,i,j)}const avg=(pa,axis)=>{const g=new Map();for(let i=0;i<n;i++){const r=find(pa,i),v=g.get(r)||{s:0,c:0};v.s+=pts[i][axis];v.c++;g.set(r,v)}const out=new Map();for(const [r,v] of g)out.set(r,v.s/v.c);return out};const ax=avg(px,0),ay=avg(py,1);return pts.map((p,i)=>[ax.get(find(px,i))??p[0],ay.get(find(py,i))??p[1]])}
+window.straightenPlanner90H1208=function(){try{if(!Array.isArray(roomPoints)||roomPoints.length<3)return alert('Спочатку створіть контур кімнати.');if(typeof pushPlanner==='function')pushPlanner();const savedSegments=Array.isArray(segmentLengths)?segmentLengths.slice():[];roomPoints=ortho08(roomPoints);roomPoints._real=null;if(savedSegments.length===roomPoints.length)segmentLengths=savedSegments;renderPlanner?.();try{renderSegmentInputs?.()}catch(_){}try{syncActiveRoomFromUI?.(false)}catch(_){}try{autosave?.()}catch(_){}try{window.pixelToast431?.('📐 План вирівняно по 90°. Розміри стін збережено.')}catch(_){}}catch(e){console.warn('SAFE RESTART 08 planner 90',e)}};
+function install(){if(document.getElementById('planner90H1208'))return;const host=document.getElementById('freeDrawLaunch4405')||document.querySelector('#tab_planner .planner-points-block');if(!host)return;const b=document.createElement('button');b.id='planner90H1208';b.type='button';b.className='planner90-h1208';b.textContent='📐 Вирівняти план 90°';b.onclick=window.straightenPlanner90H1208;host.appendChild(b)}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(install,0),{once:true});else setTimeout(install,0);
+})();
+</script>
+
+<style id="safeRestart11FreeCameraStyles">
+#freeDrawSvg4405{cursor:crosshair}
+.sr11-freehint{margin:6px 14px 0;padding:7px 9px;border-radius:10px;background:#f0fdf4;border:1px solid #86efac;color:#166534;font-size:9px;font-weight:850;line-height:1.35}
+</style>
+<script id="safeRestart11FreeCameraBoot">
+(function(){'use strict';function boot(){const t=document.getElementById('sr09Toolbar');if(!t||document.getElementById('sr11FreeHint'))return;const d=document.createElement('div');d.id='sr11FreeHint';d.className='sr11-freehint';d.textContent='✋ Після стіни: рухайте лист пальцем, двома пальцями змінюйте масштаб. Щоб малювати далі — торкніться останньої точки й тягніть.';t.insertAdjacentElement('afterend',d)}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(boot,0),{once:true});else setTimeout(boot,0)})();
+</script>
+
+<style id="safeRestart12NavigationStyles">
+#freeDrawSvg4405{cursor:grab}
+#freeDrawSvg4405 .free-node4405:last-of-type{cursor:crosshair}
+</style>
+<script id="safeRestart12NavigationMarker">
+(()=>{try{document.documentElement.dataset.safeRestart='12';}catch(_){}})();
+</script>
+
+<!-- SAFE RESTART 16: simplified explicit DRAW / LOCK-NAVIGATION state for point editor. Base: SR15. -->
+
+<!-- SAFE RESTART 23: core drawing repair + edit mode. Base: SR22, failed SR22 handle enlargement removed. -->
+<style id="safeRestart23CoreStyles">
+#freeDrawModal4405 .free-draw-live4407{display:none!important}
+#freeDrawModal4405 .free-draw-live4407.active4407{display:block!important;position:absolute!important;right:14px!important;top:14px!important;z-index:80!important;min-width:118px!important;max-width:42%!important;padding:7px 9px!important}
+#freeDrawModal4405 .free-draw-live4407.active4407 .live-value4407{font-size:22px!important}
+#freeDrawModal4405 .sr22-endpoint4405{stroke-width:4!important;filter:none!important}
+#freeDrawModal4405 .sr22-endpoint4405.free-node-start4405{stroke:#16a34a!important}
+#sr23EditBtn.active{background:#fff7ed!important;border-color:#f97316!important;color:#c2410c!important}
+</style>
+<script id="safeRestart23Marker">try{document.documentElement.dataset.safeRestart='23'}catch(_){}</script>
+
+<style id="safeRestart25RebuiltEditorStyles">#freeDrawModal4405 .sr25-live-meter{display:none;position:absolute;left:50%;top:14px;transform:translateX(-50%);z-index:120;padding:8px 13px;border-radius:999px;background:#0f172a;color:#fff;font-size:16px;font-weight:1000;box-shadow:0 8px 22px rgba(15,23,42,.24);pointer-events:none;font-variant-numeric:tabular-nums}#freeDrawModal4405 .sr25-live-meter.show{display:block}#sr23EditBtn.active{background:#7c3aed!important;color:#fff!important;border-color:#7c3aed!important}</style>
+
+<!-- SAFE RESTART 27: editor selection/delete isolated; SR25 drawing preserved -->
+
+<style id="safeRestart30Styles">
+.sr30-inline-dims{display:none;margin:10px 18px 4px;padding:10px;border:1px solid #bfdbfe;border-radius:16px;background:#f8fbff}.sr30-inline-dims.show{display:block}.sr30-dims-head{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-bottom:8px;color:#0f172a}.sr30-dims-head span{font-size:11px;color:#64748b}.sr30-dims-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}.sr30-dims-grid label{display:grid;grid-template-columns:auto minmax(55px,1fr) auto;gap:5px;align-items:center;padding:7px;border:1px solid #dbeafe;border-radius:10px;background:white;font-size:11px}.sr30-dims-grid input{width:100%;min-width:0;border:1px solid #bfdbfe;border-radius:8px;padding:7px 5px;font-weight:900;text-align:right;background:white}@media(min-width:700px){.sr30-dims-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+</style>
+<!-- SAFE RESTART 30 FROM CLEAN 27: A single + explicit select/delete + inline dimensions + safe 90 -->
+<style id="sr31EditorToolsStyle">#sr31EditorTools{grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;margin:4px 0 6px;padding:5px 8px}#sr31EditorTools button{min-height:34px;padding:5px 3px;font-size:8.5px;border-radius:9px}#sr31EditorTools button.active{background:#7c3aed!important;color:#fff!important;border-color:#7c3aed!important}@media(min-width:600px){#sr31EditorTools{grid-template-columns:repeat(5,minmax(0,1fr))}}</style>
+
+<script id="sr18ReadableLast90Bridge">
+(function(){
+  'use strict';
+
+  // Snapshot ONLY for the readable/cutting representation.
+  // Canonical drawing remains drawPoints4405 and is not replaced here.
+  window.sr18LastReadableGeometry = null;
+
+  function clonePtsSR18(src){
+    return Array.isArray(src) ? src.map(function(p){
+      return Array.isArray(p) ? [Number(p[0]), Number(p[1])] :
+             (p && typeof p === 'object' ? {x:Number(p.x), y:Number(p.y)} : p);
+    }) : [];
+  }
+
+  function captureCurrentSR18(){
+    try{
+      if (typeof drawPoints4405 !== 'undefined' && Array.isArray(drawPoints4405) && drawPoints4405.length){
+        window.sr18LastReadableGeometry = clonePtsSR18(drawPoints4405);
+      }
+    }catch(e){}
+  }
+
+  // Wrap the actual 90° operation. Capture AFTER it has mutated/rendered the contour.
+  function install90WrapSR18(){
+    try{
+      if (typeof window.straightenFingerWalls4408 !== 'function') return false;
+      if (window.straightenFingerWalls4408.__sr18Wrapped) return true;
+      var original = window.straightenFingerWalls4408;
+      var wrapped = function(){
+        var result = original.apply(this, arguments);
+        captureCurrentSR18();
+        return result;
+      };
+      wrapped.__sr18Wrapped = true;
+      wrapped.__sr18Original = original;
+      window.straightenFingerWalls4408 = wrapped;
+      return true;
+    }catch(e){ return false; }
+  }
+
+  // Make every known readable-plan entry capture the CURRENT contour immediately
+  // before rendering. If 90° was used, this is exactly the post-90 canonical state.
+  function wrapReadableSR18(name){
+    try{
+      var fn = window[name];
+      if (typeof fn !== 'function' || fn.__sr18Wrapped) return;
+      var wrapped = function(){
+        captureCurrentSR18();
+        return fn.apply(this, arguments);
+      };
+      wrapped.__sr18Wrapped = true;
+      wrapped.__sr18Original = fn;
+      window[name] = wrapped;
+    }catch(e){}
+  }
+
+  function installSR18(){
+    install90WrapSR18();
+    Object.keys(window).forEach(function(k){
+      if (/readable|chytabel|читаб/i.test(k) && typeof window[k] === 'function'){
+        wrapReadableSR18(k);
+      }
+    });
+
+    // Direct button bridge: capture current post-render geometry on the actual click
+    // before any legacy readable handler can consult an older snapshot.
+    document.addEventListener('pointerdown', function(e){
+      var b = e.target && e.target.closest ? e.target.closest('button,[role="button"]') : null;
+      if (!b) return;
+      var s = ((b.textContent||'')+' '+(b.id||'')+' '+(b.className||'')).toLowerCase();
+      if (s.indexOf('читабель') >= 0 || s.indexOf('readable') >= 0){
+        captureCurrentSR18();
+      }
+    }, true);
+  }
+
+  installSR18();
+  setTimeout(installSR18,0);
+  setTimeout(installSR18,300);
+  window.sr18CaptureCurrentReadableGeometry = captureCurrentSR18;
+})();
+</script>
+
+
+<script id="sr19ReadableOrthoProduction">
+(function(){
+'use strict';
+
+function pts19(){
+  try{
+    if(typeof drawPoints4405==='undefined'||!Array.isArray(drawPoints4405)) return [];
+    return drawPoints4405.map(function(p){
+      if(Array.isArray(p)) return [Number(p[0]),Number(p[1])];
+      return [Number(p.x),Number(p.y)];
+    }).filter(function(p){return isFinite(p[0])&&isFinite(p[1]);});
+  }catch(e){return [];}
+}
+function nm19(i){ var s=''; i++; while(i){i--;s=String.fromCharCode(65+i%26)+s;i=Math.floor(i/26);} return s; }
+function len19(a,b){return Math.hypot(b[0]-a[0],b[1]-a[1]);}
+function esc19(s){return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]});}
+
+function schematic19(src,closed){
+  if(src.length<2) return src.slice();
+  var out=[[0,0]], minShort=58, normalScale=72;
+  for(var i=0;i<src.length-1;i++){
+    var a=src[i], b=src[i+1], dx=b[0]-a[0], dy=b[1]-a[1];
+    var L=Math.hypot(dx,dy), prev=out[out.length-1];
+    var horiz=Math.abs(dx)>=Math.abs(dy);
+    var sign=horiz?(dx>=0?1:-1):(dy>=0?1:-1);
+    var visual=Math.max(minShort, L*normalScale);
+    out.push(horiz?[prev[0]+sign*visual,prev[1]]:[prev[0],prev[1]+sign*visual]);
+  }
+  return out;
+}
+function fit19(p,w,h,pad){
+  var xs=p.map(q=>q[0]),ys=p.map(q=>q[1]);
+  var minx=Math.min.apply(null,xs),maxx=Math.max.apply(null,xs),miny=Math.min.apply(null,ys),maxy=Math.max.apply(null,ys);
+  var bw=Math.max(1,maxx-minx),bh=Math.max(1,maxy-miny),s=Math.min((w-2*pad)/bw,(h-2*pad)/bh);
+  return p.map(q=>[pad+(q[0]-minx)*s,pad+(q[1]-miny)*s]);
+}
+function svg19(src,closed){
+  var W=760,H=690, p=fit19(schematic19(src,closed),W,H,52), n=src.length;
+  var segCount=closed?n:n-1, segs=[], labels=[];
+  for(var i=0;i<segCount;i++){
+    var j=(i+1)%n, a=p[i],b=p[j], real=len19(src[i],src[j]), short=real<0.50;
+    segs.push('<line x1="'+a[0]+'" y1="'+a[1]+'" x2="'+b[0]+'" y2="'+b[1]+'" stroke="#1267e8" stroke-width="7" stroke-linecap="round"/>');
+    var mx=(a[0]+b[0])/2,my=(a[1]+b[1])/2, horiz=Math.abs(b[0]-a[0])>=Math.abs(b[1]-a[1]);
+    var ox=horiz?0:((b[1]>=a[1])?-48:48), oy=horiz?((b[0]>=a[0])?-22:28):0;
+    var label=nm19(i)+'–'+nm19(j)+' '+real.toFixed(2)+' м';
+    var tw=Math.max(86,label.length*8.1+18);
+    labels.push('<g><rect x="'+(mx+ox-tw/2)+'" y="'+(my+oy-17)+'" width="'+tw+'" height="30" rx="7" fill="'+(short?'#fff4e7':'#fff')+'" stroke="'+(short?'#e9b477':'#d7e2ef')+'"/><text x="'+(mx+ox)+'" y="'+(my+oy+4)+'" text-anchor="middle" font-size="15" font-weight="700" fill="'+(short?'#a9561d':'#24528c')+'">'+esc19(label)+'</text></g>');
+  }
+  var nodes=p.map(function(q,i){
+    var choices=[[12,-14],[12,25],[-24,-14],[-24,25]],c=choices[i%4];
+    return '<circle cx="'+q[0]+'" cy="'+q[1]+'" r="10" fill="'+(i===0?'#e9fff0':'#fff')+'" stroke="'+(i===0?'#25a65a':'#1267e8')+'" stroke-width="5"/><text x="'+(q[0]+c[0])+'" y="'+(q[1]+c[1])+'" font-size="20" font-weight="900" fill="#172033">'+nm19(i)+'</text>';
+  }).join('');
+  return '<svg viewBox="0 0 '+W+' '+H+'" width="100%" height="100%" preserveAspectRatio="xMidYMid meet">'+segs.join('')+labels.join('')+nodes+'</svg>';
+}
+function table19(src,closed){
+ var n=src.length,c=closed?n:n-1,h='<div style="font-weight:900;margin-bottom:7px">Стіни / контроль</div>';
+ for(var i=0;i<c;i++){var j=(i+1)%n,L=len19(src[i],src[j]),sh=L<.50;
+  h+='<div style="display:grid;grid-template-columns:25px 1fr auto;gap:5px;align-items:center;padding:5px 4px;border-bottom:1px solid #e5edf7;'+(sh?'background:#fff7ed;':'')+'"><span style="border:1px solid #8ca9cf;border-radius:50%;text-align:center">'+(i+1)+'</span><b>'+nm19(i)+'–'+nm19(j)+'</b><b style="'+(sh?'color:#b65a1b':'color:#175ec5')+'">'+L.toFixed(2)+' м</b></div>';
+ } return h;
+}
+function renderIntoReadable19(){
+ var src=pts19(); if(src.length<2)return false;
+ var closed=!!(typeof drawClosed4405!=='undefined'&&drawClosed4405);
+ var modal=document.querySelector('[id*="readable" i][class*="modal" i], [id*="chyt" i][class*="modal" i], [id*="readable" i]');
+ if(!modal)return false;
+ var candidates=[].slice.call(modal.querySelectorAll('div'));
+ var canvas=candidates.find(function(el){var r=el.getBoundingClientRect();return r.width>250&&r.height>250&&el.querySelector('svg');});
+ var control=candidates.find(function(el){return /Стіни\s*\/\s*контроль/i.test(el.textContent||'');});
+ if(canvas){canvas.innerHTML=svg19(src,closed);}
+ if(control){control.innerHTML=table19(src,closed); control.style.width='24%'; control.style.minWidth='118px';}
+ if(canvas){canvas.style.width='76%';}
+ return !!canvas;
+}
+function schedule19(){ /* SR20: disabled; single renderer is svgReadable() */ }
+document.addEventListener('click',function(e){
+ var b=e.target&&e.target.closest?e.target.closest('button,[role="button"]'):null;if(!b)return;
+ var s=((b.textContent||'')+' '+(b.id||'')).toLowerCase();
+ if(s.indexOf('читабель')>=0||s.indexOf('readable')>=0)schedule19();
+},true);
+window.sr19RenderReadableOrtho=function(){return false;};
+})();
+</script>
+
 </body></html>
 
 <!-- 44.41: surgical NW export fix based strictly on 44.40; selected insert is included in final NW order; no planner/canvas quantity logic changed. -->
@@ -36299,3 +36969,316 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   }catch(_){}
 })();
 </script>
+
+<!-- SAFE RESTART 09: readable production plan + manual wall dimensions. Base: SAFE RESTART 08. -->
+<style id="safeRestart09ReadablePlanStyles">
+#freeDrawShortWalls4405{display:none!important}
+.sr09-toolbar{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 14px 2px;position:relative;z-index:9}
+.sr09-toolbar button{min-height:42px;border:1px solid #bfdbfe;border-radius:12px;background:#fff;color:#075bff;font-weight:950;font-size:10px;padding:8px}
+.sr09-modal{position:fixed;inset:0;z-index:2147483000;background:rgba(15,23,42,.72);display:none;align-items:flex-end;justify-content:center;padding:10px;box-sizing:border-box}
+.sr09-modal.open{display:flex}.sr09-sheet{width:min(760px,100%);max-height:92vh;overflow:auto;background:#fff;border-radius:20px;padding:14px;box-sizing:border-box;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+.sr09-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}.sr09-head h3{margin:0;font-size:17px}.sr09-close{width:42px;height:42px;border:1px solid #cbd5e1;border-radius:12px;background:#fff;font-size:22px}
+.sr09-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.sr09-row{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:7px;padding:8px;border:1px solid #dbeafe;border-radius:11px;background:#f8fbff}.sr09-row b{font-size:11px;min-width:42px}.sr09-row input{width:100%;box-sizing:border-box;border:1px solid #bfdbfe;border-radius:9px;padding:9px;font-weight:900;font-size:14px;text-align:right}.sr09-row span{font-size:10px;color:#64748b;font-weight:900}
+.sr09-save{width:100%;min-height:46px;margin-top:10px;border:0;border-radius:12px;background:#075bff;color:#fff;font-weight:950;font-size:12px}
+.sr09-planwrap{border:1px solid #dbeafe;border-radius:14px;background:#fff;overflow:hidden}.sr09-planwrap svg{display:block;width:100%;height:auto;min-height:430px;background:#fff}.sr09-note{margin:8px 0;padding:9px 10px;border-radius:10px;background:#eff6ff;color:#1e3a8a;font-size:10px;font-weight:800;line-height:1.4}.sr09-dims{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;margin-top:10px}.sr09-dim{display:flex;justify-content:space-between;gap:8px;border-bottom:1px solid #e2e8f0;padding:6px 4px;font-size:10px}.sr09-dim.short{background:#fff7ed;border-radius:7px;padding:6px}.sr09-dim b{font-weight:950}.sr09-dim span{font-weight:900;color:#075bff}
+@media(max-width:520px){.sr09-grid,.sr09-dims{grid-template-columns:1fr}.sr09-toolbar{grid-template-columns:1fr 1fr}.sr09-planwrap svg{min-height:360px}}
+</style>
+<script id="safeRestart09ReadablePlanScript">
+(function sr15ReadableLayoutOnly(){
+  if(document.getElementById('sr15ReadableLayoutCss')) return;
+  const st=document.createElement('style');
+  st.id='sr15ReadableLayoutCss';
+  st.textContent=`
+    #sr11ReadableModal .sr11-sheet,
+    #sr11ReadableModal .readable-sheet{max-width:760px!important}
+    #sr11ReadableModal .sr11-plan-grid,
+    #sr11ReadableModal .readable-grid{grid-template-columns:minmax(0,1fr) 142px!important;gap:6px!important}
+    #sr11ReadableModal .sr11-table,
+    #sr11ReadableModal .readable-table{font-size:10px!important}
+    #sr11ReadableModal .sr11-table-row,
+    #sr11ReadableModal .readable-row{min-height:22px!important;padding:2px 4px!important}
+    #sr11ReadableModal svg{overflow:visible}
+    @media(max-width:520px){
+      #sr11ReadableModal .sr11-plan-grid,
+      #sr11ReadableModal .readable-grid{grid-template-columns:minmax(0,1fr) 132px!important}
+    }
+  `;
+  document.head.appendChild(st);
+})();
+
+  function sr14PointLabel(i){
+    let x=Number(i)+1, out='';
+    while(x>0){
+      x--;
+      out=String.fromCharCode(65+(x%26))+out;
+      x=Math.floor(x/26);
+    }
+    return out;
+  }
+
+(function(){
+'use strict';
+if(window.__safeRestart09ReadablePlan)return;window.__safeRestart09ReadablePlan=true;
+const NS='http://www.w3.org/2000/svg';
+const num=v=>{const x=Number(String(v??'').replace(',','.'));return Number.isFinite(x)?x:0};
+const clone=p=>(p||[]).map(q=>[num(q?.[0]),num(q?.[1])]);
+function name(i,n){
+    const label=(idx)=>{
+      let x=idx+1, out='';
+      while(x>0){ x--; out=String.fromCharCode(65+(x%26))+out; x=Math.floor(x/26); }
+      return out;
+    };
+    return label(i)+'–'+label((i+1)%n);
+  }
+function wallLen(i,pts,dims){const v=num(dims?.[i]);if(v>0)return Math.max(.01,Math.round(v*100)/100);return .01}
+function installToolbar(){const stage=document.querySelector('#freeDrawModal4405 .free-draw-stage4405');if(!stage||document.getElementById('sr09Toolbar'))return;const d=document.createElement('div');d.id='sr09Toolbar';d.className='sr09-toolbar';d.innerHTML='<button type="button" onclick="openManualWallsSR09()">📏 Ввести розміри</button><button id="sr11ReadableBtn" type="button" onclick="openReadablePlanSR11()">📐 Читабельний план</button>';const zoom=stage.querySelector('.free-draw-zoom4408');(zoom?.parentNode||stage).insertBefore(d,zoom?.nextSibling||null)}
+function ensureModal(id,title){let m=document.getElementById(id);if(!m){m=document.createElement('div');m.id=id;m.className='sr09-modal';m.innerHTML='<div class="sr09-sheet"><div class="sr09-head"><h3>'+title+'</h3><button class="sr09-close" type="button">×</button></div><div class="sr09-body"></div></div>';document.body.appendChild(m);m.querySelector('.sr09-close').onclick=()=>m.classList.remove('open');m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('open')})}return m}
+window.openManualWallsSR09=function(){const pts=clone(window.drawPoints4405);if(pts.length<2)return alert('Спочатку намалюйте контур.');const m=ensureModal('sr09ManualModal','📏 Точні розміри стін');const body=m.querySelector('.sr09-body');body.innerHTML='<div class="sr09-note">Введіть реальні розміри вручну. Значення зберігаються з точністю 0,01 м; форму пальцем можна залишити приблизною.</div><div class="sr09-grid">'+pts.map((p,i)=>'<label class="sr09-row"><b>'+name(i,pts.length)+'</b><input data-i="'+i+'" inputmode="decimal" type="number" min="0.01" step="0.01" value="'+wallLen(i,pts).toFixed(2)+'"><span>м</span></label>').join('')+'</div><button class="sr09-save" type="button">Зберегти розміри</button>';body.querySelector('.sr09-save').onclick=()=>{body.querySelectorAll('input[data-i]').forEach(inp=>{const i=Number(inp.dataset.i),v=Math.max(.01,Math.round(num(inp.value)*100)/100);window.manualSegments4408=window.manualSegments4408||[];window.manualSegments4408[i]=v});try{renderDraw4405()}catch(_){}try{status4405('📏 Точні розміри стін збережено.')}catch(_){}m.classList.remove('open')};m.classList.add('open')};
+function fit(pts){const xs=pts.map(p=>p[0]),ys=pts.map(p=>p[1]),minX=Math.min(...xs),maxX=Math.max(...xs),minY=Math.min(...ys),maxY=Math.max(...ys),bw=Math.max(1,maxX-minX),bh=Math.max(1,maxY-minY),s=Math.min(500/bw,410/bh),ox=55+(500-bw*s)/2,oy=55+(410-bh*s)/2;return pts.map(p=>[ox+(p[0]-minX)*s,oy+(p[1]-minY)*s])}
+function svgReadable(pts,dims,closed){
+ const n=pts.length, walls=closed?n:Math.max(0,n-1);
+ // Presentation only: current geometry and entered dimensions stay untouched.
+ // Left = enlarged contour with local dimensions. Right = compact control table.
+ const W=760,H=Math.max(650,140+walls*32), drawX=22,drawY=32,drawW=536,drawH=H-64, tableX=570;
+ const xs=pts.map(p=>p[0]),ys=pts.map(p=>p[1]);
+ const minX=Math.min(...xs),maxX=Math.max(...xs),minY=Math.min(...ys),maxY=Math.max(...ys);
+ const bw=Math.max(1,maxX-minX),bh=Math.max(1,maxY-minY),baseScale=Math.min((drawW-70)/bw,(drawH-70)/bh);
+ // SR20 readable geometry: solve X/Y coordinate levels, not vertices in a chain.
+ // This preserves the LAST current contour, every 90° relation and exact closure.
+ // A tiny wall expands by separating its two coordinate levels; every point on
+ // those levels moves together, so no downstream drift and no broken return to A.
+ const raw=pts.map(p=>[(p[0]-minX)*baseScale,(p[1]-minY)*baseScale]);
+ const shortCount=Array.from({length:walls},(_,i)=>wallLen(i,pts,dims)).filter(v=>v<=.50).length;
+ const minVisual=shortCount>=6?52:58, eps=0.75;
+ function buildLevels(axis){
+   const vals=raw.map(p=>p[axis]).slice().sort((a,b)=>a-b), levels=[];
+   vals.forEach(v=>{if(!levels.length||Math.abs(v-levels[levels.length-1])>eps)levels.push(v)});
+   return levels;
+ }
+ function nearestLevel(levels,v){let bi=0,bd=Infinity;levels.forEach((q,i)=>{const d=Math.abs(q-v);if(d<bd){bd=d;bi=i}});return bi}
+ function solveLevels(axis){
+   const levels=buildLevels(axis), pos=levels.slice();
+   const requirements=[];
+   for(let i=0;i<walls;i++){
+     const j=(i+1)%n, dx=Math.abs(raw[j][0]-raw[i][0]),dy=Math.abs(raw[j][1]-raw[i][1]);
+     const usesAxis=axis===0 ? dx>=dy : dy>dx;
+     if(!usesAxis)continue;
+     const a=nearestLevel(levels,raw[i][axis]),b=nearestLevel(levels,raw[j][axis]);
+     if(a===b)continue;
+     const lo=Math.min(a,b),hi=Math.max(a,b), real=wallLen(i,pts,dims);
+     const need=real<=0.50?minVisual:Math.max(0,Math.abs(levels[hi]-levels[lo]));
+     requirements.push([lo,hi,need]);
+   }
+   // Repeated forward relaxation. Shifting all higher levels together keeps order
+   // and makes the expansion local to the coordinate gap instead of one vertex.
+   for(let pass=0;pass<levels.length+3;pass++){
+     let changed=false;
+     for(const [lo,hi,need] of requirements){
+       const have=pos[hi]-pos[lo];
+       if(have+0.01<need){const add=need-have;for(let k=hi;k<pos.length;k++)pos[k]+=add;changed=true}
+     }
+     if(!changed)break;
+   }
+   return {levels,pos};
+ }
+ const sx20=solveLevels(0), sy20=solveLevels(1);
+ const schematic=raw.map(p=>[
+   sx20.pos[nearestLevel(sx20.levels,p[0])],
+   sy20.pos[nearestLevel(sy20.levels,p[1])]
+ ]);
+ const sx=schematic.map(p=>p[0]),sy=schematic.map(p=>p[1]);
+ const sminX=Math.min(...sx),smaxX=Math.max(...sx),sminY=Math.min(...sy),smaxY=Math.max(...sy);
+ const sbw=Math.max(1,smaxX-sminX),sbh=Math.max(1,smaxY-sminY);
+ const finalScale=Math.min((drawW-58)/sbw,(drawH-58)/sbh);
+ const ox=drawX+29+(drawW-58-sbw*finalScale)/2,oy=drawY+29+(drawH-58-sbh*finalScale)/2;
+ const fp=schematic.map(p=>[ox+(p[0]-sminX)*finalScale,oy+(p[1]-sminY)*finalScale]);
+ const esc=v=>String(v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+ const poly=closed?fp.concat([fp[0]]):fp;
+ let s='<svg viewBox="0 0 '+W+' '+H+'" xmlns="http://www.w3.org/2000/svg"><rect width="'+W+'" height="'+H+'" fill="white"/>';
+ s+='<rect x="8" y="8" width="554" height="'+(H-16)+'" rx="16" fill="#fff" stroke="#dbeafe"/>';
+ s+='<polyline points="'+poly.map(p=>p.join(',')).join(' ')+'" fill="none" stroke="#075bff" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>';
+ // Reserve point-label boxes first so dimensions do not sit on top of A/B/C labels.
+ const occupied=[];
+ function reserve(x,y,w,h){occupied.push([x,y,w,h])}
+ function hits(x,y,w,h){return occupied.some(b=>!(x+w<b[0]||b[0]+b[2]<x||y+h<b[1]||b[1]+b[3]<y))}
+ // Reserve every node first: labels of dense short-wall clusters must not cover neighbouring points.
+ fp.forEach(p=>reserve(p[0]-11,p[1]-11,22,22));
+ fp.forEach((p,i)=>{
+   const pn=sr14PointLabel(i),opts=[[12,-14],[12,28],[-27,-14],[-27,28],[19,7],[-34,7],[4,-24],[4,36]];
+   let tx=p[0]+10,ty=p[1]-11;
+   for(const o of opts){
+     const x=p[0]+o[0],y=p[1]+o[1];
+     if(x>drawX+3&&x<drawX+drawW-20&&y>drawY+18&&y<drawY+drawH-3&&!hits(x-3,y-16,26,21)){tx=x;ty=y;break}
+   }
+   s+='<circle cx="'+p[0]+'" cy="'+p[1]+'" r="7" fill="white" stroke="'+(i===0?'#16a34a':'#075bff')+'" stroke-width="3"/><text x="'+tx+'" y="'+ty+'" font-family="Arial" font-size="15" font-weight="900" fill="#0f172a">'+esc(pn)+'</text>';
+   reserve(tx-3,ty-16,26,21);
+ });
+ const rows=[];
+ for(let i=0;i<walls;i++){
+   const j=(i+1)%n,a=fp[i],b=fp[j],len=wallLen(i,pts,dims),short=len<=.50;
+   const dx=b[0]-a[0],dy=b[1]-a[1],L=Math.max(1,Math.hypot(dx,dy)),nx=-dy/L,ny=dx/L;
+   const mx=(a[0]+b[0])/2,my=(a[1]+b[1])/2,label=name(i,n)+' '+len.toFixed(2)+' м';
+   const tw=Math.max(72,Math.min(128,24+label.length*6.2)),th=22;
+   // Try both sides of the wall and several distances; pick first collision-free location.
+   let chosen=null;
+   const distances=short?[42,58,74,92]:[26,40,56,72];
+   for(const sign of [1,-1]){for(const d of distances){
+     const cx=mx+nx*d*sign,cy=my+ny*d*sign,x=cx-tw/2,y=cy-th/2;
+     if(x>drawX+4&&x+tw<drawX+drawW-4&&y>drawY+4&&y+th<drawY+drawH-4&&!hits(x,y,tw,th)){chosen={x,y,cx,cy};break}
+   }if(chosen)break}
+   if(!chosen){const sign=(i%2?1:-1),d=short?88:58,cx=mx+nx*d*sign,cy=my+ny*d*sign;chosen={x:Math.max(drawX+5,Math.min(drawX+drawW-tw-5,cx-tw/2)),y:Math.max(drawY+5,Math.min(drawY+drawH-th-5,cy-th/2)),cx,cy}}
+   reserve(chosen.x,chosen.y,tw,th);
+   const col=short?'#c2410c':'#1d4ed8',bg=short?'#fff7ed':'#ffffff';
+   // Short walls get a small local leader only; never draw long fan lines across the plan.
+   if(short){s+='<line x1="'+mx+'" y1="'+my+'" x2="'+chosen.cx+'" y2="'+chosen.cy+'" stroke="'+col+'" stroke-width="1.4" stroke-dasharray="4 3"/>'}
+   s+='<rect x="'+chosen.x+'" y="'+chosen.y+'" width="'+tw+'" height="'+th+'" rx="5" fill="'+bg+'" fill-opacity=".94" stroke="'+(short?'#fed7aa':'#dbeafe')+'"/><text x="'+(chosen.x+tw/2)+'" y="'+(chosen.y+15)+'" text-anchor="middle" font-family="Arial" font-size="11" font-weight="900" fill="'+col+'">'+esc(label)+'</text>';
+   rows.push({i,len,short});
+ }
+ // Fixed control table: no connector lines to the drawing.
+ s+='<rect x="'+(tableX-6)+'" y="12" width="184" height="'+(H-24)+'" rx="16" fill="#f8fbff" stroke="#dbeafe"/><text x="'+tableX+'" y="38" font-family="Arial" font-size="14" font-weight="900" fill="#0f172a">Стіни / контроль</text>';
+ rows.forEach((r,k)=>{const y=62+k*30,col=r.short?'#c2410c':'#1d4ed8',fill=r.short?'#fff7ed':'#fff';s+='<rect x="'+tableX+'" y="'+(y-18)+'" width="174" height="25" rx="6" fill="'+fill+'" stroke="'+(r.short?'#fed7aa':'#dbeafe')+'"/><circle cx="'+(tableX+14)+'" cy="'+(y-5)+'" r="9" fill="#fff" stroke="'+col+'"/><text x="'+(tableX+14)+'" y="'+(y-1)+'" text-anchor="middle" font-family="Arial" font-size="9" font-weight="900" fill="'+col+'">'+(r.i+1)+'</text><text x="'+(tableX+31)+'" y="'+(y-1)+'" font-family="Arial" font-size="11" font-weight="900" fill="#0f172a">'+esc(name(r.i,n))+'</text><text x="'+(tableX+166)+'" y="'+(y-1)+'" text-anchor="end" font-family="Arial" font-size="11" font-weight="900" fill="'+col+'">'+r.len.toFixed(2)+' м</text>'});
+ return s+'</svg>'
+}
+
+
+function svgReadableD2(pts,dims,closed,snap){
+ let base=svgReadable(pts,dims,closed);if(!base)return base;
+ const radii=Array.isArray(snap&&snap.radii)?snap.radii:[],diags=Array.isArray(snap&&snap.diagonals)?snap.diagonals:[],fans=Array.isArray(snap&&snap.radiusFans)?snap.radiusFans:[];
+ if(!radii.some(v=>Number(v)>0)&&!diags.length&&!fans.length)return base;
+ const mm=base.match(/viewBox="0 0 ([\\d.]+) ([\\d.]+)"/),H=mm?Number(mm[2]):650,drawX=22,drawY=32,drawW=536,drawH=H-64,tableX=580;
+ const xs=pts.map(p=>p[0]),ys=pts.map(p=>p[1]),minX=Math.min(...xs),maxX=Math.max(...xs),minY=Math.min(...ys),maxY=Math.max(...ys),bw=Math.max(1,maxX-minX),bh=Math.max(1,maxY-minY),sc=Math.min((drawW-70)/bw,(drawH-70)/bh),ox=drawX+35+(drawW-70-bw*sc)/2,oy=drawY+35+(drawH-70-bh*sc)/2;
+ const mapP=p=>[ox+(p[0]-minX)*sc,oy+(p[1]-minY)*sc],fp=pts.map(mapP),esc=t=>String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+ let o='<g id="srD3ReadableMeasurements">',radiusRows=[];
+ const line=(a,b,label,col,w,dash)=>{o+='<line x1="'+a[0]+'" y1="'+a[1]+'" x2="'+b[0]+'" y2="'+b[1]+'" stroke="'+col+'" stroke-width="'+w+'" stroke-dasharray="'+dash+'" opacity=".78"/>';if(label)o+='<rect x="'+((a[0]+b[0])/2-42)+'" y="'+((a[1]+b[1])/2-18)+'" width="84" height="18" rx="4" fill="white" fill-opacity=".95"/><text x="'+((a[0]+b[0])/2)+'" y="'+((a[1]+b[1])/2-5)+'" text-anchor="middle" font-family="Arial" font-size="10" font-weight="900" fill="'+col+'">'+esc(label)+'</text>'};
+ diags.forEach(d=>{if(d.a>=0&&d.b>=0&&d.a<fp.length&&d.b<fp.length&&d.a!==d.b){const len=Math.hypot(pts[d.b][0]-pts[d.a][0],pts[d.b][1]-pts[d.a][1])/80;line(fp[d.a],fp[d.b],String.fromCharCode(65+d.a)+'–'+String.fromCharCode(65+d.b)+' '+len.toFixed(2)+' м','#be123c',2.5,'8 5')}});
+ function sourceCorner(i){const n=pts.length,rM=Math.max(0,Number(radii[i])||0);if(!(rM>0)||n<3||(!closed&&(i===0||i===n-1)))return null;const v=pts[i],p=pts[(i-1+n)%n],q=pts[(i+1)%n],ax=p[0]-v[0],ay=p[1]-v[1],bx=q[0]-v[0],by=q[1]-v[1],la=Math.hypot(ax,ay),lb=Math.hypot(bx,by);if(la<1||lb<1)return null;const ua=[ax/la,ay/la],ub=[bx/lb,by/lb],dot=Math.max(-.999999,Math.min(.999999,ua[0]*ub[0]+ua[1]*ub[1])),theta=Math.acos(dot),tanHalf=Math.tan(theta/2);if(theta<.02||Math.PI-theta<.02||tanHalf<1e-6)return null;let tangent=(rM*80)/tanHalf;tangent=Math.min(tangent,la*.45,lb*.45);const r=tangent*tanHalf;if(r<.5)return null;const tin=[v[0]+ua[0]*tangent,v[1]+ua[1]*tangent],tout=[v[0]+ub[0]*tangent,v[1]+ub[1]*tangent],mx=(tin[0]+tout[0])/2,my=(tin[1]+tout[1])/2,dx=tout[0]-tin[0],dy=tout[1]-tin[1],ch=Math.hypot(dx,dy);if(ch<.5)return null;const h=Math.sqrt(Math.max(0,r*r-ch*ch/4)),nx=-dy/ch,ny=dx/ch,c1=[mx+nx*h,my+ny*h],c2=[mx-nx*h,my-ny*h],din=[-ua[0],-ua[1]],dout=ub,cross=din[0]*dout[1]-din[1]*dout[0],sweep=cross>0?1:0;function af(center){let a0=Math.atan2(tin[1]-center[1],tin[0]-center[0]),a1=Math.atan2(tout[1]-center[1],tout[0]-center[0]),delta=a1-a0;while(delta<=-Math.PI)delta+=Math.PI*2;while(delta>Math.PI)delta-=Math.PI*2;return{center,a0,delta}}const z1=af(c1),z2=af(c2),z=(sweep?z1.delta>=0:z1.delta<=0)?z1:z2;return{v,tin,tout,center:z.center,r,a0:z.a0,delta:z.delta,rM,sweep}}
+ radii.forEach((rv,i)=>{const c=sourceCorner(i);if(!c)return;const tin=mapP(c.tin),tout=mapP(c.tout),center=mapP(c.center),rr=c.r*sc;o+='<path d="M '+tin[0]+' '+tin[1]+' A '+rr+' '+rr+' 0 0 '+(c.delta>=0?1:0)+' '+tout[0]+' '+tout[1]+'" fill="none" stroke="#7c3aed" stroke-width="4"/><text x="'+(fp[i][0]+14)+'" y="'+(fp[i][1]+24)+'" font-family="Arial" font-size="11" font-weight="900" fill="#7c3aed">R '+Number(rv).toFixed(2)+' м</text>'});
+ fans.forEach((f,fi)=>{if(!(f.anchor>=0&&f.anchor<fp.length))return;const c=sourceCorner(f.corner);if(!c)return;const anchorSrc=pts[f.anchor],anchor=fp[f.anchor],center=mapP(c.center),dir=c.delta>=0?1:-1;
+ // D7: true physical 10 cm stations ALONG the real radius arc.
+ // The readable plan must use the same arc geometry as the working V7 canvas.
+ const pxPerM=c.r/Math.max(.001,c.rM),arcM=Math.abs(c.delta)*c.r/pxPerM,step=.10;
+ // D8: the arc start itself is NOT a measuring station. The first control
+ // point is exactly 10 cm from the tangent, then 20, 30... cm. Add the
+ // physical arc end only when a remainder remains after the last full 10 cm.
+ const stations=[];
+ for(let dist=step;dist<arcM-1e-6;dist+=step)stations.push(dist);
+ if(!stations.length||Math.abs(stations[stations.length-1]-arcM)>1e-6)stations.push(arcM);
+ stations.forEach((dist,k)=>{
+   const t=arcM>1e-9?dist/arcM:0,a=c.a0+c.delta*t;
+   const src=[c.center[0]+Math.cos(a)*c.r,c.center[1]+Math.sin(a)*c.r],p=mapP(src),len=Math.hypot(src[0]-anchorSrc[0],src[1]-anchorSrc[1])/80,num=k+1;
+   line(anchor,p,'','#7c3aed',1.20,'5 5');
+   // D10: keep the physical 10 cm station at p, but move only its numbered badge
+   // slightly away from the radius. This prevents 10 cm markers from covering the arc.
+   const vx=p[0]-center[0],vy=p[1]-center[1],vl=Math.hypot(vx,vy)||1,bx=p[0]+(vx/vl)*10,by=p[1]+(vy/vl)*10;
+   o+='<circle cx="'+p[0]+'" cy="'+p[1]+'" r="2.4" fill="#7c3aed"/>'+
+      '<line x1="'+p[0]+'" y1="'+p[1]+'" x2="'+bx+'" y2="'+by+'" stroke="#a78bfa" stroke-width="0.8"/>'+
+      '<circle cx="'+bx+'" cy="'+by+'" r="4.4" fill="#fff" stroke="#7c3aed" stroke-width="1.3"/>'+
+      '<text x="'+bx+'" y="'+(by+2)+'" text-anchor="middle" font-family="Arial" font-size="5.4" font-weight="900" fill="#7c3aed">'+num+'</text>';
+   radiusRows.push({fan:fi+1,num,from:String.fromCharCode(65+f.anchor),corner:String.fromCharCode(65+f.corner),len,station:dist,arcM})
+ }); });
+ if(radiusRows.length){let y=270;o+='<text x="'+tableX+'" y="'+y+'" font-family="Arial" font-size="13" font-weight="900" fill="#6d28d9">Радіусні проміри · крок 10 см</text>';y+=19;radiusRows.forEach((r,idx)=>{if(y>H-18)return;const isEnd=Math.abs(r.station-r.arcM)<1e-6&&Math.abs((r.station/.10)-Math.round(r.station/.10))>1e-5,stationLabel=isEnd?('край '+(r.station*100).toFixed(1)+' см'):(Math.round(r.station*100)+' см');o+='<rect x="'+tableX+'" y="'+(y-13)+'" width="174" height="18" rx="5" fill="#faf5ff" stroke="#e9d5ff"/><circle cx="'+(tableX+11)+'" cy="'+(y-4)+'" r="6" fill="#fff" stroke="#7c3aed"/><text x="'+(tableX+11)+'" y="'+(y-1)+'" text-anchor="middle" font-family="Arial" font-size="7" font-weight="900" fill="#7c3aed">'+r.num+'</text><text x="'+(tableX+23)+'" y="'+(y-1)+'" font-family="Arial" font-size="8" font-weight="900" fill="#7c3aed">'+stationLabel+'</text><text x="'+(tableX+168)+'" y="'+(y-1)+'" text-anchor="end" font-family="Arial" font-size="9" font-weight="900" fill="#6d28d9">'+r.from+'→R'+r.corner+' '+r.len.toFixed(2)+' м</text>';y+=20})}
+ o+='</g>';return base.replace('</svg>',o+'</svg>')
+}
+
+window.openReadablePlanSR11=function(){
+  try{
+    /* SR12: use the bridge that lives INSIDE the drawing lexical scope.
+       It sees the exact drawPoints4405/manualSegments4408/drawClosed4405
+       that renderDraw4405 uses on screen. */
+    const snap=(typeof window.getCurrentFingerPlanSR7==='function')
+      ? window.getCurrentFingerPlanSR7()
+      : null;
+    const pts=clone(snap && Array.isArray(snap.points) ? snap.points : []);
+    const dims=(snap && Array.isArray(snap.dimensions)) ? snap.dimensions.slice() : [];
+    const closed=!!(snap && snap.closed);
+
+    if(pts.length<3){
+      alert('Спочатку намалюйте хоча б 3 точки.');
+      return;
+    }
+
+    const m=ensureModal('sr09ReadableModal','📐 Читабельний план для розкрою');
+    const walls=closed ? pts.length : Math.max(0,pts.length-1);
+    const list=Array.from({length:walls},(_,i)=>{
+      const l=Number.isFinite(Number(dims[i])) ? Number(dims[i]) : wallLen(i,pts,dims);
+      return '<div class="sr09-dim '+(l<=.50?'short':'')+'"><b>'+name(i,pts.length)+'</b><span>'+l.toFixed(2)+' м</span></div>';
+    }).join('');
+
+    m.querySelector('.sr09-body').innerHTML=
+      '<div class="sr09-note">Схематичний план для розкрою · розміри фактичні · короткі ділянки показані збільшено біля їх реального місця · геометрія взята з останнього поточного контуру · схема не в масштабі, фактичні розміри не змінюються.</div>'+
+      '<div class="sr09-planwrap">'+svgReadableD2(pts,dims,closed,snap)+'</div>'+
+      '<div class="sr09-dims" style="display:none">'+list+'</div>';
+    m.classList.add('open');
+  }catch(err){
+    console.error('SR12 readable bridge:',err);
+    alert('Помилка читабельного плану: '+(err&&err.message?err.message:String(err)));
+  }
+};
+
+window.openReadablePlanSR09=function(){let snap=null;try{snap=window.refreshCurrentFingerSnapshotSR09?.()||window.getCurrentFingerPlanSR7?.()}catch(_){snap=window.__sr09CurrentFingerSnapshot||null}const pts=clone(snap?.points);if(pts.length<3)return alert('Спочатку намалюйте хоча б 3 точки.');const dims=Array.isArray(snap?.dimensions)?snap.dimensions:[];const closed=!!snap?.closed;const m=ensureModal('sr09ReadableModal','📐 Читабельний план для розкрою');const list=Array.from({length:closed?pts.length:Math.max(0,pts.length-1)},(_,i)=>{const l=wallLen(i,pts,dims);return '<div class="sr09-dim '+(l<=.50?'short':'')+'"><b>'+name(i,pts.length)+'</b><span>'+l.toFixed(2)+' м</span></div>'}).join('');m.querySelector('.sr09-body').innerHTML='<div class="sr09-note">Поточний план і введені розміри не змінюються. Контур збільшено; розміри рознесені біля своїх стін, короткі ділянки мають локальні виноски. Праворуч — контрольна таблиця.</div><div class="sr09-planwrap">'+svgReadable(pts,dims,closed)+'</div><div class="sr09-dims" style="display:none">'+list+'</div>';m.classList.add('open')};
+
+// SR21 Android drawing guard: prevent browser text/context-search popups while repeatedly dragging a point.
+function installDrawingTouchGuardSR21(){
+ const svg=document.getElementById('freeDrawSvg4405');
+ if(!svg||svg.__sr21TouchGuard)return;
+ svg.__sr21TouchGuard=true;
+ svg.style.webkitUserSelect='none'; svg.style.userSelect='none'; svg.style.webkitTouchCallout='none';
+ for(const ev of ['contextmenu','selectstart','dragstart']) svg.addEventListener(ev,e=>{e.preventDefault();e.stopPropagation()},true);
+}
+function boot(){installToolbar();installDrawingTouchGuardSR21();const modal=document.getElementById('freeDrawModal4405');if(modal&&!modal.__sr09obs){modal.__sr09obs=true;new MutationObserver(()=>installToolbar()).observe(modal,{childList:true,subtree:true})}}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(boot,0),{once:true});else setTimeout(boot,0);
+})();
+</script>
+
+
+<!-- SAFE RESTART 17B: presentation-only collapsed hints; no observers/timers/geometry changes. Base: SR16. -->
+<style id="safeRestart17BCollapsedHintsStyles">
+/* Keep the drawing canvas clear by default. */
+#freeDrawModal4405 .free-draw-help4405,
+#freeDrawModal4405 .free-draw-live4407,
+#freeDrawModal4405 .free-draw-scale4407{display:none!important}
+#freeDrawModal4405.hints-open-sr17b .free-draw-help4405,
+#freeDrawModal4405.hints-open-sr17b .free-draw-live4407,
+#freeDrawModal4405.hints-open-sr17b .free-draw-scale4407{display:block!important}
+/* Precision badge is never permanent: only visible while its existing active state is on. */
+#freeDrawModal4405 .free-draw-precision4405{display:none!important}
+#freeDrawModal4405 .free-draw-precision4405.active4405{display:block!important;top:12px!important;right:12px!important;max-width:150px!important;padding:5px 8px!important;font-size:8px!important}
+/* Zoom control belongs to locked/navigation mode only. */
+#freeDrawModal4405 .free-draw-zoom4408{display:none!important}
+#freeDrawModal4405.nav-mode-sr17b .free-draw-zoom4408{display:block!important;top:12px!important;right:12px!important}
+#sr17HintsBtn{min-height:34px;border:1px solid #dbe3ef;border-radius:10px;background:#fff;color:#475569;font-size:8px;font-weight:950;padding:5px 8px}
+#sr17HintsBtn.active{background:#eff6ff;color:#1d4ed8;border-color:#93c5fd}
+@media(max-width:520px){#freeDrawModal4405 .free-draw-stage4405{height:60vh;min-height:420px}}
+</style>
+<script id="safeRestart17BCollapsedHintsScript">
+(function(){
+'use strict';
+if(window.__safeRestart17B)return;window.__safeRestart17B=true;
+function modal(){return document.getElementById('freeDrawModal4405')}
+function install(){
+  const m=modal(),bar=document.getElementById('sr15ModeBar');
+  if(!m||!bar)return;
+  if(!document.getElementById('sr17HintsBtn')){
+    const b=document.createElement('button');b.type='button';b.id='sr17HintsBtn';b.textContent='ⓘ Підказки';
+    b.onclick=function(){const open=m.classList.toggle('hints-open-sr17b');b.classList.toggle('active',open);b.textContent=open?'ⓘ Сховати':'ⓘ Підказки'};
+    bar.appendChild(b);
+  }
+  m.classList.remove('hints-open-sr17b');
+  const hb=document.getElementById('sr17HintsBtn');if(hb){hb.classList.remove('active');hb.textContent='ⓘ Підказки'}
+  m.classList.toggle('nav-mode-sr17b',!!document.getElementById('sr16PlanLockBtn')?.classList.contains('active'));
+}
+const oldOpen=window.openFingerDrawing4405;
+if(typeof oldOpen==='function')window.openFingerDrawing4405=function(){const r=oldOpen.apply(this,arguments);install();return r};
+const oldProd=window.openProductionFromPlanner4408;
+if(typeof oldProd==='function')window.openProductionFromPlanner4408=function(){const r=oldProd.apply(this,arguments);install();return r};
+const oldLock=window.togglePlanLockSR16;
+if(typeof oldLock==='function')window.togglePlanLockSR16=function(){const r=oldLock.apply(this,arguments);const m=modal();if(m)m.classList.toggle('nav-mode-sr17b',!!document.getElementById('sr16PlanLockBtn')?.classList.contains('active'));return r};
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install,{once:true});else install();
+try{document.documentElement.dataset.safeRestart='17B'}catch(_){}
+})();
+</script>
+
+<style id="sr20ShortDirectionCss">#freeDrawModal4405 .free-draw-precision4405.active4405{display:block!important;top:12px!important;right:12px!important;max-width:none!important;min-width:88px!important;padding:8px 12px!important;font-size:16px!important;font-weight:1000!important;white-space:nowrap!important;background:#fff7ed!important;border:2px solid #fb923c!important;color:#c2410c!important;box-shadow:0 5px 16px rgba(15,23,42,.12)!important}</style>
+
+<!-- SAFE RESTART 21: restore live wall meter; SR20 direction/cm badge remains supplemental. Base: SR20. -->
+<script id="safeRestart21Marker">try{document.documentElement.dataset.safeRestart='21'}catch(_){}</script>
