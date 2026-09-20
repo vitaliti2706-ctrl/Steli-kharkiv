@@ -1,3 +1,5 @@
+<!-- D13 STABILITY B: disable redundant H12.5 square repaint layer + dedupe autosave/archive room sync; base: STABILITY A -->
+<!-- D13 STABILITY B3: custom contour guard — H12.6D/E/G cannot rebuild a valid H123 draft as rectangle -->
 <!-- PIXEL 44.90A-R15.9-H12.6: square room-state sync/no jitter | base: H12.5 -->
 <!-- PIXEL 44.90A: CLEAN ADMIN ONLY | stable base 44.90; object/room/insert logic untouched -->
 <!-- PIXEL 44.90: restore 'Весь об’єкт' quick button in room summary | base 44.89 -->
@@ -5,6 +7,7 @@
 <!-- PIXEL 44.87: persist/restore perimeter insert per room | base 44.86 -->
 <!-- PIXEL 44.50 FINISHING CUSTOM WORK FIX | base: 44.49 OBJECT HISTORY RELEASE -->
 <!-- FILE: PIXEL 5.6 FULL HISTORY FIX | EXPECTED ~3150 LINES | 43.91 room delete -->
+<!-- D13 STABILITY A: visible escaped-newline cleanup + bounded legacy polling; body-wide observers remain disabled -->
 <!DOCTYPE html>
 <!-- 43.61: current-room header now shows active room area/perimeter, not object totals -->
 
@@ -2031,7 +2034,8 @@ function updateSummary(){
 }
 function autosave(){
   if(roomSyncLock)return;
-  syncActiveRoomFromUI(false);
+  // STABILITY B: collectObject() already performs syncActiveRoomFromUI(false).
+  // Avoid capturing the same room twice for every autosave.
   updateSummary();
   try{localStorage.setItem('potolok_pixel51_draft',JSON.stringify(collectObject()));saveStatus.textContent='Чернетку збережено'}
   catch(e){saveStatus.textContent='Пам’ять заповнена';}
@@ -2050,7 +2054,7 @@ function hasCurrentObjectData(){
 }
 function archiveCurrentObject(){
   if(!hasCurrentObjectData())return false;
-  syncActiveRoomFromUI(false);
+  // STABILITY B: collectObject() performs the required active-room sync.
   const o=collectObject();
   o.id=activeObjectId||o.id||uid('object');
   o.archivedAt=new Date().toISOString();
@@ -14579,8 +14583,9 @@ function refreshUi4333(){
   const remove=box.querySelector('.wall-remove-selected4333');
   if(remove){remove.disabled=count===0;remove.style.opacity=count===0?'.48':'1';remove.textContent='🗑 Прибрати «'+(WALL_NAMES4333[type]||type)+'»'}
 }
+let install4333Attempts=0;
 function install4333(){
-  const box=document.getElementById('wallState4328');if(!box)return setTimeout(install4333,100);
+  const box=document.getElementById('wallState4328');if(!box){if(++install4333Attempts<=40)setTimeout(install4333,100);return;}
   const actions=box.querySelector('.wall-state-actions4328');if(!actions)return;
   const buttons=actions.querySelectorAll('button');
   const all=buttons[0];if(all){all.classList.add('wall-toggle-all4333');all.removeAttribute('onclick');all.addEventListener('click',()=>window.applyWallTypeAll4328())}
@@ -14749,9 +14754,10 @@ function update4334(){
  if(s){s.textContent=side?'✅ Завершити вибір стін':'☝ Вибрати окремі стіни';s.classList.toggle('active',side)}
  if(r){r.textContent='🗑 Прибрати «'+name4334(t)+'» з усіх стін';r.disabled=cnt===0;r.style.opacity=cnt===0?'.48':'1'}
 }
+let install4334Attempts=0;
 function install4334(){
- const box=document.getElementById('wallState4328');if(!box)return setTimeout(install4334,100);
- const actions=box.querySelector('.wall-state-actions4328');if(!actions)return setTimeout(install4334,100);
+ const box=document.getElementById('wallState4328');if(!box){if(++install4334Attempts<=40)setTimeout(install4334,100);return;}
+ const actions=box.querySelector('.wall-state-actions4328');if(!actions){if(++install4334Attempts<=40)setTimeout(install4334,100);return;}
  actions.innerHTML='<button id="wallAll4334" type="button" class="primary wall-toggle-all4333"></button><button id="wallSides4334" type="button" class="wall-side-mode4334"></button><button id="wallRemove4334" type="button" class="wall-remove-type4334"></button><button id="wallClear4334" type="button" class="wall-clear-all4334">🧹 Очистити всі дані про стіни</button>';
  let help=box.querySelector('.wall-help4334');if(!help){help=document.createElement('div');help.className='wall-help4334';help.innerHTML='<b>Як працюють окремі стіни:</b> виберіть тип → натисніть «Вибрати окремі стіни» → торкайтеся стін на плані. Повторний дотик по тій самій стіні прибирає вибраний тип. Потім натисніть «Завершити вибір стін».';actions.insertAdjacentElement('afterend',help)}
  box.querySelector('#wallAll4334').onclick=applyAll4334;
@@ -26042,7 +26048,28 @@ window.openFingerDrawing4405=function(){drawPoints4405=[];manualSegments4408=[];
 window.closeFingerDrawing4405=closeModal4405;
 window.undoFingerWall4405=function(){if(drawClosed4405){drawClosed4405=false}else if(drawPoints4405.length>1){drawPoints4405.pop();manualSegments4408=manualSegments4408.slice(0,Math.max(0,drawPoints4405.length-1))}else{drawPoints4405=[];manualSegments4408=[]}renderDraw4405()};
 window.clearFingerDrawing4405=function(){drawPoints4405=[];manualSegments4408=[];sr15CornerRadii=[];srD1Diagonals=[];srD1RadiusFans=[];srD1ResetPick();sr15SelectedPoint=-1;sr15SelectedWall=-1;sr15PlanLocked=false;drawClosed4405=false;drawPointer4405=null;drawPreview4405=null;renderDraw4405()};
-window.closeFingerContour4405=function(){if(drawPoints4405.length<3)return alert('Потрібно мінімум 3 точки.');drawClosed4405=true;drawPointer4405=null;drawPreview4405=null;renderDraw4405()};
+window.closeFingerContour4405=function(){
+  if(drawPoints4405.length<3)return alert('Потрібно мінімум 3 точки.');
+  /* B4.4: closure must NEVER create an extra vertex.
+     If an accidental 0.01 m tail was created at the open end, remove only that tail,
+     then close the existing last real point directly to A. */
+  if(!drawClosed4405 && drawPoints4405.length>3){
+    const n=drawPoints4405.length;
+    const tail=segmentMeters4408(n-2,drawPoints4405[n-2],drawPoints4405[n-1]);
+    if(tail<=0.011){
+      drawPoints4405.pop();
+      if(Array.isArray(sr15CornerRadii)&&sr15CornerRadii.length>drawPoints4405.length)sr15CornerRadii.pop();
+      if(Array.isArray(manualSegments4408)&&manualSegments4408.length>=n-1)manualSegments4408=manualSegments4408.slice(0,drawPoints4405.length-1);
+    }
+  }
+  drawClosed4405=true;
+  drawPointer4405=null;
+  drawPreview4405=null;
+  sr15SelectedPoint=-1;
+  sr15SelectedWall=-1;
+  renderDraw4405();
+  status4405('✅ Контур замкнено: остання точка з’єднана безпосередньо з A.');
+};
 
 window.togglePointAutoSR15=function(){window.sr31EditorTool=null;sr23EditMode=false;sr15PointMode=!sr15PointMode;sr15PlanLocked=false;sr15SelectedPoint=-1;sr15SelectedWall=-1;sr12DrawArmed=false;drawPointer4405=null;drawPreview4405=null;if(sr15PointMode){snapOrthogonal4405=true;const sb=document.getElementById('freeDrawSnap4405');if(sb)sb.textContent='📐 Режим 90°: так'}sr15SyncToolbar();renderDraw4405();status4405(sr15PointMode?'🔵 Режим точок · 90° увімкнено. Ставте кути. Коли треба рухати або масштабувати лист — натисніть «Зафіксувати план».':'✍ Вільний режим: тягніть стіну від крайньої точки.')};
 window.togglePlanLockSR16=function(){if(!sr15PointMode){status4405('Спочатку увімкніть режим «Точки».');return}sr15PlanLocked=!sr15PlanLocked;sr15SelectedPoint=-1;sr15SelectedWall=-1;drawPointer4405=null;drawPreview4405=null;sr12DrawArmed=false;sr12NavPointer=null;sr12NavLast=null;sr12Pointers.clear();sr15SyncToolbar();renderDraw4405();status4405(sr15PlanLocked?'🔒 План зафіксовано. Тепер одним пальцем рухайте лист, двома — збільшуйте/зменшуйте. Точки не додаються.':'✏️ Редагування знову активне. Масштаб і положення збережені; можна ставити, рухати та редагувати точки.')};
@@ -31853,6 +31880,8 @@ window.addEventListener('pageshow',()=>setTimeout(()=>{ensureUi();mark()},260));
 'use strict';
 if(window.__pixelH125SquareRoomCardSync)return;
 window.__pixelH125SquareRoomCardSync=true;
+// STABILITY B: H12.6 SquareStateSync below is authoritative. Disable this legacy repaint/observer layer.
+return;
 const BUILD='BUILD 44.90A-R15.9-H12.6Y · KILL 13.06 · FROM H12.6X';
 const N=v=>Math.max(0,Number(String(v??'').replace(/\s/g,'').replace(',','.').replace(/[^\d.-]/g,''))||0);
 let painting=false;
@@ -32007,7 +32036,8 @@ function activeId(){try{return String(activeRoomId??'')}catch(_){return''}}
 function room(){const id=activeId();return rooms().find(r=>String(r?.id??'')===id)||null}
 function isPlainRect(r=room()){
   const p=r?.preliminary||{};
-  return !!r && p.startShapeH122!=='square' && !p.startShapeSourceH123;
+  const hasCustomDraft=Array.isArray(p?.planDraftH123?.points)&&p.planDraftH123.points.length>=3;
+  return !!r && p.startShapeH122!=='square' && !p.startShapeSourceH123 && !hasCustomDraft;
 }
 function solve(area,perimeter){
   area=N(area);perimeter=N(perimeter);
@@ -32124,7 +32154,7 @@ function rooms(){try{return Array.isArray(projectRooms)?projectRooms:[]}catch(_)
 function activeId(){try{return String(activeRoomId??'')}catch(_){return''}}
 function room(){const id=activeId();return rooms().find(r=>String(r?.id??'')===id)||null}
 function pre(r=room()){if(!r)return null;r.preliminary=r.preliminary&&typeof r.preliminary==='object'?r.preliminary:{};return r.preliminary}
-function plain(r=room()){const p=r?.preliminary||{};return !!r&&!p.startShapeSourceH123}
+function plain(r=room()){const p=r?.preliminary||{};const hasCustomDraft=Array.isArray(p?.planDraftH123?.points)&&p.planDraftH123.points.length>=3;return !!r&&!p.startShapeSourceH123&&!hasCustomDraft}
 function rect(r=room()){return plain(r)&&r?.preliminary?.startShapeH122!=='square'}
 function solve(area,perimeter){
   area=N(area);perimeter=N(perimeter);if(!(area>0&&perimeter>0))return null;
@@ -32701,7 +32731,7 @@ window.openFinanceAmountEditorH12=function(key,current){
 };
 })();
 </script>
-\n<style id="safeRestart07FingerPrecisionStyles">
+<style id="safeRestart07FingerPrecisionStyles">
 .free-draw-precision4405{position:absolute;right:18px;top:72px;z-index:6;padding:8px 11px;border-radius:999px;background:#eef2ff;border:1px solid #bfdbfe;color:#1e40af;font-size:11px;font-weight:900;box-shadow:0 4px 14px rgba(15,23,42,.08);pointer-events:none}
 .free-draw-precision4405.active4405{background:#fff7ed;border-color:#fb923c;color:#c2410c;transform:scale(1.04)}
 #freeDrawSvg4405 .free-wall-index4405{pointer-events:auto;cursor:pointer;paint-order:stroke;stroke:#fff;stroke-width:5px;stroke-linejoin:round}
@@ -32944,6 +32974,93 @@ document.addEventListener('click',function(e){
  if(s.indexOf('читабель')>=0||s.indexOf('readable')>=0)schedule19();
 },true);
 window.sr19RenderReadableOrtho=function(){return false;};
+})();
+</script>
+
+
+<!-- D13 STABILITY B4: exact area for orthogonal custom contours from real wall lengths -->
+<script id="d13StabilityB4OrthoExactArea">
+(function(){
+'use strict';
+if(window.__d13StabilityB4OrthoExactArea)return;
+window.__d13StabilityB4OrthoExactArea=true;
+
+const previousPolygonMetricsB4=window.polygonMetrics;
+
+function numB4(v){
+  const n=Number(String(v??'').replace(',','.'));
+  return Number.isFinite(n)?n:0;
+}
+function orthoMetricB4(){
+  try{
+    if(typeof roomTemplate==='undefined'||roomTemplate!=='custom')return null;
+    if(!Array.isArray(roomPoints)||roomPoints.length<4)return null;
+    if(!Array.isArray(segmentLengths)||segmentLengths.length!==roomPoints.length)return null;
+
+    const n=roomPoints.length;
+    const sides=segmentLengths.map(numB4);
+    if(sides.some(v=>!(v>0)))return null;
+
+    const dirs=[];
+    for(let i=0;i<n;i++){
+      const a=roomPoints[i], b=roomPoints[(i+1)%n];
+      const dx=numB4(b?.[0])-numB4(a?.[0]);
+      const dy=numB4(b?.[1])-numB4(a?.[1]);
+      const ax=Math.abs(dx), ay=Math.abs(dy), major=Math.max(ax,ay), minor=Math.min(ax,ay);
+      if(major<1)return null;
+
+      /* Only accept a genuinely 90-degree screen contour.
+         A loose arbitrary polygon must continue through the diagonal/approximate path. */
+      if(minor>Math.max(3,major*.12))return null;
+
+      if(ax>=ay) dirs.push([dx>=0?1:-1,0]);
+      else dirs.push([0,dy>=0?1:-1]);
+    }
+
+    const metric=[[0,0]];
+    for(let i=0;i<n;i++){
+      const p=metric[i], d=dirs[i], len=sides[i];
+      metric.push([p[0]+d[0]*len,p[1]+d[1]*len]);
+    }
+
+    /* Real tape measurements are rounded. Permit only a small closure mismatch.
+       Larger mismatch means geometry is not reliable enough to call exact. */
+    const closeX=metric[n][0], closeY=metric[n][1];
+    const closure=Math.hypot(closeX,closeY);
+    const perimeter=sides.reduce((s,v)=>s+v,0);
+    if(closure>Math.max(.08,perimeter*.006))return null;
+
+    let twice=0;
+    for(let i=0;i<n;i++){
+      const a=metric[i];
+      const b=(i===n-1)?[0,0]:metric[i+1];
+      twice+=a[0]*b[1]-b[0]*a[1];
+    }
+    const area=Math.abs(twice/2);
+    if(!(area>0))return null;
+
+    return {
+      area,
+      perimeter,
+      approx:false,
+      valid:true,
+      closeError:closure,
+      orthogonalExact:true,
+      closureResidual:closure,
+      metricPoints:metric.slice(0,n)
+    };
+  }catch(_){return null}
+}
+
+window.polygonMetrics=function(){
+  const exact=orthoMetricB4();
+  if(exact)return exact;
+  return typeof previousPolygonMetricsB4==='function'
+    ? previousPolygonMetricsB4.apply(this,arguments)
+    : {area:0,perimeter:0,approx:true};
+};
+
+window.__d13OrthoMetricB4=orthoMetricB4;
 })();
 </script>
 
@@ -33311,12 +33428,13 @@ const obs4467=new MutationObserver(()=>{
  clearTimeout(markTimer4467);
  markTimer4467=setTimeout(markButtons4467,40);
 });
+let watch4467Attempts=0;
 function watch4467(){
  const modal=document.getElementById('nwModal4413');
  if(modal){
    obs4467.observe(modal,{childList:true,subtree:true});
    markButtons4467();
- }else setTimeout(watch4467,500);
+ }else if(++watch4467Attempts<=20)setTimeout(watch4467,500);
 }
 setTimeout(watch4467,500);
 
@@ -33509,13 +33627,14 @@ const obs4469=new MutationObserver(()=>{
  clearTimeout(t4469);
  t4469=setTimeout(renderCart4469,80);
 });
+let watch4469Attempts=0;
 function watch4469(){
  const modal=document.getElementById('nwModal4413');
  if(modal){
    const grid=modal.querySelector('.nw-grid4413');
    if(grid)obs4469.observe(grid,{childList:true,subtree:true});
    window.refreshNoPlanOrder4469();
- }else setTimeout(watch4469,500);
+ }else if(++watch4469Attempts<=20)setTimeout(watch4469,500);
 }
 setTimeout(watch4469,700);
 /* R15.2: removed global every-click order refresh; real add/edit/delete flows refresh themselves. */
@@ -36437,6 +36556,8 @@ function solveRect(area,per){
 }
 function desiredState(r=active()){
   const p=pre(r);if(!r||!p)return null;
+  const hasCustomDraft=Array.isArray(p?.planDraftH123?.points)&&p.planDraftH123.points.length>=3;
+  if(p.startShapeSourceH123||hasCustomDraft)return null;
   let area=N(document.getElementById('preArea56')?.value)||N(p.area)||N(r.area);
   let perimeter=N(document.getElementById('prePerimeter56')?.value)||N(p.perimeter)||N(r.perimeter);
   const shape=p.startShapeH122==='square'?'square':'rect';
@@ -37282,3 +37403,5 @@ try{document.documentElement.dataset.safeRestart='17B'}catch(_){}
 
 <!-- SAFE RESTART 21: restore live wall meter; SR20 direction/cm badge remains supplemental. Base: SR20. -->
 <script id="safeRestart21Marker">try{document.documentElement.dataset.safeRestart='21'}catch(_){}</script>
+
+<!-- B4.4 CLOSE CONTOUR ONLY: no extra point; trims only accidental 0.01m tail; exact orthogonal metric reports closed state. -->
