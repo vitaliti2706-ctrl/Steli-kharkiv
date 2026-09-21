@@ -734,7 +734,32 @@ th:nth-child(2),th:nth-child(3),th:nth-child(4),td:nth-child(2),td:nth-child(3),
   .wrap{max-width:100%;padding-left:14px;padding-right:14px;}
 }
 </style>
+
+<style id="b48VisibleScaleControlCss">
+#freeDrawModal4405 .b48-line-scale-control{
+ position:absolute!important;right:14px!important;top:14px!important;z-index:160!important;
+ display:grid!important;grid-template-columns:34px 40px 34px!important;gap:4px!important;
+ align-items:center!important;padding:4px!important;border:1px solid #bfdbfe!important;
+ border-radius:12px!important;background:rgba(255,255,255,.97)!important;
+ box-shadow:0 6px 18px rgba(15,23,42,.12)!important;pointer-events:auto!important;
+}
+#freeDrawModal4405 .b48-line-scale-control button{
+ width:34px!important;height:34px!important;padding:0!important;border:1px solid #93c5fd!important;
+ border-radius:9px!important;background:#eff6ff!important;color:#075bff!important;
+ font-size:24px!important;line-height:30px!important;font-weight:950!important;
+}
+#freeDrawModal4405 .b48-line-scale-control b{
+ display:block!important;text-align:center!important;color:#0f172a!important;
+ font-size:15px!important;font-weight:950!important;white-space:nowrap!important;
+}
+</style>
+
+<style id="b48ScaleTouchFix">
+#freeDrawModal4405 #b48LineScaleControl{z-index:99999!important;touch-action:manipulation!important}
+#freeDrawModal4405 #b48LineScaleControl button{pointer-events:auto!important;touch-action:manipulation!important;position:relative!important;z-index:100000!important}
+</style>
 </head>
+<!-- B4.8: DRAW LINE SCALE X4 ONLY; PX_PER_METER4407=320; no other logic changed -->
 <body>
 <header class="header"><div class="wrap nav"><a class="logo" href="../index.html">Potolok<span>.in.ua</span></a><div class="menu"><a href="../index.html">Головна</a><a href="../gallery.html">Наші роботи</a><a href="#app">Pixel 5</a></div><a class="phone" href="tel:+380974546713">097 454 67 13</a><a class="tg-top" href="https://t.me/Potolok_in_ua">Фото в TG</a></div></header>
 
@@ -25883,7 +25908,42 @@ function dist4405(a,b){return Math.hypot((b?.[0]||0)-(a?.[0]||0),(b?.[1]||0)-(a?
 function sr12ScreenToWorldDelta(dx,dy){const svg=svg4405(),r=svg?.getBoundingClientRect(),vb=svg?.viewBox?.baseVal;if(!r?.width||!r?.height||!vb)return[0,0];return[dx*vb.width/r.width,dy*vb.height/r.height]}
 function sr12SetZoom(z,clientX,clientY){const svg=svg4405();if(!svg)return;const before=coord4405({clientX,clientY});drawZoom4408=Math.max(.30,Math.min(5,z));setViewBox4408();const after=coord4405({clientX,clientY});zoomCenter4408=[(zoomCenter4408?.[0]||400)+(before[0]-after[0]),(zoomCenter4408?.[1]||300)+(before[1]-after[1])];setViewBox4408();const range=document.getElementById('freeDrawZoomRange4408');if(range)range.value=String(Math.round(drawZoom4408*100))}
 function sr12NavStatus(){try{const last=drawPoints4405.length?pointName4405(drawPoints4405.length-1):'A';status4405('✋ Навігація: рухайте лист одним пальцем, двома — масштаб. Щоб продовжити стіну, торкніться точки '+last+' і тягніть.')}catch(_){}}
-const PX_PER_METER4407=80;
+let PX_PER_METER4407=320;
+const B48_LINE_SCALES=[80,160,320];
+
+function syncLineScaleB48(){
+  const el=document.getElementById('b48LineScaleLabel');
+  if(el)el.textContent='×'+Math.round(PX_PER_METER4407/80);
+}
+
+function changeLineScaleB48(dir,e){
+  if(e){
+    try{e.preventDefault()}catch(_){}
+    try{e.stopPropagation()}catch(_){}
+  }
+  const old=PX_PER_METER4407;
+  let i=B48_LINE_SCALES.indexOf(old);
+  if(i<0)i=2;
+  const ni=Math.max(0,Math.min(B48_LINE_SCALES.length-1,i+Number(dir||0)));
+  const next=B48_LINE_SCALES[ni];
+  if(next===old){syncLineScaleB48();return false}
+
+  /* Scale is selected BEFORE drawing too. Existing lines, if any, keep their metre values. */
+  const k=next/old;
+  if(Array.isArray(drawPoints4405)&&drawPoints4405.length){
+    const ax=Number(drawPoints4405[0][0])||0, ay=Number(drawPoints4405[0][1])||0;
+    for(let p=0;p<drawPoints4405.length;p++){
+      drawPoints4405[p][0]=ax+(Number(drawPoints4405[p][0])-ax)*k;
+      drawPoints4405[p][1]=ay+(Number(drawPoints4405[p][1])-ay)*k;
+    }
+  }
+
+  PX_PER_METER4407=next;
+  syncLineScaleB48();
+  try{status4405('📏 Масштаб ліній ×'+Math.round(next/80)+' — обрано до малювання');}catch(_){}
+  try{renderDraw4405()}catch(_){}
+  return false;
+}
 function meters4407(a,b){return dist4405(a,b)/PX_PER_METER4407}
 function meterText4407(a,b){return meters4407(a,b).toFixed(2)+' м'}
 function segmentMeters4408(i,a,b){const manual=Number(manualSegments4408[i]);return manual>0?manual:meters4407(a,b)}
@@ -26044,7 +26104,7 @@ window.togglePlanEditSR23=function(){
 };
 function updateState4405(){const el=document.getElementById('freeDrawState4405'),btn=document.getElementById('freeDrawUnlock4405');if(el){el.classList.toggle('show',freeDrawRoom4405);el.textContent=freeDrawRoom4405?(contourUnlocked4405?'✋ Контур намальований пальцем. Точки зараз можна рухати.':'🔒 Контур намальований пальцем і зафіксований. Розміри можна вводити без зміни намальованої форми.') :''}if(btn){btn.textContent=contourUnlocked4405?'🔒 Зафіксувати точки':'✋ Рухати точки';btn.style.display=freeDrawRoom4405?'block':'none'}}
 function closeModal4405(){document.getElementById('freeDrawModal4405')?.classList.remove('open');drawPointer4405=null;drawPreview4405=null}
-window.openFingerDrawing4405=function(){drawPoints4405=[];manualSegments4408=[];sr15CornerRadii=[];srD1Diagonals=[];srD1RadiusFans=[];srD1ResetPick();sr15SelectedPoint=-1;sr15SelectedWall=-1;sr15PlanLocked=false;drawZoom4408=1;zoomCenter4408=[400,300];drawingSource4408='new';drawClosed4405=false;drawPointer4405=null;drawPreview4405=null;sr12DrawArmed=true;sr12NavPointer=null;sr12Pointers.clear();document.getElementById('freeDrawModal4405')?.classList.add('open');setTimeout(()=>{setViewBox4408();renderDraw4405()},0)};
+window.openFingerDrawing4405=function(){drawPoints4405=[];manualSegments4408=[];sr15CornerRadii=[];srD1Diagonals=[];srD1RadiusFans=[];srD1ResetPick();sr15SelectedPoint=-1;sr15SelectedWall=-1;sr15PlanLocked=false;drawZoom4408=1;zoomCenter4408=[400,300];drawingSource4408='new';drawClosed4405=false;drawPointer4405=null;drawPreview4405=null;sr12DrawArmed=true;sr12NavPointer=null;sr12Pointers.clear();document.getElementById('freeDrawModal4405')?.classList.add('open');syncLineScaleB48();setTimeout(()=>{setViewBox4408();renderDraw4405()},0)};
 window.closeFingerDrawing4405=closeModal4405;
 window.undoFingerWall4405=function(){if(drawClosed4405){drawClosed4405=false}else if(drawPoints4405.length>1){drawPoints4405.pop();manualSegments4408=manualSegments4408.slice(0,Math.max(0,drawPoints4405.length-1))}else{drawPoints4405=[];manualSegments4408=[]}renderDraw4405()};
 window.clearFingerDrawing4405=function(){drawPoints4405=[];manualSegments4408=[];sr15CornerRadii=[];srD1Diagonals=[];srD1RadiusFans=[];srD1ResetPick();sr15SelectedPoint=-1;sr15SelectedWall=-1;sr15PlanLocked=false;drawClosed4405=false;drawPointer4405=null;drawPreview4405=null;renderDraw4405()};
@@ -26145,7 +26205,26 @@ window.applyFingerDrawing4405=function(){
 function installUi4405(){
   if(document.getElementById('freeDrawLaunch4405'))return;
   const pointBlock=document.querySelector('#tab_planner .planner-points-block')?.previousElementSibling || document.querySelector('#tab_planner aside .block');if(pointBlock){const box=document.createElement('div');box.id='freeDrawLaunch4405';box.className='free-draw-launch4405';box.innerHTML='<button type="button" class="primary4405" onclick="openFingerDrawing4405()">✍ Новий контур пальцем</button><button type="button" onclick="openProductionFromPlanner4408()">📦 Замовлення з поточного плану</button><button id="freeDrawUnlock4405" type="button" onclick="toggleFreeDrawPoints4405()" style="display:none">✋ Рухати точки</button><div id="freeDrawState4405" class="free-draw-state4405" style="grid-column:1/-1"></div>';pointBlock.appendChild(box)}
-  if(!document.getElementById('freeDrawModal4405')){const modal=document.createElement('div');modal.id='freeDrawModal4405';modal.className='free-draw-modal4405';modal.innerHTML='<div class="free-draw-sheet4405"><div class="free-draw-head4405"><div><h3>✍ Рисовалка стін</h3><p>Проведіть стіну пальцем і відпустіть. Наступна стіна автоматично починається з попередньої точки. Так обведіть кімнату по колу.</p></div><button type="button" class="free-draw-close4405" onclick="closeFingerDrawing4405()">×</button></div><div class="free-draw-stage4405"><svg id="freeDrawSvg4405" viewBox="0 0 800 600"></svg><div class="free-draw-help4405">1. Проведіть стіну → відпустіть.<br>2. Намалюйте наступні стіни.<br>3. Замкніть контур.<br>4. Після цього введіть реальні розміри та діагоналі.</div><div id="freeDrawLive4407" class="free-draw-live4407"><div class="live-wall4407">Перша стіна A → B</div><div class="live-value4407">0.00 м</div><div class="live-hint4407">Проведіть стіну пальцем</div></div><div class="free-draw-scale4407">точність розміру · 0.01 м</div><div id="freeDrawPrecision4405" class="free-draw-precision4405">🔎 Точний режим ×5 автоматично нижче 0.20 м</div><label class="free-draw-zoom4408"><span>🔎 Масштаб <b id="freeDrawZoomValue4408">100%</b></span><input id="freeDrawZoomRange4408" type="range" min="70" max="500" step="5" value="100" oninput="setFingerZoom4408(this.value)"></label><div id="freeDrawShortWalls4405" class="free-draw-shortwalls4405"></div></div><div class="free-draw-footer4405"><div id="freeDrawStatus4405" class="free-draw-status4405"></div><div class="free-draw-actions4405"><button id="freeDrawSnap4405" type="button" onclick="toggleFingerSnap4405()">📐 Режим 90°: так</button><button type="button" onclick="straightenFingerWalls4408()">📐 Вирівняти 90°</button><button type="button" onclick="undoFingerWall4405()">↩ Остання</button><button type="button" class="danger4405" onclick="clearFingerDrawing4405()">🧹 Очистити все</button><button type="button" class="closecontour4405" onclick="closeFingerContour4405()">🔗 Замкнути контур</button><button type="button" class="apply4405" onclick="applyFingerDrawing4405()">✅ Прийняти контур</button></div></div></div>';document.body.appendChild(modal)}
+  if(!document.getElementById('freeDrawModal4405')){const modal=document.createElement('div');modal.id='freeDrawModal4405';modal.className='free-draw-modal4405';modal.innerHTML='<div class="free-draw-sheet4405"><div class="free-draw-head4405"><div><h3>✍ Рисовалка стін</h3><p>Проведіть стіну пальцем і відпустіть. Наступна стіна автоматично починається з попередньої точки. Так обведіть кімнату по колу.</p></div><button type="button" class="free-draw-close4405" onclick="closeFingerDrawing4405()">×</button></div><div class="free-draw-stage4405"><svg id="freeDrawSvg4405" viewBox="0 0 800 600"></svg><div class="free-draw-help4405">1. Проведіть стіну → відпустіть.<br>2. Намалюйте наступні стіни.<br>3. Замкніть контур.<br>4. Після цього введіть реальні розміри та діагоналі.</div><div id="freeDrawLive4407" class="free-draw-live4407"><div class="live-wall4407">Перша стіна A → B</div><div class="live-value4407">0.00 м</div><div class="live-hint4407">Проведіть стіну пальцем</div></div><div class="free-draw-scale4407">точність розміру · 0.01 м</div><div id="freeDrawPrecision4405" class="free-draw-precision4405">🔎 Точний режим ×5 автоматично нижче 0.20 м</div><label class="free-draw-zoom4408"><span>🔎 Масштаб <b id="freeDrawZoomValue4408">100%</b></span><input id="freeDrawZoomRange4408" type="range" min="70" max="500" step="5" value="100" oninput="setFingerZoom4408(this.value)"></label><div id="freeDrawShortWalls4405" class="free-draw-shortwalls4405"></div><div id="b48LineScaleControl" class="b48-line-scale-control"><button id="b48ScaleMinus" type="button" aria-label="Зменшити масштаб">−</button><b id="b48LineScaleLabel">×4</b><button id="b48ScalePlus" type="button" aria-label="Збільшити масштаб">+</button></div></div><div class="free-draw-footer4405"><div id="freeDrawStatus4405" class="free-draw-status4405"></div><div class="free-draw-actions4405"><button id="freeDrawSnap4405" type="button" onclick="toggleFingerSnap4405()">📐 Режим 90°: так</button><button type="button" onclick="straightenFingerWalls4408()">📐 Вирівняти 90°</button><button type="button" onclick="undoFingerWall4405()">↩ Остання</button><button type="button" class="danger4405" onclick="clearFingerDrawing4405()">🧹 Очистити все</button><button type="button" class="closecontour4405" onclick="closeFingerContour4405()">🔗 Замкнути контур</button><button type="button" class="apply4405" onclick="applyFingerDrawing4405()">✅ Прийняти контур</button></div></div></div>';document.body.appendChild(modal)}
+  /* B4.8 line-scale buttons: bind directly after the real modal exists.
+     No inline handler, no document delegation, no dependency on SVG gestures. */
+  {
+    const minus=document.getElementById('b48ScaleMinus');
+    const plus=document.getElementById('b48ScalePlus');
+    const bind=(btn,dir)=>{
+      if(!btn||btn.dataset.b48Bound==='1')return;
+      btn.dataset.b48Bound='1';
+      btn.addEventListener('pointerdown',e=>{
+        e.preventDefault();
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+        changeLineScaleB48(dir,e);
+      },{passive:false});
+    };
+    bind(minus,-1);
+    bind(plus,1);
+    syncLineScaleB48();
+  }
   sr15InstallToolbar();
   let preciseDrawActive4405=false,preciseDrawExceeded20=false,preciseRawAnchor4405=null,precisePreviewAnchor4405=null,editDrawPoint4405=-1,editDrawPointer4405=null;
 let sr23EditMode=false;
@@ -32757,7 +32836,7 @@ document.addEventListener('click',function(e){const label=e.target?.closest?.('#
 const baseOpen=window.openProductionFromPlanner4408;
 if(typeof baseOpen==='function')window.openProductionFromPlanner4408=function(){const out=baseOpen.apply(this,arguments);setTimeout(()=>{try{const st=document.getElementById('freeDrawStatus4405');if(st)st.textContent='✋ Редактор контуру: рухайте точки пальцем. Натисніть розмір стіни, щоб ввести точне значення до 0.01 м.'}catch(_){ }},20);return out};
 })();
-</script>\n
+</script>
 <style id="safeRestart08ShortWallStyles">
 .free-draw-shortwalls4405{display:none;margin:10px 14px 2px;padding:10px;border:1px solid #bfdbfe;border-radius:14px;background:#f8fbff;position:relative;z-index:8}.free-draw-shortwalls4405.show4405{display:block}.short-head4405{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:11px;color:#0f172a}.short-head4405 button{border:1px solid #bfdbfe;background:#fff;color:#075bff;border-radius:9px;padding:7px 9px;font-weight:900}.short-list4405{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin-top:8px}.short-list4405 button{display:grid;grid-template-columns:1fr auto auto;align-items:center;gap:6px;border:1px solid #dbeafe;background:#fff;border-radius:10px;padding:9px;text-align:left;color:#0f172a}.short-list4405 b{font-size:10px}.short-list4405 span{font-size:11px;font-weight:950;color:#075bff}.short-list4405 small{font-size:8px;font-weight:950;color:#64748b}.planner90-h1208{width:100%;margin-top:8px;min-height:42px;border:1px solid #bfdbfe;border-radius:11px;background:#eff6ff;color:#075bff;font-weight:950}
 </style>
@@ -33061,6 +33140,224 @@ window.polygonMetrics=function(){
 };
 
 window.__d13OrthoMetricB4=orthoMetricB4;
+})();
+</script>
+
+
+
+<!-- B4.7 LOCKED EXACT GEOMETRY | base: B4.6 MAIN EXACT SAFE -->
+<script id="b47LockedExactGeometry">
+(function(){
+'use strict';
+if(window.__b47LockedExactGeometry)return; window.__b47LockedExactGeometry=true;
+const VERSION='B4.7';
+const BUILD='BUILD B4.7 · EXACT WALLS LOCKED · BASE B4.6';
+const n=v=>{const x=Number(String(v??'').replace(',','.'));return Number.isFinite(x)?x:0};
+function exactWallLengths(){
+  if(!Array.isArray(drawPoints4405)||drawPoints4405.length<2)return [];
+  const count=drawClosed4405?drawPoints4405.length:Math.max(0,drawPoints4405.length-1);
+  const out=[];
+  for(let i=0;i<count;i++){
+    const j=(i+1)%drawPoints4405.length;
+    let v=n(Array.isArray(manualSegments4408)?manualSegments4408[i]:0);
+    if(!(v>0))v=n(segmentMeters4408(i,drawPoints4405[i],drawPoints4405[j]));
+    out.push(Math.max(.01,Math.round(v*100)/100));
+  }
+  return out;
+}
+function dirsFromCurrent(){
+  const pts=drawPoints4405,npts=pts.length;if(npts<2)return [];
+  const count=drawClosed4405?npts:npts-1,out=[];
+  for(let i=0;i<count;i++){
+    const a=pts[i],b=pts[(i+1)%npts],dx=n(b?.[0])-n(a?.[0]),dy=n(b?.[1])-n(a?.[1]);
+    out.push(Math.abs(dx)>=Math.abs(dy)?[dx>=0?1:-1,0]:[0,dy>=0?1:-1]);
+  }
+  return out;
+}
+function rebuildFingerExact(anchorIndex){
+  try{
+    if(!Array.isArray(drawPoints4405)||drawPoints4405.length<2)return false;
+    const L=exactWallLengths(),D=dirsFromCurrent(),N=drawPoints4405.length;
+    if(L.length!==(drawClosed4405?N:N-1)||D.length!==L.length)return false;
+    // Keep the edited point as visual anchor, but rebuild every wall from the typed metre values.
+    const anchor=Math.max(0,Math.min(N-1,Number(anchorIndex)||0));
+    const real=[[0,0]];
+    for(let i=0;i<N-1;i++){const p=real[i],d=D[i],len=L[i];real.push([p[0]+d[0]*len,p[1]+d[1]*len])}
+    const pxPerM=80;
+    const old=drawPoints4405[anchor].slice(),shift=[old[0]-real[anchor][0]*pxPerM,old[1]-real[anchor][1]*pxPerM];
+    drawPoints4405=real.map(p=>[shift[0]+p[0]*pxPerM,shift[1]+p[1]*pxPerM]);
+    manualSegments4408=L.slice();
+    if(typeof renderDraw4405==='function')renderDraw4405();
+    try{window.refreshCurrentFingerSnapshotSR09?.()}catch(_){}
+    return true;
+  }catch(e){console.warn('B4.7 rebuild finger exact',e);return false}
+}
+// After an editor point drag finishes, metres stay authoritative; only topology/direction may change.
+document.addEventListener('pointerup',function(e){
+  try{
+    const svg=e.target?.closest?.('#freeDrawSvg4405')||document.getElementById('freeDrawSvg4405');
+    if(!svg||window.sr31EditorTool!=='move'||!Array.isArray(manualSegments4408)||!manualSegments4408.some(v=>n(v)>0))return;
+    const direct=e.target?.dataset?.sr30Point;
+    const anchor=direct!==undefined?Number(direct):(typeof sr15SelectedPoint!=='undefined'?sr15SelectedPoint:0);
+    setTimeout(()=>rebuildFingerExact(anchor),0);
+  }catch(err){console.warn('B4.7 drag lock',err)}
+},true);
+// Closing the contour must immediately create/show the final wall (e.g. N–A) in the dimensions list.
+function wrapClose(name){
+  const fn=window[name]; if(typeof fn!=='function'||fn.__b47)return;
+  const w=function(){const r=fn.apply(this,arguments);setTimeout(()=>{try{if(drawClosed4405){
+    const N=drawPoints4405.length;if(Array.isArray(manualSegments4408)&&manualSegments4408.length<N){
+      for(let i=manualSegments4408.length;i<N;i++)manualSegments4408[i]=Math.max(.01,Math.round(meters4407(drawPoints4405[i],drawPoints4405[(i+1)%N])*100)/100);
+    }
+    if(typeof renderDraw4405==='function')renderDraw4405();
+  }}catch(e){console.warn('B4.7 close wall',e)}},0);return r};w.__b47=true;window[name]=w;
+}
+wrapClose('closeFingerContour4405');wrapClose('sr15CloseAuto');
+// Before acceptance, rebuild the drawn contour from the exact dimensions once more.
+const apply47=window.applyFingerDrawing4405;
+if(typeof apply47==='function')window.applyFingerDrawing4405=function(){
+  try{if(drawClosed4405&&Array.isArray(manualSegments4408)&&manualSegments4408.some(v=>n(v)>0))rebuildFingerExact(0)}catch(_){}
+  return apply47.apply(this,arguments);
+};
+function clean(){
+  try{const w=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT),del=[];while(w.nextNode()){const t=(w.currentNode.nodeValue||'').trim();if(t==='\\n'||/^(?:N\s*\/\s*N|Н\s*\/\s*Н)$/i.test(t))del.push(w.currentNode)}del.forEach(x=>x.remove())}catch(_){}
+}
+function mark(){
+  try{
+    document.documentElement.dataset.pixelVersion=VERSION;document.documentElement.dataset.pixelBuild='b4-7-locked-exact-geometry';document.title='Potolok AI PRO — Pixel '+VERSION;
+    let b=document.getElementById('pixel4486BuildBadge');
+    if(!b){b=document.createElement('div');b.id='pixel4486BuildBadge';const h=document.querySelector('.header,header,.site-header,.topbar');(h||document.body).insertAdjacentElement(h?'afterend':'afterbegin',b)}
+    b.textContent=BUILD;b.style.cssText='position:static;display:block;margin:7px 16px 10px;padding:2px 0;background:transparent;color:#0f172a;font:900 12px/1.2 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;letter-spacing:.15px;box-shadow:none;opacity:1;pointer-events:none';
+  }catch(_){} clean();
+}
+function boot(){mark();wrapClose('closeFingerContour4405');wrapClose('sr15CloseAuto')}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
+window.addEventListener('pageshow',()=>setTimeout(boot,30));[300,900,2000,5000,10000,18000,24000].forEach(ms=>setTimeout(mark,ms));
+})();
+</script>
+<!-- /B4.7 -->
+\n<!-- B4.8 METRICS/SAVE LOCK + PLAN HUD | base: B4.7 -->
+<style id="b48MetricHudStyle">
+.b48-metric-hud{font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;font-size:14px;font-weight:900;fill:#075bff;pointer-events:none}
+</style>
+<script id="b48MetricsSaveFix">
+(function(){
+'use strict';
+if(window.__b48MetricsSaveFix)return;window.__b48MetricsSaveFix=true;
+const VERSION='B4.8', BUILD='BUILD B4.8 · METRICS LOCK · SAVE FIX · PLAN HUD';
+const num=v=>{const x=Number(String(v??'').replace(',','.'));return Number.isFinite(x)?x:0};
+function realMetricFromAccepted(){
+ try{
+  if(roomTemplate!=='custom'||!Array.isArray(roomPoints)||roomPoints.length<3||!Array.isArray(segmentLengths))return null;
+  const n=roomPoints.length;if(segmentLengths.length<n)return null;
+  const L=segmentLengths.slice(0,n).map(num);if(L.some(x=>!(x>0)))return null;
+  const dirs=[];for(let i=0;i<n;i++){const a=roomPoints[i],b=roomPoints[(i+1)%n],dx=num(b?.[0])-num(a?.[0]),dy=num(b?.[1])-num(a?.[1]);dirs.push(Math.abs(dx)>=Math.abs(dy)?[dx>=0?1:-1,0]:[0,dy>=0?1:-1]);}
+  const pts=[[0,0]];for(let i=0;i<n-1;i++){const p=pts[i],d=dirs[i];pts.push([p[0]+d[0]*L[i],p[1]+d[1]*L[i]])}
+  return pts;
+ }catch(_){return null}
+}
+function lockAcceptedMetric(){
+ try{const rp=realMetricFromAccepted();if(!rp)return false;roomPoints._real=rp;const m=polygonMetrics();const r=(projectRooms||[]).find(x=>String(x.id)===String(activeRoomId));if(r){r.area=+num(m.area).toFixed(2);r.perimeter=+segmentLengths.reduce((a,b)=>a+num(b),0).toFixed(2);r.planner=r.planner||{};r.planner.lockedRealB48=rp.map(p=>p.slice());r.planner.segments=segmentLengths.slice();}return true}catch(_){return false}
+}
+function restoreLock(){try{const r=(projectRooms||[]).find(x=>String(x.id)===String(activeRoomId));const rp=r?.planner?.lockedRealB48;if(Array.isArray(rp)&&rp.length===roomPoints.length)roomPoints._real=rp.map(p=>p.slice())}catch(_){}}
+function hud(svg,area,per){
+ try{if(!svg)return;svg.querySelector('#b48MetricHud')?.remove();const g=document.createElementNS('http://www.w3.org/2000/svg','g');g.id='b48MetricHud';g.setAttribute('class','b48-metric-hud');const vb=svg.viewBox?.baseVal;const x=(vb?.x||0)+18,y=(vb?.y||0)+28;g.innerHTML='<text x="'+x+'" y="'+y+'">'+num(area).toFixed(2)+' м²</text><text x="'+x+'" y="'+(y+20)+'">'+num(per).toFixed(2)+' м</text>';svg.appendChild(g)}catch(_){}}
+function preliminaryMetric(){
+ try{const pts=drawPoints4405;if(!Array.isArray(pts)||pts.length<2)return{area:0,perimeter:0};let per=0;const cnt=drawClosed4405?pts.length:pts.length-1;for(let i=0;i<cnt;i++)per+=num(typeof segmentMeters4408==='function'?segmentMeters4408(i,pts[i],pts[(i+1)%pts.length]):0);let area=0;if(drawClosed4405&&pts.length>=3){for(let i=0;i<pts.length;i++){const a=pts[i],b=pts[(i+1)%pts.length];area+=a[0]*b[1]-b[0]*a[1]}const ppm=num(window.PX_PER_METER4407||80)||80;area=Math.abs(area/2)/(ppm*ppm)}return{area,perimeter:per}}catch(_){return{area:0,perimeter:0}}
+}
+const oldRD=window.renderDraw4405;if(typeof oldRD==='function')window.renderDraw4405=function(){const r=oldRD.apply(this,arguments);try{const m=preliminaryMetric();hud(document.getElementById('freeDrawSvg4405'),m.area,m.perimeter)}catch(_){}return r};
+const oldRP=window.renderPlanner;if(typeof oldRP==='function')window.renderPlanner=function(){restoreLock();const r=oldRP.apply(this,arguments);try{const m=polygonMetrics();hud(document.getElementById('plannerSvg'),m.area,m.perimeter)}catch(_){}return r};
+const oldApply=window.applyFingerDrawing4405;if(typeof oldApply==='function')window.applyFingerDrawing4405=function(){const r=oldApply.apply(this,arguments);setTimeout(()=>{try{lockAcceptedMetric();renderPlanner();const m=polygonMetrics();area.value=num(m.area).toFixed(2);perimeter.value=num(m.perimeter).toFixed(2);syncActiveRoomFromUI(false);autosave()}catch(e){console.warn('B4.8 accept lock',e)}},0);return r};
+const oldSave=window.savePlannerRoom;if(typeof oldSave==='function')window.savePlannerRoom=function(){try{restoreLock();lockAcceptedMetric();const m=polygonMetrics();area.value=num(m.area).toFixed(2);perimeter.value=num(m.perimeter).toFixed(2);recalc();syncActiveRoomFromUI(true);autosave();saveStatus.textContent='План кімнати збережено';alert('План, точні розміри та елементи збережено в поточній кімнаті.');return}catch(e){console.warn('B4.8 save',e)}return oldSave.apply(this,arguments)};
+function mark(){try{document.documentElement.dataset.pixelVersion=VERSION;document.documentElement.dataset.pixelBuild='b4-8-metrics-save-fix';document.title='Potolok AI PRO — Pixel '+VERSION;let b=document.getElementById('pixel4486BuildBadge');if(b)b.textContent=BUILD}catch(_){}}
+function boot(){mark();restoreLock();try{renderPlanner()}catch(_){}}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(boot,0),{once:true});else setTimeout(boot,0);window.addEventListener('pageshow',()=>setTimeout(boot,30));[300,1000,3000,8000,18000,26000].forEach(ms=>setTimeout(mark,ms));
+})();
+</script>
+<!-- /B4.8 -->\n
+<!-- B4.8 X4 COUNTER FIX: area + perimeter from accepted wall dimensions -->
+<style>
+#b48PlanCounter{
+  position:absolute;left:14px;top:14px;z-index:40;
+  padding:7px 10px;border-radius:12px;
+  background:rgba(239,247,255,.94);
+  border:1px solid rgba(25,118,210,.18);
+  color:#1265d8;font-weight:800;font-size:13px;line-height:1.28;
+  pointer-events:none;box-shadow:0 2px 8px rgba(20,80,160,.08);
+}
+</style>
+<script>
+(function(){
+  function parseNum(s){ return Number(String(s||'').replace(',','.').replace(/[^\d.]/g,'')) || 0; }
+
+  function areaFromUI(){
+    var els=[].slice.call(document.querySelectorAll('body *'));
+    for(var i=0;i<els.length;i++){
+      if((els[i].textContent||'').trim()==='Площа'){
+        var p=els[i].parentElement;
+        var m=p && (p.innerText||'').match(/([0-9]+(?:[.,][0-9]+)?)\s*м²/);
+        if(m) return m[1].replace('.',',');
+      }
+    }
+    return '';
+  }
+
+  function perimeterFromWallInputs(){
+    var total=0, count=0;
+    var inputs=[].slice.call(document.querySelectorAll('input'));
+    for(var i=0;i<inputs.length;i++){
+      var inp=inputs[i], box=inp.closest('div');
+      var txt='';
+      var p=box;
+      for(var k=0;k<4 && p;k++,p=p.parentElement) txt += ' '+(p.innerText||'');
+      if(/[A-ZА-ЯІЇЄ]\s*[–-]\s*[A-ZА-ЯІЇЄ]/.test(txt) && /\bм\b/.test(txt)){
+        var v=parseNum(inp.value);
+        if(v>0){ total+=v; count++; }
+      }
+    }
+    if(count>=2) return total;
+    return 0;
+  }
+
+  function perimeterFromSVG(){
+    var svg=document.querySelector('#freeDrawModal4405 svg');
+    if(!svg) return 0;
+    var vals=[], texts=svg.querySelectorAll('text');
+    for(var i=0;i<texts.length;i++){
+      var t=(texts[i].textContent||'').trim();
+      var m=t.match(/[A-ZА-ЯІЇЄ]+\s*[–-]\s*[A-ZА-ЯІЇЄ]+\s*([0-9]+(?:[.,][0-9]+)?)\s*м/i);
+      if(m) vals.push(parseNum(m[1]));
+    }
+    return vals.reduce(function(a,b){return a+b},0);
+  }
+
+  function canvasHost(){
+    var svg=document.querySelector('#freeDrawModal4405 svg');
+    if(!svg)return null;
+    var h=svg.parentElement;
+    while(h && h!==document.body){
+      var r=h.getBoundingClientRect();
+      if(r.width>250 && r.height>250)return h;
+      h=h.parentElement;
+    }
+    return svg.parentElement;
+  }
+
+  function update(){
+    var h=canvasHost(); if(!h)return;
+    if(getComputedStyle(h).position==='static')h.style.position='relative';
+    var c=document.getElementById('b48PlanCounter');
+    if(!c){ c=document.createElement('div'); c.id='b48PlanCounter'; h.appendChild(c); }
+    var a=areaFromUI();
+    var p=perimeterFromWallInputs();
+    if(!p) p=perimeterFromSVG();
+    c.innerHTML=(a||'—')+' м²<br>'+(p ? p.toFixed(2).replace('.',',') : '—')+' м';
+  }
+
+  document.addEventListener('click',function(){setTimeout(update,50);setTimeout(update,250)},true);
+  document.addEventListener('input',function(){setTimeout(update,50)},true);
+  setInterval(update,700);
+  setTimeout(update,300);
 })();
 </script>
 
@@ -37405,3 +37702,383 @@ try{document.documentElement.dataset.safeRestart='17B'}catch(_){}
 <script id="safeRestart21Marker">try{document.documentElement.dataset.safeRestart='21'}catch(_){}</script>
 
 <!-- B4.4 CLOSE CONTOUR ONLY: no extra point; trims only accidental 0.01m tail; exact orthogonal metric reports closed state. -->
+
+
+<!-- B4.5: shared orthogonal geometry for preliminary + main planner; based only on working B4.4 -->
+<script id="b45SharedGeometry">
+(function(){
+'use strict';
+if(window.__b45SharedGeometry)return;
+window.__b45SharedGeometry=true;
+
+const B45_VERSION='B4.5';
+
+function n45(v){
+  const n=Number(String(v??'').replace(',','.'));
+  return Number.isFinite(n)?n:0;
+}
+function label45(i){
+  let x=i+1,out='';
+  while(x>0){x--;out=String.fromCharCode(65+(x%26))+out;x=Math.floor(x/26)}
+  return out;
+}
+function directions45(points){
+  if(!Array.isArray(points)||points.length<3)return null;
+  const dirs=[];
+  for(let i=0;i<points.length;i++){
+    const a=points[i],b=points[(i+1)%points.length];
+    const dx=n45(b?.[0])-n45(a?.[0]),dy=n45(b?.[1])-n45(a?.[1]);
+    const ax=Math.abs(dx),ay=Math.abs(dy),major=Math.max(ax,ay),minor=Math.min(ax,ay);
+    if(major<1)return null;
+    /* Same orthogonal acceptance rule as the proven B4 exact metric. */
+    if(minor>Math.max(3,major*.12))return null;
+    dirs.push(ax>=ay?[dx>=0?1:-1,0]:[0,dy>=0?1:-1]);
+  }
+  return dirs;
+}
+function metric45(lengths,dirs){
+  const pts=[[0,0]];
+  for(let i=0;i<lengths.length-1;i++){
+    const p=pts[pts.length-1],d=dirs[i],L=lengths[i];
+    pts.push([p[0]+d[0]*L,p[1]+d[1]*L]);
+  }
+  const p=pts[pts.length-1],d=dirs[dirs.length-1],L=lengths[lengths.length-1];
+  const end=[p[0]+d[0]*L,p[1]+d[1]*L];
+  return {pts,end,closeError:Math.hypot(end[0],end[1])};
+}
+function fit45(metricPts){
+  const xs=metricPts.map(p=>p[0]),ys=metricPts.map(p=>p[1]);
+  const minX=Math.min(...xs),maxX=Math.max(...xs),minY=Math.min(...ys),maxY=Math.max(...ys);
+  const bw=Math.max(maxX-minX,.01),bh=Math.max(maxY-minY,.01);
+  const scale=Math.min(560/bw,400/bh);
+  const ox=120+(560-bw*scale)/2,oy=90+(400-bh*scale)/2;
+  const out=metricPts.map(([x,y])=>[ox+(x-minX)*scale,oy+(y-minY)*scale]);
+  out._real=metricPts.map(p=>p.slice());
+  return out;
+}
+
+const oldRebuild45=window.rebuildCustomByLengths;
+window.rebuildCustomByLengths=function(){
+  try{
+    if(typeof roomTemplate!=='undefined' && roomTemplate==='custom' &&
+       Array.isArray(roomPoints) && roomPoints.length>=3 &&
+       Array.isArray(segmentLengths) && segmentLengths.length===roomPoints.length){
+      const lengths=segmentLengths.map(n45);
+      const dirs=directions45(roomPoints);
+      if(dirs && lengths.every(v=>v>0)){
+        const m=metric45(lengths,dirs);
+        roomPoints=fit45(m.pts);
+        customPointTotal=roomPoints.length;
+
+        const st=document.getElementById('closureStatus');
+        if(st){
+          const per=lengths.reduce((a,b)=>a+b,0);
+          const tol=Math.max(.08,per*.006);
+          const ok=m.closeError<=tol;
+          st.className='planner-hint '+(ok?'closure-ok':'closure-bad');
+          st.textContent=ok
+            ?'✅ Контур замкнений. Розрахунок точний.'
+            :'⚠️ Контур не замкнений. Розбіжність: '+m.closeError.toFixed(2)+' м. Перевірте довжини сторін.';
+        }
+        return;
+      }
+    }
+  }catch(e){console.warn('B4.5 shared geometry',e)}
+  if(typeof oldRebuild45==='function')return oldRebuild45.apply(this,arguments);
+};
+
+/* One source of orthogonal geometry:
+   - preliminary drawing is transferred as its real point topology + wall lengths;
+   - direct drawing/editing in the main planner uses the same axis directions + lengths.
+   The old free-form solver remains only for genuinely non-orthogonal contours. */
+const oldApply45=window.applyFingerDrawing4405;
+if(typeof oldApply45==='function'){
+  window.applyFingerDrawing4405=function(){
+    const r=oldApply45.apply(this,arguments);
+    try{
+      if(typeof roomTemplate!=='undefined'&&roomTemplate==='custom'){
+        window.rebuildCustomByLengths();
+        if(typeof renderPlanner==='function')renderPlanner();
+        if(typeof recalc==='function')recalc();
+        if(typeof syncActiveRoomFromUI==='function')syncActiveRoomFromUI(false);
+        if(typeof autosave==='function')autosave();
+      }
+    }catch(e){console.warn('B4.5 preliminary transfer',e)}
+    return r;
+  };
+}
+
+function removeNN45(){
+  try{
+    document.querySelectorAll('body *').forEach(el=>{
+      if(el.children.length===0 && /^(?:N\s*\/\s*N|Н\s*\/\s*Н)$/i.test((el.textContent||'').trim())){
+        el.remove();
+      }
+    });
+  }catch(_){}
+}
+function mark45(){
+  try{
+    document.documentElement.dataset.pixelVersion=B45_VERSION;
+    document.documentElement.dataset.pixelBuild='b4-5-shared-geometry';
+    document.title='Potolok AI PRO — Pixel '+B45_VERSION;
+    const badge=document.getElementById('pixel4486BuildBadge');
+    if(badge)badge.textContent='BUILD '+B45_VERSION+' · SHARED GEOMETRY · FROM B4.4';
+  }catch(_){}
+  removeNN45();
+}
+if(document.readyState==='loading'){
+  document.addEventListener('DOMContentLoaded',()=>{mark45();setTimeout(mark45,700);setTimeout(mark45,1800)},{once:true});
+}else{
+  mark45();setTimeout(mark45,700);setTimeout(mark45,1800);
+}
+})();
+</script>
+<!-- /B4.5 -->
+
+
+
+<!-- B4.6 MAIN EXACT SAFE | base: B4.5 | preliminary plan untouched -->
+<script id="b46MainExactSafe">
+(function(){
+'use strict';
+if(window.__b46MainExactSafe)return;
+window.__b46MainExactSafe=true;
+
+const VERSION='B4.6';
+const BUILD='BUILD B4.6 · MAIN EXACT · BASE B4.5';
+
+const num=v=>{
+  const n=Number(String(v??'').replace(',','.'));
+  return Number.isFinite(n)?n:0;
+};
+const clone=v=>{try{return structuredClone(v)}catch(_){try{return JSON.parse(JSON.stringify(v))}catch(__){return v}}};
+
+function orthoDirs(points){
+  if(!Array.isArray(points)||points.length<3)return null;
+  const out=[];
+  for(let i=0;i<points.length;i++){
+    const a=points[i],b=points[(i+1)%points.length];
+    const dx=num(b?.[0])-num(a?.[0]),dy=num(b?.[1])-num(a?.[1]);
+    const ax=Math.abs(dx),ay=Math.abs(dy),major=Math.max(ax,ay),minor=Math.min(ax,ay);
+    if(major<1 || minor>Math.max(3,major*.12))return null;
+    out.push(ax>=ay?[dx>=0?1:-1,0]:[0,dy>=0?1:-1]);
+  }
+  return out;
+}
+function metricPoints(lengths,dirs){
+  const pts=[[0,0]];
+  for(let i=0;i<lengths.length-1;i++){
+    const p=pts[pts.length-1],d=dirs[i],L=lengths[i];
+    pts.push([p[0]+d[0]*L,p[1]+d[1]*L]);
+  }
+  return pts;
+}
+function fit(points){
+  const xs=points.map(p=>p[0]),ys=points.map(p=>p[1]);
+  const minX=Math.min(...xs),maxX=Math.max(...xs),minY=Math.min(...ys),maxY=Math.max(...ys);
+  const bw=Math.max(maxX-minX,.01),bh=Math.max(maxY-minY,.01);
+  const scale=Math.min(560/bw,400/bh);
+  const ox=120+(560-bw*scale)/2,oy=90+(400-bh*scale)/2;
+  const out=points.map(([x,y])=>[ox+(x-minX)*scale,oy+(y-minY)*scale]);
+  out._real=points.map(p=>p.slice());
+  return out;
+}
+function exactLengthsFromDrawing(points){
+  const n=points.length, out=[];
+  for(let i=0;i<n;i++){
+    let v=0;
+    try{v=num(manualSegments4408?.[i])}catch(_){}
+    if(!(v>0)){
+      try{v=num(segmentMeters4408(i,points[i],points[(i+1)%n]))}catch(_){}
+    }
+    out.push(Math.max(.01,Math.round(v*100)/100));
+  }
+  return out;
+}
+function areaOfMetric(points){
+  let s=0;
+  for(let i=0;i<points.length;i++){
+    const a=points[i],b=points[(i+1)%points.length];
+    s+=a[0]*b[1]-b[0]*a[1];
+  }
+  return Math.abs(s/2);
+}
+
+/* Main-plan acceptance:
+   finger drawing supplies topology/directions only;
+   typed wall dimensions are authoritative lengths. */
+const previousApply=window.applyFingerDrawing4405;
+if(typeof previousApply==='function'){
+  window.applyFingerDrawing4405=function(){
+    let snap=null;
+    try{
+      if(Array.isArray(drawPoints4405) && drawPoints4405.length>=3 && drawClosed4405){
+        const pts=drawPoints4405.map(p=>[num(p?.[0]),num(p?.[1])]);
+        const dirs=orthoDirs(pts);
+        const lengths=exactLengthsFromDrawing(pts);
+        if(dirs && lengths.length===pts.length && lengths.every(v=>v>0)){
+          snap={dirs,lengths};
+        }
+      }
+    }catch(e){console.warn('B4.6 snapshot',e)}
+
+    const out=previousApply.apply(this,arguments);
+
+    try{
+      if(snap && typeof roomTemplate!=='undefined' && roomTemplate==='custom'){
+        segmentLengths=snap.lengths.slice();
+        try{manualSegments4408=snap.lengths.slice()}catch(_){}
+        roomPoints=fit(metricPoints(snap.lengths,snap.dirs));
+        customPointTotal=roomPoints.length;
+
+        const count=document.getElementById('customPointCount');
+        if(count)count.value=String(roomPoints.length);
+        document.getElementById('customPointBox')?.classList.remove('hidden');
+
+        if(typeof renderSegmentInputs==='function')renderSegmentInputs();
+        if(typeof renderPlanner==='function')renderPlanner();
+
+        const m=typeof polygonMetrics==='function'?polygonMetrics():null;
+        const areaEl=document.getElementById('area'), perEl=document.getElementById('perimeter');
+        if(areaEl && m)areaEl.value=Number(m.area||0).toFixed(2);
+        if(perEl && m)perEl.value=Number(m.perimeter||0).toFixed(2);
+
+        if(typeof recalc==='function')recalc();
+        if(typeof syncActiveRoomFromUI==='function')syncActiveRoomFromUI(false);
+        if(typeof autosave==='function')autosave();
+        try{window.syncProductionOrder4408?.()}catch(_){}
+      }
+    }catch(e){console.warn('B4.6 exact main geometry',e)}
+    return out;
+  };
+}
+
+/* Make "Зберегти план" persist the exact current planner snapshot into the active room.
+   This is deliberately after all older save wrappers. */
+const previousSave=window.savePlannerRoom;
+if(typeof previousSave==='function'){
+  window.savePlannerRoom=function(){
+    const out=previousSave.apply(this,arguments);
+    try{
+      const rooms=Array.isArray(window.projectRooms)?window.projectRooms:
+                  (typeof projectRooms!=='undefined'&&Array.isArray(projectRooms)?projectRooms:[]);
+      const id=(typeof activeRoomId!=='undefined'?activeRoomId:window.activeRoomId);
+      const room=rooms.find(r=>String(r?.id??'')===String(id??''));
+      if(room){
+        const m=typeof polygonMetrics==='function'?polygonMetrics():{area:0,perimeter:0};
+        room.area=Number(m.area||0);
+        room.perimeter=Number(m.perimeter||0);
+        room.corners=Array.isArray(roomPoints)?roomPoints.length:room.corners;
+        room.planner=room.planner&&typeof room.planner==='object'?room.planner:{};
+        room.planner.template=(typeof roomTemplate!=='undefined'?roomTemplate:'custom');
+        room.planner.points=clone(Array.isArray(roomPoints)?roomPoints:[]);
+        room.planner.segments=clone(Array.isArray(segmentLengths)?segmentLengths:[]);
+        room.planner.objects=clone(typeof plannerObjects!=='undefined'&&Array.isArray(plannerObjects)?plannerObjects:[]);
+        try{room.planner.perimeterBindings=clone(Array.isArray(perimeterBindings)?perimeterBindings:[])}catch(_){}
+        room.planner.savedAtB46=new Date().toISOString();
+        try{if(typeof renderRooms==='function')renderRooms()}catch(_){}
+        try{if(typeof updateSummary==='function')updateSummary()}catch(_){}
+        try{if(typeof autosave==='function')autosave()}catch(_){}
+      }
+    }catch(e){console.warn('B4.6 save planner snapshot',e)}
+    return out;
+  };
+}
+
+/* Remove only the confirmed stray literal N/N-style leaf text if any old layer recreates it. */
+function removeStray(){
+  try{
+    document.querySelectorAll('body *').forEach(el=>{
+      if(el.children.length)return;
+      const t=(el.textContent||'').trim();
+      if(t==='\\n' || /^(?:N\s*\/\s*N|Н\s*\/\s*Н)$/i.test(t))el.remove();
+    });
+  }catch(_){}
+}
+
+/* Keep one visible, unambiguous version at the top without repainting the page. */
+function mark(){
+  try{
+    document.documentElement.dataset.pixelVersion=VERSION;
+    document.documentElement.dataset.pixelBuild='b4-6-main-exact-safe';
+    document.title='Potolok AI PRO — Pixel '+VERSION;
+    const badge=document.getElementById('pixel4486BuildBadge');
+    if(badge && badge.textContent!==BUILD)badge.textContent=BUILD;
+  }catch(_){}
+  removeStray();
+}
+function guardBadge(){
+  const badge=document.getElementById('pixel4486BuildBadge');
+  if(!badge || badge.__b46Guard)return;
+  badge.__b46Guard=true;
+  new MutationObserver(()=>{if(badge.textContent!==BUILD)badge.textContent=BUILD})
+    .observe(badge,{childList:true,characterData:true,subtree:true});
+}
+function boot(){mark();guardBadge()}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
+window.addEventListener('pageshow',()=>setTimeout(boot,50));
+[250,700,1500,3000,6000,10000,16000,22000].forEach(ms=>setTimeout(boot,ms));
+})();
+</script>
+<!-- /B4.6 -->
+
+
+<!-- B4.8 SAVE ONLY FIX — persistence only; UI / scale / drawing / metrics untouched -->
+<script id="b48SaveOnlyFix">
+(function(){
+'use strict';
+if(window.__b48SaveOnlyFix)return; window.__b48SaveOnlyFix=true;
+const clone=v=>{try{return JSON.parse(JSON.stringify(v))}catch(_){return v}};
+function room(){try{return (Array.isArray(window.projectRooms)?window.projectRooms:[]).find(r=>String(r?.id??'')===String(window.activeRoomId??''))||null}catch(_){return null}}
+function captureDrawing(){
+  try{
+    const r=room(); if(!r)return;
+    r.planner=r.planner||{};
+    r.planner.freeDrawB48={
+      points:clone(Array.isArray(window.drawPoints4405)?window.drawPoints4405:[]),
+      closed:!!window.drawClosed4405,
+      manualSegments:clone(Array.isArray(window.manualSegments4408)?window.manualSegments4408:[]),
+      lineScale:Number(window.PX_PER_METER4407)||320,
+      freeDrawRoom:!!window.freeDrawRoom4405,
+      cornerRadii:clone(Array.isArray(window.sr15CornerRadii)?window.sr15CornerRadii:[])
+    };
+    /* Also persist the accepted planner exactly as it exists now. */
+    if(Array.isArray(window.roomPoints))r.planner.points=clone(window.roomPoints);
+    if(Array.isArray(window.segmentLengths))r.planner.segments=clone(window.segmentLengths);
+    if(Array.isArray(window.plannerObjects))r.planner.objects=clone(window.plannerObjects);
+    r.planner.template=window.roomTemplate||r.planner.template||'custom';
+    r.updatedAt=new Date().toISOString();
+  }catch(e){console.warn('B4.8 save-only capture',e)}
+}
+function restoreDrawing(r){
+  try{
+    const d=r?.planner?.freeDrawB48; if(!d)return;
+    if(Array.isArray(d.points))window.drawPoints4405=clone(d.points);
+    window.drawClosed4405=!!d.closed;
+    if(Array.isArray(d.manualSegments))window.manualSegments4408=clone(d.manualSegments);
+    if([80,160,320].includes(Number(d.lineScale)))window.PX_PER_METER4407=Number(d.lineScale);
+    window.freeDrawRoom4405=!!d.freeDrawRoom;
+    if(Array.isArray(d.cornerRadii))window.sr15CornerRadii=clone(d.cornerRadii);
+    try{window.syncLineScaleB48?.()}catch(_){}
+  }catch(e){console.warn('B4.8 save-only restore',e)}
+}
+function wrap(name,before,after){
+  const fn=window[name]; if(typeof fn!=='function'||fn.__b48SaveOnly)return;
+  const w=function(){if(before)before.apply(this,arguments);const result=fn.apply(this,arguments);if(result&&typeof result.then==='function')return result.then(v=>{if(after)after.apply(this,arguments);return v});if(after)after.apply(this,arguments);return result};
+  w.__b48SaveOnly=true; window[name]=w;
+}
+/* Saving hooks only. */
+wrap('autosave',captureDrawing,null);
+wrap('saveObject',captureDrawing,null);
+wrap('saveCurrentRoom',captureDrawing,null);
+wrap('savePlannerRoom',captureDrawing,null);
+/* Restore saved drawing state when a room/object is reopened. */
+wrap('restoreRoom',null,function(r){restoreDrawing(r)});
+wrap('selectRoom',captureDrawing,null);
+wrap('loadObject',captureDrawing,function(){setTimeout(()=>restoreDrawing(room()),0)});
+/* Accepted contour: persist immediately through the existing autosave chain. */
+wrap('applyFingerDrawing4405',null,function(){setTimeout(()=>{captureDrawing();try{window.autosave?.()}catch(_){}},0)});
+})();
+</script>
+<!-- /B4.8 SAVE ONLY FIX -->
