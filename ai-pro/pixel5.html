@@ -33361,7 +33361,9 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 })();
 </script>
 
-</body></html>
+</body>
+
+</html>
 
 <!-- 44.41: surgical NW export fix based strictly on 44.40; selected insert is included in final NW order; no planner/canvas quantity logic changed. -->
 <script id="pixelVersion4449">(function(){try{document.documentElement.dataset.pixelVersion='44.62';document.title='Potolok AI PRO — Pixel 44.62'}catch(_){}})();</script>
@@ -38082,3 +38084,68 @@ wrap('applyFingerDrawing4405',null,function(){setTimeout(()=>{captureDrawing();t
 })();
 </script>
 <!-- /B4.8 SAVE ONLY FIX -->
+
+<!-- PIXEL FINAL TRUE NO-PLAN CLEAN FIX | 2026-09-26 | no room/plan/metrics -->
+<style id="pixelTrueNoPlanCleanStyles">
+#nwNoPlan4463 #nwRoomMetricsR1,
+#nwNoPlan4463 #nwPlanPreviewR5{display:none!important}
+</style>
+<script id="pixelTrueNoPlanCleanFix">
+(function(){
+'use strict';
+if(window.__pixelTrueNoPlanCleanFix)return;window.__pixelTrueNoPlanCleanFix=true;
+const KEY='potolok:nw-true-no-plan:global:v1';
+const N=v=>Number(String(v??0).replace(',','.'))||0;
+const E=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function room(){try{return (projectRooms||[]).find(r=>String(r.id)===String(activeRoomId))||null}catch(_){return null}}
+function load(){try{const a=JSON.parse(localStorage.getItem(KEY)||'[]');return Array.isArray(a)?a:[]}catch(_){return[]}}
+function store(a){try{localStorage.setItem(KEY,JSON.stringify(Array.isArray(a)?a:[]))}catch(_){}}
+function roomItems(){const r=room();return Array.isArray(r?.productionNoPlan4463?.items)?r.productionNoPlan4463.items:[]}
+function putRoom(a){const r=room();if(!r)return;r.productionNoPlan4463=r.productionNoPlan4463||{};r.productionNoPlan4463.items=JSON.parse(JSON.stringify(a||[]));try{autosave?.()}catch(_){}}
+function hydrate(){const a=load();putRoom(a);return a}
+function capture(){const a=roomItems();store(a);return a}
+function cleanUI(){
+ const box=document.getElementById('nwNoPlan4463');if(!box)return;
+ document.getElementById('nwRoomMetricsR1')?.remove();document.getElementById('nwPlanPreviewR5')?.remove();
+ const main=box.querySelector(':scope > button');if(main)main.textContent='📦 Замовлення без плану';
+ const intro=box.querySelector(':scope > p');if(intro)intro.textContent='Окреме замовлення комплектуючих NW. Без кімнати, плану, площі, периметра, кутів і розкрою.';
+ const head=box.querySelector('.nw-noplan-head4463');if(head){const b=head.querySelector('b'),sp=head.querySelector('span');if(b)b.textContent='Замовлення NW без плану';if(sp)sp.textContent='незалежне замовлення';}
+ const add=box.querySelector('.nw-noplan-actions4463 .add');if(add){add.textContent='＋ Додати позицію з NW';add.onclick=()=>window.openNWNoPlan4465?.()}
+}
+function refresh(){hydrate();try{window.refreshNoPlanOrder4469?.()}catch(_){}cleanUI()}
+const oldOpen=window.openNWNoPlan4465;
+if(typeof oldOpen==='function')window.openNWNoPlan4465=function(){hydrate();window.__nwNoPlanMode4465=true;const z=oldOpen.apply(this,arguments);setTimeout(cleanUI,0);return z};
+window.toggleNoPlan4463=function(){
+ const p=document.getElementById('nwNoPlanPanel4463');if(p)p.classList.add('show');
+ hydrate();cleanUI();window.openNWNoPlan4465?.();
+};
+// Any add/edit/delete in the no-plan UI is persisted into one independent cart.
+document.addEventListener('click',e=>{
+ if(e.target?.closest?.('#nwNoPlan4463,#nwModal4413,#nwMiniHost4413'))setTimeout(()=>{capture();cleanUI()},120);
+},true);
+document.addEventListener('input',e=>{if(e.target?.closest?.('#nwNoPlan4463'))setTimeout(capture,30)},true);
+document.addEventListener('change',e=>{if(e.target?.closest?.('#nwNoPlan4463'))setTimeout(capture,30)},true);
+// Replace all late room-linked export overrides: selected positions only, no room and no geometry.
+window.shareNoPlan4463=async function(){
+ capture();const items=load().filter(x=>String(x?.name||'').trim()&&N(x.qty)>0);const st=document.getElementById('nwNoPlanStatus4463');
+ if(!items.length){if(st)st.textContent='Додайте хоча б одну позицію.';return}
+ try{
+  if(st)st.textContent='Готую незалежне замовлення без плану…';
+  const W=1400,rowH=92,H=Math.max(720,300+items.length*rowH+180),c=document.createElement('canvas');c.width=W;c.height=H;const x=c.getContext('2d');
+  x.fillStyle='#eef4fb';x.fillRect(0,0,W,H);x.fillStyle='#fff';x.fillRect(48,48,W-96,H-96);
+  x.fillStyle='#071428';x.font='900 46px Arial';x.fillText('Potolok.in.ua',84,112);x.font='900 30px Arial';x.fillText('ЗАМОВЛЕННЯ NW · БЕЗ ПЛАНУ',84,158);
+  x.fillStyle='#64748b';x.font='700 19px Arial';x.fillText(new Date().toLocaleString('uk-UA'),84,194);
+  x.fillStyle='#075bff';x.font='900 28px Arial';x.fillText('ПОЗИЦІЇ · '+items.length,84,250);let y=292;
+  items.forEach((it,i)=>{const q=N(it.qty),p=N(it.price),u=String(it.unit||'шт');x.fillStyle=i%2?'#f8fbff':'#fff';x.fillRect(84,y-28,W-168,72);x.fillStyle='#0f172a';x.font='900 20px Arial';x.fillText((i+1)+'. '+String(it.name||'').trim(),104,y);x.textAlign='right';x.fillStyle='#075bff';x.fillText(q.toLocaleString('uk-UA',{maximumFractionDigits:2})+' '+u,930,y);if(p>0){x.fillStyle='#0f172a';x.fillText(p.toLocaleString('uk-UA',{maximumFractionDigits:2})+' грн/од.',1160,y);x.fillStyle='#075bff';x.fillText((q*p).toLocaleString('uk-UA',{maximumFractionDigits:2})+' грн',1310,y)}x.textAlign='left';y+=rowH});
+  x.fillStyle='#64748b';x.font='700 18px Arial';x.fillText('Незалежне замовлення: без кімнати, плану, площі, периметра та кутів.',84,H-92);
+  const blob=await new Promise((res,rej)=>c.toBlob(b=>b?res(b):rej(new Error('Не вдалося створити PNG')),'image/png',.96));const file=new File([blob],'NW_BEZ_PLANU_'+Date.now()+'.png',{type:'image/png'});
+  try{if(navigator.share&&navigator.canShare?.({files:[file]})){await navigator.share({title:'Замовлення NW без плану',text:'Замовлення NW без плану',files:[file]});if(st)st.textContent='✅ Замовлення передано в меню поширення.';return}}catch(e){if(e?.name==='AbortError'){if(st)st.textContent='Відправлення скасовано.';return}}
+  const u=URL.createObjectURL(blob),a=document.createElement('a');a.href=u;a.download=file.name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),2500);if(st)st.textContent='✅ Замовлення збережено у PNG.';
+ }catch(e){console.error(e);if(st)st.textContent='❌ '+(e?.message||'Помилка формування картки.')}
+};
+function boot(){refresh();cleanUI()}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(boot,350),{once:true});else setTimeout(boot,350);
+[900,1800,3500,6000].forEach(ms=>setTimeout(cleanUI,ms));
+const mo=new MutationObserver(()=>setTimeout(cleanUI,20));setTimeout(()=>{const b=document.getElementById('nwNoPlan4463');if(b)mo.observe(b,{childList:true,subtree:true})},500);
+})();
+</script>
