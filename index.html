@@ -9,6 +9,7 @@
   gtag('js', new Date());
 
   gtag('config', 'G-BY0RCPGHQG');
+  gtag('config', 'AW-17961381723');
 </script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -962,6 +963,15 @@ async function sendUniversalLead(){
     });
     const result = await response.json().catch(function(){ return null; });
     if(!response.ok || !result?.ok) throw new Error(result?.error || ('HTTP ' + response.status));
+
+    // Google Ads conversion: fire only after the server confirms the lead was sent.
+    if (typeof gtag === 'function') {
+      gtag('event', 'conversion', {
+        'send_to': 'AW-17961381723/rj3cCMCj1pAdENveO_RC',
+        'value': 1.0,
+        'currency': 'UAH'
+      });
+    }
 
     setLeadStatus('Дякуємо! Заявку надіслано.' + (leadPhotoItems.length ? ' Фото та примітки також надіслано.' : '') + ' Ми зв’яжемося з вами найближчим часом.','ok');
     document.getElementById('leadName').value = '';
