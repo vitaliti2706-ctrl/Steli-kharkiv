@@ -14123,7 +14123,7 @@ function renderObjectCenter4325(){
    if(b.classList.contains('active')!==shouldBeActive)b.classList.toggle('active',shouldBeActive);
   });
   if(objectPanel4325==='elements')renderElements4325();
-  else if(objectPanel4325==='works')renderWorks4325();
+  else if(objectPanel4325==='works'){ if(!(document.getElementById('objectCenterPanel4325')?.dataset?.roomWorks4371==='1')) renderWorks4325(); }
   else renderAll4325();
  }catch(error){
   console.error('43(44) object center render error',error);
@@ -17798,7 +17798,7 @@ function patchAll4349(){
   patchRoomCards4349();
   patchObjectAll4349();
   patchFinishingFinance4349();
-  if(document.querySelector('[data-object-panel4325="works"]')?.classList.contains('active'))renderRoomWorksPanel4349();
+  if(document.querySelector('[data-object-panel4325="works"]')?.classList.contains('active') && document.getElementById('objectCenterPanel4325')?.dataset?.roomWorks4371!=='1')renderRoomWorksPanel4349();
   document.title='Potolok AI PRO — Pixel '+VERSION4349;
 }
 function queue4349(delay=0){
@@ -17822,11 +17822,11 @@ if(typeof window.selectRoomOnly4348==='function'){
 
 /* Replace the old object-level works panel after its original renderer runs. */
 document.addEventListener('click',event=>{
-  if(event.target?.closest?.('[data-object-panel4325="works"]')){setTimeout(renderRoomWorksPanel4349,0);setTimeout(renderRoomWorksPanel4349,60)}
+  if(event.target?.closest?.('[data-object-panel4325="works"]')){setTimeout(()=>{if(document.getElementById('objectCenterPanel4325')?.dataset?.roomWorks4371!=='1')renderRoomWorksPanel4349()},0);setTimeout(()=>{if(document.getElementById('objectCenterPanel4325')?.dataset?.roomWorks4371!=='1')renderRoomWorksPanel4349()},60)}
   if(event.target?.closest?.('#tab_object,#tab_planner,#tab_finishing,#roomList')){queue4349(20);queue4349(100)}
 });
-document.addEventListener('input',event=>{if(event.target?.closest?.('.ceiling-finance-h12,.object-finance-h12'))return;if(event.target?.closest?.('#tab_planner,#tab_object,#tab_finishing'))queue4349(35)});
-document.addEventListener('change',event=>{if(event.target?.closest?.('.ceiling-finance-h12,.object-finance-h12'))return;if(event.target?.closest?.('#tab_planner,#tab_object,#tab_finishing'))queue4349(35)});
+document.addEventListener('input',event=>{if(event.target?.closest?.('#objectCenterPanel4325[data-room-works4371="1"] [data-work-key4371]'))return;if(event.target?.closest?.('.ceiling-finance-h12,.object-finance-h12'))return;if(event.target?.closest?.('#tab_planner,#tab_object,#tab_finishing'))queue4349(35)});
+document.addEventListener('change',event=>{if(event.target?.closest?.('#objectCenterPanel4325[data-room-works4371="1"] [data-work-key4371]'))return;if(event.target?.closest?.('.ceiling-finance-h12,.object-finance-h12'))return;if(event.target?.closest?.('#tab_planner,#tab_object,#tab_finishing'))queue4349(35)});
 
 function cornerCount4349(room){let count=num4349(room?.outerCorners)+num4349(room?.innerCorners);if(!(count>0))count=num4349(room?.corners);return Math.max(0,count)}
 function cornerRate4349(){try{const list=(typeof EXTRA_ITEMS!=='undefined'&&Array.isArray(EXTRA_ITEMS))?EXTRA_ITEMS:[];return Math.max(0,num4349(list.find(x=>x?.id==='corners')?.price)||70)}catch(_){return 70}}
@@ -21431,8 +21431,8 @@ document.addEventListener('click',event=>{
     queueSync4370(20);queueRefresh4370(30);
   }
 });
-document.addEventListener('input',event=>{if(event.target?.closest?.('.ceiling-finance-h12,.object-finance-h12'))return;if(event.target?.closest?.('#tab_object,#tab_planner')){queueSync4370(80);queueRefresh4370(90)}});
-document.addEventListener('change',event=>{if(event.target?.closest?.('.ceiling-finance-h12,.object-finance-h12'))return;if(event.target?.closest?.('#tab_object,#tab_planner')){queueSync4370(30);queueRefresh4370(50)}});
+document.addEventListener('input',event=>{if(event.target?.closest?.('#objectCenterPanel4325[data-room-works4371="1"] [data-work-key4371]'))return;if(event.target?.closest?.('.ceiling-finance-h12,.object-finance-h12'))return;if(event.target?.closest?.('#tab_object,#tab_planner')){queueSync4370(80);queueRefresh4370(90)}});
+document.addEventListener('change',event=>{if(event.target?.closest?.('#objectCenterPanel4325[data-room-works4371="1"] [data-work-key4371]'))return;if(event.target?.closest?.('.ceiling-finance-h12,.object-finance-h12'))return;if(event.target?.closest?.('#tab_object,#tab_planner')){queueSync4370(30);queueRefresh4370(50)}});
 
 const observer4370=new MutationObserver(mutations=>{
   for(const mutation of mutations){
@@ -21620,6 +21620,7 @@ function renderWorksPanel4371(force=false){
   try{
     const works=roomWorks4371(room);
     panel.dataset.roomWorks4371='1';
+    delete panel.dataset.roomWorks4349; delete panel.dataset.roomWorksRoom4349;
     panel.innerHTML='<div class="object-center-head4325"><div><h4>Додаткові роботи кімнати «'+esc4371(roomName4371(room))+'»</h4><p>Усі роботи належать поточній кімнаті та відображаються і в об’єкті, і в плані.</p><span class="room-work-scope4349">'+esc4371(roomName4371(room))+'</span></div><b id="roomWorksTotal4371">'+money4371(totalWorks4371(room))+'</b></div>'+
       '<div class="room-work-note4371"><b>Прив’язка до плану:</b> «Свердління керамограніту» та «Захист стін плівкою» наносяться на весь периметр кімнати. На кресленні вони з’являються на всіх стінах і автоматично перераховуються при зміні розмірів.</div>'+
       '<div class="object-work-actions4325"><button class="btn blue" type="button" data-add-work4371="blank">＋ Додати роботу</button><button class="btn outline" type="button" data-add-work4371="drill">＋ Свердління керамограніту 400 грн/м.п.</button><button class="btn outline" type="button" data-add-work4371="wall">＋ Захист стін плівкою 80 грн/м.п.</button><button class="btn outline" type="button" data-add-work4371="floor">＋ Захист підлоги 60 грн/м²</button></div>'+
@@ -21692,7 +21693,7 @@ document.addEventListener('click',event=>{
     if(work.autoPlanType4370)removeBoundWork4371(room,work.autoPlanType4370);else roomWorks4371(room).splice(index,1);
     saveAndRefresh4371();renderWorksPanel4371(true);return;
   }
-  if(event.target?.closest?.('[data-object-panel4325="works"]')){setTimeout(()=>renderWorksPanel4371(true),70);setTimeout(()=>renderWorksPanel4371(true),170)}
+  if(event.target?.closest?.('[data-object-panel4325="works"]')){setTimeout(()=>renderWorksPanel4371(false),70);setTimeout(()=>renderWorksPanel4371(false),170)}
 },true);
 document.addEventListener('input',event=>{
   const input=event.target?.closest?.('#objectCenterPanel4325[data-room-works4371="1"] [data-work-key4371]');if(!input)return;
