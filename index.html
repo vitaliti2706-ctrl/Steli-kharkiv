@@ -303,6 +303,52 @@ h2{font-size:25px}
 .cornices-feature-image{width:100%;height:300px;object-fit:cover;display:block}
 @media(max-width:650px){.cornices-feature-inner{grid-template-columns:1fr}.cornices-feature-copy{padding:20px}.cornices-feature-image{height:220px;order:-1}}
 </style>
+<script>
+/* Potolok analytics v2: distinguish engagement from confirmed leads. */
+(function(){
+  var lastCalcSignature = '';
+  window.potolokTrack = function(eventName, params){
+    if(typeof window.gtag !== 'function') return;
+    try { window.gtag('event', eventName, Object.assign({event_category:'potolok_site'}, params || {})); }
+    catch(err) { console.warn('Analytics event error', err); }
+  };
+  document.addEventListener('click', function(ev){
+    var target = ev.target.closest('a,button');
+    if(!target) return;
+    var label = (target.textContent || '').trim().replace(/\s+/g,' ').slice(0,100);
+    var href = target.getAttribute('href') || '';
+    if(target.id === 'telegramCalc') {
+      var name = document.getElementById('clientName');
+      var phone = document.getElementById('clientPhone');
+      potolokTrack('calculator_telegram_open', {
+        contact_details_provided: !!(name && name.value.trim() && phone && phone.value.trim()),
+        method:'telegram', link_location:'calculator'
+      });
+      return;
+    }
+    if(target.matches('#calc button') && /Розрахувати/i.test(label)) {
+      var area = document.getElementById('area');
+      var perimeter = document.getElementById('perimeter');
+      var signature = (area ? area.value : '') + ':' + (perimeter ? perimeter.value : '') + ':' +
+        ['package','profile','lights','chandeliers','corners','pipes'].map(function(id){var el=document.getElementById(id);return el ? el.value : '';}).join(':');
+      if(signature !== lastCalcSignature) {
+        lastCalcSignature = signature;
+        potolokTrack('ceiling_calculation', {calculator:'main'});
+      }
+      return;
+    }
+    if(/^tel:/i.test(href)) {
+      potolokTrack('phone_click', {link_location:target.closest('#calc') ? 'calculator' : 'site', contact_method:'phone'});
+      return;
+    }
+    if(/^https?:\/\/(?:t\.me|telegram\.me)\//i.test(href)) {
+      potolokTrack(/фото|photo/i.test(label) ? 'photo_telegram_open' : 'telegram_open', {
+        link_location:target.closest('#calc') ? 'calculator' : 'site', contact_method:'telegram'
+      });
+    }
+  }, true);
+})();
+</script>
 </head>
 <body>
 <header class="header">
@@ -908,6 +954,10 @@ async function sendUniversalLead(){
     });
     const result = await response.json().catch(function(){ return null; });
     if(!response.ok || !result?.ok) throw new Error(result?.error || ('HTTP ' + response.status));
+
+    if (typeof window.potolokTrack === 'function') {
+      window.potolokTrack('lead_submit_success', {method:'website_form', photo_count:leadPhotoItems.length});
+    }
 
     // Google Ads conversion: fire only after the server confirms the lead was sent.
     if (typeof gtag === 'function') {
