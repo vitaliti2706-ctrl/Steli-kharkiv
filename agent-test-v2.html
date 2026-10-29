@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Potolok AI — перевірка D-ID v2</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#f3f7ff;color:#14233d;font:16px system-ui,Arial,sans-serif}header{background:#091c3c;color:#fff;padding:20px;font-size:23px;font-weight:700}header b{color:#76d4ff}main{max-width:740px;margin:32px auto;padding:0 18px}.panel{background:white;border-radius:20px;padding:24px;box-shadow:0 10px 32px #10275016}h1{font-size:24px;margin:0 0 14px}p{line-height:1.55}.status{margin:18px 0;padding:15px;border-radius:12px;background:#edf3ff;border:1px solid #d9e4f8;font-size:15px}.small{font-size:13px;color:#51617b}button,a.btn{border:0;background:#075bff;color:#fff;padding:12px 18px;border-radius:10px;font-weight:700;font-size:15px;cursor:pointer;text-decoration:none;display:inline-block;margin:8px 8px 0 0}a.btn{background:#334c74}code{overflow-wrap:anywhere}
+</style>
+</head><body>
+<header>Potolok<b>.in.ua</b> · AI</header>
+<main><div class="panel"><h1>Тест помічника D-ID — версія 2</h1><p>На цій сторінці перевіряємо лише підключення справжнього агента D-ID. Основний сайт не змінюється.</p><p>Якщо віджет завантажиться, він з’явиться <strong>праворуч унизу</strong>. Для розмови можуть знадобитися кредити D-ID.</p>
+<div class="status"><strong>Діагностика підключення</strong><p id="script-status" aria-live="polite">Завантаження скрипту D-ID…</p><p id="origin-status" class="small"></p><p id="widget-status" class="small">Очікуємо появи віджета…</p></div>
+<button type="button" onclick="location.reload()">Повторити перевірку</button><a class="btn" href="/">На головну</a><p class="small">Зверніть увагу: успішне завантаження скрипту не гарантує запуск віджета — D-ID може відхилити запит через налаштування акаунта або ліміти.</p></div></main>
+<script>
+const statusEl=document.getElementById('script-status');
+const originEl=document.getElementById('origin-status');
+const widgetEl=document.getElementById('widget-status');
+originEl.textContent='Адреса сторінки: '+location.origin;
+window.didScriptLoaded=()=>{statusEl.textContent='Файл скрипту D-ID завантажився. Перевіряємо віджет…';};
+window.didScriptError=()=>{statusEl.textContent='Помилка: браузер не зміг завантажити скрипт D-ID. Перевірте мережу або блокування.';};
+window.addEventListener('error',e=>{if(String(e.filename||'').includes('d-id.com')) widgetEl.textContent='Помилка виконання D-ID: '+String(e.message||'невідома');});
+window.addEventListener('unhandledrejection',e=>{const msg=String(e.reason?.message||e.reason||'');if(/d-id|agent|token|credit/i.test(msg)) widgetEl.textContent='Помилка запуску: '+msg.slice(0,220);});
+setTimeout(()=>{if(widgetEl.textContent==='Очікуємо появи віджета…') widgetEl.textContent='Якщо віджета немає на екрані, скрипт міг завантажитися, але агент не ініціалізувався. Перевіримо налаштування D-ID.';},9000);
+</script>
+<script type="module" src="https://agent.d-id.com/v2/index.js"
+ data-mode="fabio"
+ data-client-key="ck_wNzB9v9ISZWrmGjCxT4TU"
+ data-agent-id="v2_agt_d1Pgjsdr"
+ data-name="did-agent"
+ data-monitor="true"
+ data-light-mode="false"
+ data-orientation="horizontal"
+ data-position="right"
+ data-open-mode="compact"
+ onload="didScriptLoaded()" onerror="didScriptError()"></script>
+</body></html>
