@@ -14,6 +14,20 @@
 
 <html lang="uk">
 <head>
+
+<!-- QA36: client-facing estimate labels only; QA35 calculations and saved data unchanged. -->
+<script>
+function pixelClientEstimateNameQA36(item) {
+  const name = String(item?.name || item?.title || item?.label || 'Позиція');
+  if (String(item?.id || '') === 'base' || /^Комплект:\s*.+\s[—–-]\s.+\s[—–-]\s.+$/u.test(name)) {
+    const m = name.match(/^Комплект:\s*(.+?)\s[—–-]\s(.+?)\s[—–-]\s.+$/u);
+    return m ? 'Комплект натяжної стелі — ' + m[1] + ', ' + m[2].toLowerCase() + ' полотно'
+             : 'Комплект натяжної стелі';
+  }
+  return name;
+}
+</script>
+
 <script id="pixel4490aH9CanonicalCornerTotals">
 (function(){
   'use strict';
@@ -52,7 +66,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <!-- RC3 CUT VISUAL ARC: canonical radius + local production scale -->
-<title>PIXEL QA35</title>
+<title>PIXEL QA36</title>
 <!-- 43(23): room 3/custom contour opening fixed -->
 <!-- 43(22): decimal input fixed for narrow areas and projections -->
 <!-- 43(21): separate window/door controls in finishing openings -->
@@ -2473,7 +2487,7 @@ function loadDraft(){
 function buildEstimateText(){
   const o=collectObject();
   const roomText=o.rooms.map((r,i)=>{
-    const rows=(r.rows||[]).map(x=>`${x.name}: ${x.qty} ${x.unit} × ${money(x.price)} = ${money(x.sum)}`).join('\n');
+    const rows=(r.rows||[]).map(x=>`${pixelClientEstimateNameQA36(x)}: ${x.qty} ${x.unit} × ${money(x.price)} = ${money(x.sum)}`).join('\n');
     return `\n${i+1}. ${r.name||'Кімната'}\nПлоща: ${Number(r.area||0).toFixed(2)} м²\nПериметр: ${Number(r.perimeter||0).toFixed(2)} м.п.${rows?'\n'+rows:''}`;
   }).join('\n');
   return `Добрий день! Кошторис Potolok.in.ua\n\nКлієнт: ${o.clientName||'—'}\nТелефон: ${o.clientPhone||'—'}\nАдреса: ${o.address||'—'}\nКімнат: ${o.rooms.length}\nЗагальна площа: ${o.area.toFixed(2)} м²\nЗагальний периметр: ${o.perimeter.toFixed(2)} м.п.\n${roomText}\n\nРазом по об’єкту: ${money(o.total)}\n\nЦіна попередня. Остаточна вартість після заміру.`;
@@ -2519,7 +2533,7 @@ async function downloadPDF(){
     if(y>245){doc.addPage();y=18}
     doc.setFont('helvetica','bold');doc.setFontSize(11);doc.text(`${index+1}. ${r.name||'Кімната'}`,14,y);
     doc.setFont('helvetica','normal');doc.setFontSize(8);doc.text(`Площа: ${Number(r.area||0).toFixed(2)} м²   Периметр: ${Number(r.perimeter||0).toFixed(2)} м.п.`,14,y+5);
-    const rows=(r.rows||[]).map(x=>[x.name,String(x.qty)+' '+x.unit,money(x.price),money(x.sum)]);
+    const rows=(r.rows||[]).map(x=>[pixelClientEstimateNameQA36(x),String(x.qty)+' '+x.unit,money(x.price),money(x.sum)]);
     doc.autoTable({startY:y+9,head:[['Позиція','Кількість','Ціна','Сума']],body:rows,styles:{fontSize:7},headStyles:{fillColor:[7,91,255]},margin:{left:14,right:14}});
     y=doc.lastAutoTable.finalY+8;
   });
@@ -4024,8 +4038,8 @@ loadMarkupFromRoom();drawMarkupCanvas();renderHistory();
 (() => {
   'use strict';
 
-  document.title='PIXEL QA35';
-  document.querySelectorAll('.hero-badge').forEach(el=>el.textContent='✨ PIXEL QA35');
+  document.title='PIXEL QA36';
+  document.querySelectorAll('.hero-badge').forEach(el=>el.textContent='✨ PIXEL QA36');
 
   const style=document.createElement('style');
   style.textContent=`
@@ -8249,7 +8263,7 @@ window.deleteServiceObject60=async(id,objectNumber)=>{
 
 window.editServiceObject60=id=>{const r=serviceRows60.find(x=>x.id===id),o=obj60(r),s=o.serviceData||{};openModal60('Адміністративні дані',`<div class="p60-grid"><div class="p60-field"><label>Дата монтажу</label><input id="sDate60" type="date" value="${e60(s.installDate||'')}"></div><div class="p60-field"><label>Час</label><input id="sTime60" type="time" value="${e60(s.installTime||'09:00')}"></div><div class="p60-field p60-full"><label>Бригада</label><input id="sBrigade60" value="${e60(s.brigade||'')}"></div><div class="p60-field"><label>Аванс, грн</label><input id="sAdvance60" type="number" value="${Number(s.advance||0)}"></div><div class="p60-field"><label>Оплачено, грн</label><input id="sPaid60" type="number" value="${Number(s.paid||0)}"></div><div class="p60-field p60-full"><label>Посилання на договір/PDF</label><input id="sContract60" value="${e60(s.contractUrl||'')}"></div><div class="p60-field p60-full"><label>Примітка адміністратора</label><textarea id="sNote60">${e60(s.note||'')}</textarea></div></div><button class="p60-btn blue" style="width:100%;margin-top:10px" onclick="saveServiceObject60('${id}')">Зберегти</button>`)};
 window.saveServiceObject60=async id=>{const serviceData={installDate:document.getElementById('sDate60').value,installTime:document.getElementById('sTime60').value,brigade:document.getElementById('sBrigade60').value,advance:Number(document.getElementById('sAdvance60').value||0),paid:Number(document.getElementById('sPaid60').value||0),contractUrl:document.getElementById('sContract60').value,note:document.getElementById('sNote60').value};try{await api60({action:'serviceUpdate',cloudId:id,serviceData});closeModal60();await loadService60()}catch(e){alert(e.message)}};
-function estimateHtml60(o){const rooms=Array.isArray(o.rooms)?o.rooms:[];let html='<div class="p60-estimate">';rooms.forEach((room,i)=>{const rows=Array.isArray(room.rows)?room.rows:[];html+=`<h3 style="margin:12px 0 6px">${e60(room.name||'Кімната '+(i+1))}</h3><table><thead><tr><th>Робота</th><th>К-сть</th><th>Ціна</th><th>Сума</th></tr></thead><tbody>${rows.length?rows.map(x=>`<tr><td>${e60(x.name||x.title||'Позиція')}</td><td>${e60(x.qty??'')}</td><td>${Number(x.price||0).toLocaleString('uk-UA')}</td><td>${Number(x.sum||0).toLocaleString('uk-UA')}</td></tr>`).join(''):`<tr><td colspan="4">Розрахунок кімнати: ${Number(room.calculated||0).toLocaleString('uk-UA')} грн</td></tr>`}</tbody></table>`});html+=`<div class="p60-total">Разом: ${Number(o.total||0).toLocaleString('uk-UA')} грн</div></div>`;return html}
+function estimateHtml60(o){const rooms=Array.isArray(o.rooms)?o.rooms:[];let html='<div class="p60-estimate">';rooms.forEach((room,i)=>{const rows=Array.isArray(room.rows)?room.rows:[];html+=`<h3 style="margin:12px 0 6px">${e60(room.name||'Кімната '+(i+1))}</h3><table><thead><tr><th>Робота</th><th>К-сть</th><th>Ціна</th><th>Сума</th></tr></thead><tbody>${rows.length?rows.map(x=>`<tr><td>${e60(pixelClientEstimateNameQA36(x))}</td><td>${e60(x.qty??'')}</td><td>${Number(x.price||0).toLocaleString('uk-UA')}</td><td>${Number(x.sum||0).toLocaleString('uk-UA')}</td></tr>`).join(''):`<tr><td colspan="4">Розрахунок кімнати: ${Number(room.calculated||0).toLocaleString('uk-UA')} грн</td></tr>`}</tbody></table>`});html+=`<div class="p60-total">Разом: ${Number(o.total||0).toLocaleString('uk-UA')} грн</div></div>`;return html}
 window.serviceEstimate60=id=>{const r=serviceRows60.find(x=>x.id===id);openModal60('💰 Кошторис',estimateHtml60(obj60(r))+`<button class="p60-btn dark" style="width:100%;margin-top:10px" onclick="window.print()">🖨 Друк / PDF</button>`)};
 window.serviceReviews60=id=>{const r=serviceRows60.find(x=>x.id===id),reviews=Array.isArray(obj60(r).reviews)?obj60(r).reviews:[];openModal60('⭐ Відгуки об’єкта',reviews.length?reviews.map(v=>`<div class="p60-review"><div class="p60-review-stars">${'★'.repeat(v.rating)}${'☆'.repeat(5-v.rating)}</div><b>${e60(v.name||'Клієнт')}</b><p>${e60(v.text)}</p><small>${e60(v.status||'pending')}</small><div class="p60-actions"><button class="blue" onclick="moderateReview60('${id}','${v.id}','approved')">Опублікувати</button><button class="danger" onclick="moderateReview60('${id}','${v.id}','deleted')">Видалити</button></div></div>`).join(''):'<div class="p60-note">Відгуків немає.</div>')};
 window.moderateReview60=async(id,rid,status)=>{try{await api60({action:'moderateReview',cloudId:id,reviewId:rid,status});closeModal60();await loadService60()}catch(e){alert(e.message)}};
@@ -8547,7 +8561,7 @@ injectTabs60();setTimeout(injectTabs60,400);
           rows.forEach(row => {
             html.push(`
               <tr>
-                <td>${escCalc(row.name || 'Позиція')}</td>
+                <td>${escCalc(pixelClientEstimateNameQA36(row))}</td>
                 <td>${Number(row.qty || 0)}</td>
                 <td>${money(Number(row.price) || 0)}</td>
                 <td>${money(Number(row.sum) || 0)}</td>
@@ -15726,7 +15740,7 @@ else setTimeout(install4336,350);
 
   function detailRows4338(room){
     const rows=Array.isArray(room?.rows)?room.rows:[];
-    const body=rows.map(row=>`<tr><td>${esc4338(row.name||'Позиція')}</td><td>${esc4338(num4338(row.qty).toLocaleString('uk-UA',{maximumFractionDigits:2}))} ${esc4338(row.unit||'')}</td><td>${money4338(row.price)}</td><td><b>${money4338(row.sum)}</b></td></tr>`).join('');
+    const body=rows.map(row=>`<tr><td>${esc4338(pixelClientEstimateNameQA36(row))}</td><td>${esc4338(num4338(row.qty).toLocaleString('uk-UA',{maximumFractionDigits:2}))} ${esc4338(row.unit||'')}</td><td>${money4338(row.price)}</td><td><b>${money4338(row.sum)}</b></td></tr>`).join('');
     const count=roomCornerCount4338(room),rate=roomCornerRate4338();
     const hasCorner=rows.some(row=>String(row?.id||'').toLowerCase()==='corners'||/кут/i.test(String(row?.name||row?.title||'')));
     const corners=count>0&&!hasCorner?`<tr><td>Кути полотна</td><td>${count} шт</td><td>${money4338(rate)}</td><td><b>${money4338(count*rate)}</b></td></tr>`:'';
@@ -16318,13 +16332,13 @@ window.__pixelQA33Bindings={inspect(){const r=room();return {room:r?.name,live:l
   const mark=()=>{
     document.querySelectorAll('body *').forEach(el=>{
       if(el.children.length||!el.textContent)return;
-      if(/^PIXEL V19\.6\s*[–-]\s*RC2$/i.test(el.textContent.trim()))el.textContent='PIXEL QA35';
+      if(/^PIXEL V19\.6\s*[–-]\s*RC2$/i.test(el.textContent.trim()))el.textContent='PIXEL QA36';
     });
   };
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',mark);else mark();
 })();
 </script>
-<script>document.title="PIXEL QA35";</script>
+<script>document.title="PIXEL QA36";</script>
 </body>
 <!-- PIXEL V19.6BA — canonical radius-aware profile + insert contour
      Profile 3.2px; insert 1.35px; both use the exact same d path including radius arc.
@@ -17518,7 +17532,7 @@ function estimateObject4345(){
   object.objectMaterials4345=copy4345(materials4345);return object;
 }
 function safeFile4345(value){return String(value||'object').trim().replace(/[^a-zA-Z0-9а-яА-ЯіІїЇєЄґҐ_-]+/g,'-').replace(/-+/g,'-').replace(/^-|-$/g,'')||'object'}
-function detailRows4345(room){const rows=Array.isArray(room?.rows)?room.rows:[];const body=rows.map(row=>`<tr><td>${esc4345(row.name||'Позиція')}</td><td>${num4345(row.qty).toLocaleString('uk-UA',{maximumFractionDigits:2})} ${esc4345(row.unit||'')}</td><td>${money4345(row.price)}</td><td><b>${money4345(row.sum)}</b></td></tr>`).join('');const count=roomCornerCount4345(room),rate=roomCornerRate4345(),has=rows.some(row=>String(row?.id||'').toLowerCase()==='corners'||/кут/i.test(String(row?.name||row?.title||'')));const corners=count>0&&!has?`<tr><td>Кути полотна</td><td>${count} шт</td><td>${money4345(rate)}</td><td><b>${money4345(count*rate)}</b></td></tr>`:'';return body+corners||'<tr><td colspan="4" class="muted">Деталізація відсутня</td></tr>'}
+function detailRows4345(room){const rows=Array.isArray(room?.rows)?room.rows:[];const body=rows.map(row=>`<tr><td>${esc4345(pixelClientEstimateNameQA36(row))}</td><td>${num4345(row.qty).toLocaleString('uk-UA',{maximumFractionDigits:2})} ${esc4345(row.unit||'')}</td><td>${money4345(row.price)}</td><td><b>${money4345(row.sum)}</b></td></tr>`).join('');const count=roomCornerCount4345(room),rate=roomCornerRate4345(),has=rows.some(row=>String(row?.id||'').toLowerCase()==='corners'||/кут/i.test(String(row?.name||row?.title||'')));const corners=count>0&&!has?`<tr><td>Кути полотна</td><td>${count} шт</td><td>${money4345(rate)}</td><td><b>${money4345(count*rate)}</b></td></tr>`:'';return body+corners||'<tr><td colspan="4" class="muted">Деталізація відсутня</td></tr>'}
 function finishingRows4345(room){const items=Array.isArray(room?.finishingWorks?.items)?room.finishingWorks.items.filter(x=>x?.enabled):[];return items.length?`<h4>Оздоблення кімнати</h4><table><thead><tr><th>Робота</th><th>Кількість</th><th>Ціна</th><th>Сума</th></tr></thead><tbody>${items.map(item=>`<tr><td>${esc4345(item.name||'Оздоблення')}</td><td>${num4345(item.quantity).toLocaleString('uk-UA',{maximumFractionDigits:2})} ${esc4345(item.unit||'')}</td><td>${money4345(item.price)}</td><td><b>${money4345(num4345(item.quantity)*num4345(item.price))}</b></td></tr>`).join('')}</tbody></table>`:''}
 function buildEstimateHtml4345(object){
   const rooms=Array.isArray(object?.rooms)?object.rooms:[];
@@ -19004,7 +19018,7 @@ function estimateHtml4349(object){
   const list=Array.isArray(object?.rooms)?object.rooms:[];
   const mats=Array.isArray(object?.objectMaterials4345)?object.objectMaterials4345:[];
   const esc=esc4349,money=money4349,num=num4349;
-  const rowsHtml=room=>{const rows=Array.isArray(room?.rows)?room.rows:[];const body=rows.map(row=>`<tr><td>${esc(row?.name||'Позиція')}</td><td>${num(row?.qty).toLocaleString('uk-UA',{maximumFractionDigits:2})} ${esc(row?.unit||'')}</td><td>${money(row?.price)}</td><td><b>${money(row?.sum)}</b></td></tr>`).join('');const count=cornerCount4349(room),rate=cornerRate4349(),has=rows.some(row=>String(row?.id||'').toLowerCase()==='corners'||/кут/i.test(String(row?.name||row?.title||'')));const corners=count>0&&!has?`<tr><td>Кути полотна</td><td>${count} шт</td><td>${money(rate)}</td><td><b>${money(count*rate)}</b></td></tr>`:'';return body+corners||'<tr><td colspan="4" class="muted">Деталізація відсутня</td></tr>'};
+  const rowsHtml=room=>{const rows=Array.isArray(room?.rows)?room.rows:[];const body=rows.map(row=>`<tr><td>${esc(pixelClientEstimateNameQA36(row))}</td><td>${num(row?.qty).toLocaleString('uk-UA',{maximumFractionDigits:2})} ${esc(row?.unit||'')}</td><td>${money(row?.price)}</td><td><b>${money(row?.sum)}</b></td></tr>`).join('');const count=cornerCount4349(room),rate=cornerRate4349(),has=rows.some(row=>String(row?.id||'').toLowerCase()==='corners'||/кут/i.test(String(row?.name||row?.title||'')));const corners=count>0&&!has?`<tr><td>Кути полотна</td><td>${count} шт</td><td>${money(rate)}</td><td><b>${money(count*rate)}</b></td></tr>`:'';return body+corners||'<tr><td colspan="4" class="muted">Деталізація відсутня</td></tr>'};
   const workTable=(title,items)=>items.length?`<h4>${title}</h4><table><thead><tr><th>Робота</th><th>Кількість</th><th>Ціна</th><th>Сума</th></tr></thead><tbody>${items.map(item=>`<tr><td>${esc(item?.name||'Робота')}</td><td>${num(item?.quantity).toLocaleString('uk-UA',{maximumFractionDigits:2})} ${esc(item?.unit||'')}</td><td>${money(item?.price)}</td><td><b>${money(num(item?.quantity)*num(item?.price))}</b></td></tr>`).join('')}</tbody></table>`:'';
   const roomHtml=list.map((room,index)=>{
     const finishing=Array.isArray(room?.finishingWorks?.items)?room.finishingWorks.items.filter(item=>item?.enabled):[];
@@ -26620,7 +26634,7 @@ function materialsTotal4401(object){return materials4401(object).reduce((s,item)
 function table4401(title,items,mode){
   if(!items.length)return '';
   const rows=items.map(item=>{
-    const name=clean4401(item?.name||item?.title||item?.label||'Позиція');
+    const name=clean4401(mode==='ceiling'?pixelClientEstimateNameQA36(item):(item?.name||item?.title||item?.label||'Позиція'));
     const quantity=mode==='ceiling'?num4401(item?.qty):num4401(item?.quantity);
     const unit=clean4401(item?.unit||'');
     const price=num4401(item?.price);
@@ -27112,7 +27126,7 @@ function exportItems4473(items,mode){
 function table4402(title,items,mode){
   items=exportItems4473(items,mode);
   if(!items.length)return '';
-  const rows=items.map(item=>{const name=clean4402(item?.name||item?.title||item?.label||'Позиція'),quantity=mode==='ceiling'?num4402(item?.qty):num4402(item?.quantity),unit=clean4402(item?.unit||''),price=num4402(item?.price),sum=mode==='ceiling'?lineSum4402(item,'qty'):quantity*price;return `<tr><td>${esc4402(name)}</td><td class="qty-price4472" data-price="${esc4402(money4402(price))}">${qty4402(quantity)}${unit?' '+esc4402(unit):''}</td><td class="unit-price4472">${money4402(price)}</td><td class="sum4472"><b>${money4402(sum)}</b></td></tr>`}).join('');
+  const rows=items.map(item=>{const name=clean4402(mode==='ceiling'?pixelClientEstimateNameQA36(item):(item?.name||item?.title||item?.label||'Позиція')),quantity=mode==='ceiling'?num4402(item?.qty):num4402(item?.quantity),unit=clean4402(item?.unit||''),price=num4402(item?.price),sum=mode==='ceiling'?lineSum4402(item,'qty'):quantity*price;return `<tr><td>${esc4402(name)}</td><td class="qty-price4472" data-price="${esc4402(money4402(price))}">${qty4402(quantity)}${unit?' '+esc4402(unit):''}</td><td class="unit-price4472">${money4402(price)}</td><td class="sum4472"><b>${money4402(sum)}</b></td></tr>`}).join('');
   return `<h4>${esc4402(title)}</h4><div class="table-wrap"><table><thead><tr><th>Позиція</th><th>Кількість</th><th>Ціна</th><th>Сума</th></tr></thead><tbody>${rows}</tbody></table></div>`;
 }
 function buildEstimateHtml4402(source,options,meta={}){
@@ -33096,7 +33110,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 <script id="pixel4486BuildBadgeScript">
 (function(){
   'use strict';
-  const FIXED_BUILD='PIXEL QA35';
+  const FIXED_BUILD='PIXEL QA36';
   function lockBadge(el){
     if(!el || el.__h126azBuildLocked) return;
     el.textContent=FIXED_BUILD;
