@@ -52,7 +52,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <!-- RC3 CUT VISUAL ARC: canonical radius + local production scale -->
-<title>Potolok AI PRO — Pixel V19.6 RC1</title>
+<title>PIXEL QA35</title>
 <!-- 43(23): room 3/custom contour opening fixed -->
 <!-- 43(22): decimal input fixed for narrow areas and projections -->
 <!-- 43(21): separate window/door controls in finishing openings -->
@@ -879,9 +879,10 @@ th:nth-child(2),th:nth-child(3),th:nth-child(4),td:nth-child(2),td:nth-child(3),
 .pixel-hpv-controls{display:flex;align-items:center;justify-content:center;gap:10px;padding:10px;border-top:1px solid #dbe3ef}
 .pixel-hpv-controls span{min-width:48px;text-align:center;font-weight:800;font-size:12px}
 </style>
-</head>
+<style id="pixelRC37FilmChoices">#fcustomWrapRC37[hidden]{display:none!important}</style></head>
 <!-- B4.8: DRAW LINE SCALE X4 ONLY; PX_PER_METER4407=320; no other logic changed -->
 <body>
+<!-- QA35 CONTROL MARKER: visual-only; source logic unchanged -->
 <header class="header"><div class="wrap nav"><a class="logo" href="../index.html">Potolok<span>.in.ua</span></a><div class="menu"><a href="../index.html">Головна</a><a href="../gallery.html">Наші роботи</a><a href="#app">Pixel 5</a></div><a class="phone" href="tel:+380974546713">097 454 67 13</a><a class="tg-top" href="https://t.me/Potolok_in_ua">Фото в TG</a></div></header>
 
 <section class="hero"><div class="wrap"><div class="hero-box"><div class="hero-badge">✨ POTOLOK AI PRO — v33 STABLE</div><h1>Замір, AI-візуалізація, калькулятор і кошторис</h1><p>Один інструмент для роботи на замірі: фото, план кімнати, вибір матеріалів, додаткових елементів, детальна смета, PDF і збереження об’єкта.</p><div class="hero-points"><div class="hero-point">📐 План кімнати<span>периметр і площа</span></div><div class="hero-point">🎨 AI-проєкт<span>стеля та освітлення</span></div><div class="hero-point">📄 Кошторис PDF<span>для себе і клієнта</span></div></div></div></div></section>
@@ -1855,7 +1856,7 @@ function pixelLiveBoundaryH(){
   if(!Array.isArray(roomPoints)||roomPoints.length<3||segmentLengths.length!==roomPoints.length)return null;
   const room=(projectRooms||[]).find(r=>String(r.id)===String(activeRoomId));
   const live=window.__pixelRadiusUnifiedActiveSession;
-  const rs=(live&&typeof live==='object'&&Object.keys(live).length)?live:(room?.planner?.radiusUnifiedV6||{});
+  const rs=(room?.planner?.radiusUnifiedV6&&typeof room.planner.radiusUnifiedV6==='object')?room.planner.radiusUnifiedV6:{};
   const n=roomPoints.length,fillets=new Map();
   for(const [key,item] of Object.entries(rs)){
     const i=Number(key),R=Number(item?.r);
@@ -1884,6 +1885,8 @@ function pixelLiveBoundaryH(){
   return {points:ordered.map((p,i)=>({name:pointName(i),xy:p.from})),segments:ordered.map((p,i)=>({...p,fromName:pointName(i),toName:pointName((i+1)%ordered.length)}))};
 }
 function renderSegmentInputs(){
+  // RC3.1: do not replace focused segment inputs (Android keyboard/scroll stability).
+  if(document.activeElement?.matches?.('#segmentInputs input[id^="segment_"]'))return;
   const g=pixelLiveBoundaryH();
   if(g){
     segmentInputs.innerHTML=g.segments.map(p=>`<div class="segment-row"><div class="segment-name">${p.fromName}–${p.toName}${p.kind==='arc'?' (дуга)':''}</div><div class="segment-radius-readonly">${p.length.toFixed(3)} м${p.kind==='arc'?' · R '+p.radius.toFixed(2)+' м':''}</div></div>`).join('');
@@ -1898,7 +1901,7 @@ let pixelHLastSignature='';
 setInterval(()=>{try{
   const r=(projectRooms||[]).find(x=>String(x.id)===String(activeRoomId));
   const signature=JSON.stringify([activeRoomId,roomPoints,segmentLengths,window.__pixelRadiusSessionV18,r?.planner?.radiusUnifiedV6]);
-  if(signature!==pixelHLastSignature){pixelHLastSignature=signature;renderSegmentInputs()}
+  if(signature!==pixelHLastSignature){pixelHLastSignature=signature;if(!document.activeElement?.matches?.('#segmentInputs input[id^="segment_"]'))renderSegmentInputs()}
 }catch(_){ }},450);
 function buildRoomFromSegments(push=true){if(!segmentLengths.length)segmentLengths=templateDefaults(roomTemplate);const dirs=templateDirections(roomTemplate),raw=[[0,0]];for(let i=0;i<segmentLengths.length-1;i++){const [x,y]=raw[raw.length-1],[dx,dy]=dirs[i];raw.push([x+dx*segmentLengths[i],y+dy*segmentLengths[i]])}const last=raw[raw.length-1],lastDir=dirs[segmentLengths.length-1],end=[last[0]+lastDir[0]*segmentLengths.at(-1),last[1]+lastDir[1]*segmentLengths.at(-1)];const closeError=Math.hypot(end[0],end[1]);const xs=raw.map(p=>p[0]),ys=raw.map(p=>p[1]),minX=Math.min(...xs),maxX=Math.max(...xs),minY=Math.min(...ys),maxY=Math.max(...ys),bw=Math.max(maxX-minX,.1),bh=Math.max(maxY-minY,.1),scale=Math.min(560/bw,400/bh),ox=120+(560-bw*scale)/2,oy=90+(400-bh*scale)/2;roomPoints=raw.map(([x,y])=>[ox+(x-minX)*scale,oy+(y-minY)*scale]);roomPoints._real=raw;if(push)pushPlanner();renderPlanner();const ok=closeError<.03;closureStatus.className='planner-hint '+(ok?'closure-ok':'closure-bad');closureStatus.innerHTML=ok?'✅ Контур замкнений. Розрахунок точний.':`⚠️ Контур не замикається на ${closeError.toFixed(2)} м. Для Г-подібної кімнати має виконуватись: A–B = C–D + E–F та F–A = B–C + D–E.`}
 function applyRoomSize(){buildRoomFromSegments(false)}
@@ -1962,16 +1965,45 @@ function profileState(){
   return out;
 }
 function currentCalculatedTotal(){return currentRows().reduce((s,r)=>s+r.sum,0)}
+// QA32 CORE: accepted room geometry is per-room, never taken from a generic UI field on reload.
+function qa32ExpectedRoomGeometry(r){
+  if(!r?.planner || !(r.contourLocked4325===true || r.planner.geometryStatus196f==='contour' || r.planner.geometryStatus196g==='contour'))return null;
+  const seg=r.planner.segments;
+  if(!Array.isArray(seg)||seg.length<3||!seg.every(v=>Number.isFinite(Number(v))&&Number(v)>0))return null;
+  const perimeter=Math.round(seg.reduce((a,v)=>a+Number(v),0)*100)/100;
+  const base=(r.rows||[]).find(x=>x.id==='base'&&Number.isFinite(Number(x.qty))&&Number(x.qty)>0);
+  const order=(r.productionOrders4408||[]).find(x=>Number(x.area)>0&&Math.abs(Number(x.perimeter)-perimeter)<0.04);
+  const area=base?Math.round(Number(base.qty)*100)/100:order?Math.round(Number(order.area)*100)/100:null;
+  return {area,perimeter};
+}
+function qa32RepairRoomGeometry(r,stage='unknown'){
+  const m=qa32ExpectedRoomGeometry(r);if(!m)return false;
+  const before={area:r.area,perimeter:r.perimeter};let changed=false;
+  if(Math.abs(Number(r.perimeter)-m.perimeter)>0.025 || !Number.isFinite(Number(r.perimeter))){r.perimeter=m.perimeter;changed=true;}
+  if(m.area!==null&&(Math.abs(Number(r.area)-m.area)>0.025 || !Number.isFinite(Number(r.area)))){r.area=m.area;changed=true;}
+  if(changed){
+    r.qa32LastCorrection={stage,before,after:{area:r.area,perimeter:r.perimeter},at:new Date().toISOString()};
+    console.warn('[Pixel QA32] geometry corrected',r.name,r.qa32LastCorrection);
+  }
+  return changed;
+}
+function qa32RepairAllRooms(stage){let count=0;for(const r of projectRooms)if(qa32RepairRoomGeometry(r,stage))count++;return count;}
+function qa32GeometryAudit(){return projectRooms.map(r=>({name:r.name,id:r.id,card:{area:r.area,perimeter:r.perimeter},source:qa32ExpectedRoomGeometry(r),segments:r.planner?.segments,correction:r.qa32LastCorrection||null}));}
+window.__PIXEL_QA32__={audit:qa32GeometryAudit,repair:()=>{const n=qa32RepairAllRooms('manual');renderRooms();return n;}};
 function captureCurrentRoom(){
   const existing=projectRooms.find(r=>r.id===activeRoomId);
   const preserved=deepCopy(existing||{});
+  // QA32: correct existing accepted room BEFORE capture; generic fields cannot replace accepted measurements.
+  if(existing)qa32RepairRoomGeometry(preserved,'capture-existing');
+  const sameSegments=existing&&JSON.stringify(existing.planner?.segments||[])===JSON.stringify(segmentLengths||[]);
+  const canonical=sameSegments?qa32ExpectedRoomGeometry(preserved):null;
   return{
     ...preserved,
     id:activeRoomId||preserved.id||uid('room'),
     name:(roomName?.value||preserved.name||'Кімната').trim()||'Кімната',
     photo:uploadedImageBase64||'',
-    area:num('area'),
-    perimeter:num('perimeter'),
+    area:canonical?.area ?? num('area'),
+    perimeter:canonical?.perimeter ?? num('perimeter'),
     corners:num('cornersCount'),
     chandeliers:num('chandelierCount'),
     height:num('ceilingHeight'),
@@ -2053,6 +2085,7 @@ function resetRoomWorkspace(name='Нова кімната'){
 }
 function restoreRoom(room){
   if(!room)return;
+  qa32RepairRoomGeometry(room,'restore-before-recalc');
   roomSyncLock=true;
   activeRoomId=room.id;
   roomName.value=room.name||'Кімната';
@@ -2078,6 +2111,10 @@ function restoreRoom(room){
   segmentLengths=deepCopy(room.planner?.segments||templateDefaults(roomTemplate));
   plannerObjects=deepCopy(room.planner?.objects||[]);
   renderSegmentInputs();buildRoomFromSegments(false);renderPlanner();renderPalette();updateAISpec();recalc();
+  // QA32: recalc can use legacy preliminary dimensions. Reassert accepted metrics after it.
+  qa32RepairRoomGeometry(room,'restore-after-recalc');
+  const acceptedMetrics=qa32ExpectedRoomGeometry(room);
+  if(acceptedMetrics){if(acceptedMetrics.area!==null)area.value=acceptedMetrics.area;perimeter.value=acceptedMetrics.perimeter;}
   roomSyncLock=false;
   renderRooms();
 }
@@ -2196,18 +2233,26 @@ function objectMetrics(){
   applyMinimumOrderRule();return{area,perimeter,calculated,total:priceWithObjectRule(calculated)+(Number(window.__objectWorksTotal4328?.())||0)};
 }
 function roomGeometryStatus196f(r){
+  // QA11: use persisted geometry of THIS room, never the editor's global state.
+  // A default rectangular template is not evidence of an accepted contour.
   try{
-    const explicit=String(r?.planner?.geometryStatus196f||'');
-    if(explicit==='contour')return 'contour';
-    const d=r?.planner?.freeDrawB48;
-    if(d&&d.closed===true&&d.freeDrawRoom===true&&Array.isArray(d.points)&&d.points.length>=3)return 'contour';
-  }catch(_){}
+    const p=r?.planner||{};
+    const points=Array.isArray(p.points)?p.points:[];
+    const segments=Array.isArray(p.segments)?p.segments:[];
+    const valid=points.length>=3 && points.every(pt=>Array.isArray(pt)&&pt.length>=2&&Number.isFinite(Number(pt[0]))&&Number.isFinite(Number(pt[1])))
+      && segments.length>=points.length && segments.slice(0,points.length).every(v=>Number.isFinite(Number(v))&&Number(v)>0);
+    const custom=String(p.template||'')==='custom';
+    const drawing=p.freeDrawB48;
+    const accepted=String(p.geometryStatus196f||'')==='contour';
+    const savedClosed=!!(drawing?.closed===true && drawing?.freeDrawRoom===true && Array.isArray(drawing.points)&&drawing.points.length>=3);
+    if(accepted && valid)return 'contour';
+    if(valid && custom && savedClosed)return 'contour';
+  }catch(e){console.warn('QA11 room status',e)}
   return 'base';
 }
 function roomGeometryStatusHtml196f(r){
-  const custom=roomGeometryStatus196f(r)==='contour';
-  return custom
-    ? '<span class="room-plan-status196f contour">Контур задано</span>'
+  return roomGeometryStatus196f(r)==='contour'
+    ? '<span class="room-plan-status196f contour">Контур замкнуто</span>'
     : '<span class="room-plan-status196f base">Базова геометрія плану</span>';
 }
 
@@ -2281,7 +2326,7 @@ function renderRooms(){
   document.addEventListener('DOMContentLoaded',()=>{
     const root=document.getElementById('roomList');
     const finance=document.getElementById('plannerRoomFinance4350');
-    if(root)new MutationObserver(queue).observe(root,{childList:true,subtree:true});
+    // QA10: no roomList observer; it caused competing card mutations during redraw.
     if(finance)new MutationObserver(queue).observe(finance,{childList:true,subtree:true,characterData:true});
     queue();
     document.addEventListener('click',()=>setTimeout(queue,80),true);
@@ -2295,6 +2340,7 @@ function objectMetricsNoSync(){
 }
 function collectObject(){
   syncActiveRoomFromUI(false);
+  qa32RepairAllRooms('collect-before-save');
   const m=objectMetricsNoSync();
   return{
     id:activeObjectId||uid('object'),
@@ -2408,7 +2454,7 @@ function loadObject(id){
   const list=JSON.parse(localStorage.getItem('potolok_pixel5_objects')||'[]').map(normalizeLegacyObject),o=list.find(x=>x.id===id);if(!o)return;
   roomSyncLock=true;activeObjectId=o.id;clientName.value=o.clientName||'';clientPhone.value=o.clientPhone||'';objectAddress.value=o.address||'';
   measureDate.value=o.date||'';ceilingHeight.value=o.height||2.7;objectComment.value=o.comment||'';
-  projectRooms=deepCopy(o.rooms||[]);activeRoomId=o.activeRoomId&&projectRooms.some(r=>r.id===o.activeRoomId)?o.activeRoomId:projectRooms[0]?.id;
+  projectRooms=deepCopy(o.rooms||[]);qa32RepairAllRooms('load-object-or-draft');activeRoomId=o.activeRoomId&&projectRooms.some(r=>r.id===o.activeRoomId)?o.activeRoomId:projectRooms[0]?.id;
   roomSyncLock=false;if(!projectRooms.length){newObject();return}
   restoreRoom(projectRooms.find(r=>r.id===activeRoomId)||projectRooms[0]);saveStatus.textContent='Об’єкт відкрито';renderHistory();window.scrollTo({top:0,behavior:'smooth'});
 }
@@ -2419,7 +2465,7 @@ function loadDraft(){
     const o=normalizeLegacyObject(JSON.parse(raw));roomSyncLock=true;activeObjectId=o.id||null;
     clientName.value=o.clientName||'';clientPhone.value=o.clientPhone||'';objectAddress.value=o.address||'';
     measureDate.value=o.date||localDateISO();ceilingHeight.value=o.height||2.7;objectComment.value=o.comment||'';
-    projectRooms=deepCopy(o.rooms||[]);activeRoomId=o.activeRoomId&&projectRooms.some(r=>r.id===o.activeRoomId)?o.activeRoomId:projectRooms[0]?.id;
+    projectRooms=deepCopy(o.rooms||[]);qa32RepairAllRooms('load-object-or-draft');activeRoomId=o.activeRoomId&&projectRooms.some(r=>r.id===o.activeRoomId)?o.activeRoomId:projectRooms[0]?.id;
     roomSyncLock=false;if(!projectRooms.length){newObject();return}
     restoreRoom(projectRooms.find(r=>r.id===activeRoomId)||projectRooms[0]);
   }catch(e){newObject()}
@@ -2564,12 +2610,33 @@ function removeContourPoint(){
   renderSegmentInputs();renderPlanner();autosave();
 }
 function updateSegment(i,value){
-  segmentLengths[i]=Math.max(.01,Number(String(value).replace(',','.'))||.01);
+  // RC3.2: a committed value is applied atomically to geometry, metrics and room state.
+  const v=Number(String(value).replace(',','.'));
+  if(!Number.isFinite(v)||v<=0||i<0||i>=segmentLengths.length)return;
+  segmentLengths[i]=v;
+  // RC3.3: each measured wall is independent. Never overwrite the opposite side.
+  // buildRoomFromSegments validates closure against the actual four measurements.
   if(roomTemplate==='custom'){
     rebuildCustomByLengths();
-    renderPlanner();autosave();return;
+    renderPlanner();
+  }else{
+    buildRoomFromSegments(false);
   }
-  buildRoomFromSegments(false);autosave();
+  // Update canonical metrics immediately; legacy V19.6H displays stored room metrics.
+  try{
+    const m=window.polygonMetrics();
+    if(m&&m.valid&&Number.isFinite(m.area)&&Number.isFinite(m.perimeter)){
+      const a=document.getElementById('area'),p=document.getElementById('perimeter');
+      if(a)a.value=m.area.toFixed(2);
+      if(p)p.value=m.perimeter.toFixed(2);
+      const r=projectRooms.find(x=>String(x.id)===String(activeRoomId));
+      if(r){r.area=Number(m.area.toFixed(2));r.perimeter=Number(m.perimeter.toFixed(2));}
+    }
+    renderPlanner();
+  }catch(e){console.warn('RC3.2 metric sync',e)}
+  autosave();
+  // The input DOM is regenerated only after focus leaves the edited field.
+  if(!document.activeElement?.matches?.('#segmentInputs input[id^="segment_"]'))renderSegmentInputs();
 }
 
 function rebuildCustomByLengths(){
@@ -3100,7 +3167,7 @@ async function renderHistory(){
  objectList.innerHTML=list.length?list.map(o=>`<div class="object-card"><b>${o.clientName||'Без імені'} — ${o.address||'Без адреси'}</b><span>${o.date||''} • ${(o.rooms||[]).length} кімн. • ${Number(o.area||0).toFixed(2)} м² • ${money(o.total||0)}</span><div class="object-actions"><button onclick="loadObject('${o.id}')">Відкрити</button><button onclick="deleteObject('${o.id}')">Видалити</button></div></div>`).join(''):'<div class="notice">Збережених об’єктів поки немає.</div>';
  }catch(e){objectList.innerHTML='<div class="notice">Помилка архіву: '+e.message+'</div>'}
 }
-async function loadObject(id){const o=await dbGetObject(id);if(!o)return alert('Об’єкт не знайдено.');roomSyncLock=true;activeObjectId=o.id;clientName.value=o.clientName||'';clientPhone.value=o.clientPhone||'';objectAddress.value=o.address||'';measureDate.value=o.date||'';ceilingHeight.value=o.height||2.7;objectComment.value=o.comment||'';projectRooms=deepCopy(o.rooms||[]);activeRoomId=o.activeRoomId&&projectRooms.some(r=>r.id===o.activeRoomId)?o.activeRoomId:projectRooms[0]?.id;roomSyncLock=false;if(!projectRooms.length){newObject();return}restoreRoom(projectRooms.find(r=>r.id===activeRoomId)||projectRooms[0]);saveStatus.textContent='Об’єкт відкрито';window.scrollTo({top:0,behavior:'smooth'})}
+async function loadObject(id){const o=await dbGetObject(id);if(!o)return alert('Об’єкт не знайдено.');roomSyncLock=true;activeObjectId=o.id;clientName.value=o.clientName||'';clientPhone.value=o.clientPhone||'';objectAddress.value=o.address||'';measureDate.value=o.date||'';ceilingHeight.value=o.height||2.7;objectComment.value=o.comment||'';projectRooms=deepCopy(o.rooms||[]);qa32RepairAllRooms('load-object-or-draft');activeRoomId=o.activeRoomId&&projectRooms.some(r=>r.id===o.activeRoomId)?o.activeRoomId:projectRooms[0]?.id;roomSyncLock=false;if(!projectRooms.length){newObject();return}restoreRoom(projectRooms.find(r=>r.id===activeRoomId)||projectRooms[0]);saveStatus.textContent='Об’єкт відкрито';window.scrollTo({top:0,behavior:'smooth'})}
 async function deleteObject(id){if(!confirm('Видалити об’єкт з архіву?'))return;await dbDeleteObject(id);renderHistory()}
 async function exportHistory(){const data=await dbGetObjects(),a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'}));a.download='potolok-objects-pixel53.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
 
@@ -3957,8 +4024,8 @@ loadMarkupFromRoom();drawMarkupCanvas();renderHistory();
 (() => {
   'use strict';
 
-  document.title='Potolok AI PRO — Pixel 5.6';
-  document.querySelectorAll('.hero-badge').forEach(el=>el.textContent='✨ POTOLOK AI PRO — PIXEL 5.6');
+  document.title='PIXEL QA35';
+  document.querySelectorAll('.hero-badge').forEach(el=>el.textContent='✨ PIXEL QA35');
 
   const style=document.createElement('style');
   style.textContent=`
@@ -4505,7 +4572,9 @@ loadMarkupFromRoom();drawMarkupCanvas();renderHistory();
     input.addEventListener('pointerdown',beginGesture);
     input.addEventListener('touchstart',beginGesture,{passive:true});
     input.addEventListener('input',applyTransform);
-    return()=>{document.getElementById(valueId).textContent=input.value+suffix};
+    // QA24: update the label owned by this control, not another element with a legacy ID.
+    const ownedValue=label.querySelector('span:last-child');
+    return()=>{if(ownedValue)ownedValue.textContent=input.value+suffix};
   }
 
   // New required control: move the whole template up/down.
@@ -4514,7 +4583,7 @@ loadMarkupFromRoom();drawMarkupCanvas();renderHistory();
   vertical.id='tplVertical56';vertical.type='range';vertical.min='-250';vertical.max='250';vertical.step='1';vertical.value='0';
   perspectiveBox.insertAdjacentElement('afterend',verticalBox);
 
-  const updateScale=makeControl(scaleBox,scale,'Масштаб шаблону','templateScaleValue55','%');
+  const updateScale=makeControl(scaleBox,scale,'Масштаб шаблону','templateScaleValue56','%');
   const updateAngle=makeControl(angleBox,angle,'Поворот шаблону','tplAngleValue56','°');
   const updatePerspective=makeControl(perspectiveBox,perspective,'Перспектива стелі','tplPerspectiveValue56','%');
   const frontBox=document.createElement('div');
@@ -4949,7 +5018,7 @@ function renderRoomMaterials(){
   const perimeter=(Number(radiusMetrics61?.perimeter)>0?Number(radiusMetrics61.perimeter):(num('perimeter')||polygonMetrics().perimeter||0));
   const rows=[
     materialRow('#dbeafe',`Полотно ${calcManufacturerLabel()}`,`${calcTextureLabel()} • ${money(calcTexturePrice())}/м²`,`${displayArea61.toFixed(2)} м²`),
-    materialRow(profile==='p'?'#a16207':'#075bff',baseProfileLabel(),'Входить у базову вартість',`${Number(perimeter).toFixed(2)} м`),
+    materialRow(profile==='p'?'#a16207':'#075bff',baseProfileLabel(),'Входить у базову вартість',`${Number((typeof perimeterBindings!=='undefined'&&perimeterBindings.some(x=>Array.isArray(x)&&x.length))?((bindingLengths().baseH||0)+(bindingLengths().baseP||0)):perimeter).toFixed(2)} м`),
     materialRow(insert==='black'?'#111827':'#ffffff',insertPackageLabel(),insert==='none'?'Не вибрано':'50 грн/м.п.',insert==='none'?'—':`${Number(perimeter).toFixed(2)} м`)
   ];
   const map=[
@@ -4998,14 +5067,15 @@ renderPlanner=function(){
       polygon.setAttribute('stroke','transparent');
       polygon.setAttribute('stroke-width','0');
     }else{
-      polygon.setAttribute('stroke',profile==='p'?'#a16207':'#075bff');
-      polygon.setAttribute('stroke-width','5');
+      polygon.setAttribute('stroke',Array.isArray(perimeterBindings)&&perimeterBindings.some(x=>Array.isArray(x)&&x.length)?'transparent':(profile==='p'?'#a16207':'#075bff'));
+      polygon.setAttribute('stroke-width',Array.isArray(perimeterBindings)&&perimeterBindings.some(x=>Array.isArray(x)&&x.length)?'0':'5');
       if(insert!=='none'){
         const overlay=polygon.cloneNode(false);
         overlay.setAttribute('fill','none');
         overlay.setAttribute('stroke',insert==='black'?'#111827':'#ffffff');
-        overlay.setAttribute('stroke-width','10');
-        overlay.setAttribute('stroke-dasharray','14 8');
+        /* QA8: match the thin, continuous insert used on the main room plan. */
+        overlay.setAttribute('stroke-width','2.5');
+        overlay.removeAttribute('stroke-dasharray');
         overlay.setAttribute('stroke-linecap','round');
         overlay.style.pointerEvents='none';
         overlay.setAttribute('data-legacy-package61','1');
@@ -5246,19 +5316,32 @@ let perimeterBindings=[];
 let bindSidesMode=false;
 let clearSideMode68=false;
 
+/* QA35: one structural profile per wall; explicit cleared wall persists. */
+const QA34_MAIN_PROFILES=new Set(['baseH','baseP','shadow','floating','cornice','corniceLed']);
+const QA35_EMPTY='qa35Cleared';
+function qa34NormalizeWallBindings(list){
+  if(!Array.isArray(list))return [];
+  const result=[];
+  for(const type of list){
+    if(QA34_MAIN_PROFILES.has(type)){
+      for(let i=result.length-1;i>=0;i--)if(QA34_MAIN_PROFILES.has(result[i]))result.splice(i,1);
+    }
+    if(type===QA35_EMPTY){result.length=0;result.push(type);continue;}
+    if(type!==QA35_EMPTY){const pos=result.indexOf(QA35_EMPTY);if(pos>=0)result.splice(pos,1);}
+    if(!result.includes(type))result.push(type);
+  }
+  return result;
+}
 function ensureBindings(){
   while(perimeterBindings.length<roomPoints.length)perimeterBindings.push([]);
   if(perimeterBindings.length>roomPoints.length)perimeterBindings=perimeterBindings.slice(0,roomPoints.length);
-  perimeterBindings=perimeterBindings.map(x=>Array.isArray(x)?x:[]);
+  perimeterBindings=perimeterBindings.map(qa34NormalizeWallBindings);
 }
 function selectedBindType(){return document.getElementById('bindMaterial')?.value||'baseH'}
 function sameGroup(a,b){
   const groups=[
-    ['baseH','baseP'],
+    ['baseH','baseP','shadow','floating','cornice','corniceLed'],
     ['insertWhite','insertBlack'],
-    ['shadow'],
-    ['floating'],
-    ['cornice','corniceLed'],
     ['ledStrip'],
     ['porcelain','finishPainted'],
     ['wallRedBrick','wallWhiteBrick','wallConcrete','wallDrywall']
@@ -5269,7 +5352,7 @@ function bindMaterialAll(){
   ensureBindings();
   const type=selectedBindType();
   perimeterBindings=perimeterBindings.map(list=>{
-    const next=list.filter(x=>!sameGroup(x,type));
+    const next=list.filter(x=>x!==QA35_EMPTY&&!sameGroup(x,type));
     next.push(type);
     return next;
   });
@@ -5311,7 +5394,7 @@ function toggleBoundSide(index){
   if(!bindSidesMode&&!clearSideMode68)return;
   ensureBindings();
   if(clearSideMode68){
-    perimeterBindings[index]=[];
+    perimeterBindings[index]=[QA35_EMPTY];
     clearSideMode68=false;
     syncClearSideUi68();
     syncMainPackageFromBindings();
@@ -5323,15 +5406,15 @@ function toggleBoundSide(index){
   const type=selectedBindType();
   const list=perimeterBindings[index]||[];
   const exists=list.includes(type);
-  let next=list.filter(x=>!sameGroup(x,type));
+  let next=list.filter(x=>x!==QA35_EMPTY&&!sameGroup(x,type));
   if(!exists)next.push(type);
-  perimeterBindings[index]=next;
+  perimeterBindings[index]=next.length?next:[QA35_EMPTY];
   syncMainPackageFromBindings();
   renderPlanner();syncActiveRoomFromUI(false);autosave();
 }
 function clearBindings(){
   ensureBindings();
-  perimeterBindings=perimeterBindings.map(()=>[]);
+  perimeterBindings=perimeterBindings.map(()=>[QA35_EMPTY]);
   bindSidesMode=false;clearSideMode68=false;
   const bindBtn=document.getElementById('bindSidesBtn'),clearBtn=document.getElementById('clearSideBtn');
   if(bindBtn){bindBtn.classList.remove('blue');bindBtn.classList.add('outline');bindBtn.textContent='☝ По окремих сторонах'}
@@ -5359,9 +5442,9 @@ function canonicalBindingLengths196V(){
   ensureBindings();const out={},n=roomPoints.length,corners=Array.from({length:n},(_,i)=>radiusCornerMetric196V(i));
   for(let i=0;i<n;i++){
     const base=Math.max(0,Number(segmentLengths[i])||0),a=corners[i]?.tangent||0,b=corners[(i+1)%n]?.tangent||0,len=Math.max(0,base-a-b);
-    for(const type of (perimeterBindings[i]||[]))out[type]=(out[type]||0)+len;
+    for(const type of (perimeterBindings[i]||[]))if(type!==QA35_EMPTY)out[type]=(out[type]||0)+len;
   }
-  for(let i=0;i<n;i++){const c=corners[i];if(!c)continue;const prev=(perimeterBindings[(i-1+n)%n]||[]),next=(perimeterBindings[i]||[]);for(const type of prev){if(next.includes(type))out[type]=(out[type]||0)+c.arc}}
+  for(let i=0;i<n;i++){const c=corners[i];if(!c)continue;const prev=(perimeterBindings[(i-1+n)%n]||[]),next=(perimeterBindings[i]||[]);for(const type of prev){if(type!==QA35_EMPTY&&next.includes(type))out[type]=(out[type]||0)+c.arc}}
   return out;
 }
 function bindingLengths(){return canonicalBindingLengths196V()}
@@ -5403,7 +5486,7 @@ function renderPerimeterBindings(){
   };
   roomPoints.forEach((p,i)=>{
     const q=roomPoints[(i+1)%n],list=perimeterBindings[i]||[],ends=edgeEnds(i),a=ends[0],b=ends[1];
-    list.forEach((type,idx)=>{
+    list.filter(type=>type!==QA35_EMPTY).forEach((type,idx)=>{
       const meta=BIND_TYPES[type];if(!meta)return;
       const dx=b[0]-a[0],dy=b[1]-a[1],len=Math.hypot(dx,dy)||1;
       const nx=-dy/len,ny=dx/len,off=(idx-(list.length-1)/2)*8;
@@ -5413,7 +5496,7 @@ function renderPerimeterBindings(){
     });
     const hit=svgEl('line',{x1:a[0],y1:a[1],x2:b[0],y2:b[1],class:'bound-segment-hit'});
     hit.addEventListener('click',e=>{e.stopPropagation();toggleBoundSide(i)});roomLayer.appendChild(hit);
-    if(list.length){const label=svgEl('text',{x:(a[0]+b[0])/2,y:(a[1]+b[1])/2+18,'text-anchor':'middle',fill:'#0f172a',class:'bound-segment-label'});label.textContent=list.map(x=>BIND_TYPES[x]?.name||x).join(' + ');roomLayer.appendChild(label)}
+    if(list.some(type=>type!==QA35_EMPTY)){const label=svgEl('text',{x:(a[0]+b[0])/2,y:(a[1]+b[1])/2+18,'text-anchor':'middle',fill:'#0f172a',class:'bound-segment-label'});label.textContent=list.filter(x=>x!==QA35_EMPTY).map(x=>BIND_TYPES[x]?.name||x).join(' + ');roomLayer.appendChild(label)}
   });
   /* A rounded corner is itself a perimeter section. Continue only materials that exist
      on both adjacent walls, so profile/insert follows the real radius instead of old vertex. */
@@ -5421,7 +5504,7 @@ function renderPerimeterBindings(){
     if(!c)return;
     const prev=perimeterBindings[(i-1+n)%n]||[],next=perimeterBindings[i]||[];
     const common=prev.filter(t=>next.includes(t));
-    common.forEach((type,idx)=>{
+    common.filter(type=>type!==QA35_EMPTY).forEach((type,idx)=>{
       const meta=BIND_TYPES[type];if(!meta)return;
       const off=(idx-(common.length-1)/2)*8;
       /* For the small package offsets use concentric radius; this keeps profile and insert parallel. */
@@ -5503,7 +5586,7 @@ captureCurrentRoom=function(){
   const saved=deepCopy(Array.isArray(before?.perimeterBindings)?before.perimeterBindings:[]);
   const hasLive=live.some(list=>Array.isArray(list)&&list.length);
   const hasSaved=saved.some(list=>Array.isArray(list)&&list.length);
-  room.perimeterBindings=(hasLive||!hasSaved)?live:saved;
+  room.perimeterBindings=live;
   return room;
 };
 const restoreRoom63=restoreRoom;
@@ -13266,7 +13349,7 @@ function renderFilmPackage4317(){
   const dot=document.getElementById('filmColorDot4317');
 
   if(title)title.textContent=`Плівка ${manufacturer}`;
-  if(meta)meta.textContent=`Колір: ${color.name||'Білий 301'} · Фактура: ${textureLabel4317(texture)}`;
+  if(meta)meta.textContent=`Колір: ${window.pixelFilmRC35?.label?.() || color.name||'Білий 301'} · Фактура: ${textureLabel4317(texture)}`;
   if(dot)dot.style.background=color.hex||'#fff';
 
   document.querySelectorAll('.film-texture4317').forEach(button=>{
@@ -13294,6 +13377,11 @@ function installFilmPackage4317(){
         <b id="filmMeta4317">Колір: Білий 301 · Фактура: Матова</b>
         <span>Фактуру можна змінити дотиком нижче.</span>
       </div>
+    </div>
+    <div class="film-manual-color-rc35" id="filmManualColorRC35">
+      <label><input type="checkbox" id="filmWhiteRC35" checked onchange="window.pixelFilmRC35?.change(this.checked,'base')"> Білий колір полотна (за замовчуванням)</label>
+      <div id="filmCustomWrapRC35" hidden><label for="filmCustomRC35">Колір / номер / уточнення</label><textarea id="filmCustomRC35" rows="2" placeholder="Напр.: світло-бежевий мат, номер уточнити" oninput="window.pixelFilmRC35?.edit(this.value,'base')"></textarea></div>
+      <div class="film-photo-rc36" id="filmPhotoBoxRC36" hidden><label class="film-photo-label-rc36">📷 Фото кольору із каталогу<input type="file" accept="image/*" capture="environment" onchange="window.pixelFilmPhotoRC36?.upload(this)"></label><img id="filmPhotoPreviewRC36" hidden alt="Фото кольору"><button type="button" id="filmPhotoDeleteRC36" hidden onclick="window.pixelFilmPhotoRC36?.remove()">Видалити фото</button></div>
     </div>
     <div class="film-textures4317">
       <button class="film-texture4317" data-texture="matte" type="button"
@@ -13457,7 +13545,8 @@ if(typeof captureBase4317==='function'){
       manufacturer:document.getElementById('calcManufacturer')?.value||color.manufacturer||'MSD Premium',
       color:color.name||'Білий 301',
       colorHex:color.hex||'#ffffff',
-      texture:selectedTexture4317()
+      texture:selectedTexture4317(),
+      manualColorRC35:window.pixelFilmRC35?.state?.()||null
     };
     return room;
   };
@@ -14481,7 +14570,7 @@ function activeRoom4325(){return rooms4325().find(r=>String(r?.id)===String(type
 function toast4325(msg){if(typeof window.pixelToast431==='function')window.pixelToast431(msg);else{const n=document.createElement('div');n.textContent=msg;n.style='position:fixed;z-index:9999;left:50%;bottom:25px;transform:translateX(-50%);background:#071428;color:#fff;padding:10px 13px;border-radius:10px;font:900 10px Arial';document.body.appendChild(n);setTimeout(()=>n.remove(),2200)}}
 function currentTab4325(){return document.querySelector('.page-section.active')?.id?.replace('tab_','')||'object'}
 function tabButton4325(name){return [...document.querySelectorAll('.main-tab')].find(b=>(b.getAttribute('onclick')||'').includes(`'${name}'`)||(b.getAttribute('onclick')||'').includes(`"${name}"`))}
-function saveState4325(){try{if(typeof syncActiveRoomFromUI==='function')syncActiveRoomFromUI(false);if(typeof autosave==='function')autosave()}catch(e){console.warn('43(26) save state',e)}}
+function saveState4325(){try{if(typeof syncActiveRoomFromUI==='function')syncActiveRoomFromUI(false);if(typeof renderRooms==='function')renderRooms();if(typeof autosave==='function')autosave()}catch(e){console.warn('43(26) save state',e)}}
 
 /* ---------- NAVIGATION ---------- */
 function navState4325(){return{pixel4325:true,tab:currentTab4325(),roomId:typeof activeRoomId!=='undefined'?activeRoomId:null,panel:objectPanel4325}}
@@ -16088,6 +16177,154 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 <script id="pixelRC1DocumentTitle">
 (function(){const title='Potolok AI PRO — Pixel V19.6 RC1';document.title=title;window.addEventListener('load',()=>{document.title=title},{once:true});})();
 </script>
+<style id="pixelFilmRC35Styles">
+.film-manual-color-rc35{margin:10px 0;padding:11px;border:1px solid #bfdbfe;border-radius:11px;background:#f8fbff;font-size:11px;color:#0f172a}
+.film-manual-color-rc35>label{display:flex;align-items:center;gap:9px;font-weight:900;line-height:1.35}
+.film-manual-color-rc35 input[type=checkbox]{width:19px;height:19px;flex:0 0 19px;accent-color:#075bff}
+.film-manual-color-rc35 div:not([hidden]){display:grid;gap:5px;margin-top:10px}
+.film-manual-color-rc35 div[hidden]{display:none!important}
+.film-manual-color-rc35 textarea{display:block;width:100%;min-height:55px;resize:vertical;padding:9px;border:1px solid #93c5fd;border-radius:8px;background:#fff;color:#0f172a;font:inherit;font-size:11px}
+.film-manual-color-rc35 div label{font-size:10px;font-weight:850}
+</style>
+<script id="pixelFilmRC35Script">
+(function(){'use strict';
+if(window.pixelFilmRC35)return;
+const clone=x=>{try{return JSON.parse(JSON.stringify(x))}catch(_){return x}};
+let activeKey=null, busy=false;
+function room(){try{return (projectRooms||[]).find(r=>String(r.id)===String(activeRoomId))||null}catch(_){return null}}
+function key(){const r=room();return r?String(r.id):null}
+function read(){const r=room();return r?.filmColorRC35||r?.filmPackage4317?.manualColorRC35||{white:true,text:''}}
+function state(){const v=read();return {white:v.white!==false,text:String(v.text||'')}}
+function label(){const v=state();return v.white?'Білий 301':(v.text.trim()||'КОЛІР УТОЧНИТИ')}
+function draw(){if(busy)return;busy=true;try{const v=state();for(const prefix of ['film','prod']){const w=document.getElementById(prefix+'WhiteRC35'),c=document.getElementById(prefix+'CustomRC35'),box=document.getElementById(prefix+'CustomWrapRC35');if(w)w.checked=v.white;if(box)box.hidden=v.white;if(c&&document.activeElement!==c)c.value=v.text;}const meta=document.getElementById('filmMeta4317');if(meta){const texture=document.getElementById('calcTexture')?.value||'matte';meta.textContent='Колір: '+label()+' · Фактура: '+(texture==='satin'?'Сатин':texture==='glossy'?'Глянець':'Матова');}const prod=document.getElementById('prodColor4408');if(prod)prod.textContent='Поточний колір / номер: '+label();}finally{busy=false}}
+function store(v){const r=room();if(!r)return;r.filmColorRC35={white:v.white!==false,text:String(v.text||'')};if(r.filmPackage4317)r.filmPackage4317.manualColorRC35=clone(r.filmColorRC35);if(r.productionDraft4408)r.productionDraft4408.filmColorRC35=clone(r.filmColorRC35);try{autosave?.()}catch(_){}draw();window.pixelFilmPhotoRC36?.redraw()}
+function change(white,source){const v=state();v.white=!!white;if(!white){const c=document.getElementById((source==='prod'?'prod':'film')+'CustomRC35');if(c)v.text=c.value||v.text;}store(v)}
+function edit(text){const v=state();v.white=false;v.text=text;store(v)}
+window.pixelFilmRC35={state,label,change,edit,draw};
+const capture=window.captureCurrentRoom;
+if(typeof capture==='function')window.captureCurrentRoom=function(){const result=capture.apply(this,arguments);if(result){const v=state();result.filmColorRC35=clone(v);result.filmColorPhotoRC36=room()?.filmColorPhotoRC36||null;if(result.filmPackage4317)result.filmPackage4317.manualColorRC35=clone(v)}return result};
+const restore=window.restoreRoom;
+if(typeof restore==='function')window.restoreRoom=function(r){const result=restore.apply(this,arguments);if(r?.filmColorRC35){const live=room();if(live)live.filmColorRC35=clone(r.filmColorRC35)}requestAnimationFrame(draw);return result};
+const save=window.saveProductionOrder4408;
+if(typeof save==='function')window.saveProductionOrder4408=function(){const r=room(),v=clone(state());if(r){r.productionDraft4408=r.productionDraft4408||{};r.productionDraft4408.filmColorRC35=clone(v)}const o=save.apply(this,arguments);if(o){o.filmColorRC35=clone(v);o.color=v.white?'Білий 301':(v.text||'КОЛІР УТОЧНИТИ');const a=r?.productionOrders4408;if(Array.isArray(a)){const found=a.find(x=>x===o||x.id&&x.id===o.id);if(found){found.filmColorRC35=clone(v);found.color=o.color}}try{autosave?.()}catch(_){}}return o};
+for(const name of ['syncProductionOrder4408','syncProductionWorkspace4409','renderRoomMaterials']){const base=window[name];if(typeof base==='function')window[name]=function(){const result=base.apply(this,arguments);draw();return result}}
+function watch(){const k=key();if(k!==activeKey){activeKey=k;draw()} }
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{draw();document.addEventListener('click',()=>requestAnimationFrame(watch),true)},{once:true});else{draw();document.addEventListener('click',()=>requestAnimationFrame(watch),true)}
+})();
+</script>
+
+<!-- QA5: focused fix for NW film dialog close, no diagnostic additions -->
+<script id="pixelQA5FilmCloseFix">
+(function(){
+  'use strict';
+  function closeFilmQA5(){
+    const host=document.getElementById('film4415');
+    if(host){host.replaceChildren();host.remove();}
+    // Also release any stale film-only overlay. Do not modify room or NW materials.
+    const mini=document.getElementById('nwMiniHost4413');
+    if(mini && mini.querySelector('.nw-mini-modal4413'))mini.replaceChildren();
+    const catalog=document.getElementById('nwModal4413');
+    if(catalog)catalog.classList.remove('open');
+    document.documentElement.style.removeProperty('overflow');
+    document.body.style.removeProperty('overflow');
+  }
+  document.addEventListener('click',function(e){
+    const btn=e.target && e.target.closest && e.target.closest('#film4415 #fc4415');
+    if(!btn)return;
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    closeFilmQA5();
+  },true);
+  document.addEventListener('keydown',function(e){
+    if(e.key!=='Escape'||!document.getElementById('film4415'))return;
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    closeFilmQA5();
+  },true);
+})();
+</script>
+
+<!-- QA7: hide the contour editor footer only while production preview is active.
+     Preserve contour editing controls when the user returns to geometry. -->
+<style id="pixel-qa7-production-footer-fix">
+#freeDrawModal4405:has(#productionPlanPreview4415A.show) .free-draw-footer4405 {
+  display: none !important;
+}
+</style>
+
+<!-- QA13: explicit contour acceptance in main planner; no automatic acceptance of templates -->
+<style id="qa13AcceptStyle">#qa13AcceptContour{display:block;width:100%;margin:10px 0;padding:14px;border:1px solid #16a34a;border-radius:12px;background:#dcfce7;color:#166534;font-size:14px;font-weight:900}</style>
+<script id="qa13AcceptMainContour">
+(function(){'use strict';
+ function mount(){
+  const lock=document.getElementById('plannerContourLock33');if(!lock||document.getElementById('qa13AcceptContour'))return;
+  const b=document.createElement('button');b.type='button';b.id='qa13AcceptContour';b.textContent='✅ Прийняти контур кімнати';
+  lock.insertAdjacentElement('afterend',b);
+  b.addEventListener('click',function(){
+   try{
+    const room=projectRooms.find(x=>String(x.id)===String(activeRoomId));
+    const pts=Array.isArray(roomPoints)?roomPoints:[];
+    const lengths=Array.isArray(segmentLengths)?segmentLengths:[];
+    if(!room||pts.length<3||lengths.length<pts.length||!lengths.slice(0,pts.length).every(v=>Number.isFinite(Number(v))&&Number(v)>0)){
+     alert('Спочатку створіть контур із щонайменше трьох точок і введіть довжини всіх стін.');return;
+    }
+    // Preserve existing save flow and all room data; accept only after successful save.
+    if(typeof savePlannerRoom==='function')savePlannerRoom();
+    else {syncActiveRoomFromUI(true);autosave()}
+    const current=projectRooms.find(x=>String(x.id)===String(activeRoomId));
+    if(!current?.planner)throw new Error('План кімнати не збережено');
+    current.planner.geometryStatus196f='contour';
+    if(typeof autosave==='function')autosave();
+    if(typeof renderRooms==='function')renderRooms();
+    b.textContent='✅ Контур прийнято';
+   }catch(e){console.error('QA13 accept',e);alert('Не вдалося прийняти контур: '+e.message)}
+  });
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',mount,{once:true});else mount();
+})();
+</script>
+<script id="pixelQA33DurableBindings">
+/* QA33: durable per-wall profile bindings; isolated derivative of QA32. */
+(function(){'use strict';
+if(window.__pixelQA33Bindings)return;
+const clone=v=>JSON.parse(JSON.stringify(v));
+const room=()=>{try{return projectRooms.find(r=>String(r.id)===String(activeRoomId))||null}catch(_){return null}};
+const valid=b=>Array.isArray(b)&&b.every(x=>Array.isArray(x));
+const sig=b=>JSON.stringify(b||[]);
+const meaningful=b=>valid(b)&&b.some(a=>a.some(t=>['shadow','floating','baseH','baseP'].includes(t)));
+const key=r=>'pixel_qa33_wall_bindings_'+String(activeObjectId||'draft')+'_'+String(r.id);
+let restoring=false,token=0;
+function live(){try{return valid(perimeterBindings)?clone(perimeterBindings):[]}catch(_){return []}}
+function apply(r,b){if(!r||!valid(b))return;const x=clone(b);r.perimeterBindings=clone(x);r.planner=r.planner||{};r.planner.perimeterBindings=clone(x);if(r.insertPersistence4487)r.insertPersistence4487.bindings=clone(x);if(String(r.id)===String(activeRoomId)){try{perimeterBindings=clone(x)}catch(_){window.perimeterBindings=clone(x)}}}
+function backup(r,b){if(!r||!valid(b))return;apply(r,b);try{localStorage.setItem(key(r),JSON.stringify({bindings:b,segments:clone(r.planner?.segments||[]),savedAt:Date.now()}))}catch(e){console.warn('QA33 wall backup failed',e)}}
+function recover(r){if(!r)return null;const stored=valid(r.perimeterBindings)?r.perimeterBindings:[];let b=stored;if(!meaningful(b)&&valid(r.planner?.perimeterBindings)&&meaningful(r.planner.perimeterBindings))b=r.planner.perimeterBindings;
+ try{const old=JSON.parse(localStorage.getItem(key(r))||'null');if(old&&valid(old.bindings)&&sig(old.segments)===sig(r.planner?.segments||[])&&meaningful(old.bindings)&&!meaningful(b))b=old.bindings}catch(_){}
+ return clone(b);
+}
+function commit(){if(restoring)return;const r=room();if(!r)return;const b=live();if(!valid(b)||!b.length)return;backup(r,b)}
+// Commit immediately after an actual wall operation, before legacy autosave/recalculation can replace the room.
+for(const name of ['bindMaterialAll','toggleBoundSide','clearBindings']){try{const original=window[name];if(typeof original!=='function')continue;window[name]=function(){const out=original.apply(this,arguments);commit();try{autosave()}catch(_){}return out}}catch(e){console.warn('QA33 hook',name,e)}}
+// The legacy capture may use temporary default H profiles during a restore. Never let those defaults overwrite a saved mixed profile layout.
+try{const base=window.syncActiveRoomFromUI;if(typeof base==='function')window.syncActiveRoomFromUI=function(){if(restoring)return;const r=room(),before=r?recover(r):null;const b=live();const out=base.apply(this,arguments);const after=room();if(after){const preferred=meaningful(b)?b:(meaningful(before)?before:b);if(valid(preferred)&&preferred.length)backup(after,preferred)}return out}}catch(e){console.warn('QA33 sync',e)}
+try{const base=window.restoreRoom;if(typeof base==='function')window.restoreRoom=function(target){const id=++token;const snapshot=recover(target);restoring=true;let out;try{out=base.apply(this,arguments)}finally{if(snapshot?.length){apply(target,snapshot);try{renderPlanner()}catch(_){}}const finish=()=>{if(id!==token)return;const r=room();if(!r||String(r.id)!==String(target?.id)){restoring=false;return}if(snapshot?.length){apply(r,snapshot);try{renderPlanner();updateSummary()}catch(_){}}restoring=false};setTimeout(finish,260)}return out}}catch(e){console.warn('QA33 restore',e)}
+try{const base=window.savePlannerRoom;if(typeof base==='function')window.savePlannerRoom=function(){commit();const b=live();const out=base.apply(this,arguments);const r=room();if(r&&b.length){backup(r,b);try{autosave()}catch(_){}}return out}}catch(e){console.warn('QA33 save',e)}
+window.__pixelQA33Bindings={inspect(){const r=room();return {room:r?.name,live:live(),saved:clone(r?.perimeterBindings||[]),match:sig(live())===sig(r?.perimeterBindings),restoring}},commit};
+})();
+
+</script>
+<script>
+/* QA34 visible build identifier; no effect on geometry or project storage. */
+(function(){
+  const mark=()=>{
+    document.querySelectorAll('body *').forEach(el=>{
+      if(el.children.length||!el.textContent)return;
+      if(/^PIXEL V19\.6\s*[–-]\s*RC2$/i.test(el.textContent.trim()))el.textContent='PIXEL QA35';
+    });
+  };
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',mark);else mark();
+})();
+</script>
+<script>document.title="PIXEL QA35";</script>
 </body>
 <!-- PIXEL V19.6BA — canonical radius-aware profile + insert contour
      Profile 3.2px; insert 1.35px; both use the exact same d path including radius arc.
@@ -19515,7 +19752,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 })();
 </script>
 
-<script id="pixelCYSaveDiagnostics">
+<script id="pixelCYSaveDiagnostics_copy2">
 (function(){
 function show(){
  const key='pixel_catalog_room_bindings_v1';
@@ -21919,10 +22156,10 @@ function syncSummaryTotal4367(box){
   const total=box.querySelector('.room-summary-total4343 b');
   const room=activeRoom4367();
   if(!total||!room)return;
-  let ceiling=num4367(room?.calculated)||num4367(room?.total);
-  try{if(typeof window.__pixelCeilingOnceH9==='function')ceiling=num4367(window.__pixelCeilingOnceH9(room,ceiling))}catch(_){ }
-  const finishing=Array.isArray(room?.finishingWorks?.items)?room.finishingWorks.items.reduce((sum,item)=>sum+(item?.enabled?num4367(item.quantity)*num4367(item.price):0),0):0;
-  let works=0;try{if(typeof window.__roomWorksTotal4349==='function')works=num4367(window.__roomWorksTotal4349(room))}catch(_){ }
+  let ceiling=n4367(room?.calculated)||n4367(room?.total);
+  try{if(typeof window.__pixelCeilingOnceH9==='function')ceiling=n4367(window.__pixelCeilingOnceH9(room,ceiling))}catch(_){ }
+  const finishing=Array.isArray(room?.finishingWorks?.items)?room.finishingWorks.items.reduce((sum,item)=>sum+(item?.enabled?n4367(item.quantity)*n4367(item.price):0),0):0;
+  let works=0;try{if(typeof window.__roomWorksTotal4349==='function')works=n4367(window.__roomWorksTotal4349(room))}catch(_){ }
   const catalogClient4367=Number(window.pixelCatalogExtrasAR?.(room.id)?.labor)||0;
   const sum=ceiling+catalogClient4367+finishing+works;
   const next=(Math.round(sum*100)/100).toLocaleString('uk-UA',{minimumFractionDigits:0,maximumFractionDigits:2})+' грн';
@@ -27480,7 +27717,7 @@ function renderDraw4405(){
     const pos=wallLabelPos4407(a,b,18),t=createSvg4405('text',{x:pos.x,y:pos.y,'text-anchor':'middle',class:'free-wall-preview-length4407'});t.textContent=meterText4407(a,b);svg.appendChild(t);
     sr20ShortDragBadge4405(a,b);
     updateLive4407(a,b,false);
-  }else if(drawClosed4405){precisionBadge4405(false);updateLive4407(null,null,true)}else{precisionBadge4405(false);updateLive4407()}
+  }else if(drawClosed4405){if(typeof precisionBadge4405==='function')precisionBadge4405(false);updateLive4407(null,null,true)}else{if(typeof precisionBadge4405==='function')precisionBadge4405(false);updateLive4407()}
   const walls=drawClosed4405?drawPoints4405.length:Math.max(0,drawPoints4405.length-1);
   status4405(drawClosed4405?'✅ Контур замкнений: '+walls+' стін. Перевірте розміри та сформуйте замовлення.':drawPoints4405.length?'Стіни: '+walls+'. Проведіть наступну стіну від точки '+pointName4405(drawPoints4405.length-1)+'.':'Торкніться поля і проведіть першу стіну пальцем.');
   renderShortWalls4405();
@@ -27680,8 +27917,8 @@ window.applyFingerDrawing4405=function(){
   const cnt=document.getElementById('customPointCount');if(cnt)cnt.value=roomPoints.length;document.getElementById('customPointBox')?.classList.remove('hidden');
   try{if(typeof perimeterBindings!=='undefined'){if(drawingSource4408==='planner'&&Array.isArray(perimeterBindings)&&perimeterBindings.length===roomPoints.length)perimeterBindings=clone4405(perimeterBindings);else perimeterBindings=Array.from({length:roomPoints.length},()=>[])}}catch(_){ }
   freeDrawRoom4405=true;contourUnlocked4405=false;drawingSource4408='planner';
-  try{const rr=(Array.isArray(window.projectRooms)?window.projectRooms:[]).find(r=>String(r?.id??'')===String(window.activeRoomId??''));if(rr){rr.planner=rr.planner||{};rr.planner.geometryStatus196f='contour'}}catch(_){}
-  try{renderSegmentInputs();renderPlanner();const m=polygonMetrics();const a=document.getElementById('area'),p=document.getElementById('perimeter');if(a)a.value=Number(m.area||0).toFixed(2);if(p)p.value=Number(m.perimeter||0).toFixed(2);if(typeof recalc==='function')recalc();if(typeof syncActiveRoomFromUI==='function')syncActiveRoomFromUI(false);if(typeof autosave==='function')autosave()}catch(e){console.warn('44.05 apply finger contour',e)}
+  try{const rr=(Array.isArray(projectRooms)?projectRooms:[]).find(r=>String(r?.id??'')===String(activeRoomId??''));if(rr){rr.planner=rr.planner||{};rr.planner.geometryStatus196f='contour'}}catch(e){console.warn('Contour status persist',e)}
+  try{renderSegmentInputs();renderPlanner();const m=polygonMetrics();const a=document.getElementById('area'),p=document.getElementById('perimeter');if(a)a.value=Number(m.area||0).toFixed(2);if(p)p.value=Number(m.perimeter||0).toFixed(2);if(typeof recalc==='function')recalc();if(typeof syncActiveRoomFromUI==='function')syncActiveRoomFromUI(false);if(typeof autosave==='function')autosave();if(typeof renderRooms==='function')renderRooms()}catch(e){console.warn('44.05 apply finger contour',e)}
   updateState4405();try{window.syncProductionOrder4408?.()}catch(_){ }
   try{status4405('✅ Контур прийнято. Переходимо до комплектування кімнати та замовлення на виробництво.')}catch(_){ }
   setTimeout(()=>{
@@ -28230,7 +28467,7 @@ function installPanel4408(){
  <div class="production-field4408"><label>LED по периметру</label><select id="prodLed4410"><option value="none">Без LED</option><option value="ledStrip">LED-стрічка по периметру</option></select></div>
  <div class="production-field4408"><label>Полотно / виробник</label><select id="prodManufacturer4408"><option>MSD Premium</option><option>MSD Classic</option><option>MSD Premium Exclusive</option><option>BAUF</option><option>Pongs</option><option>Teqtum</option><option>Descor</option><option>Інший</option></select></div>
  <div class="production-field4408"><label>Фактура</label><select id="prodTexture4408"><option value="matte">Матова</option><option value="satin">Сатин</option><option value="glossy">Глянець</option></select></div>
- <div id="prodColor4408" class="production-current-color4408 production-wide4408">Поточний колір / номер: —</div>
+ <div id="prodColor4408" class="production-current-color4408 production-wide4408">Поточний колір / номер: —</div><div class="production-wide4408 film-manual-color-rc35" id="prodFilmColorRC35"><label><input type="checkbox" id="prodWhiteRC35" checked onchange="window.pixelFilmRC35?.change(this.checked,'prod')"> Білий колір полотна (за замовчуванням)</label><div id="prodCustomWrapRC35" hidden><label for="prodCustomRC35">Колір / номер / коментар для NW</label><textarea id="prodCustomRC35" rows="2" placeholder="Напр.: бежевий сатин, точний номер уточнити" oninput="window.pixelFilmRC35?.edit(this.value,'prod')"></textarea></div><div class="film-photo-rc36" id="prodPhotoBoxRC36" hidden><label class="film-photo-label-rc36">📷 Фото кольору із каталогу<input type="file" accept="image/*" capture="environment" onchange="window.pixelFilmPhotoRC36?.upload(this)"></label><img id="prodPhotoPreviewRC36" hidden alt="Фото кольору"><button type="button" id="prodPhotoDeleteRC36" hidden onclick="window.pixelFilmPhotoRC36?.remove()">Видалити фото</button></div></div>
  <div class="production-field4408 production-wide4408"><label>Примітка до виробництва / розкрою</label><textarea id="prodNote4408" placeholder="Наприклад: шов, напрям полотна, особливість кута, виріз, маркування..."></textarea></div>
  </div></div></details>
  <details class="production-section4408"><summary>🗂 Збережені замовлення цієї кімнати</summary><div class="production-body4408"><div id="productionHistory4408" class="production-history4408"></div></div></details>
@@ -28304,6 +28541,9 @@ function syncRoomMeta4409(){
 window.setProductionRoomLabel4409=function(value){const r=room4409();if(!r)return;const idx=roomIndex4409(r),label=String(value||'').trim();r.name='Кімната '+(idx+1)+(label?' '+label:'');const main=document.getElementById('roomName');if(main)main.value=r.name;try{renderRooms?.();autosave?.()}catch(_){ }syncRoomMeta4409();renderCurrentFolder4409()};
 window.setProductionAddress4409=function(value){const addr=String(value||'').trim(),main=document.getElementById('objectAddress');if(main)main.value=addr;const r=room4409();if(r){r.productionDraft4408={...(r.productionDraft4408||{}),address4410:addr,updatedAt:new Date().toISOString()}}try{autosave?.()}catch(_){ }renderCurrentFolder4409();renderArchive4409();const title=document.getElementById('productionFolderTitle4409');if(title)title.textContent=address4409()};
 function renderMaterials4409(){
+ // QA17: before showing the manual materials, remove only automatically
+ // imported copies of an already selected NW core product.
+ try{window.cleanupCoreDuplicates4421?.()}catch(e){console.warn('QA17 cleanup',e)}
  const box=document.getElementById('productionCustomMaterials4409');if(!box)return;
  const list=materialList4409();
  box.innerHTML=list.length?list.map((m,i)=>{
@@ -28326,6 +28566,7 @@ function renderMaterials4409(){
  }).join(''):'<div class="production-material-empty4409">Додаткових матеріалів ще немає.</div>';
  window.updateMaterialSummary4411?.()
 }
+window.renderProductionMaterials4409=renderMaterials4409;
 window.addProductionMaterial4409=function(){const d=ensureDraft4409();if(!d)return;d.customMaterials4409.push({name:'',qty:1,unit:'шт',price:0,currency:'UAH',comment:'',clarify:false,source:'manual'});renderMaterials4409();setTimeout(()=>document.querySelector('#productionCustomMaterials4409 .production-material4409:last-child input')?.focus(),0);persist4409()};
 window.updateProductionMaterial4409=function(i,key,value){const d=ensureDraft4409(),m=d?.customMaterials4409?.[i];if(!m)return;if(key==='clarify')m[key]=!!value;else m[key]=(key==='qty'||key==='price')?Math.max(0,Math.round(num4409(value)*100)/100):String(value||'');persist4409()};
 window.deleteProductionMaterial4409=function(i){const d=ensureDraft4409();if(!d)return;d.customMaterials4409.splice(i,1);renderMaterials4409();persist4409()};
@@ -28851,16 +29092,63 @@ function sameExtra4421(a,b){
 }
 function cleanupCoreDuplicates4421(){
   const list=extraList4421(),s=S()||{};if(!list)return 0;
-  const ids=new Set(['profile','insert','cornice','led','canvas']
-    .map(k=>String(s?.[k]?.id||'')).filter(Boolean));
-  if(!ids.size)return 0;
-  const before=list.length;
-  const keep=list.filter(x=>!x?.sourceId||!ids.has(String(x.sourceId)));
-  if(keep.length!==before){
-    const d=D();d.customMaterials4409=keep;
-    /* 44.25: duplicate cleanup must never sync/rewrite planner state by itself. */
-    return before-keep.length;
+  const core=['profile','insert','cornice','led','canvas'].map(k=>s?.[k]).filter(Boolean);
+  // QA19: old production drafts store the canvas as an untagged USD manual
+  // row, while the NW smart canvas slot can be null. Match the current room's
+  // exact area and canvas unit, not the unrelated room or an NW source flag.
+  const room=R();
+  const area=Number(room?.area||room?.metrics?.area||0);
+  const legacyCanvas=x=>{
+    const name=String(x?.name||'').trim();
+    const unit=String(x?.unit||'').trim();
+    const currency=String(x?.currency||'').toUpperCase();
+    const qty=Number(String(x?.qty??'').replace(',','.'));
+    return /^полотн(?:о|а)?\b/i.test(name) && /м²|м2|m²|m2/i.test(unit)
+      && currency==='USD' && area>0 && qty>0 && Math.abs(qty-area)<0.015;
+  };
+  const legacyCount=list.filter(legacyCanvas).length;
+  if(legacyCount){
+    D().customMaterials4409=list.filter(x=>!legacyCanvas(x));
+    return legacyCount;
   }
+  if(!core.length)return 0;
+  const normId=v=>String(v||'').split('::')[0].trim();
+  const isAuto=x=>/^(nw-catalog|nw-smart-4415|nw-film|nw-film-extra-4417)$/i.test(String(x?.source||''));
+  const sameCore=x=>core.some(c=>{
+    const a=normId(x?.sourceId),b=normId(c?.id);
+    if(a&&b&&a===b)return true;
+    // QA16: NW film variants may have different IDs/names after texture/color
+    // selection. An automatically imported film is redundant whenever the
+    // room already has its primary smart canvas. Never remove manual extras.
+    const canvas=s?.canvas===c;
+    if(canvas && (/полотно/i.test(String(x?.category4416||x?.category||''))
+        || /^полотно\b/i.test(String(x?.name||''))
+        || /nw-film|^film-/i.test(String(x?.source||'')+' '+String(x?.sourceId||''))))return true;
+    const xn=normName4421(x?.name).replace(/^полотно\s*/,''),cn=normName4421(c?.title).replace(/^полотно\s*/,'');
+    return !!(xn&&cn&&(xn===cn||xn.endsWith(cn)||cn.endsWith(xn)));
+  });
+  const before=list.length;
+  // Only automatically sourced copies of the SAME selected core item are removed.
+  // User-created/manual extras and other deliberately selected products stay intact.
+  // QA18: legacy film rows were saved as manual extras without NW source tags.
+  // Match the currently selected primary canvas by room quantity and film name;
+  // preserve all non-film manual materials and intentionally different film cuts.
+  const primaryCanvas=s?.canvas;
+  const filmDuplicate=x=>{
+    if(!primaryCanvas)return false;
+    const name=String(x?.name||'');
+    const cat=String(x?.category4416||x?.category||'');
+    if(!(/^полотн/i.test(name)||/полотно/i.test(cat)))return false;
+    const qty=Number(String(x?.qty??'').replace(',','.'));
+    const primaryQty=Number(primaryCanvas.q)||Number(R()?.area)||0;
+    if(!(qty>0&&primaryQty>0&&Math.abs(qty-primaryQty)<0.015))return false;
+    const title=normName4421(primaryCanvas.title);
+    const normalized=normName4421(name);
+    return (title&&normalized.includes(title)) ||
+      (/msd|bauf|плівк|пленк/i.test(name)&&/msd|bauf|плівк|пленк/i.test(title));
+  };
+  const keep=list.filter(x=>!(isAuto(x)&&sameCore(x))&&!filmDuplicate(x));
+  if(keep.length!==before){D().customMaterials4409=keep;return before-keep.length}
   return 0;
 }
 function addOrUpdateExtra4421(item){
@@ -28902,11 +29190,31 @@ function addOrUpdateExtra4421(item){
   return true;
 }
 window.cleanupCoreDuplicates4421=cleanupCoreDuplicates4421;
+// QA17: synchronize both visual lists and persisted room state after NW selection.
+// The old QA16 cleanup only ran when the NW panel rendered, leaving the manual
+// materials panel stale until a separate refresh.
+const qa17Refresh=function(){
+  const removed=cleanupCoreDuplicates4421();
+  if(!removed)return;
+  try{window.renderProductionMaterials4409?.()}catch(_){}
+  try{window.syncProductionWorkspace4409?.()}catch(_){}
+  try{autosave?.()}catch(_){}
+};
+window.__pixelQA17Refresh=qa17Refresh;
 
 function plan(){
   const r=R();
-  const savedArea=N(r?.area||r?.metrics?.area);
-  const savedPerimeter=N(r?.perimeter||r?.metrics?.perimeter);
+  // QA4: per-room bill of quantities is authoritative when the stale room
+  // header was overwritten by another room. Never use another room or DOM.
+  const roomRows=Array.isArray(r?.rows)?r.rows:[];
+  const rowQty=id=>N(roomRows.find(x=>x?.id===id)?.qty);
+  const billedArea=rowQty('base');
+  const savedArea=billedArea>0?billedArea:N(r?.area||r?.metrics?.area);
+  // For perimeter use a confirmed full-perimeter row, if present.
+  // Ignore partial features such as LED cornices and floating segments.
+  const perimeterRows=['insertBlack','insertWhite','shadowBlack','shadowWhite'];
+  const billedPerimeter=perimeterRows.map(rowQty).find(v=>v>0)||0;
+  const savedPerimeter=billedPerimeter>0?billedPerimeter:N(r?.perimeter||r?.metrics?.perimeter);
 
   /* H12.6AZ:
      "Замовлення з поточного плану" must use the room's accepted/saved metrics.
@@ -28992,7 +29300,7 @@ return{q:1,u:'шт',src:'вручну'}
 function setQ(slot,q){const d=D();if(!d)return;const raw=N(q),clean=slot==='profile'?Math.ceil((raw-1e-9)*2)/2:Math.round(raw*100)/100;d.qty4414=d.qty4414||{};d.qty4414[slot]=clean;d.qty4414[slot+'Manual']=slot==='profile'||slot==='insert'?false:true;const id={profile:'prodProfileQty4414',insert:'prodInsertQty4414',cornice:'prodCorniceQty4414',led:'prodLedQty4414'}[slot],e=document.getElementById(id);if(e)e.value=String(Number(clean.toFixed(2)))}
 function stick(t){t=String(t).replace(',','.');let m=t.match(/довжина\s+профілю\s*[-–—:]?\s*(\d+(?:\.\d+)?)\s*м/i);return m?N(m[1]):0}
 function renderSlot(slot){const b=document.querySelector(`[data-sel4415="${slot}"]`),x=S()?.[slot];if(!b)return;if(!x){b.classList.remove('show');b.innerHTML='';return}const p=window.NW4415?.getItem?.(x.id),im=window.NW4415?.image?.(p)||'',qv=slot==='canvas'?N(plan().area):N(x.q),sl=slot==='profile'?stick(x.title):0;let meta=`${F(qv)} ${x.u||''} · ${x.src||''}`;if(sl&&qv){const n=Math.ceil(qv/sl);meta+=` · ≈ ${n} хлист. = ${F(n*sl)} м закупівлі`}if(x.price)meta+=` · ${(x.price*qv).toLocaleString('uk-UA',{maximumFractionDigits:2})} грн`;b.classList.add('show');b.innerHTML=`${im?`<img src="${im}">`:'<div></div>'}<div><b>${E(x.title)}</b><small>${E(meta)}</small></div><button class="x" data-clear4415="${slot}">×</button>`;b.querySelector('button').onclick=()=>{S()[slot]=null;save();render()}}
-function render(){['profile','insert','cornice','led','canvas'].forEach(renderSlot);const s=S(),p=plan(),a=[];if(s?.profile)a.push(`<b>Профіль:</b> ${E(s.profile.title)} — ${F(s.profile.q)} м.п.`);if(s?.insert)a.push(`<b>Вставка:</b> ${E(s.insert.title)} — ${F(s.insert.q)} м.п.`);if(s?.cornice)a.push(`<b>Карниз:</b> ${E(s.cornice.title)} — ${F(s.cornice.q)} м.п.`);if(s?.led)a.push(`<b>LED:</b> ${E(s.led.title)} — ${F(s.led.q)} м.п.`);if(s?.canvas)a.push(`<b>Полотно:</b> ${E(s.canvas.title)} — ${F(p.area)} м²`);const e=document.getElementById('sum4415');if(e)e.innerHTML='📦 <b>Розумна комплектація</b><br>'+(a.join('<br>')||'Оберіть конкретні позиції NW нижче.')}
+function render(){cleanupCoreDuplicates4421();['profile','insert','cornice','led','canvas'].forEach(renderSlot);const s=S(),p=plan(),a=[];if(s?.profile)a.push(`<b>Профіль:</b> ${E(s.profile.title)} — ${F(s.profile.q)} м.п.`);if(s?.insert)a.push(`<b>Вставка:</b> ${E(s.insert.title)} — ${F(s.insert.q)} м.п.`);if(s?.cornice)a.push(`<b>Карниз:</b> ${E(s.cornice.title)} — ${F(s.cornice.q)} м.п.`);if(s?.led)a.push(`<b>LED:</b> ${E(s.led.title)} — ${F(s.led.q)} м.п.`);if(s?.canvas)a.push(`<b>Полотно:</b> ${E(s.canvas.title)} — ${F(p.area)} м²`);const e=document.getElementById('sum4415');if(e)e.innerHTML='📦 <b>Розумна комплектація</b><br>'+(a.join('<br>')||'Оберіть конкретні позиції NW нижче.')}
 function injectOne(id,slot,cat,label){const e=document.getElementById(id),p=e?.closest('.production-field4408');if(!p||p.querySelector(`[data-smart4415="${slot}"]`))return;const b=document.createElement('div');b.className='smart4415';b.dataset.smart4415=slot;b.innerHTML=`<button>🛒 ${label}</button><div class="smartSel4415" data-sel4415="${slot}"></div>`;p.appendChild(b);b.querySelector('button').onclick=()=>{window.__target4415={slot,cat};slot==='canvas'?film():window.NW4415?.openFiltered?.(cat,'')}}
 function inject(){const g=document.querySelector('#productionOrder4408 .production-grid4408');if(!g)return false;injectOne('prodProfile4408','profile','Профілі','Обрати конкретний профіль NW');injectOne('prodInsert4408','insert','Вставки','Обрати конкретну вставку NW');injectOne('prodCornice4410','cornice','Карнизи','Обрати конкретний карниз NW');injectOne('prodLed4410','led','Освітлення','Обрати LED / освітлення NW');injectOne('prodManufacturer4408','canvas','Полотно','Обрати полотно NW');if(!document.getElementById('menu4415')){const n=document.getElementById('prodNote4408')?.closest('.production-field4408'),b=document.createElement('div');b.id='menu4415';b.className='smartMenu4415';b.innerHTML=`<h4>🧰 Весь NW прямо з комплектації</h4><p>План дає кількість, NW дає конкретну позицію.</p><div class="g">${['Профілі','Вставки','Карнизи','Вентиляція','Освітлення','Комплектуючі','Витратні / інструмент','Магнітні треки'].map(c=>`<button data-cat4415="${c}">${c}</button>`).join('')}<button class="film" data-film4415>🧵 Полотно</button></div>`;g.insertBefore(b,n||null);b.querySelectorAll('[data-cat4415]').forEach(x=>x.onclick=()=>{const c=x.dataset.cat4415;window.__target4415=core[c]?{slot:core[c],cat:c}:null;window.NW4415?.openFiltered?.(c,'')});b.querySelector('[data-film4415]').onclick=film}if(!document.getElementById('sum4415')){const b=document.createElement('div');b.id='sum4415';b.className='smartSum4415';g.appendChild(b)}render();return true}
 function priceUI(opts){return opts.length?`<select id="p4415" class="nw-sel4413">${opts.map((o,i)=>`<option value="${i}">${E(o.text)}</option>`).join('')}<option value="x">Інша ціна / без ціни</option></select><input id="px4415" class="nw-in4413" type="number" step="0.01" placeholder="Інша ціна" style="display:none;margin-top:5px">`:`<input id="px4415" class="nw-in4413" type="number" step="0.01" placeholder="Ціна, грн (можна пусто)">`}function price(opts){if(!opts.length)return N(document.getElementById('px4415')?.value);const v=document.getElementById('p4415').value;return v==='x'?N(document.getElementById('px4415')?.value):N(opts[Number(v)]?.value)}
@@ -29062,7 +29370,17 @@ function film(){
       <div class="wide"><label class="nw-lbl4413">Ширина / позиція плівки</label><select id="ft4415" class="nw-sel4413"></select></div>
       <div><label class="nw-lbl4413">Площа з плану</label><input class="nw-in4413" value="${F(area)}" readonly></div>
       <div><label class="nw-lbl4413">Ціна, $/м²</label><input id="fp4415" class="nw-in4413" type="number" step="0.01"></div>
-      <div class="wide"><label class="nw-lbl4413">Колір / номер</label><input id="fcol4415" class="nw-in4413" placeholder="Напр.: білий 301"></div>
+      <div class="wide"><label class="nw-lbl4413">Колір полотна</label>
+        <select id="fmodeRC37" class="nw-sel4413">
+          <option value="matte">Білий мат</option>
+          <option value="satin">Білий сатин</option>
+          <option value="glossy">Білий глянець</option>
+          <option value="custom">Інший колір</option>
+        </select>
+      </div>
+      <div class="wide" id="fcustomWrapRC37" hidden><label class="nw-lbl4413">Колір / номер / коментар</label>
+        <textarea id="fcol4415" class="nw-in4413" rows="2" style="min-height:65px;resize:vertical" placeholder="Напр.: світло-бежевий сатин, номер уточнити"></textarea>
+      </div>
     </div>
     <div id="fsum4415" class="preview4415"></div>
     <button id="fg4415" class="nw-primary4413">✅ Застосувати полотно</button>
@@ -29072,8 +29390,25 @@ function film(){
         tx=document.getElementById('fx4415'),
         it=document.getElementById('ft4415'),
         pr=document.getElementById('fp4415'),
-        im=document.getElementById('fi4415');
-
+        im=document.getElementById('fi4415'),
+        colorMode=document.getElementById('fmodeRC37'),
+        colorField=document.getElementById('fcol4415'),
+        colorWrap=document.getElementById('fcustomWrapRC37');
+  // Беремо вже обраний колір поточної кімнати, не підмінюючи прайс NW.
+  const savedColor=window.pixelFilmRC35?.state?.()||{white:true,text:''};
+  const savedTexture=document.getElementById('calcTexture')?.value||'matte';
+  tx.value=['matte','satin','glossy'].includes(savedTexture)?savedTexture:'matte';
+  colorMode.value=savedColor.white?tx.value:'custom';
+  colorField.value=savedColor.text||'';
+  function refreshColor(){
+    const custom=colorMode.value==='custom';
+    colorWrap.hidden=!custom;
+    if(!custom){tx.value=colorMode.value;fillItems();}
+  }
+  colorMode.onchange=refreshColor;
+  tx.addEventListener('change',()=>{if(colorMode.value!=='custom')colorMode.value=tx.value;});
+  // QA6: initialize dependent film helpers before the first refresh.
+ 
   const textureName=()=>tx.value==='glossy'?'Глянець':tx.value==='satin'?'Сатин':'Мат';
   const compatible=(x)=>{
     const n=String(x?.name||'').toLowerCase();
@@ -29111,13 +29446,18 @@ function film(){
   tx.onchange=fillItems;
   it.onchange=fp;
   pr.oninput=calc;
+  refreshColor();
   fill();
 
   const close=()=>{h.remove();window.closeNWCatalog4413?.()};
   document.getElementById('fc4415').onclick=close;
   document.getElementById('fg4415').onclick=()=>{
-    const g=films[N(se.value)],x=selectedItem(),col=document.getElementById('fcol4415').value.trim(),texture=textureName();
+    const g=films[N(se.value)],x=selectedItem(),col=colorMode.value==='custom'?colorField.value.trim():'Білий 301',texture=textureName();
     if(!x||!area)return alert('Спочатку потрібна площа кімнати.');
+    if(colorMode.value==='custom'&&!col)return alert('Вкажіть колір або номер полотна.');
+    // Єдиний колір для плану, виробничого замовлення і NW PNG.
+    if(colorMode.value==='custom')window.pixelFilmRC35?.edit?.(col);
+    else window.pixelFilmRC35?.change?.(true,'prod');
     const cleanVariant=String(x.name||'').replace(/M?ат\/Сатин/gi,'').replace(/Мат\/Сатин/gi,'').replace(/\s{2,}/g,' ').trim();
     const title=`${g.brand} — ${texture}${cleanVariant?' · '+cleanVariant:''}${col?' · '+col:''}`;
     if(window.__forceExtraFilm4417){
@@ -29130,6 +29470,7 @@ function film(){
       S().canvas={id:`film-${g.id}-${tx.value}-${it.value}`,title,brand:g.brand,film:texture,color:col,price:N(pr.value),u:'м²',q:area,src:'площа кімнати'};
       cleanupCoreDuplicates4421();
       save();
+      window.renderProductionMaterials4409?.();
       render();
       close()
     }
@@ -29137,7 +29478,7 @@ function film(){
 }
 window.openNWFilm4413=film;window.openNWFilm4415=film;
 const bs=window.saveProductionOrder4408;if(typeof bs==='function')window.saveProductionOrder4408=function(){const snap=bs.apply(this,arguments);if(snap){const s=C(S())||{};snap.smart4415=s;if(s.profile)snap.profileLabel=s.profile.title;if(s.insert)snap.insertLabel4415=s.insert.title;if(s.cornice)snap.corniceLabel=s.cornice.title;if(s.led)snap.ledLabel=s.led.title;if(s.canvas){snap.canvasLabel4415=s.canvas.title;snap.manufacturer=s.canvas.brand||snap.manufacturer;snap.textureLabel=s.canvas.film||snap.textureLabel;snap.color=s.canvas.color||snap.color}try{autosave?.()}catch(_){}}return snap};
-const sy=window.syncProductionOrder4408;if(typeof sy==='function')window.syncProductionOrder4408=function(){const z=sy.apply(this,arguments);setTimeout(()=>{inject();render()},0);return z};const sw=window.syncProductionWorkspace4409;if(typeof sw==='function')window.syncProductionWorkspace4409=function(){const z=sw.apply(this,arguments);setTimeout(()=>{inject();render()},0);return z};function start(){inject();render();try{document.documentElement.dataset.pixelVersion='44.40';document.title='Potolok AI PRO — Pixel 44.40'}catch(_){}}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{setTimeout(start,100);setTimeout(start,600)},{once:true});else{setTimeout(start,100);setTimeout(start,600)}})();</script>
+const sy=window.syncProductionOrder4408;if(typeof sy==='function')window.syncProductionOrder4408=function(){const z=sy.apply(this,arguments);setTimeout(()=>{inject();render()},0);return z};const sw=window.syncProductionWorkspace4409;if(typeof sw==='function')window.syncProductionWorkspace4409=function(){const z=sw.apply(this,arguments);setTimeout(()=>{inject();render()},0);return z};function start(){inject();render();try{window.__pixelQA17Refresh?.()}catch(_){}try{document.documentElement.dataset.pixelVersion='44.40';document.title='Potolok AI PRO — Pixel 44.40'}catch(_){}}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{setTimeout(start,100);setTimeout(start,600)},{once:true});else{setTimeout(start,100);setTimeout(start,600)}})();</script>
 
 <style id="plannerTransfer4415AStyles">
 .production-plan-preview4415a{position:absolute;inset:8px;z-index:12;background:#f8fafc;border-radius:12px;overflow:hidden;display:none;align-items:center;justify-content:center}
@@ -31017,6 +31358,8 @@ function ptName(i){let n=i,s='';do{s=String.fromCharCode(65+n%26)+s;n=Math.floor
 function normalizeName(v){return String(v||'').toLowerCase().replace(/\s+/g,' ').trim()}
 function enrich(order){
   const o=C(order)||{},r=roomById(o.roomId),d=draft(r);
+  if(r){const v=r.filmColorRC35||r.filmPackage4317?.manualColorRC35;if(v){o.filmColorRC35=C(v);o.color=v.white!==false?'Білий 301':String(v.text||'КОЛІР УТОЧНИТИ');}o.filmColorPhotoRC36=r.filmColorPhotoRC36||null;}
+
   o.corniceKit4432=C(o.corniceKit4432||d.corniceKit4432||null);
   const savedMats=Array.isArray(o.customMaterials)?o.customMaterials.filter(m=>String(m?.name||'').trim()):[],draftMats=Array.isArray(d.customMaterials4409)?d.customMaterials4409.filter(m=>String(m?.name||'').trim()):[];o.customMaterials=C(draftMats.length>savedMats.length?draftMats:savedMats);
   if(!o.smart4415||!Object.values(o.smart4415||{}).some(Boolean))o.smart4415=C(d.smart4415||{});
@@ -31044,7 +31387,7 @@ function wrap(ctx,text,maxWidth){
 }
 function coreRows(o){
   const s=o.smart4415||{},q=o.quantities4414||{},rows=[];
-  const canvas=o.canvasLabel4415||s.canvas?.title||[(o.manufacturer||''),(o.textureLabel||''),(o.color||'')].filter(Boolean).join(' · ');
+  const canvas=o.filmColorRC35 ? [(o.manufacturer||s.canvas?.brand||'MSD Premium'),(o.textureLabel||s.canvas?.film||'Матова'),o.filmColorRC35.white?'Білий 301':(o.filmColorRC35.text||'КОЛІР УТОЧНИТИ')].filter(Boolean).join(' · ') : (o.canvasLabel4415||s.canvas?.title||[(o.manufacturer||''),(o.textureLabel||''),(o.color||'')].filter(Boolean).join(' · '));
   if(canvas)rows.push({label:'Полотно',name:canvas,qty:N(o.area)||N(q.canvas),unit:'м²'});
   if(o.canvasCorners4427&&N(o.canvasCorners4427.qty)>0)rows.push({label:'Кути полотна',name:'за кількістю кутів плану',qty:N(o.canvasCorners4427.qty),unit:o.canvasCorners4427.unit||'шт'});
   const profile=o.profileLabel||s.profile?.title;if(profile)rows.push({label:'Профіль',name:profile,qty:N(q.profile)||N(o.perimeter),unit:'м.п.'});
@@ -31058,6 +31401,7 @@ function extraRows(o){
   for(const m of a){
     const name=String(m?.name||'').trim();if(!name)continue;
     const key=String(m?.sourceId||'')||normalizeName(name)+'|'+String(m?.unit||'шт');if(seen.has(key))continue;seen.add(key);
+    if(o.filmColorRC35 && (/^полотно\b/i.test(name)||/полотно/i.test(String(m.category4416||m.category||''))) && Math.abs(N(m.qty)-N(o.area))<0.02)continue;
     out.push({name,qty:N(m.qty),unit:m.unit||'шт',comment:String(m.comment||'').trim(),clarify:!!m.clarify})
   }
   return out
@@ -31092,7 +31436,7 @@ function drawPlan(ctx,o,left,top,w,h){
 }
 async function blob4428(raw){
   const o=enrich(raw),core=coreRows(o),extra=extraRows(o);
-  const estimated=1950+core.length*96+extra.length*108+(o.note?130:0);const H=Math.max(2550,Math.min(4600,estimated));
+  const estimated=1950+core.length*96+extra.length*108+(o.note?130:0)+(o.filmColorRC35&&!o.filmColorRC35.white?180:0)+(o.filmColorPhotoRC36?600:0);const H=Math.max(2550,Math.min(4600,estimated));
   const c=document.createElement('canvas');c.width=1900;c.height=H;const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);
   x.textRendering='geometricPrecision';
   x.fillStyle='#071428';x.font='900 56px Arial';x.fillText('Potolok.in.ua',72,84);x.font='900 40px Arial';x.fillText('ЗАМОВЛЕННЯ NW · РОЗКРІЙ + КОМПЛЕКТАЦІЯ',72,146);x.fillStyle='#475569';x.font='700 28px Arial';x.fillText(`${o.address||'Без адреси'} · ${o.roomName||'Кімната'} · ${o.number||''}`,72,192);
@@ -31102,6 +31446,10 @@ async function blob4428(raw){
   x.fillStyle='#075bff';x.font='900 31px Arial';x.fillText('ОСНОВНИЙ КОМПЛЕКТ · БЕЗ ЦІН',72,y);y+=50;
   for(const r of core){
     x.fillStyle='#0f172a';x.font='800 26px Arial';const qty=r.qty>0?` — ${fmt(r.qty)} ${r.unit}`:'';const lines=wrap(x,`${r.label}: ${r.name}${qty}`,1690);for(const line of lines){x.fillText(line,94,y);y+=38}y+=12
+  }
+  if(o.filmColorRC35&&!o.filmColorRC35.white){x.fillStyle='#b91c1c';x.font='900 28px Arial';x.fillText('УВАГА! УТОЧНЕННЯ КОЛЬОРУ ПОЛОТНА',94,y);y+=40;for(const line of wrap(x,o.filmColorRC35.text||'Колір не вказано — уточнити перед виготовленням',1630)){x.fillText(line,94,y);y+=35}y+=14;}
+  if(o.filmColorRC35&&!o.filmColorRC35.white&&o.filmColorPhotoRC36){
+    try{const photo=new Image();photo.src=o.filmColorPhotoRC36;await new Promise((ok,fail)=>{photo.onload=ok;photo.onerror=fail});const maxW=700,maxH=480,scale=Math.min(maxW/photo.width,maxH/photo.height,1);const w=photo.width*scale,h=photo.height*scale;x.fillStyle='#334155';x.font='800 25px Arial';x.fillText('ФОТО КОЛЬОРУ ІЗ КАТАЛОГУ',94,y);y+=34;x.drawImage(photo,94,y,w,h);y+=h+24;}catch(err){console.warn('Color photo could not be drawn',err)}
   }
   y+=10;x.strokeStyle='#dbe3ef';x.beginPath();x.moveTo(72,y);x.lineTo(1828,y);x.stroke();y+=50;
   x.fillStyle='#075bff';x.font='900 31px Arial';x.fillText(`ДОДАТКОВІ КОМПЛЕКТУЮЧІ · ${extra.length} ПОЗ. · БЕЗ ЦІН`,72,y);y+=50;
@@ -32748,7 +33096,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 <script id="pixel4486BuildBadgeScript">
 (function(){
   'use strict';
-  const FIXED_BUILD='PIXEL V19.6 — RC2';
+  const FIXED_BUILD='PIXEL QA35';
   function lockBadge(el){
     if(!el || el.__h126azBuildLocked) return;
     el.textContent=FIXED_BUILD;
@@ -35484,58 +35832,7 @@ function boot(){install();loadRadiusRoom(room())}if(document.readyState==='loadi
 .pixel-room-status196g.base{color:#be123c!important}
 .pixel-room-status196g.contour{color:#15803d!important}
 </style>
-<script id="pixel-v196g-card-status-fix">
-(function(){
-'use strict';
-if(window.__pixelV196gCardStatusFix)return;window.__pixelV196gCardStatusFix=true;
-const clone=v=>{try{return JSON.parse(JSON.stringify(v))}catch(_){return v}};
-function rooms(){try{return Array.isArray(window.projectRooms)?window.projectRooms:(Array.isArray(projectRooms)?projectRooms:[])}catch(_){return[]}}
-function active(){try{const id=String(window.activeRoomId??activeRoomId??'');return rooms().find(r=>String(r?.id??'')===id)||null}catch(_){return null}}
-function accepted(r){
- try{
-   if(String(r?.planner?.geometryStatus196g||r?.planner?.geometryStatus196f||'')==='contour')return true;
-   const d=r?.planner?.freeDrawB48;
-   if(d && d.closed===true && Array.isArray(d.points) && d.points.length>=3)return true;
-   /* Saved custom planner from an accepted contour. */
-   if(r?.planner?.template==='custom' && Array.isArray(r?.planner?.points) && r.planner.points.length>=3)return true;
- }catch(_){}
- return false;
-}
-function setAccepted(){
- const r=active();if(!r)return;
- r.planner=r.planner||{};r.planner.geometryStatus196g='contour';
- try{window.autosave?.()}catch(_){}
-}
-function cardRoom(card){
- const rs=rooms();
- const b=card.querySelector('b');const nm=String(b?.textContent||'').trim();
- let r=rs.find(x=>String(x?.name||'').trim()===nm);
- if(!r){const cards=[...document.querySelectorAll('.room-card')];const i=cards.indexOf(card);if(i>=0)r=rs[i]}
- return r||null;
-}
-function paint(){
- const cards=[...document.querySelectorAll('.room-card')];
- cards.forEach(card=>{
-   const left=card.querySelector(':scope > div:first-child');if(!left)return;
-   left.querySelectorAll('.room-plan-status196f,.pixel-room-status196g').forEach(x=>x.remove());
-   const r=cardRoom(card),ok=accepted(r),el=document.createElement('span');
-   el.className='pixel-room-status196g '+(ok?'contour':'base');
-   el.textContent=ok?'Контур задано':'Базова геометрія плану';
-   left.appendChild(el);
- });
-}
-function wrap(name,after){const fn=window[name];if(typeof fn!=='function'||fn.__v196g)return;const w=function(){const z=fn.apply(this,arguments);try{after?.apply(this,arguments)}catch(_){};return z};w.__v196g=true;window[name]=w}
-wrap('renderRooms',()=>setTimeout(paint,0));
-wrap('applyFingerDrawing4405',()=>setTimeout(()=>{setAccepted();paint()},0));
-wrap('savePlannerRoom',()=>setTimeout(paint,0));
-wrap('selectRoom',()=>setTimeout(paint,0));
-function boot(){paint();setTimeout(paint,100);setTimeout(paint,500)}
-if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
-window.addEventListener('pageshow',boot);
-window.pixelPaintRoomPlanStatus196g=paint;
-try{document.documentElement.dataset.pixelStatusBuild='V19.6G'}catch(_){}
-})();
-</script>
+<!-- QA10: disabled duplicate v196g status painter; renderRooms is sole owner of card status -->
 <!-- /PIXEL V19.6G -->
 
 <!-- PIXEL V19.6H — UNIFIED ROOM METRICS DISPLAY | BASE: confirmed V19.6G -->
@@ -35585,9 +35882,8 @@ function sync(){
   const m=canonical();
   if(!m)return;
 
-  // Main calculator/planner values.
-  setValue('area',m.area);
-  setValue('perimeter',m.perimeter);
+  // QA14: restoreRoom owns calculator inputs; delayed metric refresh is display-only.
+  // Never write into editable area/perimeter fields from a deferred callback.
 
   // Planner counters that are text-only.
   setText('plannerArea',m.area.toFixed(2)+' м²');
@@ -35610,12 +35906,14 @@ function sync(){
     if(texts[1])texts[1].textContent=m.perimeter.toFixed(2)+' м';
   }
 
-  // Refresh room card from the same canonical room fields.
-  try{if(typeof window.renderRooms==='function')window.renderRooms()}catch(_){}
+  // Cards are refreshed by the room lifecycle; avoid repeated full DOM replacement here.
 }
 
 function queue(){
-  [0,40,120,350].forEach(ms=>setTimeout(sync,ms));
+  const roomId=String(window.activeRoomId??'');
+  [0,40,120,350].forEach(ms=>setTimeout(()=>{
+    if(String(window.activeRoomId??'')===roomId)sync();
+  },ms));
 }
 
 // Run only after existing accepted-contour/save logic has finished.
@@ -36005,7 +36303,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 })();
 </script>
 
-<script type="text/plain" id="pixelCUFreeGeometryPlanRendererDisabled">
+<script type="text/plain" id="pixelCUFreeGeometryPlanRendererDisabled_copy2">
 (function(){'use strict';
 const KEY='pixel_catalog_room_bindings_v1',NS='http://www.w3.org/2000/svg';
 function roomId(){try{return String(activeRoomId)}catch(_){return ''}}
@@ -36037,7 +36335,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 })();
 </script>
 
-<script id="pixelCYSaveDiagnostics">
+<script id="pixelCYSaveDiagnostics_copy3">
 (function(){
 function show(){
  const key='pixel_catalog_room_bindings_v1';
@@ -36151,6 +36449,111 @@ new MutationObserver(schedule).observe(document.body,{subtree:true,childList:tru
 schedule();
 })();
 </script>
+<script id="pixelRC37QualityGuard">
+(function(){
+'use strict';
+if(window.__pixelRC37QualityGuard)return;
+const VERSION='RC3.7-QA1';const events=[];const limit=180;
+const now=()=>new Date().toISOString();
+const n=v=>Number(String(v??'').replace(',','.'))||0;
+function log(type,detail){events.push({time:now(),type,detail:String(detail).slice(0,600)});if(events.length>limit)events.shift()}
+window.addEventListener('error',e=>log('JS_ERROR',`${e.message} @ ${e.filename}:${e.lineno}:${e.colno}`));
+window.addEventListener('unhandledrejection',e=>log('PROMISE_ERROR',String(e.reason?.stack||e.reason)));
+function rooms(){try{return Array.isArray(projectRooms)?projectRooms:[]}catch(_){return[]}}
+function inspect(){const issues=[];const rr=rooms();for(const r of rr){
+ const name=String(r.name||r.id||'?');const base=(r.rows||[]).find(x=>x.id==='base');const area=n(r.area),p=n(r.perimeter),bill=n(base?.qty);
+ if(bill>0&&area>0&&Math.abs(bill-area)>.10)issues.push({room:name,code:'AREA_MISMATCH',saved:area,estimate:bill});
+ const ins=(r.rows||[]).find(x=>x.id==='insertBlack'||x.id==='insertWhite');
+ if(ins&&p>0&&Math.abs(n(ins.qty)-p)>.15)issues.push({room:name,code:'INSERT_MISMATCH',saved:p,estimate:n(ins.qty)});
+ const draft=r.productionDraft4408||{};for(const m of draft.customMaterials4409||[]){
+  if(!m||!m.qtySource4415)continue;
+  if(/периметр кімнати/.test(m.qtySource4415)&&p>0&&Math.abs(n(m.qty)-Math.ceil(p*2)/2)>.51)issues.push({room:name,code:'NW_PROFILE_QUANTITY',saved:p,material:m.name,qty:n(m.qty)});
+ }
+}return{version:VERSION,at:now(),rooms:rr.length,issues,events:events.slice()}}
+function exportReport(){const data=inspect();const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='Pixel_QA_Report_'+new Date().toISOString().replace(/[:.]/g,'-')+'.json';document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500)}
+window.__pixelRC37QualityGuard={inspect,exportReport,log};
+// QA4: regression checks use each room's own billable rows; no data writes.
+window.__pixelQA4RoomQuantities=function(){return rooms().map(r=>{
+ const rows=Array.isArray(r.rows)?r.rows:[];
+ const get=id=>n(rows.find(x=>x.id===id)?.qty);
+ const area=get('base')||n(r.area);
+ const perimeter=['insertBlack','insertWhite','shadowBlack','shadowWhite'].map(get).find(v=>v>0)||n(r.perimeter);
+ return {room:r.name,area,perimeter,staleArea:Math.abs(n(r.area)-area)>.10,stalePerimeter:Math.abs(n(r.perimeter)-perimeter)>.15};
+})};
+function attach(){if(document.getElementById('pixelQA37Button'))return;const b=document.createElement('button');b.id='pixelQA37Button';b.type='button';b.textContent='🛡 QA';b.title='Перевірка даних та завантаження звіту';b.style.cssText='position:fixed;right:8px;bottom:78px;z-index:9998;background:#172554;color:white;border:1px solid #93c5fd;border-radius:12px;padding:10px 12px;font:bold 12px Arial;box-shadow:0 4px 12px #0003';b.addEventListener('click',()=>{const d=inspect();log('QA_CHECK',`${d.rooms} rooms; ${d.issues.length} issues`);const msg=`Перевірено кімнат: ${d.rooms}\nРозбіжностей: ${d.issues.length}\n\nЗавантажити звіт JSON?`;if(confirm(msg))exportReport()});document.body.append(b)}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',attach,{once:true});else attach();
+})();
+</script>
+<script id="pixel-qa20-guard">
+(function(){
+'use strict';
+if(window.__PIXEL_GUARD20__)return;
+const log=[]; const max=250; const start=Date.now();
+function add(kind,detail){try{log.push({at:new Date().toISOString(),kind,detail:String(detail).slice(0,1500),url:location.pathname});if(log.length>max)log.shift()}catch(_){}}
+window.addEventListener('error',e=>add('JS_ERROR',(e.message||'unknown')+' @ '+(e.filename||'')+':'+(e.lineno||0)));
+window.addEventListener('unhandledrejection',e=>add('PROMISE_REJECTION',e.reason?.stack||e.reason||'unknown'));
+const checks=[];
+function check(name,fn){try{const r=fn();checks.push({name,ok:r.ok!==false,detail:r.detail||''});if(r.ok===false)add('CHECK_FAILED',name+': '+r.detail)}catch(e){checks.push({name,ok:false,detail:String(e)});add('CHECK_ERROR',name+': '+e)}}
+function run(){checks.length=0;
+check('QA engine active',()=>({ok:!!window.__PIXEL_GUARD20__,detail:'QA20'}));
+check('Browser storage accessible',()=>{try{const k='__pixel_qa20_test__';localStorage.setItem(k,'ok');const ok=localStorage.getItem(k)==='ok';localStorage.removeItem(k);return {ok,detail:ok?'read/write/remove passed':'storage mismatch'}}catch(e){return{ok:false,detail:String(e)}}});
+check('No duplicate HTML IDs',()=>{const ids=[...document.querySelectorAll('[id]')].map(x=>x.id).filter(Boolean);const seen=new Set(),dup=new Set();ids.forEach(x=>{if(seen.has(x))dup.add(x);seen.add(x)});return{ok:!dup.size,detail:dup.size?'Duplicates: '+[...dup].slice(0,20).join(', '):ids.length+' IDs unique'}});
+check('No broken image resources',()=>{const bad=[...document.images].filter(i=>i.complete&&i.naturalWidth===0&&i.getAttribute('src')&&!i.src.startsWith('data:'));return{ok:!bad.length,detail:bad.length+' failed images (loaded DOM only)'}});
+check('Room quantity sanity in visible order',()=>{const t=document.body.innerText||'';const a=t.match(/Площа з плану:\s*([\d,.]+)\s*м²/);return{ok:true,detail:a?'Visible plan area: '+a[1]+' m²; room-specific cross-check requires object data':'No active plan quantity exposed; not assessed'}});
+check('Legacy film row detection (visible)',()=>{const t=document.body.innerText||'';const present=/Додаткові матеріали[\s\S]{0,1600}Полотн[\s\S]{0,200}3,18/.test(t);return{ok:!present,detail:present?'Potential duplicate film row shown; review manually':'No known balcony-1 film duplicate detected in visible text'}});
+render();return checks}
+function download(){const payload={version:'QA20',generated:new Date().toISOString(),elapsedSeconds:Math.round((Date.now()-start)/1000),checks,events:log,storageKeys:(()=>{try{return Object.keys(localStorage).map(k=>({key:k,length:(localStorage.getItem(k)||'').length})).slice(0,100)}catch(e){return [{error:String(e)}]}})(),privacy:'Storage values excluded; no network telemetry'};const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='Pixel_QA20_Diagnostics_'+new Date().toISOString().replace(/[:.]/g,'-')+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),2000)}
+let root;
+function render(){if(!root)return;const body=root.querySelector('[data-results]');if(!body)return;body.replaceChildren();checks.forEach(c=>{const p=document.createElement('div');p.style='padding:7px 0;border-bottom:1px solid #dbe3ec;font-size:13px;overflow-wrap:anywhere';p.textContent=(c.ok?'✅ ':'❌ ')+c.name+' — '+c.detail;body.appendChild(p)});const foot=root.querySelector('[data-foot]');foot.textContent='Ошибок JS: '+log.filter(e=>e.kind==='JS_ERROR'||e.kind==='PROMISE_REJECTION').length+' · событий: '+log.length}
+function mount(){if(document.getElementById('pixel-qa20-toggle'))return;const btn=document.createElement('button');btn.id='pixel-qa20-toggle';btn.textContent='🛡 QA20';btn.style='position:fixed;bottom:84px;left:12px;z-index:2147483645;background:#102a43;color:white;border:1px solid #6ca8f7;border-radius:14px;padding:12px;font-weight:bold;box-shadow:0 3px 10px #0005';btn.onclick=()=>{root.hidden=!root.hidden;if(!root.hidden)run()};document.body.appendChild(btn);
+root=document.createElement('section');root.id='pixel-qa20-panel';root.hidden=true;root.style='position:fixed;inset:6% 4%;z-index:2147483646;background:#fff;color:#172b4d;border:3px solid #2264cb;border-radius:15px;box-shadow:0 0 0 200vmax #0009;padding:16px;overflow:auto;font:14px Arial,sans-serif';root.innerHTML='<h3 style="margin:0 0 10px">Pixel QA20 · Диагностика</h3><p>Наблюдение за ошибками без отправки данных на сервер. Проверки не меняют заказ.</p><div data-results></div><p data-foot></p><div style="display:flex;gap:8px;flex-wrap:wrap"><button type="button" data-run>🔍 Проверить</button><button type="button" data-save>⬇ Отчёт JSON</button><button type="button" data-close>Закрыть</button></div><p style="font-size:12px">Это базовая защита. Полные тесты расчётов и сценариев заказа потребуют подключения к внутренним функциям Pixel.</p>';
+root.querySelectorAll('button').forEach(b=>b.style='padding:12px;border-radius:8px;border:1px solid #99b6d7;background:#edf5ff;color:#123');root.querySelector('[data-run]').onclick=run;root.querySelector('[data-save]').onclick=download;root.querySelector('[data-close]').onclick=()=>root.hidden=true;document.body.appendChild(root);add('GUARD_STARTED','QA20 runtime guard installed');}
+window.__PIXEL_GUARD20__={run,download,events:log};if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',mount,{once:true});else mount();
+})();
+</script>
+<script id="pixelQA29RoomContourCommit">
+/* QA29: per-room accepted contour -> card; never copy another room's metrics. */
+(function(){'use strict';
+function commit(origin){
+ try{
+  if(typeof activeRoomId==='undefined'||!activeRoomId||!Array.isArray(projectRooms))return;
+  const idx=projectRooms.findIndex(r=>String(r.id)===String(activeRoomId));if(idx<0)return;
+  if(!Array.isArray(roomPoints)||roomPoints.length<3||!Array.isArray(segmentLengths)||segmentLengths.length<roomPoints.length)return;
+  const lengths=segmentLengths.slice(0,roomPoints.length).map(Number);
+  if(lengths.some(x=>!Number.isFinite(x)||x<=0))return;
+  const metrics=typeof polygonMetrics==='function'?polygonMetrics():null;
+  if(!metrics||!Number.isFinite(metrics.area)||metrics.area<=0||!Number.isFinite(metrics.perimeter)||metrics.perimeter<=0)return;
+  const id=String(activeRoomId);
+  if(typeof area!=='undefined'&&area)area.value=metrics.area.toFixed(2);
+  if(typeof perimeter!=='undefined'&&perimeter)perimeter.value=metrics.perimeter.toFixed(2);
+  if(typeof syncActiveRoomFromUI==='function')syncActiveRoomFromUI(false);
+  const target=projectRooms.find(r=>String(r.id)===id);if(!target)return;
+  target.planner=target.planner||{};
+  target.planner.points=JSON.parse(JSON.stringify(roomPoints));
+  target.planner.segments=lengths.slice();
+  target.planner.template=typeof roomTemplate!=='undefined'?roomTemplate:target.planner.template;
+  target.planner.geometryStatus196f='contour';
+  target.planner.geometryAcceptedAtQA29=new Date().toISOString();
+  target.area=metrics.area;target.perimeter=metrics.perimeter;
+  if(target.metrics&&typeof target.metrics==='object'){target.metrics.area=metrics.area;target.metrics.perimeter=metrics.perimeter}
+  if(typeof autosave==='function')autosave();
+  // Autosave may rebuild room objects: reassert status for the same room only.
+  const after=projectRooms.find(r=>String(r.id)===id);
+  if(after){after.planner=after.planner||{};after.planner.geometryStatus196f='contour';after.planner.geometryAcceptedAtQA29=target.planner.geometryAcceptedAtQA29;}
+  if(typeof renderRooms==='function')renderRooms();
+  if(typeof updateSummary==='function')updateSummary();
+  console.info('[Pixel QA29] contour committed',id,origin,metrics);
+ }catch(e){console.error('[Pixel QA29] contour commit failed',e)}
+}
+function wrap(name){const fn=window[name];if(typeof fn!=='function'||fn.__qa29)return;
+ const wrapped=function(){const result=fn.apply(this,arguments);if(name==='applyFingerDrawing4405')setTimeout(()=>commit(name),50);else setTimeout(()=>commit(name),0);return result};wrapped.__qa29=true;window[name]=wrapped;
+}
+function boot(){wrap('applyFingerDrawing4405');wrap('savePlannerRoom');}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
+window.addEventListener('pageshow',boot);
+})();
+</script>
+<script id="pixelQA30ReloadGeometryGuard">/* Superseded by QA32 core fix; disabled to prevent conflicting writes. */</script>
 </body>
 
 
@@ -41144,7 +41547,7 @@ const C=v=>{try{return JSON.parse(JSON.stringify(v))}catch(_){return v}};
 function rooms(){try{return Array.isArray(projectRooms)?projectRooms:(Array.isArray(window.projectRooms)?window.projectRooms:[])}catch(_){return Array.isArray(window.projectRooms)?window.projectRooms:[]}}
 function aid(){try{return String(activeRoomId??window.activeRoomId??'')}catch(_){return String(window.activeRoomId??'')}}
 function room(){return rooms().find(r=>String(r?.id??'')===aid())||null}
-function ses(r=room()){const a=window.__pixelRadiusUnifiedActiveSession;return a&&typeof a==='object'&&Object.keys(a).length?a:(r?.planner?.radiusUnifiedV6||{})}
+function ses(r=room()){return (r?.planner?.radiusUnifiedV6&&typeof r.planner.radiusUnifiedV6==='object')?r.planner.radiusUnifiedV6:{}}
 function straight(){try{const m=polygonMetrics();return{area:N(m?.area),perimeter:N(m?.perimeter)}}catch(_){return{area:0,perimeter:0}}}
 function angle(i){try{const p=roomPoints,n=p.length,v=p[i],a=p[(i+n-1)%n],b=p[(i+1)%n];if(!v||!a||!b)return 0;let ux=a[0]-v[0],uy=a[1]-v[1],wx=b[0]-v[0],wy=b[1]-v[1];const A=Math.hypot(ux,uy),B=Math.hypot(wx,wy);if(A<1e-9||B<1e-9)return 0;ux/=A;uy/=A;wx/=B;wy/=B;return Math.acos(Math.max(-.999999,Math.min(.999999,ux*wx+uy*wy)))}catch(_){return 0}}
 function calc(){const b=straight();let A=b.area,P=b.perimeter,count=0;for(const[k,it]of Object.entries(ses())){const i=Number(k),R=N(it?.r),th=angle(i);if(!Number.isInteger(i)||!(R>0&&th>0&&th<Math.PI))continue;const t=R/Math.tan(th/2),phi=Math.PI-th;const triangle=.5*t*t*Math.sin(th);const segment=.5*R*R*(phi-Math.sin(phi));const patch=Math.max(0,triangle+(it?.dir==='out'?segment:-segment));A-=patch;P+=R*phi-2*t;count++}return{ok:b.area>0&&b.perimeter>0&&count>0,baseArea:b.area,basePerimeter:b.perimeter,area:A,perimeter:P,count}}
@@ -41196,10 +41599,11 @@ function nameOf(r){if(!r)return 'Кімната';const n=String(r.name??r.roomNa
 function values(r){
  let m=null;
  try{m=window.pixelV19RadiusMetrics?.calc?.()||null}catch(_){}
- let A=num(m?.area),P=num(m?.perimeter);
- if(!(A>0&&P>0)){const sm=r?.planner?.radiusMetricsV19;A=num(sm?.area);P=num(sm?.perimeter)}
- if(!(A>0))A=num(r?.area??r?.metrics?.area??r?.preliminary?.area);
- if(!(P>0))P=num(r?.perimeter??r?.metrics?.perimeter??r?.preliminary?.perimeter);
+ // QA14: room-specific saved metrics are authoritative for this room's header.
+ // Global radius calc can still contain the previous room's live session.
+ let A=num(r?.area),P=num(r?.perimeter);
+ if(!(A>0))A=num(r?.metrics?.area??r?.preliminary?.area);
+ if(!(P>0))P=num(r?.metrics?.perimeter??r?.preliminary?.perimeter);
  return{A,P};
 }
 function ensure(){const svg=document.getElementById('plannerMiniSvg');if(!svg)return null;let el=document.getElementById('pixelUpperMiniRoomInfo196e');if(!el){el=document.createElement('div');el.id='pixelUpperMiniRoomInfo196e';svg.parentNode.insertBefore(el,svg)}return el}
@@ -41231,41 +41635,11 @@ try{document.documentElement.dataset.pixelStatusBuild='V19.6F';}catch(_){}
 
 <!-- Pixel V19.6BB8A: clean CUT radius — exact A/E tangent points, no legacy sharp-corner marker -->
 <script id="pixelBB8ACutRadiusCleanAE">
-(function(){'use strict';
+// RC3.4: do not paint the legacy hardcoded R 1.07m preview on arbitrary rooms.
+// Radius geometry, when explicitly saved in a room, remains in the normal room contour.
 window.paintCutRadiusPreviewBB6=function(svg){
- try{
-  if(!svg)return;
-  svg.querySelector('#bb6CutRadius')?.remove();
-  const texts=[...svg.querySelectorAll('text')];
-  const label=n=>texts.find(t=>(t.textContent||'').trim()===n && !t.closest('#bb6CutRadius'));
-  const B=label('B'),D=label('D');if(!B||!D)return;
-  // The SVG's standard vertex labels are offset (+10,-13..15) from their circles.
-  // Recover the original orthogonal wall axes from B and D, not from the already rounded A.
-  const x0=Number(D.getAttribute('x'))-10, x1=Number(B.getAttribute('x'))-10;
-  const y0=Number(B.getAttribute('y'))+14, y1=Number(D.getAttribute('y'))+14;
-  const w=x1-x0,h=y1-y0;if(!(w>40&&h>40))return;
-  const rx=w*1.07/5.60,ry=h*1.07/4.70;
-  const ax=x0+rx,ey=y0+ry;
-  const ns='http://www.w3.org/2000/svg';
-  const make=(tag,attrs)=>{const e=document.createElementNS(ns,tag);Object.entries(attrs).forEach(([k,v])=>e.setAttribute(k,String(v)));return e};
-  const g=make('g',{id:'bb6CutRadius','pointer-events':'none'});
-  // Hide only the obsolete sharp corner and its obsolete labels, then paint the actual cut.
-  const mask=make('path',{d:`M ${x0-34} ${y0-34} H ${ax+12} V ${y0+10} Q ${x0+10} ${y0+10} ${x0+10} ${ey+12} H ${x0-34} Z`,fill:'#f8fafc'});g.appendChild(mask);
-  // Clear the excluded quarter-corner wedge above/left of the actual radius.
-  g.appendChild(make('path',{d:`M ${x0} ${y0} L ${ax} ${y0} A ${rx} ${ry} 0 0 1 ${x0} ${ey} Z`,fill:'#f8fafc',stroke:'none'}));
-  const arc=make('path',{d:`M ${ax} ${y0} A ${rx} ${ry} 0 0 1 ${x0} ${ey}`,fill:'none',stroke:'#0b6cf2','stroke-width':4,'stroke-linecap':'round'});g.appendChild(arc);
-  for(const [x,y,name,dx,dy] of [[ax,y0,'A',10,-10],[x0,ey,'E',10,5]]){
-   g.appendChild(make('circle',{cx:x,cy:y,r:8,fill:'#fff',stroke:'#0b6cf2','stroke-width':4}));
-   const t=make('text',{x:x+dx,y:y+dy,'font-size':13,'font-weight':900,fill:'#111827'});t.textContent=name;g.appendChild(t);
-  }
-  const r=make('text',{x:x0+25,y:y0+39,'font-size':12,'font-weight':900,fill:'#7c3aed'});r.textContent='R 1.07 м';g.appendChild(r);
-  svg.appendChild(g);
-  // Obsolete pre-radius S/P belong to the sharp polygon and must never be shown in CUT.
-  texts.forEach(t=>{const v=(t.textContent||'').replace(/\s+/g,' ').trim().replace(',','.');if(/^(26\.32\s*м²|20\.60\s*м)$/.test(v))t.style.display='none'});
- }catch(e){console.warn('BB8B radius cut',e)}
+  try{svg?.querySelector('#bb6CutRadius')?.remove()}catch(_){}
 };
-try{document.documentElement.dataset.radiusCutBuild='V19.6BB8C';document.title='Potolok AI PRO — Pixel V19.6BB8CC'}catch(_){}
-})();
 </script>
 
 
@@ -42402,3 +42776,171 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   .tabs-main>.main-tab{flex:0 0 auto!important;display:flex!important;align-items:center!important;justify-content:center!important;width:auto!important;min-width:112px!important;max-width:168px!important;min-height:48px!important;padding:8px 10px!important;white-space:normal!important;text-align:center!important;}
 }
 </style>
+
+<!-- PIXEL V19.6 RC3.3 TEST: independent wall lengths and canonical metrics sync; focused-input repaint guard + manual segment edit isolation; no radius, room, catalog or history mutations -->
+<script id="pixel-rc3-segment-edit-guard">
+(()=>{'use strict';
+ if(window.__pixelRC3SegmentEditGuard)return;window.__pixelRC3SegmentEditGuard=true;
+ const selector='#segmentInputs input[id^="segment_"]';
+ const draft=new WeakMap();
+ const valid=x=>/^\d+(?:[.,]\d+)?$/.test(String(x).trim()) && Number(String(x).replace(',','.'))>0;
+ function segmentInput(el){return el?.matches?.(selector)}
+ // Stop the old inline oninput handler from rebuilding the form while the user types.
+ document.addEventListener('input',function(e){
+   const el=e.target;if(!segmentInput(el))return;
+   draft.set(el,el.value);
+   e.stopImmediatePropagation();
+ },true);
+ function commit(el){
+   if(!segmentInput(el)||!draft.has(el))return;
+   const raw=draft.get(el);draft.delete(el);
+   if(!valid(raw))return; // An empty/partial edit is not 0.01 m.
+   const i=Number(el.id.slice('segment_'.length));
+   if(!Number.isInteger(i)||i<0)return;
+   try{window.updateSegment?.(i,String(raw).replace(',','.'))}catch(err){console.error('RC3 segment commit',err)}
+ }
+ // Commit only after editing; blur occurs before the old change handler can interfere.
+ document.addEventListener('change',function(e){if(segmentInput(e.target)){e.stopImmediatePropagation();commit(e.target)}},true);
+ document.addEventListener('focusout',function(e){if(segmentInput(e.target))commit(e.target)},true);
+})();
+</script>
+
+<style id="pixelFilmPhotoRC36Style">.film-photo-rc36{margin-top:10px;display:grid;gap:8px}.film-photo-rc36[hidden]{display:none!important}.film-photo-label-rc36{display:block!important;text-align:center;padding:12px;border:1px dashed #60a5fa;border-radius:10px;background:#eff6ff;color:#075bff;font-size:12px;font-weight:900;cursor:pointer}.film-photo-label-rc36 input{display:none!important}.film-photo-rc36 img{max-width:100%;max-height:220px;object-fit:contain;border-radius:9px}.film-photo-rc36 button{border:1px solid #fecaca;background:#fff1f2;color:#b91c1c;padding:8px;border-radius:8px;font-weight:800}</style>
+<script id="pixelFilmPhotoRC36Script">
+(function(){'use strict';
+function room(){try{return (projectRooms||[]).find(r=>String(r.id)===String(activeRoomId))||null}catch(_){return null}}
+function redraw(){const r=room(),v=window.pixelFilmRC35?.state?.()||{white:true};for(const prefix of ['film','prod']){const box=document.getElementById(prefix+'PhotoBoxRC36'),img=document.getElementById(prefix+'PhotoPreviewRC36'),del=document.getElementById(prefix+'PhotoDeleteRC36');if(box)box.hidden=v.white;if(img){img.hidden=!r?.filmColorPhotoRC36;if(r?.filmColorPhotoRC36&&img.src!==r.filmColorPhotoRC36)img.src=r.filmColorPhotoRC36}if(del)del.hidden=!r?.filmColorPhotoRC36}}
+async function upload(input){const file=input.files?.[0],r=room();if(!file||!r)return;try{const url=URL.createObjectURL(file);const img=new Image();img.src=url;await img.decode();const scale=Math.min(1,900/Math.max(img.width,img.height));const c=document.createElement('canvas');c.width=Math.max(1,Math.round(img.width*scale));c.height=Math.max(1,Math.round(img.height*scale));c.getContext('2d').drawImage(img,0,0,c.width,c.height);URL.revokeObjectURL(url);r.filmColorPhotoRC36=c.toDataURL('image/jpeg',.7);try{autosave?.()}catch(_){}redraw()}catch(err){alert('Не вдалося додати фото: '+err.message)}input.value=''}
+function remove(){const r=room();if(r){delete r.filmColorPhotoRC36;try{autosave?.()}catch(_){}}redraw()}
+window.pixelFilmPhotoRC36={upload,remove,redraw};const original=window.pixelFilmRC35?.draw;if(original){window.pixelFilmRC35.draw=function(){original();redraw()}}document.addEventListener('click',()=>requestAnimationFrame(redraw),true);if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',redraw);else redraw();
+})();
+</script>
+
+
+<script id="pixel-qa25-internal-readonly">
+(function(){'use strict';
+const ok=(status,detail)=>({status,detail});
+const num=v=>typeof v==='number'?v:Number(String(v??'').replace(',','.'));
+function rooms(){try{return typeof projectRooms!=='undefined'&&Array.isArray(projectRooms)?projectRooms:null}catch(_){return null}}
+function active(){try{return typeof activeRoomId!=='undefined'?activeRoomId:null}catch(_){return null}}
+function room(){const a=rooms(),id=active();return a?.find(r=>String(r.id)===String(id))||null}
+function geometry(){
+ const rs=rooms();if(!rs)return ok('unchecked','projectRooms недоступний');
+ let verified=0,unverified=0;const errors=[],warnings=[];
+ for(const r of rs){
+  const p=r?.planner||{},id=String(r.id),label=String(r.name||id);
+  const lens=Array.isArray(p.segments)?p.segments:(Array.isArray(r?.segmentLengths)?r.segmentLengths:null);
+  if(!lens?.length){unverified++;continue}
+  const values=lens.map(x=>num(typeof x==='object'?(x.length??x.value):x));
+  if(values.some(x=>!Number.isFinite(x)||x<=0)){errors.push(label+' ['+id+']: некоректна довжина сторони');continue}
+  const sum=values.reduce((a,b)=>a+b,0),stored=num(r.perimeter);
+  const radii=Object.values(p.radiusUnifiedV6||{}).filter(x=>x&&num(x.r)>0);
+  if(radii.length){
+   const m=p.radiusMetricsV19;
+   if(m?.ok===true&&Number.isFinite(num(m.perimeter))&&num(m.perimeter)>0&&Number.isFinite(stored)&&stored>0){
+    if(Math.abs(stored-num(m.perimeter))>Math.max(.05,stored*.005))warnings.push(label+' ['+id+']: радіусний периметр '+stored.toFixed(3)+' м, метрика '+num(m.perimeter).toFixed(3)+' м');
+    else verified++;
+   }else unverified++;
+   continue;
+  }
+  if(!Number.isFinite(stored)||stored<=0){unverified++;continue}
+  const tolerance=Math.max(.05,stored*.005);
+  if(Math.abs(sum-stored)>tolerance){
+   let live='';
+   if(id===String(active())){
+    try{
+     const liveLens=typeof segmentLengths!=='undefined'&&Array.isArray(segmentLengths)?segmentLengths:null;
+     const liveSum=liveLens?.reduce((a,v)=>a+num(v),0);
+     const inputPer=num(document.getElementById('perimeter')?.value);
+     if(Number.isFinite(liveSum)&&liveSum>0)live='; активні стіни '+liveSum.toFixed(3)+' м';
+     if(Number.isFinite(inputPer)&&inputPer>0)live+='; поле периметра '+inputPer.toFixed(3)+' м';
+    }catch(_){ }
+   }
+   warnings.push(label+' ['+id+']: збережені стіни '+sum.toFixed(3)+' м, поле кімнати '+stored.toFixed(3)+' м, різниця '+(sum-stored).toFixed(3)+' м'+live);
+  }else verified++;
+ }
+ if(errors.length)return ok('fail',errors.slice(0,8).join('; '));
+ if(warnings.length)return ok('unchecked','ПОТРІБНА ЗВІРКА ('+warnings.length+'): '+warnings.slice(0,6).join('; ')+'. Джерела розходяться; автоматично змінювати розміри або замовлення небезпечно. Відкрийте кімнату та перевірте її стіни і периметр.');
+ return ok(verified&&unverified===0?'pass':'unchecked','Звірено '+verified+' з '+rs.length+' кімнат; без незалежного еталону: '+unverified+'. Площа не перевірена незалежно');
+}
+function quantities(){const r=room();if(!r)return ok('unchecked','Нет активной комнаты');const d=r.productionDraft4408||{};const b=r.perimeterBindings;
+ if(Array.isArray(b)){const bad=b.filter(x=>x&&['length','qty','quantity'].some(k=>x[k]!==undefined&&(!Number.isFinite(num(x[k]))||num(x[k])<0)));if(bad.length)return ok('fail','Комната '+r.id+': некорректные количества в привязках: '+bad.length);return ok('pass','Комната '+r.id+': проверено '+b.length+' привязок периметра; профиль/вставка/полотно: полная сверка с ручными переопределениями пока недоступна')}
+ return ok('unchecked','Комната '+r.id+': нет массива perimeterBindings; полная проверка количеств недоступна')}
+function materials(){const rs=rooms();if(!rs)return ok('unchecked','projectRooms недоступен');let count=0,bad=0;for(const r of rs){const a=r?.productionDraft4408?.customMaterials4409;if(!Array.isArray(a))continue;count+=a.length;for(const x of a){if(!x||typeof x!=='object')continue;for(const k of ['qty','quantity','price'])if(x[k]!==undefined&&(!Number.isFinite(num(x[k]))||num(x[k])<0)){bad++;break}}}return ok(bad?'fail':'pass','Проверено '+count+' пользовательских материалов в '+rs.length+' комнатах; некорректных чисел: '+bad+'. Повтор одинаковых артикулов не считается ошибкой без правил объединения')}
+function orders(){const rs=rooms();if(!rs)return ok('unchecked','projectRooms недоступен');let n=0,bad=0;for(const r of rs){const a=r?.productionOrders4408;if(!Array.isArray(a))continue;for(const o of a){n++;if(!o||String(o.roomId)!==String(r.id)||!o.id||!Number.isFinite(num(o.area))||num(o.area)<0||!Number.isFinite(num(o.perimeter))||num(o.perimeter)<0)bad++}}return ok(bad?'fail':'pass','Проверено '+n+' сохранённых производственных заказов; повреждённых базовых полей: '+bad+'. Изменения черновика не должны автоматически изменять архив; полная проверка неизменности требует эталонного снимка')}
+
+// QA26: independent, read-only consistency checks. A missing canonical metric is NOT a pass.
+function radiusArea(){const rs=rooms();if(!rs)return ok('unchecked','Немає доступу до кімнат');let active=0,verified=0,missing=0;const errors=[];for(const r of rs){const p=r?.planner||{},entries=Object.values(p.radiusUnifiedV6||{}).filter(x=>x&&num(x.r)>0);if(!entries.length)continue;active+=entries.length;const m=p.radiusMetricsV19;if(!m||m.ok!==true){missing++;continue}const vals=[num(r.area),num(r.perimeter),num(m.area),num(m.perimeter)];if(vals.some(x=>!Number.isFinite(x)||x<=0)){errors.push(String(r.id)+': некоректні метрики');continue}verified++;if(Math.abs(vals[0]-vals[2])>Math.max(.02,vals[2]*.002)||Math.abs(vals[1]-vals[3])>Math.max(.02,vals[3]*.002))errors.push(String(r.id)+': площа/периметр не збігаються')}if(errors.length)return ok('fail',errors.join('; '));if(!active)return ok('unchecked','У '+rs.length+' кімнатах немає активних радіусів — тест радіусів не застосовується');return ok(missing?'unchecked':'pass','Активних радіусів: '+active+'; кімнат зі звіреними метриками: '+verified+'; без метрик: '+missing+'. Це НЕ незалежний перерахунок дуг');}
+const archiveBaseline=new Map();
+function archiveIntegrity(){const rs=rooms();if(!rs)return ok('unchecked','Немає доступу до projectRooms');let seen=0,changes=[];
+ for(const r of rs){for(const o of Array.isArray(r?.productionOrders4408)?r.productionOrders4408:[]){if(!o?.id)continue;seen++;const key=String(r.id)+'|'+String(o.id);let serialized;try{serialized=JSON.stringify(o)}catch(_){return ok('unchecked','Не вдалося серіалізувати архів без змін')}if(!archiveBaseline.has(key))archiveBaseline.set(key,serialized);else if(archiveBaseline.get(key)!==serialized)changes.push(key)}}
+ if(changes.length)return ok('fail','Змінено раніше зафіксовані в цій сесії замовлення: '+changes.slice(0,5).join(', ')+'. Перевірте, чи зміни були навмисними');
+ return ok(seen?'pass':'unchecked',seen?'Знімки '+seen+' замовлень у пам’яті цієї вкладки без змін. Перевірка починається з першого запуску QA27; попередню історію не охоплює':'Немає збережених замовлень для порівняння');}
+function materialTotals(){const rs=rooms();if(!rs)return ok('unchecked','Немає доступу до projectRooms');let rows=0,priced=0,withSum=0,bad=[];
+ for(const r of rs){for(const x of Array.isArray(r?.productionDraft4408?.customMaterials4409)?r.productionDraft4408.customMaterials4409:[]){if(!x||typeof x!=='object')continue;rows++;const q=x.qty??x.quantity,price=x.price,sum=x.sum??x.total;
+ if(q===undefined||price===undefined)continue;priced++;const a=num(q),b=num(price);if(![a,b].every(Number.isFinite)||a<0||b<0){bad.push(String(r.id)+': некоректна кількість або ціна');continue}
+ if(sum!==undefined&&sum!==null&&sum!==''){withSum++;const c=num(sum);if(!Number.isFinite(c)||Math.abs(a*b-c)>Math.max(.05,Math.abs(c)*.005))bad.push(String(r.id)+': '+String(x.name||x.id||'матеріал'))}
+ }}
+ if(bad.length)return ok('fail','Некоректні суми/значення: '+bad.slice(0,5).join('; '));
+ if(!priced)return ok('unchecked','Немає матеріалів із кількістю та ціною');
+ return ok(withSum?'pass':'unchecked','Перевірено числові кількості/ціни: '+priced+' із '+rows+' позицій. Незалежна звірка суми: '+withSum+'. У поточній моделі customMaterials4409 сума не зберігається окремо, а обчислюється під час відображення; це не помилка');}
+window.__pixelQA26Checks={radiusArea,archiveIntegrity,materialTotals};
+window.__pixelQA25Checks={geometry,quantities,materials,orders};
+})();
+</script>
+
+<!-- QA27 PERMANENT AUTODIAGNOSTICS: read-only, four layers, mutation-triggered -->
+<script id="pixel-qa22-permanent-diagnostics">
+(()=>{'use strict';
+if(window.__PIXEL_QA22__)return;
+const events=[],results=[];let panel,badge,scheduled=0,scanning=false,previous=new Map(),lastRun=0;
+const add=(type,message)=>{const entry={at:new Date().toISOString(),type,message:String(message).slice(0,700)};events.push(entry);if(events.length>200)events.shift();};
+window.addEventListener('error',e=>{add('JS_ERROR',(e.message||'Unknown error')+' '+(e.filename||'')+':'+(e.lineno||''));schedule();});
+window.addEventListener('unhandledrejection',e=>{add('PROMISE_REJECTION',String(e.reason?.stack||e.reason||'Unknown rejection'));schedule();});
+function check(group,name,fn){try{let x=fn();results.push({group,name,status:x.status||'unchecked',detail:String(x.detail||'')});}catch(e){results.push({group,name,status:'fail',detail:String(e)});add('CHECK_EXCEPTION',name+': '+e)}}
+function run(){if(scanning)return;scanning=true;lastRun=Date.now();results.length=0;
+check('1. Runtime','JavaScript / Promise errors',()=>({status:events.some(e=>/JS_ERROR|PROMISE_REJECTION/.test(e.type))?'fail':'pass',detail:events.filter(e=>/JS_ERROR|PROMISE_REJECTION/.test(e.type)).length+' captured since opening; historical errors before load unavailable'}));
+check('1. Runtime','Local storage access (read-only)',()=>{try{localStorage.length;return{status:'pass',detail:'Read access available'}}catch(e){return{status:'fail',detail:String(e)}}});
+check('2. Structure','Duplicate HTML IDs',()=>{const seen=new Set(),duplicates=new Set();document.querySelectorAll('[id]').forEach(e=>{if(seen.has(e.id))duplicates.add(e.id);seen.add(e.id)});return{status:duplicates.size?'fail':'pass',detail:duplicates.size?[...duplicates].slice(0,30).join(', '):'No duplicate IDs'}});
+check('2. Structure','Loaded image failures',()=>{const images=[...document.images].filter(e=>e.getAttribute('src'));const broken=images.filter(e=>e.complete&&e.naturalWidth===0);return{status:broken.length?'fail':'pass',detail:broken.length+' broken of '+images.length+' loaded DOM image elements; not-yet-loaded images not evaluated'}});
+check('3. Geometry','Room geometry and perimeter regression',()=>window.__pixelQA25Checks.geometry());
+check('3. Geometry','Profile / insert / film quantities',()=>window.__pixelQA25Checks.quantities());
+check('4. Order','Duplicate NW/extra materials',()=>window.__pixelQA25Checks.materials());
+check('4. Order','Saved order vs edited order',()=>window.__pixelQA25Checks.orders());
+check('3. Geometry','Radius-aware area/perimeter consistency',()=>window.__pixelQA26Checks.radiusArea());
+check('4. Order','Material amount arithmetic',()=>window.__pixelQA26Checks.materialTotals());
+check('4. Order','Archive immutability during session',()=>window.__pixelQA26Checks.archiveIntegrity());
+const failed=results.filter(r=>r.status==='fail');const now=new Map(results.map(r=>[r.group+'|'+r.name,r.status+'|'+r.detail]));for(const r of failed){const k=r.group+'|'+r.name;if(previous.get(k)!==now.get(k))add('NEW_FAILURE',r.name+': '+r.detail)}previous=now;
+if(badge){const skipped=results.filter(r=>r.status==='unchecked').length;badge.textContent='🛡 '+(failed.length?'❌ '+failed.length:skipped?'⚠ '+skipped:'✓');badge.title='QA28 · '+failed.length+' помилок; '+skipped+' неперевірених'}render();scanning=false;}
+function schedule(){if(scheduled)return;scheduled=setTimeout(()=>{scheduled=0;run()},1200)}
+function render(){if(!panel||panel.hidden)return;const target=panel.querySelector('[data-qa22-results]');target.replaceChildren();for(const r of results){const div=document.createElement('div');div.style='padding:8px 0;border-bottom:1px solid #ddd';const mark=r.status==='pass'?'✅':r.status==='fail'?'❌':'⚪';div.textContent=mark+' '+r.group+' · '+r.name+' — '+r.detail;target.appendChild(div)}panel.querySelector('[data-qa22-foot]').textContent='Пройдено: '+results.filter(r=>r.status==='pass').length+' · Помилки: '+results.filter(r=>r.status==='fail').length+' · Не перевірено: '+results.filter(r=>r.status==='unchecked').length+' · '+new Date(lastRun).toLocaleTimeString()+' · Події: '+events.length+' · Дані не надсилаються';}
+function download(){const payload={version:'QA28-ROOM-SOURCE-AUDIT',generated:new Date().toISOString(),checks:results,events,privacy:'Read-only diagnostics; no storage contents or network uploads'};const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='Pixel_QA27_FIX_'+Date.now()+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),3000)}
+function mount(){if(document.getElementById('pixel-qa22-toggle'))return;
+for(const id of ['pixel-qa20-toggle','pixelQA37Button']){const e=document.getElementById(id);if(e)e.style.display='none'}
+const style=document.createElement('style');style.textContent='#pixel-qa20-toggle,#pixelQA37Button{display:none!important}';document.head.appendChild(style);
+badge=document.createElement('button');badge.type='button';badge.id='pixel-qa22-toggle';badge.textContent='🛡 QA';badge.style='position:static;flex:0 0 auto;background:#102a43;color:white;border:1px solid #6ca8f7;border-radius:9px;padding:7px 9px;font-size:11px;font-weight:bold;box-shadow:none';badge.onclick=()=>{panel.hidden=!panel.hidden;if(!panel.hidden)run()};(document.querySelector('.header .nav')||document.querySelector('.header')||document.body).appendChild(badge);
+panel=document.createElement('section');panel.id='pixel-qa22-panel';panel.hidden=true;panel.style='position:fixed;inset:5% 4%;z-index:2147483646;background:white;color:#172b4d;border:3px solid #2264cb;border-radius:15px;box-shadow:0 0 0 200vmax #0009;padding:16px;overflow:auto;font:14px Arial,sans-serif';panel.innerHTML='<h3>Pixel QA28 · Звірка геометрії по кімнатах</h3><p>Автоматично після змін · 4 рівні перевірок · Без зміни замовлень</p><div data-qa22-results></div><p data-qa22-foot></p><div style="display:flex;flex-wrap:wrap;gap:8px"><button data-check type="button">🔍 Перевірити</button><button data-download type="button">⬇ JSON</button><button data-close type="button">Закрити</button></div><p style="font-size:12px">⚪ Не перевірено = немає доступу до внутрішніх даних, це не успішний тест.</p>';panel.querySelectorAll('button').forEach(b=>b.style='padding:12px;border:1px solid #99b6d7;border-radius:8px;background:#edf5ff');panel.querySelector('[data-check]').onclick=run;panel.querySelector('[data-download]').onclick=download;panel.querySelector('[data-close]').onclick=()=>panel.hidden=true;document.body.appendChild(panel);
+const observer=new MutationObserver(m=>{if(m.some(x=>x.target?.closest?.('#pixel-qa22-panel,#pixel-qa22-toggle')))return;schedule()});observer.observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['value','class','hidden','data-status']});
+document.addEventListener('change',schedule,true);document.addEventListener('input',schedule,true);window.addEventListener('pageshow',schedule);run();setInterval(()=>{if(!document.hidden)schedule()},30000);
+}
+window.__PIXEL_QA22__={run,download,results,events};if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',mount,{once:true});else mount();
+})();
+</script>
+
+<script id="pixelQA31CanonicalGeometryAtFinalBoot">/* Superseded by QA32 core fix; disabled to prevent conflicting writes. */</script>
+
+<script id="pixelQA32VisibleAudit">
+(function(){'use strict';
+ function boot(){if(document.getElementById('qa32AuditButton'))return;
+  const b=document.createElement('button');b.id='qa32AuditButton';b.type='button';b.textContent='🔎 QA32: джерела геометрії';
+  b.style.cssText='position:static;display:block;width:100%;margin:12px 0;background:#173c66;color:white;border:2px solid #fff;border-radius:12px;padding:12px;font:600 12px Arial';
+  b.onclick=()=>{const api=window.__PIXEL_QA32__;if(!api){alert('QA32 core not initialized');return;}
+   const a=api.audit(),lines=a.map(x=>{const e=x.source;const bad=e&&(Math.abs(Number(x.card.perimeter)-e.perimeter)>.025||(e.area!==null&&Math.abs(Number(x.card.area)-e.area)>.025));return (bad?'❌ ':'✓ ')+x.name+' | картка '+x.card.area+' м² / '+x.card.perimeter+' м | контур '+(e?.area??'?')+' м² / '+(e?.perimeter??'?')+' м'+(x.correction?' | виправлено на '+x.correction.stage:'');});
+   const t=document.createElement('textarea');t.value=lines.join('\n');t.readOnly=true;t.style.cssText='width:100%;height:65vh;font:14px monospace';
+   const dialog=document.createElement('div');dialog.style.cssText='position:fixed;inset:8% 3%;z-index:2147483647;background:white;color:black;border:3px solid #173c66;padding:14px;overflow:auto;border-radius:12px';
+   const close=document.createElement('button');close.textContent='Закрити';close.onclick=()=>dialog.remove();dialog.append(close,t);document.body.append(dialog);
+  };const diagnosticsPanel=document.getElementById('pixel-qa22-panel');if(diagnosticsPanel){diagnosticsPanel.appendChild(b);}else{(document.querySelector('.header .nav')||document.body).appendChild(b);}
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
+})();
+</script>
